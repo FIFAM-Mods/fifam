@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="FifaDataFile.cpp" />
+    <ClCompile Include="FifaDatabase.cpp" />
+    <ClCompile Include="FifaDate.cpp" />
+    <ClCompile Include="FifaLeague.cpp" />
+    <ClCompile Include="FifaManager.cpp" />
+    <ClCompile Include="FifaPlayer.cpp" />
+    <ClCompile Include="FifaReferee.cpp" />
+    <ClCompile Include="FifaStadium.cpp" />
+    <ClCompile Include="FifaTeam.cpp" />
+    <ClCompile Include="FifaVersion.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="FifaDataFile.h" />
+    <ClInclude Include="FifaDatabase.h" />
+    <ClInclude Include="FifaDate.h" />
+    <ClInclude Include="FifaLeague.h" />
+    <ClInclude Include="FifaManager.h" />
+    <ClInclude Include="FifaPlayer.h" />
+    <ClInclude Include="FifaReferee.h" />
+    <ClInclude Include="FifaStadium.h" />
+    <ClInclude Include="FifaTeam.h" />
+    <ClInclude Include="FifaVersion.h" />
+  </ItemGroup>
+</Project>

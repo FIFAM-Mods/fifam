@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="FmPlayer13.h" />
+    <ClInclude Include="FifamPlayer.h" />
+    <ClInclude Include="FifamDate.h" />
+    <ClInclude Include="FifamLanguage.h" />
+    <ClInclude Include="FifamCountry.h" />
+    <ClInclude Include="FifamClub.h" />
+    <ClInclude Include="FifamVersion.h" />
+    <ClInclude Include="FifamReadWrite.h" />
+    <ClInclude Include="FifamTypes.h" />
+    <ClInclude Include="FifamStaff.h" />
+    <ClInclude Include="FifamDatabase.h" />
+    <ClInclude Include="FifamNation.h" />
+    <ClInclude Include="FifamTranslation.h" />
+    <ClInclude Include="FifamReferee.h" />
+    <ClInclude Include="FifamSponsor.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="FifamDate.cpp" />
+    <ClCompile Include="FifamCountry.cpp" />
+    <ClCompile Include="FifamClub.cpp" />
+    <ClCompile Include="FifamVersion.cpp" />
+    <ClCompile Include="FifamDatabase.cpp" />
+    <ClCompile Include="FifamReferee.cpp" />
+  </ItemGroup>
+</Project>

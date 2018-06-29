@@ -1,0 +1,148 @@
+FM09 STAFF format
+
+%INDEX%STAFF
+Byte        Team position
+
+// if Staff type < 4
+
+zString<16> First Name
+zString<20> Last Name
+%INDEX%DATE
+Int         Birthdate - day
+Int         Birthdate - month
+Int         Birthdate - year
+%INDEXEND%DATE
+Byte        Nationality
+Byte        __UNKNOWN__ (0,1,2)
+Byte        Experience (0-4)
+zString<20> Nickname
+zString<20> Pseudonym
+Byte        Second nationality
+Int         Favourite club  (club id)
+Int         Would never work for (club id)
+Byte        Motivation skills (0-15)    |-
+Byte        Coaching skills (0-15)      | Array
+Byte        Goalkeepers training  (0-15)|
+Byte        Negotiation skills (0-15)   |-
+Int         Character focus
+Byte        Language 1 |-
+Byte        Language 2 | Array
+Byte        Language 3 |
+Byte        Language 4 |-
+Byte        Favourite formation
+Byte        __UNKNOWN__ (0-7)
+Byte        Stability of board of directors
+
+// else
+
+zString<16> First Name
+zString<20> Last Name
+zString<20> Nickname
+zString<20> Pseudonym (can't be set from Editor)
+%INDEX%DATE
+Int         Birthdate - day
+Int         Birthdate - month
+Int         Birthdate - year
+%INDEXEND%DATE
+Byte        Num nationalities (usually 2, can be set to 2 or higher, but only 2 will be read)
+Byte        Nationality 1 (array start)
+Byte        Nationality 2 (array end)
+Int         Favourite club  (club id) (can't be set from Editor)
+Int         Would never work for (club id) (can't be set from Editor)
+Byte        Number of personality attributes
+Int         Personality attribute (Willingness to learn) - index
+Byte        Personality attribute (Willingness to learn) - value
+Int         Personality attribute (Toghness) - index
+Byte        Personality attribute (Toghness) - value
+Int         Personality attribute (Diligence) - index
+Byte        Personality attribute (Diligence) - value
+Byte        Number of skills
+Int         Skill (Talent) - index
+Byte        Skill (Talent) - value (0-9)
+Int         Skill (Tactics) - index
+Byte        Skill (Tactics) - value
+Int         Skill (Training field player) - index
+Byte        Skill (Training field player) - value
+Int         Skill (Training goalkeeper) - index
+Byte        Skill (Training goalkeeper) - value
+Int         Skill (Fitness training) - index
+Byte        Skill (Fitness training) - value
+Int         Skill (Estimation) - index (can't be set from Editor)
+Byte        Skill (Estimation) - value (can't be set from Editor)
+Int         Skill (Team estimation) - index (can't be set from Editor)
+Byte        Skill (Team estimation) - value (can't be set from Editor)
+Int         Skill (Motivation ability) - index
+Byte        Skill (Motivation ability) - value
+Int         Skill (Bone injuries) - index
+Byte        Skill (Bone injuries) - value
+Int         Skill (Knee injuries) - index
+Byte        Skill (Knee injuries) - value
+Int         Skill (Muscle injuries) - index
+Byte        Skill (Muscle injuries) - value
+Int         Skill (Injury prevention) - index
+Byte        Skill (Injury prevention) - value
+Int         Skill (Regeneration ability) - index
+Byte        Skill (Regeneration ability) - value
+Int         Skill (Arbitrate between persons) - index (can't be set from Editor)
+Byte        Skill (Arbitrate between persons) - value (can't be set from Editor)
+Int         Skill (Negotiation) - index
+Byte        Skill (Negotiation) - value
+Int         Skill (Marketing) - index
+Byte        Skill (Marketing) - value
+Int         Skill (Sponsoring) - index
+Byte        Skill (Sponsoring) - value
+Int         Skill (Construction) - index
+Byte        Skill (Construction) - value
+Int         Skill (PR) - index
+Byte        Skill (PR) - value
+Int         Skill (Contact with fans) - index
+Byte        Skill (Contact with fans) - value
+Int         Skill (Sports law) - index
+Byte        Skill (Sports law) - value
+Int         Skill (Labor law) - index
+Byte        Skill (Labor law) - value
+Int         Skill (General scouting) - index
+Byte        Skill (General scouting) - value
+Int         Skill (Talent estimation) - index
+Byte        Skill (Talent estimation) - value
+Int         Skill (Field skills estimation) - index
+Byte        Skill (Field skills estimation) - value
+Int         Skill (Goalkeeper skills estimation) - index
+Byte        Skill (Goalkeeper skills estimation) - value
+Int         Skill (Mental skills estimation) - index
+Byte        Skill (Mental skills estimation) - value
+Int         Skill (Physical skills estimation) - index
+Byte        Skill (Physical skills estimation) - value
+Int         Skill (Networking) - index
+Byte        Skill (Networking) - value
+Byte        Number of job datas
+Int         Job data id (0 - no data)
+Byte        Job data value (unused)
+Int         Job data id (1 - coach)
+Byte        __UNKNOWN__ (0) (related to coach job data, unused (not saved)) !
+Int         Coach job data - preferred system (formation)
+Byte        Coach job data - orientation (0-4, defensive-offensive)
+Int         Job data id (2 - no data)
+Byte        Job data value (unused)
+Int         Job data id (3 - no data)
+Byte        Job data value (unused)
+Int         Job data id (4 - no data)
+Byte        Job data value (unused)
+Int         Job data id (5 - no data)
+Byte        Job data value (unused)
+Int         Job data id (6 - scout)
+Byte        __UNKNOWN__ (0) (related to scout job data, unused (not saved)) !
+Byte        Scout job data - country preferences count
+Byte        Scout job data - country id 1
+Byte        Scout job data - country id 2
+Byte        Scout job data - country id 3
+0           Unknown count [Int-Byte pairs], unused (not saved)) !
+
+%INDEXEND%STAFF
+
+Team position:
+ 0 Player
+ 1 Manager
+ 2 ChiefExec
+ 3 Chairman
+ 4 Staff

@@ -1,0 +1,7 @@
+FM07 REFEREE format
+
+%INDEX%REFEREE
+zString<16> First Name
+zString<20> Last Name
+Byte        Particularities
+%INDEXEND%REFEREE

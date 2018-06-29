@@ -1,0 +1,63 @@
+FM07 STAFF format
+
+Int         Id
+%INDEX%STAFF
+zString<16> First Name
+zString<20> Last Name
+Byte        Staff type
+%INDEX%DATE
+Int         Birthdate - day
+Int         Birthdate - month
+Int         Birthdate - year
+%INDEXEND%DATE
+Byte        Nationality
+Byte        __UNKNOWN__ (0)
+Byte        Experience (0-4)
+Byte        Motivation skills (0-15)    |-
+Byte        Coaching skills (0-15)      | Array
+Byte        Goalkeepers training  (0-15)|
+Byte        Negotiation skills (0-15)   |-
+Int         Character focus
+Byte        Language 1 |-
+Byte        Language 2 | Array
+Byte        Language 3 |
+Byte        Language 4 |-
+Byte        Favourite formation
+Byte        __UNKNOWN__ (0-7)
+Byte        Stability of board of directors
+%INDEXEND%STAFF
+
+Staff type:
+ 0 Player
+ 1 Manager
+ 2 Chairman,
+ 3 President,
+ 4 Assistantcoach,
+ 5 Goalkeepercoach,
+ 6 Amateurcoach,
+ 7 Youthcoach,
+ 8 Scout,
+ 9 Teamdoctor,
+10 SpecialistKnee,
+11 SpecialistAnkle,
+12 SpecialistMuscle,
+13 Masseur,
+14 Psychologist,
+15 ManagingDirector,
+16 Marketingguy,
+17 Stadiummanager,
+18 Fanrepresentative
+
+Character focus:
+ 0 None
+ 1 Offensive
+ 2 Defensive
+ 3 Discipline
+ 4 PlayerCharacter
+ 5 Fitness
+ 6 TacticalEducation
+ 7 Language
+ 8 LongContracts
+ 9 YoungPlayers
+10 ExperiencedPlayers
+

@@ -1,0 +1,162 @@
+%INDEX%CLUB1
+%INDEX%VERSION
+537329676
+%INDEXEND%VERSION
+zQString<29>[5]   Club name
+zQString<29>[5]   Club name 2 (duplicates first)
+zQString<10>[5]   10 character abberviation
+zQString<10>[5]   10 character abberviation 2 (duplicates first)
+Byte[5]           Uses 'the' for club abberviation (0/1)
+Byte[5]           Uses 'the' for term for fans (0/1)
+Byte[5]           Uses 'the' for term for second team term (0/1)
+zQString<5>[5]    4 character abberviation
+Byte[5]           Uses 'the' for club name in a phrase
+Byte[5]           Uses 'the' for club name in a phrase
+zQString<29>[5]   City name
+zString<19>       Term For Fans
+zString<19>       Second Team Term
+Int               Fan partnership with (club id)      
+Int               Fierce rival 1 (club id)
+Int               Fierce rival 2 (club id)
+Int               Fierce rival 3 (club id)
+Int               Fierce rival 4 (club id)
+Short             Year of foundation
+zString<119>      Address
+zString<19>       Telephone
+zString<119>      Website/Email
+zString<256>      Fansites
+zString<29>       __UNKNOWN__ (empty)
+zString<19>       Mascot name
+Int               Ititial capital
+Int               Ititial capital divided by 2
+Byte              Joint-stock company (0/1)
+Byte              __UNKNOWN__ (0)
+Byte              __UNKNOWN__ (3)
+Byte              Points on new game (with "-")
+Int               Potential fans count
+Int               Average attendance last season
+Int               Count of sold season tickets
+Int               1st league total points
+Int               1st league total wins
+Int               1st league total draws
+Int               1st league total loses
+Int               1st league total goals
+Int               1st league total goals against
+Int               1st league total leaderships in table
+Int               Stadium venue - if higher than 999, set to 0
+Int               Stadium capacity - if higher than 150000, set to 150000
+zQString<29>[5]   Stadium name (limited by 29 in Editor, 1024 by default)
+Byte              Stadium type
+Byte              Flags: 1 - stadium big main stand, 128 - can't be deleted in the editor
+Byte              Club centre
+Byte              Medical department
+Byte              Merchandising
+Byte              Youth department
+Byte              Training grounds
+Byte              Media
+Byte              Research
+Short             Flags: 256 - does not take part in IT-Cup
+zString<40>       Badge path
+Byte              Club colour        |-
+Byte              __UNKNOWN__ (0)    |
+Byte              Merchandise colour | Array
+Byte              Header colour      |
+Byte              Background colour  |-
+%INDEX%HIST
+1950
+1951
+1952
+1953
+1954
+1955
+1957
+1956
+%INDEX%RECORD
+56
+46
+0
+HomeWinClub
+2001
+%INDEXEND%RECORD
+%INDEX%RECORD
+47
+57
+0
+HomeDefeatClub
+2002
+%INDEXEND%RECORD
+%INDEX%RECORD
+67
+66
+0
+AwayWinClub
+2003
+%INDEXEND%RECORD
+%INDEX%RECORD
+64
+65
+0
+AwayDefeatClub
+2004
+%INDEXEND%RECORD
+%INDEX%RECORD
+0
+0
+5650
+RecordAttendance
+2005
+%INDEXEND%RECORD
+%INDEXEND%HIST
+-4390971
+-4325435
+18
+19
+
+193
+148
+195
+650
+0
+0
+%INDEX%KIT
+27
+12
+3
+1
+9
+17
+0
+0
+0
+3
+11
+19
+5
+13
+0
+4
+1
+28
+13
+4
+57
+49
+41
+0
+0
+0
+4
+12
+20
+6
+14
+0
+3
+2
+650
+%INDEXEND%KIT
+0
+0
+0
+0
+%INDEXEND%CLUB1

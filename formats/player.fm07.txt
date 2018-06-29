@@ -1,0 +1,162 @@
+FM07 PLAYER format
+
+Int         Id
+%INDEX%PLAYER
+zString<16> First Name
+zString<20> Last Name
+zString<20> Nickname
+zString<20> Pseudonym (actual nickname?)
+Byte        Player type (0 - Player, 1 - Manager, 2 - Chief exec, 3 - Chairman)
+Byte        Is in reserve team (0/1)
+Byte        Nationality
+Byte        Second nationality
+Byte        Flags: 1 - Does not count as foreign, 2 - basque, 4 - real player
+%INDEX%DATE
+Int         Birthdate - day
+Int         Birthdate - month
+Int         Birthdate - year
+%INDEXEND%DATE
+Byte        Flags: 3 bits - talent (Normal = 0, Gigantic = 4), 4th bit - foot (0 - right, 1 - left), 5th bit - both foots, 6th bit - , 7th bit - youth player
+Byte        Hero status
+Byte        Preferred position 1
+Byte        Preferred position 2
+Byte        Preferred position 3
+Byte        Secondary position 1
+Byte        Secondary position 2
+Byte        Secondary position 3
+Byte        Shot Power
+Byte        Long Shots
+Byte        Dribbling
+Byte        Technique
+Byte        Crossing
+Byte        Creativity
+Byte        Finishing
+Byte        Free Kicks
+Byte        Corners
+Byte        Penalty Shot
+Byte        Passing
+Byte        Long Passing
+Byte        Flair
+Byte        Tackling
+Byte        Man Marking
+Byte        Header
+Byte        Touch
+Byte        Forward Runs
+Byte        Acceleration
+Byte        Pace
+Byte        Work Rate
+Byte        Strength
+Byte        Agility
+Byte        Jumping
+Byte        Stamina
+Byte        Anticipation
+Byte        Aggression
+Byte        Composure
+Byte        Concentration
+Byte        Decision
+Byte        Determination
+Byte        Team Work
+Byte        Consistency
+Byte        Intimidation
+Byte        Leadership
+Byte        Crosses
+Byte        Handling
+Byte        Goal Kick
+Byte        One On One
+Byte        Positioning
+Byte        Punching
+Byte        Shot Stopping
+Byte        Throwing
+Byte        Playing style
+Byte        Potential
+Int         Character traits (for player), Character focus (for board)
+Byte        Hair color
+Byte        Generic face id
+Byte        Hair style
+Byte        Facial hair style
+Byte        Height
+Byte        Weight
+Byte        National experience
+Byte        International experience
+Byte        Shirt number
+Byte        Reserve shirt number
+Int         Special face id
+Int         ___UNKNOWN___ (2261955) maybe commentary id
+Int         First club - country id    | removed in FM08
+Int         First club - id            | removed in FM08
+Int         Previous club - country id | removed in FM08
+Int         Previous club - id         | removed in FM08
+Short       Joined club year
+Short       Contract valid until year
+Int         Basic salary
+Int         Fix transfer fee
+Int         ___UNKNOWN___ (0)
+Byte        National team apps
+Byte        National team goals
+Byte        Manager motivation skills    |-
+Byte        Manager coaching skills      | Array<4>
+Byte        Manager goalkeepers training |
+Byte        Manager negotiation skills   |-
+Byte        Language 1
+Byte        Language 2
+Byte        Language 3
+Byte        Language 4
+Int         Favourite club - country id
+Int         Favourite club - id
+Int         Favourite player club  - country id
+Int         Favourite player club  - id
+Int         Favourite player - id
+Byte        Manager favourite formation
+Byte        Manager stability of board of directors
+Byte        Tactical education
+Byte        Flags: 1 - retired from national team, 2 - currently in national team. 64 - 1year option for club, 128 - 1year option for player
+Byte        Start condition (state) 1 - injury, 4 - retirement, 2 - league ban, 8 - loan, 16 - moves to, 32 - loaned to
+Byte        Loan (Moves to) club - country id
+Int         Loan (Moves to) club - id
+%INDEX%DATE
+Int         Loan (Moves to) start - day
+Int         Loan (Moves to) start - month
+Int         Loan (Moves to) start - year
+%INDEXEND%DATE
+%INDEX%DATE
+Int         Loan end - day
+Int         Loan end - month
+Int         Loan end - year
+%INDEXEND%DATE
+Byte        League ban number of matches
+Byte        ___UNKNOWN___ (0)
+%INDEX%DATE
+Int         Injury start - day
+Int         Injury start - month
+Int         Injury start - year
+%INDEXEND%DATE
+%INDEX%DATE
+Int         Injury end - day
+Int         Injury end - month
+Int         Injury end - year
+%INDEXEND%DATE
+Int         Loan (Moves to) transfer fee
+Byte        Shoe type
+Byte        ___UNKNOWN___ (0)
+%INDEX%HIST
+Int         Entries count
+Byte        ___UNKNOWN___ (0/1)
+Int         Club country id | removed in FM08
+Int         Club id
+%INDEX%DATE
+Int         Start date - day
+Int         Start date - month
+Int         Start date - year
+%INDEXEND%DATE
+%INDEX%DATE
+Int         End date - day
+Int         End date - month
+Int         End date - year
+%INDEXEND%DATE
+Short       Matches
+Short       Goals
+Byte        Loan flag (0/1)
+%INDEXEND%HIST
+zString     Comment
+Byte        ___UNKNOWN___ (30,33)
+%INDEXEND%PLAYER
