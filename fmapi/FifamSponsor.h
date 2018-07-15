@@ -1,5 +1,6 @@
 #pragma once
 #include "FifamTypes.h"
+#include "FifamReadWrite.h"
 
 class FifamCountry;
 
@@ -7,13 +8,13 @@ class FifamCountry;
 class FifamSponsor {
 public:
 
-    struct Unknown {
+    struct {
         // @since FM07
         // @maxsize 28
         String _1;
 
         // @since FM07
-        Int _2;
+        Int _2 = 0;
 
         // @since FM07
         // @maxsize 31
@@ -22,8 +23,11 @@ public:
         // @since FM07
         // @maxsize 31
         String _4;
-    };
+    } Unknown;
 
-    FifamCountry *mCountry = nullptr;
-
+    FifamSponsor();
+    FifamSponsor(FifamSponsor const &rhs);
+    
+    void Read(FifamReader &reader);
+    void Write(FifamWriter &writer);
 };

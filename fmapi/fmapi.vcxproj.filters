@@ -16,6 +16,19 @@
     <ClInclude Include="FifamTranslation.h" />
     <ClInclude Include="FifamReferee.h" />
     <ClInclude Include="FifamSponsor.h" />
+    <ClInclude Include="FifamRegenPlayer.h" />
+    <ClInclude Include="FifamStadium.h" />
+    <ClInclude Include="FifamCompetition.h" />
+    <ClInclude Include="FifamManager.h" />
+    <ClInclude Include="FifamFormation.h" />
+    <ClInclude Include="FifamCupAlloc.h" />
+    <ClInclude Include="FifamRoundID.h" />
+    <ClInclude Include="FifamBeg.h" />
+    <ClInclude Include="FifamCupAllocType.h" />
+    <ClInclude Include="FifamFlags.h" />
+    <ClInclude Include="FifamTerritory.h" />
+    <ClInclude Include="FifamAssociation.h" />
+    <ClInclude Include="FifamPlayerAppearance.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamDate.cpp" />
@@ -24,5 +37,14 @@
     <ClCompile Include="FifamVersion.cpp" />
     <ClCompile Include="FifamDatabase.cpp" />
     <ClCompile Include="FifamReferee.cpp" />
+    <ClCompile Include="FifamSponsor.cpp" />
+    <ClCompile Include="FifamRegenPlayer.cpp" />
+    <ClCompile Include="FifamStadium.cpp" />
+    <ClCompile Include="FifamPlayer.cpp" />
+    <ClCompile Include="FifamCompetition.cpp" />
+    <ClCompile Include="FifamManager.cpp" />
+    <ClCompile Include="FifamCupAlloc.cpp" />
+    <ClCompile Include="FifamReadWrite.cpp" />
+    <ClCompile Include="FifamPlayerAppearance.cpp" />
   </ItemGroup>
 </Project>

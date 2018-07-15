@@ -1,0 +1,32 @@
+FIFAM 07 STADIUM format
+
+Byte                __UNKNOWN__ some boolean?
+zString<29>         stadium name
+zString<29>         city name
+Byte                __UNKNOWN__
+Int |-              __UNKNOWN__
+Int | struct 1      __UNKNOWN__
+Int |-              __UNKNOWN__
+Int |-              __UNKNOWN__
+Int | struct 2      __UNKNOWN__
+Int |-              __UNKNOWN__
+Int |-              __UNKNOWN__
+Int | struct 3      __UNKNOWN__
+Int |-              __UNKNOWN__
+Int |-              __UNKNOWN__
+Int | struct 4      __UNKNOWN__
+Int |-              __UNKNOWN__
+Int |-              __UNKNOWN__
+Int | struct 5      __UNKNOWN__
+Int |-              __UNKNOWN__
+Int |-              __UNKNOWN__
+Int | struct 6      __UNKNOWN__
+Int |-              __UNKNOWN__
+Int |-              __UNKNOWN__
+Int | struct 7      __UNKNOWN__
+Int |-              __UNKNOWN__
+Int |-              __UNKNOWN__
+Int | struct 8      __UNKNOWN__
+Int |-              __UNKNOWN__
+Byte                __UNKNOWN__
+Byte                __UNKNOWN__

@@ -33,7 +33,7 @@ Int               Ititial capital
 Int               Ititial capital divided by 2
 Byte              Joint-stock company (0/1)
 Byte              __UNKNOWN__ (0)
-Byte              __UNKNOWN__ (3)
+Byte              Starting rule (0 - none, 3 - points on new game)
 Byte              Points on new game (with "-")
 Int               Potential fans count
 Int               Average attendance last season

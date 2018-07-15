@@ -1,7 +1,10 @@
+FM08 CLUB format
+
 %INDEX%CLUB1
 %INDEX%VERSION
 537329676
 %INDEXEND%VERSION
+3211345	          Unique Team Identifier (not in FM07)
 zQString<29>[5]   Club name
 zQString<29>[5]   Club name 2 (duplicates first)
 zQString<10>[5]   10 character abberviation
@@ -31,18 +34,25 @@ Int               Ititial capital
 Int               Ititial capital divided by 2
 Byte              Joint-stock company (0/1)
 Byte              __UNKNOWN__ (0)
-Byte              __UNKNOWN__ (3)
+Byte              Starting rule (0 - none, 3 - points on new game)
 Byte              Points on new game (with "-")
 Int               Potential fans count
 Int               Average attendance last season
 Int               Count of sold season tickets
 Int               1st league total points
+Int               2st league total points (not in FM07)
 Int               1st league total wins
+Int               2st league total wins (not in FM07)
 Int               1st league total draws
+Int               2st league total draws (not in FM07)
 Int               1st league total loses
+Int               2st league total loses (not in FM07)
 Int               1st league total goals
+Int               2st league total goals (not in FM07)
 Int               1st league total goals against
+Int               2st league total goals against (not in FM07)
 Int               1st league total leaderships in table
+Int               2st league total leaderships in table (not in FM07)
 Int               Stadium venue - if higher than 999, set to 0
 Int               Stadium capacity - if higher than 150000, set to 150000
 zQString<29>[5]   Stadium name (limited by 29 in Editor, 1024 by default)
@@ -55,6 +65,8 @@ Byte              Youth department
 Byte              Training grounds
 Byte              Media
 Byte              Research
+Byte		  Media Preassure (0-3)  (0 - low, 1 - normal, 2 - high, 3 - extreme) not in FM07?
+Byte?             Lowest Leagues?  not in FM07?
 Short             Flags: 256 - does not take part in IT-Cup
 zString<40>       Badge path
 Byte              Club colour        |-
@@ -63,100 +75,100 @@ Byte              Merchandise colour | Array
 Byte              Header colour      |
 Byte              Background colour  |-
 %INDEX%HIST
-1950
-1951
-1952
-1953
-1954
-1955
-1957
-1956
+zString<>         HistoryLine - Championships
+zString<>         HistoryLine - Cup Wins
+zString<>         HistoryLine - Super Cups Wins
+zString<>         HistoryLine - League Cup Wins
+zString<>         HistoryLine - European Cup Wins
+zString<>         HistoryLine - Champions League
+zString<>         HistoryLine - World Championship
+zString<>         HistoryLine - World Club Championship
 %INDEX%RECORD
-56
-46
-0
-HomeWinClub
-2001
+Byte              Record Home Win - Score 1
+Byte              Record Home Win - Score 2
+Int               Record Home Win - attendance (unused)
+zString<>         Record Home Win - Club name
+Short             Record Home Win - Year
 %INDEXEND%RECORD
 %INDEX%RECORD
-47
-57
-0
-HomeDefeatClub
-2002
+Byte              Record Home Defeat - Score 1
+Byte              Record Home Defeat - Score 2
+Int               Record Home Defeat - attendance (unused)
+zString<>         Record Home Defeat - Club name
+Short             Record Home Defeat - Year
 %INDEXEND%RECORD
 %INDEX%RECORD
-67
-66
-0
-AwayWinClub
-2003
+Byte              Record Away Win - Score 1
+Byte              Record Away Win - Score 2
+Int               Record Away Win - attendance (unused)
+zString<>         Record Away Win - Club name
+Short             Record Away Win - Year
 %INDEXEND%RECORD
 %INDEX%RECORD
-64
-65
-0
-AwayDefeatClub
-2004
+Byte              Record Away Defeat - Score 1
+Byte              Record Away Defeat - Score 2
+Int               Record Away Defeat - attendance (unused)
+zString<>         Record Away Defeat - Club name
+Short             Record Away Defeat - Year
 %INDEXEND%RECORD
 %INDEX%RECORD
-0
-0
-5650
-RecordAttendance
-2005
+Byte              Record Attendance - score 1 (unused)
+Byte              Record Attendance - score 2 (unused)
+Int               Record Attendance - Attendance
+zString<>         Record Attendance - Club name
+Short             Record Attendance - Year
 %INDEXEND%RECORD
 %INDEXEND%HIST
--4390971
--4325435
-18
-19
-
-193
-148
-195
-650
-0
-0
+Int               Latitude value
+Int               Longitude value
+Byte              National club prestige
+Byte              International club prestige
+zString<>         __UNKNOWN__ (empty)
+Byte              Transfers country 1
+Byte              Transfers country 2
+Byte              Youth players come from (country id)
+Int               Special kit - ID
+Int               Players count
+Int               Staff count
 %INDEX%KIT
-27
-12
-3
-1
-9
-17
-0
-0
-0
-3
-11
-19
-5
-13
-0
-4
-1
-28
-13
-4
-57
-49
-41
-0
-0
-0
-4
-12
-20
-6
-14
-0
-3
-2
-650
+Byte              Home - Jersey ID
+Byte              Home - Shorts ID
+Byte              Home - Socks ID
+Byte              Home - Jersey colour 1
+Byte              Home - Jersey colour 2
+Byte              Home - Jersey colour 3
+Byte              __UNKNOWN__ (0)(home)
+Byte              __UNKNOWN__ (0)(home)
+Byte              __UNKNOWN__ (0)(home)
+Byte              Home - Shorts colour 1
+Byte              Home - Shorts colour 2
+Byte              Home - Shorts colour 3
+Byte              Home - Socks colour 1
+Byte              Home - Socks colour 2
+Byte              Home - Socks colour 3 (unused)
+Byte              Home - Shirt number colour
+Byte              Home - Badge position
+Byte              Away - Jersey ID
+Byte              Away - Shorts ID
+Byte              Away - Socks ID
+Byte              Away - Jersey colour 1
+Byte              Away - Jersey colour 2
+Byte              Away - Jersey colour 3
+Byte              __UNKNOWN__ (0)(away)
+Byte              __UNKNOWN__ (0)(away)
+Byte              __UNKNOWN__ (0)(away)
+Byte              Away - Shorts colour 1
+Byte              Away - Shorts colour 2
+Byte              Away - Shorts colour 3
+Byte              Home - Socks colour 1
+Byte              Home - Socks colour 2
+Byte              Home - Socks colour 3 (unused)
+Byte              Away - Shirt number colour
+Byte              Away - Badge position
+Int               Special kit - ID (duplicated)
 %INDEXEND%KIT
-0
-0
-0
-0
+Int               Lowest league 1 (comp id)
+Int               Lowest league 2 (comp id)
+Int               Lowest league 3 (comp id)
+Int               Lowest league 4 (comp id) (maybe unused)
 %INDEXEND%CLUB1

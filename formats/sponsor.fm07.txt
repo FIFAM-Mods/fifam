@@ -1,0 +1,7 @@
+FIFAM 07 SPONSOR format
+
+zString<28>         __UNKNOWN__
+Int                 __UNKNOWN__
+zString<31>         __UNKNOWN__
+zString<31>         __UNKNOWN__
+

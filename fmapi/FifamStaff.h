@@ -97,27 +97,7 @@ public:
     FifamLanguage mLanguage[4] = { FifamLanguage::None, FifamLanguage::None, FifamLanguage::None, FifamLanguage::None };
 
     // @since FM07
-    enum class FavouriteFormation : Char {
-        F_4_1_2_2_1 = 0,
-        F_1_4_3_2 = 1,
-        F_3_4_1_2 = 2,
-        F_3_4_2_1 = 3,
-        F_3_4_3 = 4,
-        F_3_5_2 = 5,
-        F_4_1_2_1_2 = 6,
-        F_4_2_3_1 = 7,
-        F_4_2_4 = 8,
-        F_4_3_1_2 = 9,
-        F_4_3_2_1 = 10,
-        F_4_3_3 = 11,
-        F_4_4_1_1 = 12,
-        F_4_4_2 = 13,
-        F_4_5_1 = 14,
-        F_5_2_1_2 = 15,
-        F_5_2_2_1 = 16,
-        F_5_3_2 = 17,
-        F_5_4_1 = 18
-    } mFavouriteFormation;
+    FifamFormation mFavouriteFormation = FifamFormation::_4_3_3;
 
     // @since FM07
     // @range 0-4
@@ -174,12 +154,6 @@ public:
         reader.ReadLine(Unknown._2);
         reader.ReadLine(mStabilityOfBoardOfDirectors);
         reader.ReadEndIndex(L"STAFF");
-
-        std::wcout << mFirstName << L" " << mLastName << std::endl;
-
-        if (Unknown._1 != 0 || Unknown._2 != 0)
-            Message(mFirstName + L" " + mLastName + L": unknown1: " + std::to_wstring(Unknown._1) +
-                L": unknown2: " + std::to_wstring(Unknown._2) + L": Experience: " + std::to_wstring(mExperience));
     }
 
     void Write(FifamWriter &writer, bool writeId = false) {

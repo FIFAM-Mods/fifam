@@ -15,15 +15,16 @@ FifamReferee::FifamReferee(String const &firstName, String const &lastName, Type
 }
 
 void FifamReferee::Read(FifamReader &reader) {
-    reader.ReadStartIndex(L"REFEREE");
-    reader.ReadLine(mFirstName);
-    reader.ReadLine(mLastName);
-    Char type = reader.ReadLine<Char>();
-    if (reader.GetGameId() > 8)
-        mType = ArrayElement(m09TypeIds, type, Type::None);
-    else
-        mType = ArrayElement(m07TypeIds, type, Type::None);
-    reader.ReadEndIndex(L"REFEREE");
+    if (reader.ReadStartIndex(L"REFEREE")) {
+        reader.ReadLine(mFirstName);
+        reader.ReadLine(mLastName);
+        Char type = reader.ReadLine<Char>();
+        if (reader.GetGameId() > 8)
+            mType = ArrayElement(m09TypeIds, type, Type::None);
+        else
+            mType = ArrayElement(m07TypeIds, type, Type::None);
+        reader.ReadEndIndex(L"REFEREE");
+    }
 }
 
 void FifamReferee::Write(FifamWriter &writer) {

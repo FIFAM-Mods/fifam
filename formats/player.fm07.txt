@@ -70,7 +70,7 @@ Byte        Throwing
 Byte        Playing style
 Byte        Potential
 Int         Character traits (for player), Character focus (for board)
-Byte        Hair color
+Byte        Hair color: Black = 1, Brown = 2, MediumBlonde = 3, Blonde = 4, Red = 5
 Byte        Generic face id
 Byte        Hair style
 Byte        Facial hair style
@@ -136,7 +136,7 @@ Int         Injury end - month
 Int         Injury end - year
 %INDEXEND%DATE
 Int         Loan (Moves to) transfer fee
-Byte        Shoe type
+Byte        Shoe type:  White = 1, Black = 2, Blue = 3, Red = 4, Yellow = 5, WhiteBlue = 6, WhiteBlack = 7, WhiteLightBlue = 8, YellowBlack = 9
 Byte        ___UNKNOWN___ (0)
 %INDEX%HIST
 Int         Entries count

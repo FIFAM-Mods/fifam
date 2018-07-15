@@ -5,3 +5,24 @@ zString<16> First Name
 zString<20> Last Name
 Byte        Particularities
 %INDEXEND%REFEREE
+
+Particularities:
+
+// If FM version < 09
+
+ 0 WorldClassReferee
+ 1 SeverePerson
+ 2 DoesNotInterfereMuchInTheGame
+ 3 DoesNotLikeManagersInterfering
+ 4 BraveDecisionMaker
+ 5 Coward
+ 6 None
+ 
+// If FM version >= 09
+
+ 0 None
+ 1 WorldClassReferee
+ 2 SeverePerson
+ 3 DoesNotInterfereMuchInTheGame
+ 4 BraveDecisionMaker
+ 5 Coward

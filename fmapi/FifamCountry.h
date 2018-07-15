@@ -1,24 +1,58 @@
 #pragma once
 
 #include "FifamClub.h"
-#include "Error.h"
+#include "FifamStadium.h"
+#include "FifamSponsor.h"
+#include "FifamReferee.h"
+
+class FifamDatabase;
 
 class FifamCountry {
 public:
-    void Read(FifamReader &reader) {
-        reader.ReadStartIndex(L"COUNTRY");
-        while (reader.FindLine(L"%INDEX%STAFF", false)) {
-            //reader.ReadLine<std::wstring>();
-            FifamStaff staff;
-            staff.Read(reader);
-        }
-    }
+    // @since FM07
+    // @maxsize 30
+    TrArray<String> mName;
 
-    void ReadFixtures(FifamReader &reader) {
+    // @since FM07
+    // @maxsize 4
+    TrArray<String> mAbbr;
 
-    }
+    // @since FM07
+    TrArray<Bool> mUseTheForName = {};
 
-    void ReadScript(FifamReader &reader) {
+    // @since FM07
+    FifamAssociation mAssociation = FifamAssociation::None;
 
-    }
+    // @since FM07
+    FifamLanguage mFirstLanguageForNames = FifamLanguage::None;
+
+    // @since FM07
+    FifamLanguage mSecondLanguageForNames = FifamLanguage::None;
+
+    // @since FM07
+    FifamTerritory mTerritory = FifamTerritory::None;
+
+    // Country .sav files were read
+    Bool mHasCountryData = false;
+
+    // Country id (first country = 1)
+    UInt mId = 0;
+
+    // our database
+    FifamDatabase *mDatabase = nullptr;
+
+    Vector<FifamReferee *> mReferees;
+
+    Vector<FifamStadium *> mStadiums;
+
+    Vector<FifamSponsor *> mSponsors;
+
+    FifamReferee *AddReferee();
+    FifamStadium *AddStadium();
+    FifamSponsor *AddSponsor();
+
+    FifamCountry(UInt id, FifamDatabase *db);
+    void Read(FifamReader &reader);
+    void ReadFixtures(FifamReader &reader);
+    void ReadScript(FifamReader &reader);
 };

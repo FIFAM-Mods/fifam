@@ -1,0 +1,182 @@
+%INDEX%ADDMANAGER
+1                     Number of Stuff members
+%INDEX%PLAYER
+Taras                 First Name
+Bondar                Last Name
+                      Pseudonym?
+                      Nickname?
+1                     1 - Manager 2 - Chief Manager
+0                     _UNKNOWN_
+49                    Nationality
+0                     2nd Nationality
+0                     _UNKNOWN_
+%INDEX%DATE
+1                     Day of birth
+1                     Month of birth
+1980                  Year of birth
+%INDEXEND%DATE
+2
+0
+1
+0
+0
+0
+0
+0
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+40
+0
+100
+0                       Character (0 - 11)
+2
+1
+5
+1
+180
+75
+0
+0
+0
+0
+0
+0
+2006
+2008
+0
+0
+0
+0
+0
+0                       Motivation Skills (0-15)
+0                       Coaching Skills (0-15)
+0                       Goalkeepers Training (0-15)
+0                       Negotiation Skills (0-15)
+46                      Mother Language
+39                      Foreign Language 1
+0                       Foreign Language 2
+0                       Foreign Language 3
+0
+0                       Favourite club
+0                       Would Never Work for
+0
+0
+0
+0                       Favourite formation (0 - 18)
+2
+3
+0
+0
+0
+0
+%INDEX%DATE
+1
+7
+2007
+%INDEXEND%DATE
+%INDEX%DATE
+30
+6
+2008
+%INDEXEND%DATE
+0
+0
+%INDEX%DATE
+1
+7
+2007
+%INDEXEND%DATE
+%INDEX%DATE
+1
+7
+2007
+%INDEXEND%DATE
+0
+0
+2
+0
+%INDEX%HIST
+0
+%INDEXEND%HIST
+
+0
+%INDEXEND%PLAYER
+%INDEXEND%ADDMANAGER
+
+
+
+
+Character:
+0 - no special preferences
+1 - Focus on attacking play
+2 - Focus on defending play
+3 - Focus on discipline
+4 - Focus on players character
+5 - Focus on fitness
+6 - Focus on tactical education
+7 - Focus on language skills
+8 - Focus on long-term contracts
+9 - Focus on young players
+10 - Focus on experienced players
+11 - Keeps his team together
+
+Favourite formation:
+0 - 4-1-2-2-1
+1 - 1-4-3-2
+2 - 3-4-1-2
+3 - 3-4-2-1
+4 - 3-4-3
+5 - 3-5-2
+6 - 4-1-2-1-2
+7 - 4-2-3-1
+8 - 4-2-4
+9 - 4-3-1-2
+10 - 4-3-2-1
+11 - 4-3-3
+12 - 4-4-1-1
+13 - 4-4-2
+14 - 4-5-1
+15 - 5-2-1-2
+16 - 5-2-2-1
+17 - 5-3-2
+18 - 5-4-1

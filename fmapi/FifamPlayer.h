@@ -3,6 +3,7 @@
 #include "FifamDate.h"
 #include "FifamLanguage.h"
 #include "FifamReadWrite.h"
+#include "FifamPlayerAppearance.h"
 
 class FifamClub;
 
@@ -182,7 +183,7 @@ public:
     // Character
 
     struct Character {
-        // FM07 only
+        // FM07,08 only
         Bool AttitudeToWin = false; // 0x01
         Bool Complacent = false; // 0x02
         //
