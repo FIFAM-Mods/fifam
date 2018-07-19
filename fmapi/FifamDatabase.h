@@ -5,7 +5,7 @@
 
 class FifamDatabase {
 public:
-    static const size_t NUM_COUNTRIES = 207;
+    static const UChar NUM_COUNTRIES = 207;
 
     Array<FifamCountry *, NUM_COUNTRIES> mCountries = {};
 
@@ -24,11 +24,11 @@ public:
     Vector<FifamCupAlloc *> mCupTemplates;
 
     FifamDatabase();
-    FifamDatabase(size_t gameId, const wchar_t *dbPath);
-    unsigned int GetInternalGameCountryId(size_t gameId, FifamNation nationId);
-    bool IsCountryPresent(size_t gameId, FifamNation nationId);
-    void Read(size_t gameId, Path const &dbPath);
-    void Write(size_t gameId, unsigned short vYear, unsigned short vNumber, Path const &dbPath);
+    FifamDatabase(UInt gameId, const Path &dbPath);
+    unsigned int GetInternalGameCountryId(UInt gameId, UChar nationId);
+    bool IsCountryPresent(UInt gameId, UChar nationId);
+    void Read(UInt gameId, Path const &dbPath);
+    void Write(UInt gameId, UShort vYear, UShort vNumber, Path const &dbPath);
     void Clear();
     ~FifamDatabase();
 };

@@ -1,26 +1,16 @@
 #pragma once
+#include "FifamEnum.h"
+#include "FifamTypes.h"
 
 // @since FM07
-enum class FifamAssociation {
-    UEFA = 0,
-    CONMEBOL = 1,
-    CONCACAF = 2,
-    CAF = 3,
-    AFC = 4,
-    OFC = 5,
-    None = 6
-};
-
-template<>
-inline NameIdTable<FifamAssociation> const &GetNameIdTable<FifamAssociation>() {
-    static NameIdTable<FifamAssociation> table = {
-        { L"UEFA", FifamAssociation::UEFA },
-        { L"CONMEBOL", FifamAssociation::CONMEBOL },
-        { L"CONCACAF", FifamAssociation::CONCACAF },
-        { L"CAF", FifamAssociation::CAF },
-        { L"AFC", FifamAssociation::AFC },
-        { L"OFC", FifamAssociation::OFC },
-        { L"None", FifamAssociation::None }
-    };
-    return table;
-}
+ENUM_BEGIN(FifamAssociation, UChar)
+    ENUM_MEMBER(0, UEFA,     L"UEFA")
+    ENUM_MEMBER(1, CONMEBOL, L"CONMEBOL")
+    ENUM_MEMBER(2, CONCACAF, L"CONCACAF")
+    ENUM_MEMBER(3, CAF,      L"CAF")
+    ENUM_MEMBER(4, AFC,      L"AFC")
+    ENUM_MEMBER(5, OFC,      L"OFC")
+    ENUM_MEMBER(6, None,     L"None")
+    ENUM_DEFAULT_VALUE(None)
+    ENUM_DEFAULT_READ_WRITE
+ENUM_END(FifamAssociation)

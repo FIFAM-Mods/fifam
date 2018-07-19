@@ -2,6 +2,7 @@
 
 #include "FifamPlayer.h"
 #include "FifamStaff.h"
+#include "FifamTranslation.h"
 
 // @since FM07
 class FifamClub {
@@ -11,19 +12,19 @@ public:
 
     // @since FM07
     // @maxsize 29
-    String mName[FifamTranslation::NUM_TRANSLATIONS];
+    TrArray<String> mName;
 
     // @since FM07
     // @maxsize 10
-    String mShortName[FifamTranslation::NUM_TRANSLATIONS];
+    TrArray<String> mShortName;
 
     // @since FM07
     // @maxsize 4
-    String mAbbreviation[FifamTranslation::NUM_TRANSLATIONS];
+    TrArray<String> mAbbreviation;
 
     // @since FM07
     // @maxsize 29
-    String mCityName[FifamTranslation::NUM_TRANSLATIONS];
+    TrArray<String> mCityName;
 
     // @since FM07
     // @maxsize 19
@@ -54,16 +55,16 @@ public:
     String mMascotName;
 
     // @since FM07
-    Bool mUsesTheForClubAbbreviation[FifamTranslation::NUM_TRANSLATIONS] = {};
+    TrArray<Bool> mUsesTheForClubAbbreviation = {};
 
     // @since FM07
-    Bool mUsesTheForTermForFans[FifamTranslation::NUM_TRANSLATIONS] = {};
+    TrArray<Bool> mUsesTheForTermForFans = {};
 
     // @since FM07
-    Bool mUsesTheForSecondTeamTerm[FifamTranslation::NUM_TRANSLATIONS] = {};
+    TrArray<Bool> mUsesTheForSecondTeamTerm = {};
 
     // @since FM07
-    Bool mUsesTheForClubNameInAPhrase[FifamTranslation::NUM_TRANSLATIONS] = {};
+    TrArray<Bool> mUsesTheForClubNameInAPhrase = {};
 
     // @since FM07
     FifamClub *mPartnershipClub = nullptr;
@@ -120,28 +121,28 @@ public:
     struct History {
 
         // @since FM07
-        std::vector<Short> mChampionshipsYears;
+        Vector<Short> mChampionshipsYears;
 
         // @since FM07
-        std::vector<Short> mCupWinsYears;
+        Vector<Short> mCupWinsYears;
 
         // @since FM07
-        std::vector<Short> mSuperCupsWinsYears;
+        Vector<Short> mSuperCupsWinsYears;
 
         // @since FM07
-        std::vector<Short> mLeagueCupWinsYears;
+        Vector<Short> mLeagueCupWinsYears;
 
         // @since FM07
-        std::vector<Short> mEuropeanCupWinsYears;
+        Vector<Short> mEuropeanCupWinsYears;
 
         // @since FM07
-        std::vector<Short> mChampionsLeagueYears;
+        Vector<Short> mChampionsLeagueYears;
 
         // @since FM07
-        std::vector<Short> mWorldChampionshipYears;
+        Vector<Short> mWorldChampionshipYears;
 
         // @since FM07
-        std::vector<Short> mWorldClubChampionshipYears;
+        Vector<Short> mWorldClubChampionshipYears;
 
         // @since FM07
         struct Record {
@@ -162,7 +163,7 @@ public:
         };
 
         // @since FM07
-        std::vector<Record> mRecords;
+        Vector<Record> mRecords;
 
     } mHistory;
 

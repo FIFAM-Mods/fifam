@@ -1,212 +1,241 @@
 #pragma once
+#include "FifamTypes.h"
+#include "FifamEnum.h"
 
-enum class FifamNation : UChar {
-    None = 0,
-    Albania = 1,
-    Andorra = 2,
-    Armenia = 3,
-    Austria = 4,
-    Azerbaijan = 5,
-    Belarus = 6,
-    Belgium = 7,
-    Bosnia_Herzegovina = 8,
-    Bulgaria = 9,
-    Croatia = 10,
-    Cyprus = 11,
-    Czech_Republic = 12,
-    Denmark = 13,
-    England = 14,
-    Estonia = 15,
-    Faroe_Islands = 16,
-    Finland = 17,
-    France = 18,
-    FYR_Macedonia = 19,
-    Georgia = 20,
-    Germany = 21,
-    Greece = 22,
-    Hungary = 23,
-    Iceland = 24,
-    Ireland = 25,
-    Israel = 26,
-    Italy = 27,
-    Latvia = 28,
-    Liechtenstein = 29,
-    Lithuania = 30,
-    Luxembourg = 31,
-    Malta = 32,
-    Moldova = 33,
-    Netherlands = 34,
-    Northern_Ireland = 35,
-    Norway = 36,
-    Poland = 37,
-    Portugal = 38,
-    Romania = 39,
-    Russia = 40,
-    San_Marino = 41,
-    Scotland = 42,
-    Slovakia = 43,
-    Slovenia = 44,
-    Spain = 45,
-    Sweden = 46,
-    Switzerland = 47,
-    Turkey = 48,
-    Ukraine = 49,
-    Wales = 50,
-    Serbia = 51,
-    Argentina = 52,
-    Bolivia = 53,
-    Brazil = 54,
-    Chile = 55,
-    Colombia = 56,
-    Ecuador = 57,
-    Paraguay = 58,
-    Peru = 59,
-    Uruguay = 60,
-    Venezuela = 61,
-    Anguilla = 62,
-    Antigua_and_Barbuda = 63,
-    Aruba = 64,
-    Bahamas = 65,
-    Barbados = 66,
-    Belize = 67,
-    Bermuda = 68,
-    British_Virgin_Is = 69,
-    Canada = 70,
-    Cayman_Islands = 71,
-    Costa_Rica = 72,
-    Cuba = 73,
-    Dominica = 74,
-    Dominican_Republic = 75,
-    El_Salvador = 76,
-    Grenada = 77,
-    Guatemala = 78,
-    Guyana = 79,
-    Haiti = 80,
-    Honduras = 81,
-    Jamaica = 82,
-    Mexico = 83,
-    Montserrat = 84,
-    Netherlands_Antil = 85,
-    Nicaragua = 86,
-    Panama = 87,
-    Puerto_Rico = 88,
-    St_Kitts_Nevis = 89,
-    St_Lucia = 90,
-    St_Vincent_Gren = 91,
-    Surinam = 92,
-    Trinidad_Tobago = 93,
-    Turks_and_Caicos = 94,
-    United_States = 95,
-    US_Virgin_Islands = 96,
-    Algeria = 97,
-    Angola = 98,
-    Benin = 99,
-    Botswana = 100,
-    Burkina_Faso = 101,
-    Burundi = 102,
-    Cameroon = 103,
-    Cape_Verde_Islands = 104,
-    Central_African_Rep = 105,
-    Chad = 106,
-    Congo = 107,
-    Cote_d_Ivoire = 108,
-    Djibouti = 109,
-    DR_Congo = 110,
-    Egypt = 111,
-    Equatorial_Guinea = 112,
-    Eritrea = 113,
-    Ethiopia = 114,
-    Gabon = 115,
-    Gambia = 116,
-    Ghana = 117,
-    Guinea = 118,
-    Guinea_Bissau = 119,
-    Kenya = 120,
-    Lesotho = 121,
-    Liberia = 122,
-    Libya = 123,
-    Madagascar = 124,
-    Malawi = 125,
-    Mali = 126,
-    Mauritania = 127,
-    Mauritius = 128,
-    Morocco = 129,
-    Mozambique = 130,
-    Namibia = 131,
-    Niger = 132,
-    Nigeria = 133,
-    Rwanda = 134,
-    Sao_Tome_e_Principe = 135,
-    Senegal = 136,
-    Seychelles = 137,
-    Sierra_Leone = 138,
-    Somalia = 139,
-    South_Africa = 140,
-    Sudan = 141,
-    Swaziland = 142,
-    Tanzania = 143,
-    Togo = 144,
-    Tunisia = 145,
-    Uganda = 146,
-    Zambia = 147,
-    Zimbabwe = 148,
-    Afghanistan = 149,
-    Bahrain = 150,
-    Bangladesh = 151,
-    Bhutan = 152,
-    Brunei_Darussalam = 153,
-    Cambodia = 154,
-    China_PR = 155,
-    Taiwan = 156,
-    Guam = 157,
-    Hong_Kong = 158,
-    India = 159,
-    Indonesia = 160,
-    Iran = 161,
-    Iraq = 162,
-    Japan = 163,
-    Jordan = 164,
-    Kazakhstan = 165,
-    Korea_DPR = 166,
-    Korea_Republic = 167,
-    Kuwait = 168,
-    Kyrgyzstan = 169,
-    Laos = 170,
-    Lebanon = 171,
-    Macao = 172,
-    Malaysia = 173,
-    Maldives = 174,
-    Mongolia = 175,
-    Myanmar = 176,
-    Nepal = 177,
-    Oman = 178,
-    Pakistan = 179,
-    Palestinian_Authority = 180,
-    Philippines = 181,
-    Qatar = 182,
-    Saudi_Arabia = 183,
-    Singapore = 184,
-    Sri_Lanka = 185,
-    Syria = 186,
-    Tajikistan = 187,
-    Thailand = 188,
-    Turkmenistan = 189,
-    United_Arab_Emirates = 190,
-    Uzbekistan = 191,
-    Vietnam = 192,
-    Yemen = 193,
-    American_Samoa = 194,
-    Australia = 195,
-    Cook_Islands = 196,
-    Fiji = 197,
-    New_Zealand = 198,
-    Papua_New_Guinea = 199,
-    Samoa = 200,
-    Solomon_Islands = 201,
-    Tahiti = 202,
-    Tonga = 203,
-    Vanuatu = 204,
-    Gibraltar = 205,
-    Montenegro = 206,
-    Greenland = 207
-};
+ENUM_BEGIN(FifamNation, UChar)
+    ENUM_MEMBER(  0, None,                  L"None")
+    ENUM_MEMBER(  1, Albania,               L"Albania")
+    ENUM_MEMBER(  2, Andorra,               L"Andorra")
+    ENUM_MEMBER(  3, Armenia,               L"Armenia")
+    ENUM_MEMBER(  4, Austria,               L"Austria")
+    ENUM_MEMBER(  5, Azerbaijan,            L"Azerbaijan")
+    ENUM_MEMBER(  6, Belarus,               L"Belarus")
+    ENUM_MEMBER(  7, Belgium,               L"Belgium")
+    ENUM_MEMBER(  8, Bosnia_Herzegovina,    L"Bosnia-Herzegovina")
+    ENUM_MEMBER(  9, Bulgaria,              L"Bulgaria")
+    ENUM_MEMBER( 10, Croatia,               L"Croatia")
+    ENUM_MEMBER( 11, Cyprus,                L"Cyprus")
+    ENUM_MEMBER( 12, Czech_Republic,        L"Czech Republic")
+    ENUM_MEMBER( 13, Denmark,               L"Denmark")
+    ENUM_MEMBER( 14, England,               L"England")
+    ENUM_MEMBER( 15, Estonia,               L"Estonia")
+    ENUM_MEMBER( 16, Faroe_Islands,         L"Faroe Islands")
+    ENUM_MEMBER( 17, Finland,               L"Finland")
+    ENUM_MEMBER( 18, France,                L"France")
+    ENUM_MEMBER( 19, FYR_Macedonia,         L"FYR Macedonia")
+    ENUM_MEMBER( 20, Georgia,               L"Georgia")
+    ENUM_MEMBER( 21, Germany,               L"Germany")
+    ENUM_MEMBER( 22, Greece,                L"Greece")
+    ENUM_MEMBER( 23, Hungary,               L"Hungary")
+    ENUM_MEMBER( 24, Iceland,               L"Iceland")
+    ENUM_MEMBER( 25, Ireland,               L"Ireland")
+    ENUM_MEMBER( 26, Israel,                L"Israel")
+    ENUM_MEMBER( 27, Italy,                 L"Italy")
+    ENUM_MEMBER( 28, Latvia,                L"Latvia")
+    ENUM_MEMBER( 29, Liechtenstein,         L"Liechtenstein")
+    ENUM_MEMBER( 30, Lithuania,             L"Lithuania")
+    ENUM_MEMBER( 31, Luxembourg,            L"Luxembourg")
+    ENUM_MEMBER( 32, Malta,                 L"Malta")
+    ENUM_MEMBER( 33, Moldova,               L"Moldova")
+    ENUM_MEMBER( 34, Netherlands,           L"Netherlands")
+    ENUM_MEMBER( 35, Northern_Ireland,      L"Northern Ireland")
+    ENUM_MEMBER( 36, Norway,                L"Norway")
+    ENUM_MEMBER( 37, Poland,                L"Poland")
+    ENUM_MEMBER( 38, Portugal,              L"Portugal")
+    ENUM_MEMBER( 39, Romania,               L"Romania")
+    ENUM_MEMBER( 40, Russia,                L"Russia")
+    ENUM_MEMBER( 41, San_Marino,            L"San Marino")
+    ENUM_MEMBER( 42, Scotland,              L"Scotland")
+    ENUM_MEMBER( 43, Slovakia,              L"Slovakia")
+    ENUM_MEMBER( 44, Slovenia,              L"Slovenia")
+    ENUM_MEMBER( 45, Spain,                 L"Spain")
+    ENUM_MEMBER( 46, Sweden,                L"Sweden")
+    ENUM_MEMBER( 47, Switzerland,           L"Switzerland")
+    ENUM_MEMBER( 48, Turkey,                L"Turkey")
+    ENUM_MEMBER( 49, Ukraine,               L"Ukraine")
+    ENUM_MEMBER( 50, Wales,                 L"Wales")
+    ENUM_MEMBER( 51, Serbia,                L"Serbia")
+    ENUM_MEMBER( 52, Argentina,             L"Argentina")
+    ENUM_MEMBER( 53, Bolivia,               L"Bolivia")
+    ENUM_MEMBER( 54, Brazil,                L"Brazil")
+    ENUM_MEMBER( 55, Chile,                 L"Chile")
+    ENUM_MEMBER( 56, Colombia,              L"Colombia")
+    ENUM_MEMBER( 57, Ecuador,               L"Ecuador")
+    ENUM_MEMBER( 58, Paraguay,              L"Paraguay")
+    ENUM_MEMBER( 59, Peru,                  L"Peru")
+    ENUM_MEMBER( 60, Uruguay,               L"Uruguay")
+    ENUM_MEMBER( 61, Venezuela,             L"Venezuela")
+    ENUM_MEMBER( 62, Anguilla,              L"Anguilla")
+    ENUM_MEMBER( 63, Antigua_and_Barbuda,   L"Antigua and Barbuda")
+    ENUM_MEMBER( 64, Aruba,                 L"Aruba")
+    ENUM_MEMBER( 65, Bahamas,               L"Bahamas")
+    ENUM_MEMBER( 66, Barbados,              L"Barbados")
+    ENUM_MEMBER( 67, Belize,                L"Belize")
+    ENUM_MEMBER( 68, Bermuda,               L"Bermuda")
+    ENUM_MEMBER( 69, British_Virgin_Is,     L"British Virgin Is.")
+    ENUM_MEMBER( 70, Canada,                L"Canada")
+    ENUM_MEMBER( 71, Cayman_Islands,        L"Cayman Islands")
+    ENUM_MEMBER( 72, Costa_Rica,            L"Costa Rica")
+    ENUM_MEMBER( 73, Cuba,                  L"Cuba")
+    ENUM_MEMBER( 74, Dominica,              L"Dominica")
+    ENUM_MEMBER( 75, Dominican_Republic,    L"Dominican Republic")
+    ENUM_MEMBER( 76, El_Salvador,           L"El Salvador")
+    ENUM_MEMBER( 77, Grenada,               L"Grenada")
+    ENUM_MEMBER( 78, Guatemala,             L"Guatemala")
+    ENUM_MEMBER( 79, Guyana,                L"Guyana")
+    ENUM_MEMBER( 80, Haiti,                 L"Haiti")
+    ENUM_MEMBER( 81, Honduras,              L"Honduras")
+    ENUM_MEMBER( 82, Jamaica,               L"Jamaica")
+    ENUM_MEMBER( 83, Mexico,                L"Mexico")
+    ENUM_MEMBER( 84, Montserrat,            L"Montserrat")
+    ENUM_MEMBER( 85, Netherlands_Antil,     L"Netherlands Antil.")
+    ENUM_MEMBER( 86, Nicaragua,             L"Nicaragua")
+    ENUM_MEMBER( 87, Panama,                L"Panama")
+    ENUM_MEMBER( 88, Puerto_Rico,           L"Puerto Rico")
+    ENUM_MEMBER( 89, St_Kitts_Nevis,        L"St. Kitts & Nevis")
+    ENUM_MEMBER( 90, St_Lucia,              L"St. Lucia")
+    ENUM_MEMBER( 91, St_Vincent_Gren,       L"St. Vincent & Gren.")
+    ENUM_MEMBER( 92, Surinam,               L"Surinam")
+    ENUM_MEMBER( 93, Trinidad_Tobago,       L"Trinidad & Tobago")
+    ENUM_MEMBER( 94, Turks_and_Caicos,      L"Turks and Caicos")
+    ENUM_MEMBER( 95, United_States,         L"United States")
+    ENUM_MEMBER( 96, US_Virgin_Islands,     L"US Virgin Islands")
+    ENUM_MEMBER( 97, Algeria,               L"Algeria")
+    ENUM_MEMBER( 98, Angola,                L"Angola")
+    ENUM_MEMBER( 99, Benin,                 L"Benin")
+    ENUM_MEMBER(100, Botswana,              L"Botswana")
+    ENUM_MEMBER(101, Burkina_Faso,          L"Burkina Faso")
+    ENUM_MEMBER(102, Burundi,               L"Burundi")
+    ENUM_MEMBER(103, Cameroon,              L"Cameroon")
+    ENUM_MEMBER(104, Cape_Verde_Islands,    L"Cape Verde Islands")
+    ENUM_MEMBER(105, Central_African_Rep,   L"Central African Rep.")
+    ENUM_MEMBER(106, Chad,                  L"Chad")
+    ENUM_MEMBER(107, Congo,                 L"Congo")
+    ENUM_MEMBER(108, Cote_d_Ivoire,         L"Cote d' Ivoire")
+    ENUM_MEMBER(109, Djibouti,              L"Djibouti")
+    ENUM_MEMBER(110, DR_Congo,              L"DR Congo")
+    ENUM_MEMBER(111, Egypt,                 L"Egypt")
+    ENUM_MEMBER(112, Equatorial_Guinea,     L"Equatorial Guinea")
+    ENUM_MEMBER(113, Eritrea,               L"Eritrea")
+    ENUM_MEMBER(114, Ethiopia,              L"Ethiopia")
+    ENUM_MEMBER(115, Gabon,                 L"Gabon")
+    ENUM_MEMBER(116, Gambia,                L"Gambia")
+    ENUM_MEMBER(117, Ghana,                 L"Ghana")
+    ENUM_MEMBER(118, Guinea,                L"Guinea")
+    ENUM_MEMBER(119, Guinea_Bissau,         L"Guinea-Bissau")
+    ENUM_MEMBER(120, Kenya,                 L"Kenya")
+    ENUM_MEMBER(121, Lesotho,               L"Lesotho")
+    ENUM_MEMBER(122, Liberia,               L"Liberia")
+    ENUM_MEMBER(123, Libya,                 L"Libya")
+    ENUM_MEMBER(124, Madagascar,            L"Madagascar")
+    ENUM_MEMBER(125, Malawi,                L"Malawi")
+    ENUM_MEMBER(126, Mali,                  L"Mali")
+    ENUM_MEMBER(127, Mauritania,            L"Mauritania")
+    ENUM_MEMBER(128, Mauritius,             L"Mauritius")
+    ENUM_MEMBER(129, Morocco,               L"Morocco")
+    ENUM_MEMBER(130, Mozambique,            L"Mozambique")
+    ENUM_MEMBER(131, Namibia,               L"Namibia")
+    ENUM_MEMBER(132, Niger,                 L"Niger")
+    ENUM_MEMBER(133, Nigeria,               L"Nigeria")
+    ENUM_MEMBER(134, Rwanda,                L"Rwanda")
+    ENUM_MEMBER(135, Sao_Tome_e_Principe,   L"Sao Tome e Principe")
+    ENUM_MEMBER(136, Senegal,               L"Senegal")
+    ENUM_MEMBER(137, Seychelles,            L"Seychelles")
+    ENUM_MEMBER(138, Sierra_Leone,          L"Sierra Leone")
+    ENUM_MEMBER(139, Somalia,               L"Somalia")
+    ENUM_MEMBER(140, South_Africa,          L"South Africa")
+    ENUM_MEMBER(141, Sudan,                 L"Sudan")
+    ENUM_MEMBER(142, Swaziland,             L"Swaziland")
+    ENUM_MEMBER(143, Tanzania,              L"Tanzania")
+    ENUM_MEMBER(144, Togo,                  L"Togo")
+    ENUM_MEMBER(145, Tunisia,               L"Tunisia")
+    ENUM_MEMBER(146, Uganda,                L"Uganda")
+    ENUM_MEMBER(147, Zambia,                L"Zambia")
+    ENUM_MEMBER(148, Zimbabwe,              L"Zimbabwe")
+    ENUM_MEMBER(149, Afghanistan,           L"Afghanistan")
+    ENUM_MEMBER(150, Bahrain,               L"Bahrain")
+    ENUM_MEMBER(151, Bangladesh,            L"Bangladesh")
+    ENUM_MEMBER(152, Bhutan,                L"Bhutan")
+    ENUM_MEMBER(153, Brunei_Darussalam,     L"Brunei Darussalam")
+    ENUM_MEMBER(154, Cambodia,              L"Cambodia")
+    ENUM_MEMBER(155, China_PR,              L"China PR")
+    ENUM_MEMBER(156, Taiwan,                L"Taiwan")
+    ENUM_MEMBER(157, Guam,                  L"Guam")
+    ENUM_MEMBER(158, Hong_Kong,             L"Hong Kong")
+    ENUM_MEMBER(159, India,                 L"India")
+    ENUM_MEMBER(160, Indonesia,             L"Indonesia")
+    ENUM_MEMBER(161, Iran,                  L"Iran")
+    ENUM_MEMBER(162, Iraq,                  L"Iraq")
+    ENUM_MEMBER(163, Japan,                 L"Japan")
+    ENUM_MEMBER(164, Jordan,                L"Jordan")
+    ENUM_MEMBER(165, Kazakhstan,            L"Kazakhstan")
+    ENUM_MEMBER(166, Korea_DPR,             L"Korea DPR")
+    ENUM_MEMBER(167, Korea_Republic,        L"Korea Republic")
+    ENUM_MEMBER(168, Kuwait,                L"Kuwait")
+    ENUM_MEMBER(169, Kyrgyzstan,            L"Kyrgyzstan")
+    ENUM_MEMBER(170, Laos,                  L"Laos")
+    ENUM_MEMBER(171, Lebanon,               L"Lebanon")
+    ENUM_MEMBER(172, Macao,                 L"Macao")
+    ENUM_MEMBER(173, Malaysia,              L"Malaysia")
+    ENUM_MEMBER(174, Maldives,              L"Maldives")
+    ENUM_MEMBER(175, Mongolia,              L"Mongolia")
+    ENUM_MEMBER(176, Myanmar,               L"Myanmar")
+    ENUM_MEMBER(177, Nepal,                 L"Nepal")
+    ENUM_MEMBER(178, Oman,                  L"Oman")
+    ENUM_MEMBER(179, Pakistan,              L"Pakistan")
+    ENUM_MEMBER(180, Palestinian_Authority, L"Palestinian Authority")
+    ENUM_MEMBER(181, Philippines,           L"Philippines")
+    ENUM_MEMBER(182, Qatar,                 L"Qatar")
+    ENUM_MEMBER(183, Saudi_Arabia,          L"Saudi Arabia")
+    ENUM_MEMBER(184, Singapore,             L"Singapore")
+    ENUM_MEMBER(185, Sri_Lanka,             L"Sri Lanka")
+    ENUM_MEMBER(186, Syria,                 L"Syria")
+    ENUM_MEMBER(187, Tajikistan,            L"Tajikistan")
+    ENUM_MEMBER(188, Thailand,              L"Thailand")
+    ENUM_MEMBER(189, Turkmenistan,          L"Turkmenistan")
+    ENUM_MEMBER(190, United_Arab_Emirates,  L"United Arab Emirates")
+    ENUM_MEMBER(191, Uzbekistan,            L"Uzbekistan")
+    ENUM_MEMBER(192, Vietnam,               L"Vietnam")
+    ENUM_MEMBER(193, Yemen,                 L"Yemen")
+    ENUM_MEMBER(194, American_Samoa,        L"American Samoa")
+    ENUM_MEMBER(195, Australia,             L"Australia")
+    ENUM_MEMBER(196, Cook_Islands,          L"Cook Islands")
+    ENUM_MEMBER(197, Fiji,                  L"Fiji")
+    ENUM_MEMBER(198, New_Zealand,           L"New Zealand")
+    ENUM_MEMBER(199, Papua_New_Guinea,      L"Papua New Guinea")
+    ENUM_MEMBER(200, Samoa,                 L"Samoa")
+    ENUM_MEMBER(201, Solomon_Islands,       L"Solomon Islands")
+    ENUM_MEMBER(202, Tahiti,                L"Tahiti")
+    ENUM_MEMBER(203, Tonga,                 L"Tonga")
+    ENUM_MEMBER(204, Vanuatu,               L"Vanuatu")
+    ENUM_MEMBER(205, Gibraltar,             L"Gibraltar")
+    ENUM_MEMBER(206, Montenegro,            L"Montenegro")
+    ENUM_MEMBER(207, Greenland,             L"Greenland")
+    ENUM_DEFAULT_VALUE(None)
+
+    ENUM_READ(reader, str) {
+        if (!str.empty()) {
+            UChar id = Utils::SafeConvertInt<UChar>(str);
+            if (reader.GetGameId() <= 7) {
+                if (id == 206)
+                    id = Greenland;
+            }
+            SetFromInt(id);
+        }
+        else
+            SetDefaultValue();
+    }
+
+    ENUM_WRITE(writer) {
+        if (writer.GetGameId() <= 7) {
+            if (ToInt() == Montenegro)
+                writer.WriteOne(Serbia);
+            else if (ToInt() == Greenland)
+                writer.WriteOne(206);
+            else
+                writer.WriteOne(ToInt());
+        }
+        else
+            writer.WriteOne(ToInt());
+    }
+ENUM_END(FifamNation)

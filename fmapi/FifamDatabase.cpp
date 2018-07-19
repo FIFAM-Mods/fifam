@@ -3,21 +3,23 @@
 
 FifamDatabase::FifamDatabase() {}
 
-FifamDatabase::FifamDatabase(size_t gameId, const wchar_t *dbPath) {
+FifamDatabase::FifamDatabase(UInt gameId, const Path &dbPath) {
     Read(gameId, dbPath);
 }
 
-unsigned int FifamDatabase::GetInternalGameCountryId(size_t gameId, FifamNation nationId) {
+unsigned int FifamDatabase::GetInternalGameCountryId(UInt gameId, UChar nationId) {
+    FifamNation nation;
+    nation.SetFromInt(nationId);
     if (gameId < 8) {
-        if (nationId == FifamNation::Montenegro)
+        if (nation == FifamNation::Montenegro)
             return 0;
-        if (nationId > FifamNation::Montenegro)
-            return Utils::ToInt(nationId) - 1;
+        if (nation > FifamNation::Montenegro)
+            return nation.ToInt() - 1;
     }
-    return Utils::ToInt(nationId);
+    return nation.ToInt();
 }
 
-bool FifamDatabase::IsCountryPresent(size_t gameId, FifamNation nationId) {
+bool FifamDatabase::IsCountryPresent(UInt gameId, UChar nationId) {
     return GetInternalGameCountryId(gameId, nationId) != 0;
 }
 
@@ -28,7 +30,7 @@ void FifamDatabase::Read(size_t gameId, Path const &dbPath) {
     path scriptPath = gamePath / L"script";
     if (!exists(scriptPath))
         scriptPath.clear();
-    bool unicode = gameId >= 8;
+    Bool unicode = gameId >= 8;
 
     FifamReader countriesReader(dbPath / L"Countries.sav", gameId, unicode);
     if (countriesReader.Available()) {
@@ -42,7 +44,7 @@ void FifamDatabase::Read(size_t gameId, Path const &dbPath) {
                     for (UInt i = 0; i < NUM_COUNTRIES; i++) {
                         mCountries[i] = new FifamCountry(i + 1, this);
                         auto &country = mCountries[i];
-                        if (IsCountryPresent(gameId, Utils::FromInt<FifamNation>(country->mId))) {
+                        if (IsCountryPresent(gameId, country->mId)) {
                             reader.ReadLineTranslationArray(country->mName);
                             reader.ReadLineTranslationArray(country->mAbbr);
                             reader.ReadLineTranslationArray(country->mUseTheForName);
@@ -57,13 +59,12 @@ void FifamDatabase::Read(size_t gameId, Path const &dbPath) {
         }
     }
 
-    for (size_t i = 0; i < NUM_COUNTRIES; i++) {
+    for (UChar i = 0; i < NUM_COUNTRIES; i++) {
         auto &country = mCountries[i];
         if (!country)
             continue;
         std::wcout << L"Reading contry " << i << L" (" << Tr(country->mName) << L")" << std::endl;
-        FifamNation nationId = Utils::FromInt<FifamNation>(i + 1);
-        unsigned int countryFileId = GetInternalGameCountryId(gameId, nationId);
+        UChar countryFileId = GetInternalGameCountryId(gameId, i + 1);
         if (countryFileId != 0) {
             Path countryDataPath;
             if (gameId < 11)
@@ -96,25 +97,27 @@ void FifamDatabase::Read(size_t gameId, Path const &dbPath) {
         FifamReader cupAllocReader(scriptPath / L"cupAlloc.txt", 0, false);
         if (cupAllocReader.Available()) {
             auto numCups = cupAllocReader.ReadLine<UInt>();
+            if (numCups > 0)
+                numCups -= 1;
             for (UInt i = 0; i < numCups; i++) {
-                if (cupAllocReader.ReadStartIndex(Utils::Format(L"CUP%d", i))) {
+                if (cupAllocReader.ReadStartIndex(Utils::Format(L"CUP%d", i + 1))) {
                     mCupTemplates.push_back(new FifamCupAlloc);
                     mCupTemplates.back()->Read(cupAllocReader);
-                    cupAllocReader.ReadEndIndex(Utils::Format(L"CUP%d", i));
+                    cupAllocReader.ReadEndIndex(Utils::Format(L"CUP%d", i + 1));
                 }
             }
         }
     }
 }
 
-void FifamDatabase::Write(size_t gameId, unsigned short vYear, unsigned short vNumber, Path const &dbPath) {
+void FifamDatabase::Write(size_t gameId, UShort vYear, UShort vNumber, Path const &dbPath) {
     if (!exists(dbPath))
         create_directories(dbPath);
     path gamePath = dbPath.parent_path();
     path scriptPath = gamePath / L"script";
     if (!exists(scriptPath))
         scriptPath.clear();
-    bool unicode = gameId >= 8;
+    Bool unicode = gameId >= 8;
 
     FifamWriter countriesWriter(dbPath / L"Countries.sav", gameId, 0, 0, unicode);
     if (countriesWriter.Available()) {
@@ -123,7 +126,7 @@ void FifamDatabase::Write(size_t gameId, unsigned short vYear, unsigned short vN
         writer.WriteLine(Utils::Format(L"Countries Version: %d", countriesVer));
         for (UInt i = 0; i < NUM_COUNTRIES; i++) {
             auto &country = mCountries[i];
-            if (country && IsCountryPresent(gameId, Utils::FromInt<FifamNation>(country->mId))) {
+            if (country && IsCountryPresent(gameId, country->mId)) {
                 writer.WriteLineTranslationArray(country->mName);
                 writer.WriteLineTranslationArray(country->mAbbr);
                 writer.WriteLineTranslationArray(country->mUseTheForName);
@@ -139,11 +142,11 @@ void FifamDatabase::Write(size_t gameId, unsigned short vYear, unsigned short vN
         path cupAllocPath = scriptPath / L"cupAlloc.txt";
         FifamWriter cupAllocWriter(scriptPath / L"cupAlloc.txt", gameId, 0, 0, false);
         if (cupAllocWriter.Available()) {
-            cupAllocWriter.WriteLine(mCupTemplates.size());
+            cupAllocWriter.WriteLine(mCupTemplates.size() + 1);
             for (UInt i = 0; i < mCupTemplates.size(); i++) {
-                cupAllocWriter.WriteStartIndex(Utils::Format(L"CUP%d", i));
+                cupAllocWriter.WriteStartIndex(Utils::Format(L"CUP%d", i + 1));
                 mCupTemplates[i]->Write(cupAllocWriter);
-                cupAllocWriter.WriteEndIndex(Utils::Format(L"CUP%d", i));
+                cupAllocWriter.WriteEndIndex(Utils::Format(L"CUP%d", i + 1));
             }
         }
     }

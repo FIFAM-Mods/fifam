@@ -252,7 +252,6 @@ void FifamPlayerAppearance::Apply07AppearanceInfo(AppearanceInfo07 const &data) 
     mSideburns = false;
     mBeardType = BeardType::None;
     mBeardColour = BeardColour::Black;
-    mShoeType = ShoeType::Black;
 
     // Select face type
     if (data.faceId >= Utils::ToInt(Face07::Caucasian1) && data.faceId <= Utils::ToInt(Face07::Caucasian21)) {
@@ -278,10 +277,34 @@ void FifamPlayerAppearance::Apply07AppearanceInfo(AppearanceInfo07 const &data) 
     }
 
     // Select hair colour
-
+    if (data.hairColor >= 1 && data.hairColor <= 5) {
+        if (data.hairColor == Utils::ToInt(HairColour07::Brown))
+            mHairColour = HairColour::Brown;
+        else if (data.hairColor == Utils::ToInt(HairColour07::MediumBlond))
+            mHairColour = HairColour::MediumBlond;
+        else if (data.hairColor == Utils::ToInt(HairColour07::Blonde))
+            mHairColour = HairColour::Blonde;
+        else if (data.hairColor == Utils::ToInt(HairColour07::Red))
+            mHairColour = HairColour::Red;
+        else
+            mHairColour = HairColour::Black;
+    }
 
     // Select beard type
-
+    if (data.beardType >= 1 && data.beardType <= 6) {
+        if (data.beardType == Utils::ToInt(BeardType07::Goatee))
+            mBeardType = BeardType::Goatee;
+        if (data.beardType == Utils::ToInt(BeardType07::Moustash))
+            mBeardType = BeardType::Moustash;
+        if (data.beardType == Utils::ToInt(BeardType07::Shadow))
+            mBeardType = BeardType::Shadow;
+        if (data.beardType == Utils::ToInt(BeardType07::FullGoatee))
+            mBeardType = BeardType::FullGoatee;
+        if (data.beardType == Utils::ToInt(BeardType07::Full))
+            mBeardType = BeardType::Full;
+        else
+            mBeardType = BeardType::None;
+    }
 
     // Select beard colour
     if (mBeardType != BeardType::None) {
@@ -298,5 +321,28 @@ void FifamPlayerAppearance::Apply07AppearanceInfo(AppearanceInfo07 const &data) 
     }
 
     // Select shoe type
+    //if (data.shoeType >= 1 && data.shoeType <= 9)
+    //    mShoeType = Utils::FromInt<ShoeType>(data.shoeType);
+}
 
+FifamPlayerAppearance::AppearanceInfo07 FifamPlayerAppearance::Get07AppearanceInfo() {
+    AppearanceInfo07 result;
+    result.faceId = 1;
+    result.hairId = 1;
+    result.hairColor = Utils::ToInt(HairColour07::Black);
+    result.beardType = Utils::ToInt(BeardType::None);
+
+    // Get face id
+
+
+    // Get hair id
+
+
+    // Get hair colour
+
+
+    // Get beard type
+
+
+    return result;
 }

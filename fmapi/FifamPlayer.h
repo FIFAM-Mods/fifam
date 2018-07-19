@@ -4,6 +4,7 @@
 #include "FifamLanguage.h"
 #include "FifamReadWrite.h"
 #include "FifamPlayerAppearance.h"
+#include "FifamNation.h"
 
 class FifamClub;
 
@@ -38,10 +39,10 @@ public:
     String mNickname;
 
     // @since FM07
-    FifamNation mNationality[2] = { FifamNation::None, FifamNation::None };
+    FifamNation mNationality[2];
 
     // @since FM07
-    FifamLanguage mLanguages[3] = { FifamLanguage::None, FifamLanguage::None, FifamLanguage::None };
+    FifamLanguage mLanguages[3];
 
     // @since FM07
     FifamDate mBirthday;

@@ -5,9 +5,9 @@
 
 template<typename Test>
 void RunTest() {
-    std::string testName = typeid(Test).name();
-    if (!testName.compare(0, 6, "class "))
-        testName = testName.substr(6);
+    std::wstring testName = Utils::AtoW(typeid(Test).name());
+    Utils::Replace(testName, L"class ", L"");
+    Utils::Replace(testName, L"struct ", L"");
     auto tBegin = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
     std::wcout << Utils::TimeString(tBegin) << " Running test: \"" << testName.c_str() << "\"" <<  std::endl;
     {

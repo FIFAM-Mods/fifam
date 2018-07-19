@@ -1,58 +1,25 @@
 #pragma once
+#include "FifamEnum.h"
 
-enum class FifamBeg : UInt {
-    _1stLeg = 1,
-    With1stLeg = 1,
-    _2ndLeg = 2,
-    With2ndLeg = 2,
-    WithReplay = 4,
-    WithExtraTime = 8,
-    WithGoldenGoal = 16,
-    WithPenalty = 32,
-    End = 64,
-    _1stPlayed = 256,
-    _2ndPlayed = 512,
-    ExtraTime = 4096,
-    GoldenGoal = 8192,
-    Penalty = 16384,
-    Finished = 32768,
-    WithSilverGoal = 67108864,
-    WithoutAwayGoal = 134217728,
-    NoShuffle = 268435456,
-    NoPremierLeagueTeams = 536870912
-};
-
-inline FifamBeg operator|(FifamBeg lhs, FifamBeg rhs) {
-    return static_cast<FifamBeg>(static_cast<UInt>(lhs) | static_cast<UInt>(rhs));
-}
-
-inline FifamBeg& operator|=(FifamBeg& lhs, FifamBeg rhs) {
-    lhs = static_cast<FifamBeg>(static_cast<UInt>(lhs) | static_cast<UInt>(rhs));
-    return lhs;
-}
-
-template<>
-inline NameIdTable<FifamBeg> const &GetNameIdTable<FifamBeg>() {
-    static NameIdTable<FifamBeg> table = {
-        { L"BEG_1ST_LEG", FifamBeg::_1stLeg },
-        { L"BEG_WITH_1_LEG", FifamBeg::With1stLeg },
-        { L"BEG_2ND_LEG", FifamBeg::_2ndLeg },
-        { L"BEG_WITH_2_LEG", FifamBeg::With2ndLeg },
-        { L"BEG_WITH_REPLAY", FifamBeg::WithReplay },
-        { L"BEG_WITH_EXTRA_TIME", FifamBeg::WithExtraTime },
-        { L"BEG_WITH_GOLDEN_GOAL", FifamBeg::WithGoldenGoal },
-        { L"BEG_WITH_PENALTY", FifamBeg::WithPenalty },
-        { L"BEG_END", FifamBeg::End },
-        { L"BEG_1ST_PLAYED", FifamBeg::_1stPlayed },
-        { L"BEG_2ND_PLAYED", FifamBeg::_2ndPlayed },
-        { L"BEG_EXTRA_TIME", FifamBeg::ExtraTime },
-        { L"BEG_GOLDEN_GOAL", FifamBeg::GoldenGoal },
-        { L"BEG_PENALTY", FifamBeg::Penalty },
-        { L"BEG_FINISHED", FifamBeg::Finished },
-        { L"BEG_WITH_SILVER_GOAL", FifamBeg::WithSilverGoal },
-        { L"BEG_WITHOUT_AWAY_GOAL", FifamBeg::WithoutAwayGoal },
-        { L"BEG_NO_SHUFFLE", FifamBeg::NoShuffle },
-        { L"BEG_NO_PREMIERLEAGUE_TEAMS", FifamBeg::NoPremierLeagueTeams }
-    };
-    return table;
-};
+ENUM_BEGIN(FifamBeg, UInt)
+    ENUM_MEMBER(1,         With1stLeg,            L"BEG_WITH_1_LEG")
+    ENUM_MEMBER(1,         _1stLeg,               L"BEG_1ST_LEG")
+    ENUM_MEMBER(2,         With2ndLeg,            L"BEG_WITH_2_LEG")
+    ENUM_MEMBER(2,         _2ndLeg,               L"BEG_2ND_LEG")
+    ENUM_MEMBER(4,         WithReplay,            L"BEG_WITH_REPLAY")
+    ENUM_MEMBER(8,         WithExtraTime,         L"BEG_WITH_EXTRA_TIME")
+    ENUM_MEMBER(16,        WithGoldenGoal,        L"BEG_WITH_GOLDEN_GOAL")
+    ENUM_MEMBER(32,        WithPenalty,           L"BEG_WITH_PENALTY")
+    ENUM_MEMBER(64,        End,                   L"BEG_END")
+    ENUM_MEMBER(256,       _1stPlayed,            L"BEG_1ST_PLAYED")
+    ENUM_MEMBER(512,       _2ndPlayed,            L"BEG_2ND_PLAYED")
+    ENUM_MEMBER(4096,      ExtraTime,             L"BEG_EXTRA_TIME")
+    ENUM_MEMBER(8192,      GoldenGoal,            L"BEG_GOLDEN_GOAL")
+    ENUM_MEMBER(16384,     Penalty,               L"BEG_PENALTY")
+    ENUM_MEMBER(32768,     Finished,              L"BEG_FINISHED")
+    ENUM_MEMBER(67108864,  WithSilverGoal,        L"BEG_WITH_SILVER_GOAL")
+    ENUM_MEMBER(134217728, WithoutAwayGoal,       L"BEG_WITHOUT_AWAY_GOAL")
+    ENUM_MEMBER(268435456, NoShuffle,             L"BEG_NO_SHUFFLE")
+    ENUM_MEMBER(536870912, NoPremierLeagueTeams,  L"BEG_NO_PREMIERLEAGUE_TEAMS")
+    ENUM_DEFAULT_READ_WRITE
+ENUM_END(FifamBeg)

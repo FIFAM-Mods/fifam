@@ -123,3 +123,39 @@ std::wstring Utils::ToLower(std::wstring const &str) {
         result += tolower(static_cast<unsigned char>(str[i]));
     return result;
 }
+
+float Utils::SafeConvertFloat(std::wstring const &str) {
+    float result = 0.0f;
+    try {
+        result = std::stof(str);
+    }
+    catch (...) {}
+    return result;
+}
+
+double Utils::SafeConvertDouble(std::wstring const &str) {
+    double result = 0.0;
+    try {
+        result = std::stod(str);
+    }
+    catch (...) {}
+    return result;
+}
+
+std::wstring Utils::AtoW(std::string const &str) {
+    return std::wstring(str.begin(), str.end());
+}
+
+std::string Utils::WtoA(std::wstring const &str) {
+    return std::string(str.begin(), str.end());
+}
+
+void Utils::Replace(std::wstring& str, const std::wstring& from, const std::wstring& to) {
+    if (from.empty())
+        return;
+    size_t start_pos = 0;
+    while ((start_pos = str.find(from, start_pos)) != std::string::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length();
+    }
+}

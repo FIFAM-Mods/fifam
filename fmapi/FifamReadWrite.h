@@ -5,6 +5,9 @@
 #include "Utils.h"
 #include "Hexademical.h"
 #include "Quoted.h"
+#include "FifamTranslation.h"
+
+class FifamEnum;
 
 class Utilities {
 public:
@@ -59,8 +62,13 @@ public:
     void WriteOne(Quoted const &value);
 
     template<typename T, typename = std::enable_if_t<std::is_enum_v<T>>>
-    void WriteOne(T &value) {
+    void WriteOne(T const &value) {
         WriteOne(static_cast<std::underlying_type_t<T>>(Utils::ToInt(value)));
+    }
+
+    template<typename T, typename = std::enable_if_t<std::is_base_of_v<FifamEnum, T>>, typename = void>
+    void WriteOne(T value) {
+        value.Write(*this);
     }
 
     void WriteStartIndex(String const &name, bool newLine = true);
@@ -160,18 +168,6 @@ public:
     bool ReadEndIndex(String const &name, bool moveToEofIfNotFound = true);
     void ReadLine(FifamDate &date);
 private:
-    template<typename T>
-    T SafeConvertInt(String const &str, bool isHex = false) {
-        unsigned int result = 0;
-        try {
-            result = static_cast<T>(std::stoul(str, 0, isHex ? 16 : 10));
-        }
-        catch (...) {}
-        return result;
-    }
-
-    float SafeConvertFloat(String const &str);
-    double SafeConvertDouble(String const &str);
     void StrToArg(String const &str, unsigned char &arg);
     void StrToArg(String const &str, char &arg);
     void StrToArg(String const &str, unsigned short &arg);
@@ -190,7 +186,12 @@ private:
 
     template<typename T, typename = std::enable_if_t<std::is_enum_v<T>>>
     void StrToArg(String const &str, T &arg) {
-        arg = Utils::FromInt<T>(str.empty() ? 0 : SafeConvertInt<std::underlying_type_t<T>>(str));
+        arg = Utils::FromInt<T>(str.empty() ? 0 : Utils::SafeConvertInt<std::underlying_type_t<T>>(str));
+    }
+
+    template<typename T, typename = std::enable_if_t<std::is_base_of_v<FifamEnum, T>>, typename = void>
+    void StrToArg(String const &str, T &arg) {
+        arg.Read(*this, str);
     }
 
     template<typename One>
@@ -244,10 +245,10 @@ public:
     size_t ReadLineArray(Container &out, char sep = ',') {
         GetLine();
         std::vector<String> strArgs = Utils::Split(mLine, Utils::CharToStr(sep));
-        size_t count = min(out.size(), strArgs.size());
+        size_t count = std::min(out.size(), strArgs.size());
         for (size_t i = 0; i < count; i++)
             StrToArg(strArgs[i], out[i]);
-        return max(out.size(), strArgs.size());
+        return std::max(out.size(), strArgs.size());
     }
 
     template<typename T>

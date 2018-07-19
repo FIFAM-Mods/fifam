@@ -34,7 +34,13 @@
     <ClInclude Include="environment\FifamDbEnvironment.h">
       <Filter>testenv</Filter>
     </ClInclude>
-    <ClInclude Include="tests\FifamDbTest.h">
+    <ClInclude Include="tests\WriteCountries.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\FlagsTest.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\WriteDbTest.h">
       <Filter>tests</Filter>
     </ClInclude>
   </ItemGroup>

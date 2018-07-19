@@ -26,6 +26,9 @@ namespace Utils {
     void Trim(std::wstring &str);
     std::wstring ToUpper(std::wstring const &str);
     std::wstring ToLower(std::wstring const &str);
+    std::wstring AtoW(std::string const &str);
+    std::string WtoA(std::wstring const &str);
+    void Replace(std::wstring& str, const std::wstring& from, const std::wstring& to);
 
     template<typename T>
     unsigned int ToInt(T value) {
@@ -36,4 +39,17 @@ namespace Utils {
     T FromInt(unsigned int value) {
         return static_cast<T>(value);
     }
+
+    template<typename T>
+    T SafeConvertInt(std::wstring const &str, bool isHex = false) {
+        unsigned int result = 0;
+        try {
+            result = static_cast<T>(std::stoul(str, 0, isHex ? 16 : 10));
+        }
+        catch (...) {}
+        return result;
+    }
+
+    float SafeConvertFloat(std::wstring const &str);
+    double SafeConvertDouble(std::wstring const &str);
 };

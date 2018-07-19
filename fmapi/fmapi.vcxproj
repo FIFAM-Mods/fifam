@@ -88,6 +88,7 @@
     <ClInclude Include="FifamCupAlloc.h" />
     <ClInclude Include="FifamCupAllocType.h" />
     <ClInclude Include="FifamDatabase.h" />
+    <ClInclude Include="FifamEnum.h" />
     <ClInclude Include="FifamFlags.h" />
     <ClInclude Include="FifamFormation.h" />
     <ClInclude Include="FifamLanguage.h" />
@@ -95,9 +96,11 @@
     <ClInclude Include="FifamPlayer.h" />
     <ClInclude Include="FifamPlayerAppearance.h" />
     <ClInclude Include="FifamReferee.h" />
+    <ClInclude Include="FifamRefereeType.h" />
     <ClInclude Include="FifamRegenPlayer.h" />
     <ClInclude Include="FifamManager.h" />
     <ClInclude Include="FifamRoundID.h" />
+    <ClInclude Include="FifamShoeType.h" />
     <ClInclude Include="FifamSponsor.h" />
     <ClInclude Include="FifamStadium.h" />
     <ClInclude Include="FifamStaff.h" />

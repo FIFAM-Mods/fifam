@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FifamTypes.h"
+#include "FifamNation.h"
 
 class FifamCompetition {
 public:

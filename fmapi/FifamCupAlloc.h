@@ -2,6 +2,10 @@
 
 #include "FifamTypes.h"
 #include "FifamReadWrite.h"
+#include "FifamFlags.h"
+#include "FifamRoundID.h"
+#include "FifamBeg.h"
+#include "FifamCupAllocType.h"
 
 // @since FM07
 // templates for cup system
@@ -31,14 +35,14 @@ public:
         unsigned short mEndBeg = 0;
 
         // @since FM07
-        FifamRoundID mRoundID = FifamRoundID::_1;
+        FifamRoundID mRoundID;
 
         // @since FM07
-        FifamBeg mFlags = FifamBeg::_1stLeg | FifamBeg::WithExtraTime | FifamBeg::WithPenalty;
+        Flags<FifamBeg> mFlags = FifamBeg::_1stLeg | FifamBeg::WithExtraTime | FifamBeg::WithPenalty;
     };
 
     // @since FM07
-    FifamCupAllocType mType = FifamCupAllocType::Misc;
+    FifamCupAllocType mType;
 
     // @since FM07
     // @example _ID_FACUP_GERMANY

@@ -2,7 +2,8 @@
 
 void FifamCupAlloc::Read(FifamReader &reader) {
     mRounds.clear();
-    NameToId(mType, reader.ReadLine<String>());
+
+    reader.ReadLine(mType);
     reader.ReadLine(mNameKey);
     reader.ReadLine(mTeamsCount);
     UInt numRounds = reader.ReadLine<UInt>();
@@ -10,7 +11,7 @@ void FifamCupAlloc::Read(FifamReader &reader) {
     for (UInt i = 0; i < numRounds; i++) {
         mRounds[i] = new FifamCupAlloc::Round;
         auto round = mRounds[i];
-        ClearFlags(round->mFlags);
+        round->mFlags.Clear();
         auto params = reader.ReadPackedLineArray<String>();
         for (UInt i = 0; i < params.size(); i++) {
             if (i == 0)
@@ -26,27 +27,25 @@ void FifamCupAlloc::Read(FifamReader &reader) {
             else if (i == 5)
                 round->mEndBeg = Utils::ToNumber(params[i]);
             else if (i == 6)
-                NameToId(round->mRoundID, params[i]);
+                round->mRoundID.SetFromStr(params[i]);
             else
-                NameToId_Flag(round->mFlags, params[i]);
+                round->mFlags.Set(params[i], true);
         }
     }
     // TODO: read instructions
 }
 
 void FifamCupAlloc::Write(FifamWriter &writer) {
-    writer.WriteLine(IdToName(mType));
+    writer.WriteLine(mType);
     writer.WriteLine(mNameKey);
     writer.WriteLine(mTeamsCount);
+    writer.WriteLine(mRounds.size() + 1);
     for (UInt i = 0; i < mRounds.size(); i++) {
         auto round = mRounds[i];
         writer.Write(Utils::Format(L"{ %d, %d, %2d, %2d, %3d, %3d, %s",
             round->mRound, round->mNumRounds, round->mTeamsRound, round->mNewTeamsRound,
-            round->mStartBeg, round->mEndBeg, IdToName(round->mRoundID).c_str()));
-        IterateFlags(round->mFlags, [&](FifamBeg flag) {
-            writer.Write(L", ");
-            writer.Write(IdToName(flag));
-        });
+            round->mStartBeg, round->mEndBeg, round->mRoundID.ToCStr()));
+        writer.Write(round->mFlags.ToStr(L", "));
         writer.WriteLine(L" }");
     }
     // TODO: write instructions

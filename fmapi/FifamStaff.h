@@ -1,6 +1,8 @@
 #pragma once
 
 #include "FifamTypes.h"
+#include "FifamNation.h"
+#include "FifamFormation.h"
 
 class FifamClub;
 
@@ -54,7 +56,7 @@ public:
 
     // @[1]since FM07
     // @[2]since FM09
-    FifamNation mNationality[2] = { FifamNation::None, FifamNation::None };
+    FifamNation mNationality[2];
 
     // @since FM07
     // @range 0-4
@@ -97,7 +99,7 @@ public:
     FifamLanguage mLanguage[4] = { FifamLanguage::None, FifamLanguage::None, FifamLanguage::None, FifamLanguage::None };
 
     // @since FM07
-    FifamFormation mFavouriteFormation = FifamFormation::_4_3_3;
+    FifamFormation mFavouriteFormation;
 
     // @since FM07
     // @range 0-4

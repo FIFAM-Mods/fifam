@@ -339,62 +339,44 @@ void FifamReader::ReadLine(FifamDate &date) {
     date.Validate();
 }
 
-float FifamReader::SafeConvertFloat(String const &str) {
-    float result = 0.0f;
-    try {
-        result = std::stof(str);
-    }
-    catch (...) {}
-    return result;
-}
-
-double FifamReader::SafeConvertDouble(String const &str) {
-    double result = 0.0;
-    try {
-        result = std::stod(str);
-    }
-    catch (...) {}
-    return result;
-}
-
 void FifamReader::StrToArg(String const &str, unsigned char &arg) {
-    arg = str.empty() ? 0 : SafeConvertInt<unsigned char>(str);
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<unsigned char>(str);
 }
 
 void FifamReader::StrToArg(String const &str, char &arg) {
-    arg = str.empty() ? 0 : SafeConvertInt<char>(str);
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<char>(str);
 }
 
 void FifamReader::StrToArg(String const &str, unsigned short &arg) {
-    arg = str.empty() ? 0 : SafeConvertInt<unsigned short>(str);
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<unsigned short>(str);
 }
 
 void FifamReader::StrToArg(String const &str, short &arg) {
-    arg = str.empty() ? 0 : SafeConvertInt<short>(str);
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<short>(str);
 }
 
 void FifamReader::StrToArg(String const &str, unsigned int &arg) {
-    arg = str.empty() ? 0 : SafeConvertInt<unsigned int>(str);
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<unsigned int>(str);
 }
 
 void FifamReader::StrToArg(String const &str, int &arg) {
-    arg = str.empty() ? 0 : SafeConvertInt<unsigned int>(str);
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<unsigned int>(str);
 }
 
 void FifamReader::StrToArg(String const &str, unsigned long long int &arg) {
-    arg = str.empty() ? 0 : SafeConvertInt<unsigned long long int>(str);
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<unsigned long long int>(str);
 }
 
 void FifamReader::StrToArg(String const &str, long long int &arg) {
-    arg = str.empty() ? 0 : SafeConvertInt<long long int>(str);
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<long long int>(str);
 }
 
 void FifamReader::StrToArg(String const &str, float &arg) {
-    arg = str.empty() ? 0.0f : SafeConvertFloat(str);
+    arg = str.empty() ? 0.0f : Utils::SafeConvertFloat(str);
 }
 
 void FifamReader::StrToArg(String const &str, double &arg) {
-    arg = str.empty() ? 0.0 : SafeConvertDouble(str);
+    arg = str.empty() ? 0.0 : Utils::SafeConvertDouble(str);
 }
 
 void FifamReader::StrToArg(String const &str, wchar_t *arg) {
@@ -409,9 +391,9 @@ void FifamReader::StrToArg(String const &str, FifamDate &arg) {
     if (IsVersionGreaterOrEqual(0x2009, 0xA) && !str.empty()) {
         auto dateInfo = Utils::Split(str, L"-");
         if (dateInfo.size() == 3) {
-            arg.day = SafeConvertInt<char>(dateInfo[0]);
-            arg.month = SafeConvertInt<char>(dateInfo[1]);
-            arg.year = SafeConvertInt<short>(dateInfo[2]);
+            arg.day = Utils::SafeConvertInt<char>(dateInfo[0]);
+            arg.month = Utils::SafeConvertInt<char>(dateInfo[1]);
+            arg.year = Utils::SafeConvertInt<short>(dateInfo[2]);
             arg.Validate();
             return;
         }
@@ -420,7 +402,7 @@ void FifamReader::StrToArg(String const &str, FifamDate &arg) {
 }
 
 void FifamReader::StrToArg(String const &str, Hexademical arg) {
-    arg = str.empty() ? 0 : SafeConvertInt<unsigned int>(str, true);
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<unsigned int>(str, true);
 }
 
 void FifamReader::StrToArg(String const &str, Quoted arg) {

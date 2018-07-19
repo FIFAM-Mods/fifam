@@ -29,6 +29,9 @@
     <ClInclude Include="FifamTerritory.h" />
     <ClInclude Include="FifamAssociation.h" />
     <ClInclude Include="FifamPlayerAppearance.h" />
+    <ClInclude Include="FifamShoeType.h" />
+    <ClInclude Include="FifamEnum.h" />
+    <ClInclude Include="FifamRefereeType.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamDate.cpp" />

@@ -4,6 +4,8 @@
 #include "FifamStadium.h"
 #include "FifamSponsor.h"
 #include "FifamReferee.h"
+#include "FifamAssociation.h"
+#include "FifamTerritory.h"
 
 class FifamDatabase;
 
