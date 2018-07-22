@@ -8,19 +8,12 @@ public:
     static const UChar NUM_COUNTRIES = 207;
 
     Array<FifamCountry *, NUM_COUNTRIES> mCountries = {};
-
     Set<FifamClub *> mClubs;
-
     Set<FifamPlayer *> mPlayers;
-
     Set<FifamReferee *> mReferees;
-
     Set<FifamStaff *> mStaffs;
-
     Set<FifamStadium *> mStadiums;
-
     Set<FifamSponsor *> mSponsors;
-
     Vector<FifamCupAlloc *> mCupTemplates;
 
     FifamDatabase();

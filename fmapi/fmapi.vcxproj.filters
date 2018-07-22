@@ -46,6 +46,10 @@
     <ClInclude Include="FifamKitBadgePosition.h" />
     <ClInclude Include="FifamShirtNumberColor.h" />
     <ClInclude Include="FifamKitColor.h" />
+    <ClInclude Include="FifamClubRecord.h" />
+    <ClInclude Include="FifamClubHistory.h" />
+    <ClInclude Include="FifamCountryAppearanceData.h" />
+    <ClInclude Include="FifamCountryLeagueLevelInfo.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamDate.cpp" />
@@ -64,5 +68,9 @@
     <ClCompile Include="FifamReadWrite.cpp" />
     <ClCompile Include="FifamPlayerAppearance.cpp" />
     <ClCompile Include="FifamKit.cpp" />
+    <ClCompile Include="FifamClubRecord.cpp" />
+    <ClCompile Include="FifamClubHistory.cpp" />
+    <ClCompile Include="FifamCountryAppearanceData.cpp" />
+    <ClCompile Include="FifamCountryLeagueLevelInfo.cpp" />
   </ItemGroup>
 </Project>

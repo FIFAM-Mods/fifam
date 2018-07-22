@@ -11,34 +11,26 @@ class FifamManager {
 public:
     // @since FM07
     String mFirstName;
-
     // @since FM07
     String mLastName;
-
     // @since FM07
     String mPseudonym;
-
+    // @since FM07
     FifamNation mNationality;
-
     // @since FM07
     FifamDate mBirthDay;
-
     // @since FM07
     // @range 0-15
-    Char mMotivationSkills = 0;
-
+    UChar mMotivationSkills = 0;
     // @since FM07
     // @range 0-15
-    Char mCoachingSkills = 0;
-
+    UChar mCoachingSkills = 0;
     // @since FM07
     // @range 0-15
-    Char mGoalkeepersTraining = 0;
-
+    UChar mGoalkeepersTraining = 0;
     // @since FM07
     // @range 0-15
-    Char mNegotiationSkills = 0;
-
+    UChar mNegotiationSkills = 0;
     // @since FM07
     Array<FifamLanguage, 4> mLanguage;
 

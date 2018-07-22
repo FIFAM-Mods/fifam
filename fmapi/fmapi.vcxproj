@@ -80,13 +80,17 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="FifamClubHistory.h" />
+    <ClInclude Include="FifamClubRecord.h" />
     <ClInclude Include="FifamContinent.h" />
     <ClInclude Include="FifamBeg.h" />
     <ClInclude Include="FifamClimate.h" />
     <ClInclude Include="FifamClub.h" />
     <ClInclude Include="FifamCompetition.h" />
     <ClInclude Include="FifamCountry.h" />
+    <ClInclude Include="FifamCountryAppearanceData.h" />
     <ClInclude Include="FifamCountryFlags.h" />
+    <ClInclude Include="FifamCountryLeagueLevelInfo.h" />
     <ClInclude Include="FifamCupAlloc.h" />
     <ClInclude Include="FifamCupAllocType.h" />
     <ClInclude Include="FifamCupSystemType.h" />
@@ -128,8 +132,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamClub.cpp" />
+    <ClCompile Include="FifamClubHistory.cpp" />
+    <ClCompile Include="FifamClubRecord.cpp" />
     <ClCompile Include="FifamCompetition.cpp" />
     <ClCompile Include="FifamCountry.cpp" />
+    <ClCompile Include="FifamCountryAppearanceData.cpp" />
+    <ClCompile Include="FifamCountryLeagueLevelInfo.cpp" />
     <ClCompile Include="FifamCupAlloc.cpp" />
     <ClCompile Include="FifamDatabase.cpp" />
     <ClCompile Include="FifamDate.cpp" />

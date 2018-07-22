@@ -10,26 +10,22 @@ class FifamClub;
 class FifamStaff {
 public:
     // @since FM07
-    Int mID = 0;
-
+    UInt mID = 0;
     // @since FM07
     // @maxsize 15
     String mFirstName;
-
     // @since FM07
     // @maxsize 19
     String mLastName;
-
     // @since FM09
     // @maxsize 19
     String mPseudonym;
-
     // @since FM09
     // @maxsize 19
     String mNickname;
 
     // @since FM07
-    enum class Type : Char {
+    enum class Type : UChar {
         Player,
         Manager,
         Chairman,
@@ -53,30 +49,24 @@ public:
 
     // @since FM07
     FifamDate mBirthdate;
-
     // @[1]since FM07
     // @[2]since FM09
     FifamNation mNationality[2];
-
     // @since FM07
     // @range 0-4
-    Char mExperience = 0;
-
+    UChar mExperience = 0;
     // @since FM07
     // @range 0-15
-    Char mMotivationSkills = 0;
-
+    UChar mMotivationSkills = 0;
     // @since FM07
     // @range 0-15
-    Char mCoachingSkills = 0;
-
+    UChar mCoachingSkills = 0;
     // @since FM07
     // @range 0-15
-    Char mGoalkeepersTraining = 0;
-
+    UChar mGoalkeepersTraining = 0;
     // @since FM07
     // @range 0-15
-    Char mNegotiationSkills = 0;
+    UChar mNegotiationSkills = 0;
 
     // @since FM07
     enum class CharacterFocus : Char {
@@ -97,25 +87,20 @@ public:
 
     // @since FM07
     Array<FifamLanguage, 4> mLanguage;
-
     // @since FM07
     FifamFormation mFavouriteFormation;
-
     // @since FM07
     // @range 0-4
     // 0 - less patient, 4 - more patient, can be set to negative value
-    Char mStabilityOfBoardOfDirectors = 4;
-
+    UChar mStabilityOfBoardOfDirectors = 4;
     // @since FM09
     FifamClub *mFavouriteClub = nullptr;
-
     // @since FM09
     FifamClub *mWouldNeverWorkForClub = nullptr;
 
     struct {
         // @since FM07
         Char _1 = 0; // 0,1,2, default 0
-
         // @since FM07
         Char _2 = 0; // 0-7, default 0
     } Unknown;

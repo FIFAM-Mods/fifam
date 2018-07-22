@@ -127,7 +127,7 @@ zString<>         __UNKNOWN__ (empty)
 Byte              Transfers country 1
 Byte              Transfers country 2
 Byte              Youth players come from (country id)
-Int               Special kit - ID
+Int               FIFA ID
 Int               Players count
 Int               Staff count
 %INDEX%KIT

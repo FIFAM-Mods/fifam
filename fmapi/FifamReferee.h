@@ -11,11 +11,9 @@ public:
     // @since FM07
     // @maxsize 19
     String mFirstName;
-
     // @since FM07
     // @maxsize 19
     String mLastName;
-
     // @since FM07
     FifamRefereeType mType;
 

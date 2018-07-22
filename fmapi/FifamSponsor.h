@@ -7,19 +7,15 @@ class FifamCountry;
 // @since FM07
 class FifamSponsor {
 public:
-
     struct {
         // @since FM07
         // @maxsize 28
         String _1;
-
         // @since FM07
         Int _2 = 0;
-
         // @since FM07
         // @maxsize 31
         String _3;
-
         // @since FM07
         // @maxsize 31
         String _4;

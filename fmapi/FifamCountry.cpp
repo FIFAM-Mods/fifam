@@ -156,12 +156,8 @@ void FifamCountry::Read(FifamReader &reader) {
             if (secondYellowCardLeaguesState & 16)
                 mSecondYellowCardLeagueState[4] = true;
             UInt numLeagueLevels = reader.IsVersionGreaterOrEqual(0x2007, 0x13) ? 16 : 5;
-            for (UInt i = 0; i < numLeagueLevels; i++) {
-                reader.ReadLine(mLeagueLevels[i].mEqualPointsSorting);
-                reader.ReadLine(mLeagueLevels[i].mNumNonEUPlayersAllowed);
-                reader.ReadLine(mLeagueLevels[i].mNumRelegatedTeams);
-                reader.ReadLine(mLeagueLevels[i].mRating);
-            }
+            for (UInt i = 0; i < numLeagueLevels; i++)
+                mLeagueLevels[i].Read(reader);
             reader.ReadLine(mCupSystemType);
             UChar cupOptions = reader.ReadLine<UChar>();
             if (cupOptions & 1)
@@ -206,12 +202,10 @@ void FifamCountry::Read(FifamReader &reader) {
             if (reader.IsVersionGreaterOrEqual(0x2011, 0x01)) {
                 UInt numAppearanceDistributions = reader.ReadLine<UInt>();
                 mAppearanceData.resize(numAppearanceDistributions);
-                for (UInt i = 0; i < numAppearanceDistributions; i++) {
-                    reader.ReadLine(mAppearanceData[i].mAppearanceType);
-                    reader.ReadLine(mAppearanceData[i].mDistributionProbability);
-                }
+                for (UInt i = 0; i < numAppearanceDistributions; i++)
+                    mAppearanceData[i].Read(reader);
             }
-            if (reader.IsVersionGreaterOrEqual(0x2007, 0xEu)) {
+            if (reader.IsVersionGreaterOrEqual(0x2007, 0x0E)) {
                 reader.ReadLine(mPreferredTransfersTerritory);
                 reader.ReadLine(mFifaRanking);
             }
@@ -372,12 +366,8 @@ void FifamCountry::Write(FifamWriter &writer) {
         secondYellowCardLeaguesState |= 16;
     writer.WriteLine(secondYellowCardLeaguesState);
     UInt numLeagueLevels = writer.IsVersionGreaterOrEqual(0x2007, 0x13) ? 16 : 5;
-    for (UInt i = 0; i < numLeagueLevels; i++) {
-        writer.WriteLine(mLeagueLevels[i].mEqualPointsSorting);
-        writer.WriteLine(mLeagueLevels[i].mNumNonEUPlayersAllowed);
-        writer.WriteLine(mLeagueLevels[i].mNumRelegatedTeams);
-        writer.WriteLine(mLeagueLevels[i].mRating);
-    }
+    for (UInt i = 0; i < numLeagueLevels; i++)
+        mLeagueLevels[i].Write(writer);
     writer.WriteLine(mCupSystemType);
     UChar cupOptions = 0;
     if (mCupHomeAdvantageForTeamsInLowerLeagues)
@@ -419,10 +409,8 @@ void FifamCountry::Write(FifamWriter &writer) {
     writer.WriteLine(mAverageWeight);
     if (writer.IsVersionGreaterOrEqual(0x2011, 0x01)) {
         writer.WriteLine(mAppearanceData.size());
-        for (auto const &appearance : mAppearanceData) {
-            writer.WriteLine(appearance.mAppearanceType);
-            writer.WriteLine(appearance.mDistributionProbability);
-        }
+        for (auto &appearance : mAppearanceData)
+            appearance.Write(writer);
     }
     if (writer.IsVersionGreaterOrEqual(0x2007, 0xEu)) {
         writer.WriteLine(mPreferredTransfersTerritory);

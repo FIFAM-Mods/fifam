@@ -138,7 +138,7 @@ public:
 
     template<typename T>
     void WriteLineTranslationArray(TrArray<T> const &ary, char sep = ',') {
-        std::vector<T> vec;
+        Vector<T> vec;
         for (size_t i = 0; i < ary.size(); i++) {
             if (i < 5 || GetGameId() >= 8)
                 vec.push_back(ary[i]);
@@ -149,7 +149,7 @@ public:
     void WriteLineTranslationArray(TrArray<String> const &ary, char sep = ',', bool quoted = false);
 
     template<typename T>
-    void WritePackedLineArray(std::vector<T> const &ary, char sep = ',') {
+    void WritePackedLineArray(Vector<T> const &ary, char sep = ',') {
         WriteOne(L"{ ");
         for (size_t i = 0; i < ary.size(); i++) {
             WriteOne(ary[i]);
@@ -216,7 +216,7 @@ private:
     }
 
     template<typename One>
-    void ReadOneArg(std::vector<String> strArgs, size_t &currArg, One &&one) {
+    void ReadOneArg(Vector<String> strArgs, size_t &currArg, One &&one) {
         if (strArgs.size() > currArg)
             StrToArg(strArgs[currArg++], std::forward<One>(one));
         else
@@ -224,7 +224,7 @@ private:
     }
 
     template<typename One, typename... Other>
-    void ReadOneArg(std::vector<String> strArgs, size_t &currArg, One&& one, Other&&... other) {
+    void ReadOneArg(Vector<String> strArgs, size_t &currArg, One&& one, Other&&... other) {
         ReadOneArg(strArgs, currArg, std::forward<One>(one));
         ReadOneArg(strArgs, currArg, std::forward<Other>(other)...);
     }
@@ -265,7 +265,7 @@ public:
     template<typename Container>
     size_t ReadLineArray(Container &out, char sep = ',') {
         GetLine();
-        std::vector<String> strArgs = Utils::Split(mLine, Utils::CharToStr(sep));
+        Vector<String> strArgs = Utils::Split(mLine, Utils::CharToStr(sep));
         size_t count = std::min(out.size(), strArgs.size());
         for (size_t i = 0; i < count; i++)
             StrToArg(strArgs[i], out[i]);
@@ -284,10 +284,10 @@ public:
     size_t ReadLineTranslationArray(TrArray<String> &out, char sep = ',', bool quoted = false);
 
     template<typename T>
-    std::vector<T> ReadLineArray(char sep = ',') {
+    Vector<T> ReadLineArray(char sep = ',') {
         GetLine();
-        std::vector<T> ary;
-        std::vector<String> strArgs = Utils::Split(mLine, Utils::CharToStr(sep));
+        Vector<T> ary;
+        Vector<String> strArgs = Utils::Split(mLine, Utils::CharToStr(sep));
         ary.resize(strArgs.size());
         for (size_t i = 0; i < strArgs.size(); i++)
             StrToArg(strArgs[i], ary[i]);
@@ -295,7 +295,7 @@ public:
     }
 
     template<typename T>
-    std::vector<T> ReadPackedLineArray(char sep = ',') {
+    Vector<T> ReadPackedLineArray(char sep = ',') {
         GetLine();
         String line = mLine;
         auto startPos = line.find_first_of(L'{');
@@ -304,8 +304,8 @@ public:
         auto endPos = line.find_first_of(L'}');
         if (endPos != String::npos)
             line = line.substr(0, endPos);
-        std::vector<T> ary;
-        std::vector<String> strArgs = Utils::Split(line, Utils::CharToStr(sep));
+        Vector<T> ary;
+        Vector<String> strArgs = Utils::Split(line, Utils::CharToStr(sep));
         ary.resize(strArgs.size());
         for (size_t i = 0; i < strArgs.size(); i++)
             StrToArg(strArgs[i], ary[i]);

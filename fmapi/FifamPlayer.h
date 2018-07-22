@@ -13,40 +13,31 @@ class FifamPlayer {
 public:
     // @since FM07
     UInt mID = 0;
-
     // @UNKNOWN
     enum class Type { Player, Manager, Chairman, President, Stuff }
         mType = Type::Player;
 
     // @UNKNOWN
     UInt mCommentaryId = 0;
-
     // @since FM07
     // @maxsize 19
     String mLastName;
-
     // @since FM07
     // @maxsize 15
     String mFirstName;
-
     // @since FM07
     // @maxsize 19 FM07
     // @maxsize 29 FM13
     String mPseudonym;
-
     // @since FM07
     // @maxsize 19
     String mNickname;
-
     // @since FM07
     FifamNation mNationality[2];
-
     // @since FM07
     FifamLanguage mLanguages[3];
-
     // @since FM07
     FifamDate mBirthday;
-
     // @since FM07
     // there are two boolean flags, `IsReserve` and `IsYouth`
     // if none of them enabled then player is in the first team
@@ -57,10 +48,8 @@ public:
     // @since FM07
     // called as `Does not Count as a Foreign Player by Individual Decision of Local FA` in FM07
     Bool mNaturalised = false;
-
     // @since FM07
     Bool mBasque = false; 
-
     // @since FM07
     Bool mRealPlayer = false;
 
