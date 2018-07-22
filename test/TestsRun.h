@@ -10,5 +10,13 @@ void RunTests() {
     //RunTest<ReadWriteTest>();
     //RunTest<FlagsTest<FM07, Default>>();
     //RunTest<WriteCountries<FM13, Default>>();
-    RunTest<WriteDbTest<FM07, Default>>();
+
+    //RunTest<WriteDbTest<FM07, External>>();
+    //RunTest<WriteDbTest<FM08, External>>();
+    //RunTest<WriteDbTest<FM09, External>>();
+    //RunTest<WriteDbTest<FM10, External>>();
+    //RunTest<WriteDbTest<FM11, External>>();
+    //RunTest<WriteDbTest<FM12, External>>();
+    //RunTest<WriteDbTest<FM13, External>>();
+    RunTest<WriteDbTest<FM14, External>>();
 }

@@ -27,11 +27,25 @@
     <ClInclude Include="FifamCupAllocType.h" />
     <ClInclude Include="FifamFlags.h" />
     <ClInclude Include="FifamTerritory.h" />
-    <ClInclude Include="FifamAssociation.h" />
     <ClInclude Include="FifamPlayerAppearance.h" />
     <ClInclude Include="FifamShoeType.h" />
     <ClInclude Include="FifamEnum.h" />
     <ClInclude Include="FifamRefereeType.h" />
+    <ClInclude Include="FifamSuspensionRule.h" />
+    <ClInclude Include="FifamRedCardRule.h" />
+    <ClInclude Include="FifamEqualPointsSorting.h" />
+    <ClInclude Include="FifamLeagueSystemType.h" />
+    <ClInclude Include="FifamCupSystemType.h" />
+    <ClInclude Include="FifamLeagueCupSystemType.h" />
+    <ClInclude Include="FifamSuperCupType.h" />
+    <ClInclude Include="FifamClimate.h" />
+    <ClInclude Include="FifamAmateurRule.h" />
+    <ClInclude Include="FifamContinent.h" />
+    <ClInclude Include="FifamCountryFlags.h" />
+    <ClInclude Include="FifamKit.h" />
+    <ClInclude Include="FifamKitBadgePosition.h" />
+    <ClInclude Include="FifamShirtNumberColor.h" />
+    <ClInclude Include="FifamKitColor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamDate.cpp" />
@@ -49,5 +63,6 @@
     <ClCompile Include="FifamCupAlloc.cpp" />
     <ClCompile Include="FifamReadWrite.cpp" />
     <ClCompile Include="FifamPlayerAppearance.cpp" />
+    <ClCompile Include="FifamKit.cpp" />
   </ItemGroup>
 </Project>

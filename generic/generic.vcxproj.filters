@@ -5,6 +5,7 @@
     <ClCompile Include="Utils.cpp" />
     <ClCompile Include="Hexademical.cpp" />
     <ClCompile Include="Quoted.cpp" />
+    <ClCompile Include="Color.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Date.h" />
@@ -12,5 +13,6 @@
     <ClInclude Include="Utils.h" />
     <ClInclude Include="Hexademical.h" />
     <ClInclude Include="Quoted.h" />
+    <ClInclude Include="Color.h" />
   </ItemGroup>
 </Project>

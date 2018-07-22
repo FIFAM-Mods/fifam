@@ -2,46 +2,47 @@
 #include "FifamTypes.h"
 #include "Utils.h"
 #include "FifamReadWrite.h"
+#include "Error.h"
 
 class FifamEnum {};
 
 #define ENUM_BEGIN(typeName, underlyingType) \
 class typeName : FifamEnum { \
 public: \
-    using underlying_type_t = underlyingType; \
+    using underlyingtype_t = underlyingType; \
 private: \
-    using _MemberType = std::pair<underlying_type_t, wchar_t const *>; \
+    using _MemberType = std::pair<underlyingtype_t, wchar_t const *>; \
     using _MembersContainer = std::vector<_MemberType>; \
-    underlying_type_t _value = 0; \
+    underlyingtype_t _value = 0; \
     bool _wasSetFromUnkown = false; \
-    underlying_type_t _unknownValue = 0; \
+    underlyingtype_t _unknownValue = 0; \
 \
     static bool &_hasGaps() { \
         static bool var_hasGaps = true; \
         return var_hasGaps; \
     } \
-    static underlying_type_t &_first() { \
-        static underlying_type_t var_first = 0; \
+    static underlyingtype_t &_first() { \
+        static underlyingtype_t var_first = 0; \
         return var_first; \
     } \
-    static underlying_type_t &_last() { \
-        static underlying_type_t var_last = 0; \
+    static underlyingtype_t &_last() { \
+        static underlyingtype_t var_last = 0; \
         return var_last; \
     } \
     static bool &_hasDefault() { \
         static bool var_hasDefault = false; \
         return var_hasDefault; \
     } \
-    static underlying_type_t &_defaultValue() { \
+    static underlyingtype_t &_defaultValue() { \
         \
-        static underlying_type_t var_defaultValue = 0; \
+        static underlyingtype_t var_defaultValue = 0; \
         return var_defaultValue; \
     } \
     static _MembersContainer &_members() { \
         static _MembersContainer m; \
         return m; \
     } \
-    static underlying_type_t _InitEnumMember(underlying_type_t id, wchar_t const *name) { \
+    static underlyingtype_t _InitEnumMember(underlyingtype_t id, wchar_t const *name) { \
         _members().emplace_back(id, name); \
         return id; \
     } \
@@ -51,7 +52,7 @@ private: \
             std::sort(_members().begin(), _members().end(), [](_MemberType const &a, _MemberType const &b) { \
                 return a.first < b.first; \
             }); \
-            underlying_type_t it = _members().front().first; \
+            underlyingtype_t it = _members().front().first; \
             for (auto const &m : _members()) { \
                 if (m.first == it || (m.first - it) == 1) \
                     it = m.first; \
@@ -65,7 +66,7 @@ private: \
         } \
         return true; \
     } \
-    static bool _InitDefaultValue(underlying_type_t value) { \
+    static bool _InitDefaultValue(underlyingtype_t value) { \
         _defaultValue() = value; \
         _hasDefault() = true; \
         return true; \
@@ -75,9 +76,9 @@ private: \
 
 #define _ENUM_MEMBER_X(id, idname, strname, ln) \
 public: \
-    enum : underlying_type_t { idname = id }; \
+    enum : underlyingtype_t { idname = id }; \
 private: \
-    inline static underlying_type_t _ENUM_INITIALIZER_NAME(_initializer, ln) = _InitEnumMember(id, strname);
+    inline static underlyingtype_t _ENUM_INITIALIZER_NAME(_initializer, ln) = _InitEnumMember(id, strname);
 
 #define ENUM_MEMBER(id, idname, strname) _ENUM_MEMBER_X(id, idname, strname, __LINE__)
 
@@ -93,7 +94,7 @@ public: \
         else \
             _value = _first(); \
     } \
-    static bool Present(underlying_type_t value) { \
+    static bool Present(underlyingtype_t value) { \
         if (!_hasGaps()) \
             return value >= _first() && value <= _last(); \
         for (auto const &m : _members()) { \
@@ -102,7 +103,7 @@ public: \
         } \
         return false; \
     } \
-    underlying_type_t ToInt() const { return _value; } \
+    underlyingtype_t ToInt() const { return _value; } \
     std::wstring ToStr() const { \
         return ToCStr(); \
     } \
@@ -113,9 +114,13 @@ public: \
         } \
         return L""; \
     } \
-    bool GetWasSetFromUnknown() { return _wasSetFromUnkown; } \
-    underlying_type_t GetUnknown() { return _unknownValue; } \
-    bool SetFromInt(underlying_type_t value) { \
+    bool GetWasSetFromUnknown() const { return _wasSetFromUnkown; } \
+    void SetUnknown(underlyingtype_t value) { \
+        _wasSetFromUnkown = true; \
+        _unknownValue = value; \
+    } \
+    underlyingtype_t GetUnknown() const { return _unknownValue; } \
+    bool SetFromInt(underlyingtype_t value) { \
         if (Present(value)) { \
             _value = value; \
             _wasSetFromUnkown = false; \
@@ -127,7 +132,7 @@ public: \
         _unknownValue = value; \
         return false; \
     } \
-    bool SetFromInt(underlying_type_t value, underlying_type_t defaultValue) { \
+    bool SetFromInt(underlyingtype_t value, underlyingtype_t defaultValue) { \
         if (Present(value)) { \
             _value = value; \
             _wasSetFromUnkown = false; \
@@ -170,7 +175,7 @@ public: \
         return false; \
     } \
     template<typename ToType> \
-    ToType TranslateTo(const Vector<std::pair<underlying_type_t, ToType>> &table, ToType defaultValue = 0) { \
+    ToType TranslateTo(const Vector<std::pair<underlyingtype_t, ToType>> &table, ToType defaultValue = 0) { \
         for (size_t i = 0; i < table.size(); i++) { \
             if (table[i].second == _value) \
                 return table[i].first; \
@@ -178,7 +183,7 @@ public: \
         return defaultValue; \
     } \
     template<typename FromType> \
-    bool TranslateFrom(FromType fromValue, const Vector<std::pair<FromType, underlying_type_t>> &table) { \
+    bool TranslateFrom(FromType fromValue, const Vector<std::pair<FromType, underlyingtype_t>> &table) { \
         for (size_t i = 0; i < table.size(); i++) { \
             if (table[i].first == fromValue) { \
                 SetFromInt(table[i].second); \
@@ -190,7 +195,14 @@ public: \
     } \
     typeName &operator= (const typeName &rhs) { \
         _value = rhs._value; \
+        _wasSetFromUnkown = rhs._wasSetFromUnkown; \
+        _unknownValue = rhs._unknownValue; \
         return *this; \
+    } \
+    typeName(const typeName &rhs) { \
+        _value = rhs._value; \
+        _wasSetFromUnkown = rhs._wasSetFromUnkown; \
+        _unknownValue = rhs._unknownValue; \
     } \
     typeName &operator= (const std::wstring &rhs) { \
         SetFromStr(rhs); \
@@ -266,7 +278,7 @@ inline bool operator>= (const T &a, const typeName &b) { \
 public: \
     void Read(FifamReader &reader, String const &str) { \
         if (!str.empty()) \
-            SetFromInt(Utils::SafeConvertInt<underlying_type_t>(str)); \
+            SetFromInt(Utils::SafeConvertInt<underlyingtype_t>(str)); \
         else \
             SetDefaultValue(); \
     } \
@@ -292,3 +304,9 @@ public: \
 #define ENUM_WRITE(writer) \
 public: \
     void Write(FifamWriter & writer)
+
+template<typename E>
+void CheckEnum(E const &e) {
+    if (e.GetWasSetFromUnknown())
+        Error("Enum %s was set from unknown value: %u", typeid(e).name(), e.GetUnknown());
+}

@@ -27,7 +27,9 @@ unsigned int FifamVersion::GetIntValue() {
 }
 
 bool FifamVersion::IsGreaterOrEqual(unsigned short year, unsigned short number) {
-    return mYear >= year && mNumber >= number;
+    if (mYear > year)
+        return true;
+    return mYear == year && mNumber >= number;
 }
 
 String FifamVersion::GetString() {

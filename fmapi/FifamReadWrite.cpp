@@ -257,6 +257,10 @@ void FifamWriter::WriteLineTranslationArray(TrArray<String> const &ary, char sep
     WriteLineArray(vec, sep);
 }
 
+void FifamWriter::WriteNewLine() {
+    WriteOne(L"\n");
+}
+
 
 FifamReader::FifamReader(Path const &filename, size_t gameId, bool unicode) :
     FifamFileWorker(gameId)

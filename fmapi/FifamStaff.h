@@ -96,7 +96,7 @@ public:
     } mCharacterFocus = CharacterFocus::None;
 
     // @since FM07
-    FifamLanguage mLanguage[4] = { FifamLanguage::None, FifamLanguage::None, FifamLanguage::None, FifamLanguage::None };
+    Array<FifamLanguage, 4> mLanguage;
 
     // @since FM07
     FifamFormation mFavouriteFormation;

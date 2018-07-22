@@ -219,6 +219,11 @@ ENUM_BEGIN(FifamNation, UChar)
             if (reader.GetGameId() <= 7) {
                 if (id == 206)
                     id = Greenland;
+                else if (id == 207) {
+                    SetUnknown(id);
+                    SetDefaultValue();
+                    return;
+                }
             }
             SetFromInt(id);
         }

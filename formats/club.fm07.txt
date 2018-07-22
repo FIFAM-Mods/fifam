@@ -57,7 +57,7 @@ Byte              Youth department
 Byte              Training grounds
 Byte              Media
 Byte              Research
-Short             Flags: 256 - does not take part in IT-Cup
+Short             Last Season Flags: 1 - promoted, 2 - reserve team promoted, 4 - relegated, 8 - reserve team relegated, 16 - cup winner, 32 - reserve team cup winner, 64 - cup finalist, 128 - reserve team cup finalist, 256 - does not take part in IT-Cup
 zString<40>       Badge path
 Byte              Club colour        |-
 Byte              __UNKNOWN__ (0)    |

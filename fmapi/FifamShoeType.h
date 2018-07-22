@@ -28,8 +28,10 @@ ENUM_BEGIN(FifamShoeType, UChar)
     ENUM_READ(reader, str) {
         if (!str.empty()) {
             UChar id = Utils::SafeConvertInt<UChar>(str);
-            if (reader.GetGameId() <= 9 && id >= Green)
+            if (reader.GetGameId() <= 9 && id >= Green) {
+                SetUnknown(id);
                 SetDefaultValue();
+            }
             else
                 SetFromInt(id);
         }

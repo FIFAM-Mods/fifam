@@ -1,0 +1,128 @@
+@project FIFAM Formats Research
+@purpose FIFAM,FIFA,FootballManager DB Universal Converter
+@section COUNTRY_MIST FIFAM07-10
+@section COUNTRY_MISC FIFAM11-14
+@author Dmitry
+@author Purkas
+
+%INDEX%COUNTRY_MIST ; COUNTRY_MISC in FM11
+--{ Removed in FM11 }
+zString<256>        unused (info from Countries.sav is used) - country name
+zString<256>        unused (info from Countries.sav is used) - country abbr
+zString<256>        unused (info from Countries.sav is used) - Geographic Area: lower 3 bits - association, higher bits - territory
+Short               Original League System ID, 0 - none, 14 - English, 18 - French, 21 - German, 42 - Scottish, 45 - Spanish
+---------------------
+zString<9>          Football Association Name
+Byte[4]             Language ID's
+Byte[4]             Language Percentage
+Byte                Reserve teams allowed since this league level (0 - first league, 1 - second, ...)
+Byte                __UNKNOWN__ (0,1,14,17) - maybe unused (no reference found in FM13)
+--{ Removed in FM11 }
+zString<16>         FA President 1st Name
+zString<20>         FA President Last Name
+%INDEX%DATE
+Int                 FA President - Day of Birth
+Int                 FA President - Month of Birth
+Int                 FA President - Year of Birth
+%INDEXEND%DATE
+---------------------
+--{ Removed in FM08 }
+zString<16>         __UNKNOWN__ - unknown first name (always a fake name)
+zString<20>         __UNKNOWN__ - unknown last name (always a fake name)
+zString<16>         __UNKNOWN__ - unknown first name (always a fake name)
+zString<20>         __UNKNOWN__ - unknown last name (always a fake name)
+zString<16>         __UNKNOWN__ - unknown first name (always a fake name)
+zString<20>         __UNKNOWN__ - unknown last name (always a fake name)
+---------------------
+Byte                Yellow Cards Supension (league) rule (0-5), higher bit - Yellow Cards Count in Second Yellow sendings off
+Byte                Yellow Cards Supension (cup) rule (0-5), higher bit - Yellow Cards Count in Second Yellow sendings off
+Byte                Red Card Ban Option: 0 - Variable Duration, 1 - unknown (FM07 only), 2 - unknown (FM07 only), 16 - Fixed Duration
+Byte                Red Cards Rule: 0 - Immediately, 1 - Next Monday
+Byte                Bans Valid: 1 - Yellow Cards, 2 - Second Yellow Penalty, 4 - Red Cards
+Byte                2nd Yellow Card Penalty Flags: 1 - 1st league, ... 16 - 5th league
+--{ FOR_EACH_LEAGUE_LEVEL (5) }  ; 16 league levels in FM08
+Byte                Sorting in case of equal points, FM07: 0 - Goal diff, 1 - Goals, FM08: 0 - Goal diff, 4 - Goals, 8 - Direct matches decide
+Byte                Num of Non-EU players allowed
+Byte                Num of relegated teams
+Byte                League Level Rating
+-------------------------------
+Int                 Cup Type, 0 - no cup, 1 - German, 2 - FA England, 3 - French, 4 - Spain, 5 - Italian, 11 - Scotland, 22 - Unknown (some asian countries, Japan) ; ignored in 13
+Byte                Cup Options Checks: 1 - Home Adv Teams in Lower Leagues, 2 - Players Cup Tied ; ignored in 13
+Int                 Cup final stadium ID (0 - not selected, see StadiumList.txt) ; TODO: Decide what to do with IDs
+Int                 SuperCup Type, 0 - no cup, 15 - one leg, 16 - two legs ; ignored in 13
+Int                 League Cup Type, 8 bits per 4 divisions (1st div - lower 8 bits), 6 - German, 7 - English, 8 - French, 12 - Scotland, 13 - Div2/3, 14 - Conference ; ignored in 13
+Byte                Naturalization - 9 Max
+Byte                __UNKNOWN__ - always 0 |- array of 2 bytes
+Byte                __UNKNOWN__ - always 0 |-
+Byte                __UNKNOWN__ - always 0
+Byte                __UNKNOWN__ - always 0
+Byte                __UNKNOWN__ - always 0
+Byte                __UNKNOWN__ - always 1
+Byte                Flags, FM07: 2 - Generate Names, 4 - No Terraces Allowed, FM08: 1 - Unknown (Ukraine only), 4 - No Terraces Allowed, 16 - Unknown, 32 - Unknown, 128 - Unknown
+Byte                __UNKNOWN__ - always 0 - unknown (compared with 205, maybe some country id?) ; ignored in 13
+Byte                Move Between 1st/2nd Team: 0 - None, 1 - Only 1 Player Week, 2 - Players U24, 3 - Only while transfer Periods 
+Byte                Climate : 0 - Cold, 1 - Cool, 2 - Moderate, 3 - Warm, 4 - Hot
+Short               Assesment Points Last Year
+Short               Assesment Points 2 Year Ago
+Short               Assesment Points 3 Year Ago
+Short               Assesment Points 4 Year Ago
+Short               Assesment Points 5 Year Ago
+Short               Assesment Points 6 Year Ago
+Byte                Probability for Overseas Transfers %
+Int                 __UNKNOWN__ 0 England only - 1500
+Int                 __UNKNOWN__ 0 England - 2000, Russia (always) - 1
+--{ Removed in FM11 }
+%INDEX%MANAGER 
+zString<16>         unused - Manager first name
+zString<20>         unused - Manager last name
+zString<20>         unused - Manager pseudonym
+Int                 unused - Manager nationality
+%INDEX%DATE         ; replaced with one-line date in FM09/10
+Int                 unused - Manager birthdate
+Int                 unused - Manager birthdate
+Int                 unused - Manager birthdate
+%INDEXEND%DATE
+Byte                unused - Manager attributes |-
+Byte                unused - Manager attributes | array of 4 bytes
+Byte                unused - Manager attributes |
+Byte                unused - Manager attributes |-
+Byte                unused - Manager languages |-
+Byte                unused - Manager languages | array of 4 bytes
+Byte                unused - Manager languages |
+Byte                unused - Manager languages |-
+Byte                __UNKNOWN__ - always 0
+Byte                __UNKNOWN__ - always 0
+%INDEXEND%MANAGER
+---------------------
+Byte                Avg Player Rating / 1st League Level Rating
+Int                 __UNKNOWN__ (0-15)
+Int                 Appearance - hair color: 2 - black, 4 - brown, 8 - medium blonde, 16 - blonde, 32 - red
+Int                 Appearance - hair style (2 - Hairstyle1, 4 - Hairstyle2, ...)   |- array of 2 ints
+Int                 Appearance - hair style (1 - Hairstyle32, 2 - Hairstyle33, ...) |-
+Int                 Appearance - beard: 2 - none, 4 - goatee, 8 - tash, 16 - shadow, 32 - full goatee, 64 - full beard
+Int                 Appearance - face type (2 - Caucasian1, 4 - Caucasian2, ...) |-
+Int                 Appearance - face type                                       | array of 4 ints
+Int                 Appearance - face type                                       |
+Int                 Appearance - face type                                       |-
+Byte                Avg Height
+Byte                Avg Weight
+--{ Added in FM11 }
+Int                 Number of appearance settings
+--{ For each setting }
+Int                 Appearance type (TODO: document IDs)
+Int                 Distribution probability
+----------------------
+-------------------
+--{ Added in FM08 }
+Byte                Preferred transfers territory
+Short               FIFA ranking
+-------------------
+--{ Removed in FM11 }
+zString<28>         __UNKNOWN__ (empty) ; Venezuela - "Aridegol", FM08: England - 1, Scotland - 0
+---------------------
+Short               Continental Champions
+Short               World Cups
+Short               Continental Finalist
+Short               WC Finalist
+String              Notes
+%INDEXEND%COUNTRY_MIST ; COUNTRY_MISC in FM11

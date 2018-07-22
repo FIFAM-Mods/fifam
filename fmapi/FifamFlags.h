@@ -3,18 +3,38 @@
 #include "Utils.h"
 #include "FifamReadWrite.h"
 
-template<typename T, size_t numBits = sizeof(typename T::underlying_type_t) * 8>
-class Flags {
-    std::bitset<numBits> _bitset;
+class FifamFlags {};
 
+template<typename T, size_t numBits = sizeof(typename T::underlyingtype_t) * 8>
+class Flags : FifamFlags {
 public:
-    bool Set(typename T::underlying_type_t flag, bool state) {
+    using underlyingtype_t = typename T::underlyingtype_t;
+private:
+    std::bitset<numBits> _bitset;
+    underlyingtype_t _unknown = 0;
+    bool _wasSetFromUnknown = false;
+public:
+    Flags() {}
+
+    bool GetWasSetFromUnknown() const {
+        return _wasSetFromUnknown;
+    }
+
+    typename underlyingtype_t GetUnknown() const {
+        return _unknown;
+    }
+
+    bool Set(underlyingtype_t flag, bool state) {
         if (T::Present(flag)) {
             if (state)
                 _bitset |= flag;
             else
                 _bitset &= ~flag;
             return true;
+        }
+        else {
+            _unknown |= flag;
+            _wasSetFromUnknown = true;
         }
         return false;
     }
@@ -28,7 +48,7 @@ public:
         return false;
     }
 
-    bool Check(typename T::underlying_type_t flag) {
+    bool Check(underlyingtype_t flag) const {
         if (T::Present(flag))
             return (_bitset & flag) == flag;
         return false;
@@ -38,11 +58,11 @@ public:
         Set(flag.ToInt(), state);
     }
 
-    bool Check(T const &flag) {
+    bool Check(T const &flag) const {
         return Check(flag.ToInt());
     }
 
-    bool SetFromInt(typename T::underlying_type_t flags) {
+    bool SetFromInt(underlyingtype_t flags) {
         bool result = true;
         Clear();
         for (size_t i = 0; i < numBits; i++) {
@@ -51,6 +71,12 @@ public:
             else if (result)
                 result = false;
         }
+        if (!result) {
+            _unknown = flags;
+            _wasSetFromUnknown = true;
+        }
+        else
+            _wasSetFromUnknown = false;
         return result;
     }
 
@@ -63,6 +89,12 @@ public:
                     result = false;
             }
         }
+        if (!result) {
+            _unknown = 0;
+            _wasSetFromUnknown = true;
+        }
+        else
+            _wasSetFromUnknown = false;
         return result;
     }
 
@@ -71,11 +103,11 @@ public:
         return SetFromStrAry(ary);
     }
 
-    typename T::underlying_type_t ToInt() {
-        return static_cast<typename T::underlying_type_t>(_bitset.to_ulong());
+    typename underlyingtype_t ToInt() const {
+        return static_cast<underlyingtype_t>(_bitset.to_ulong());
     }
 
-    std::wstring ToStr(std::wstring const &sep = L",") {
+    std::wstring ToStr(std::wstring const &sep = L",") const {
         std::wstring result;
         bool first = true;
         for (size_t i = 0; i < numBits; i++) {
@@ -92,14 +124,21 @@ public:
         return result;
     }
 
-    void Clear() { _bitset.reset(); }
-    void SetAll() { _bitset.set(); }
-    bool All() { return _bitset.all(); }
-    bool Any() { return _bitset.any(); }
-    bool None() { return _bitset.none(); }
-    bool Count() { return _bitset.count(); }
+    void Clear() {
+        _bitset.reset();
+        _wasSetFromUnknown = false;
 
-    Flags &operator= (typename T::underlying_type_t flags) {
+    }
+    void SetAll() {
+        _bitset.set();
+        _wasSetFromUnknown = false;
+    }
+    bool All() const { return _bitset.all(); }
+    bool Any() const { return _bitset.any(); }
+    bool None() const { return _bitset.none(); }
+    bool Count() const { return _bitset.count(); }
+
+    Flags &operator= (underlyingtype_t flags) {
         SetFromInt(flags);
         return *this;
     }
@@ -114,7 +153,7 @@ public:
         return *this;
     }
 
-    Flags(typename T::underlying_type_t flags) {
+    Flags(underlyingtype_t flags) {
         SetFromInt(flags);
     }
 
@@ -128,7 +167,7 @@ public:
 
     void Read(FifamReader &reader, String const &str) {
         if (!str.empty())
-            SetFromInt(Utils::SafeConvertInt<typename T::underlying_type_t>(str));
+            SetFromInt(Utils::SafeConvertInt<typename T::underlyingtype_t>(str));
     }
 
     void Write(FifamWriter &writer) {
@@ -147,3 +186,9 @@ public:
     });
     */
 };
+
+template<typename F>
+void CheckFlags(F const &f) {
+    if (f.GetWasSetFromUnknown())
+        Error("Flags %s were set from unknown value: %u", typeid(f).name(), f.GetUnknown());
+}

@@ -47,8 +47,8 @@ void FifamDatabase::Read(size_t gameId, Path const &dbPath) {
                         if (IsCountryPresent(gameId, country->mId)) {
                             reader.ReadLineTranslationArray(country->mName);
                             reader.ReadLineTranslationArray(country->mAbbr);
-                            reader.ReadLineTranslationArray(country->mUseTheForName);
-                            reader.ReadLine(country->mAssociation);
+                            reader.ReadLineTranslationArray(country->mNameGender);
+                            reader.ReadLine(country->mContinent);
                             reader.ReadLine(country->mFirstLanguageForNames);
                             reader.ReadLine(country->mSecondLanguageForNames);
                             reader.ReadLine(country->mTerritory);
@@ -63,7 +63,7 @@ void FifamDatabase::Read(size_t gameId, Path const &dbPath) {
         auto &country = mCountries[i];
         if (!country)
             continue;
-        std::wcout << L"Reading contry " << i << L" (" << Tr(country->mName) << L")" << std::endl;
+        std::wcout << L"Reading contry " << country->mId << L" (" << Tr(country->mName) << L")" << std::endl;
         UChar countryFileId = GetInternalGameCountryId(gameId, i + 1);
         if (countryFileId != 0) {
             Path countryDataPath;
@@ -129,8 +129,8 @@ void FifamDatabase::Write(size_t gameId, UShort vYear, UShort vNumber, Path cons
             if (country && IsCountryPresent(gameId, country->mId)) {
                 writer.WriteLineTranslationArray(country->mName);
                 writer.WriteLineTranslationArray(country->mAbbr);
-                writer.WriteLineTranslationArray(country->mUseTheForName);
-                writer.WriteLine(country->mAssociation);
+                writer.WriteLineTranslationArray(country->mNameGender);
+                writer.WriteLine(country->mContinent);
                 writer.WriteLine(country->mFirstLanguageForNames);
                 writer.WriteLine(country->mSecondLanguageForNames);
                 writer.WriteLine(country->mTerritory);

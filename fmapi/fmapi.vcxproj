@@ -80,30 +80,44 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="FifamAssociation.h" />
+    <ClInclude Include="FifamContinent.h" />
     <ClInclude Include="FifamBeg.h" />
+    <ClInclude Include="FifamClimate.h" />
     <ClInclude Include="FifamClub.h" />
     <ClInclude Include="FifamCompetition.h" />
     <ClInclude Include="FifamCountry.h" />
+    <ClInclude Include="FifamCountryFlags.h" />
     <ClInclude Include="FifamCupAlloc.h" />
     <ClInclude Include="FifamCupAllocType.h" />
+    <ClInclude Include="FifamCupSystemType.h" />
     <ClInclude Include="FifamDatabase.h" />
     <ClInclude Include="FifamEnum.h" />
+    <ClInclude Include="FifamEqualPointsSorting.h" />
     <ClInclude Include="FifamFlags.h" />
     <ClInclude Include="FifamFormation.h" />
+    <ClInclude Include="FifamKit.h" />
+    <ClInclude Include="FifamKitBadgePosition.h" />
+    <ClInclude Include="FifamKitColor.h" />
     <ClInclude Include="FifamLanguage.h" />
+    <ClInclude Include="FifamLeagueSystemType.h" />
+    <ClInclude Include="FifamAmateurRule.h" />
     <ClInclude Include="FifamNation.h" />
     <ClInclude Include="FifamPlayer.h" />
     <ClInclude Include="FifamPlayerAppearance.h" />
+    <ClInclude Include="FifamRedCardRule.h" />
     <ClInclude Include="FifamReferee.h" />
     <ClInclude Include="FifamRefereeType.h" />
     <ClInclude Include="FifamRegenPlayer.h" />
     <ClInclude Include="FifamManager.h" />
     <ClInclude Include="FifamRoundID.h" />
+    <ClInclude Include="FifamShirtNumberColor.h" />
     <ClInclude Include="FifamShoeType.h" />
     <ClInclude Include="FifamSponsor.h" />
     <ClInclude Include="FifamStadium.h" />
     <ClInclude Include="FifamStaff.h" />
+    <ClInclude Include="FifamLeagueCupSystemType.h" />
+    <ClInclude Include="FifamSuperCupType.h" />
+    <ClInclude Include="FifamSuspensionRule.h" />
     <ClInclude Include="FifamTerritory.h" />
     <ClInclude Include="FifamTranslation.h" />
     <ClInclude Include="FifamTypes.h" />
@@ -119,6 +133,7 @@
     <ClCompile Include="FifamCupAlloc.cpp" />
     <ClCompile Include="FifamDatabase.cpp" />
     <ClCompile Include="FifamDate.cpp" />
+    <ClCompile Include="FifamKit.cpp" />
     <ClCompile Include="FifamPlayer.cpp" />
     <ClCompile Include="FifamPlayerAppearance.cpp" />
     <ClCompile Include="FifamReadWrite.cpp" />

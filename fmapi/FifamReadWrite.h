@@ -8,6 +8,7 @@
 #include "FifamTranslation.h"
 
 class FifamEnum;
+class FifamFlags;
 
 class Utilities {
 public:
@@ -71,6 +72,11 @@ public:
         value.Write(*this);
     }
 
+    template<typename T, typename = std::enable_if_t<std::is_base_of_v<FifamFlags, T>>, typename = void, typename = void>
+    void WriteOne(T const &value) {
+        WriteOne(value.ToInt());
+    }
+
     void WriteStartIndex(String const &name, bool newLine = true);
     void WriteEndIndex(String const &name, bool newLine = true);
     void WriteOne(FifamDate const &date);
@@ -116,12 +122,17 @@ public:
     }
 
     template<typename Container, typename T = typename Container::value_type>
-    void WriteLineArray(Container const &ary, char sep = ',') {
+    void WriteArray(Container const &ary, char sep = ',') {
         for (size_t i = 0; i < ary.size(); i++) {
             WriteOne(ary[i]);
             if (i != ary.size() - 1)
                 WriteOne(Utils::CharToStr(sep));
         }
+    }
+
+    template<typename Container, typename T = typename Container::value_type>
+    void WriteLineArray(Container const &ary, char sep = ',') {
+        WriteArray(ary, sep);
         WriteOne(L"\n");
     }
 
@@ -148,6 +159,8 @@ public:
         WriteOne(L" }");
         WriteOne(L"\n");
     }
+
+    void WriteNewLine();
 };
 
 class FifamReader : public FifamFileWorker {
@@ -192,6 +205,14 @@ private:
     template<typename T, typename = std::enable_if_t<std::is_base_of_v<FifamEnum, T>>, typename = void>
     void StrToArg(String const &str, T &arg) {
         arg.Read(*this, str);
+    }
+
+    template<typename T, typename = std::enable_if_t<std::is_base_of_v<FifamFlags, T>>, typename = void, typename = void>
+    void StrToArg(String const &str, T &arg) {
+        if (!str.empty())
+            arg.SetFromInt(Utils::SafeConvertInt<typename T::underlyingtype_t>(str));
+        else
+            arg.Clear();
     }
 
     template<typename One>

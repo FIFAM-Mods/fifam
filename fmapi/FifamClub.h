@@ -8,7 +8,7 @@
 class FifamClub {
 public:
     // @since FM08
-    Int mID = 0;
+    UInt mUID = 0;
 
     // @since FM07
     // @maxsize 29
