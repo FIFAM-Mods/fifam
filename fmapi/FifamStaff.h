@@ -1,5 +1,5 @@
 #pragma once
-
+#include "FifamPerson.h"
 #include "FifamTypes.h"
 #include "FifamNation.h"
 #include "FifamFormation.h"
@@ -7,10 +7,8 @@
 class FifamClub;
 
 // @since FM07
-class FifamStaff {
+class FifamStaff : public FifamPerson {
 public:
-    // @since FM07
-    UInt mID = 0;
     // @since FM07
     // @maxsize 15
     String mFirstName;
@@ -107,40 +105,39 @@ public:
 
     FifamStaff() {}
 
-    void Read(FifamReader &reader, bool readId = false) {
-        if (readId)
-            reader.ReadLine(mID);
-        reader.ReadStartIndex(L"STAFF");
-        reader.ReadLine(mFirstName);
-        reader.ReadLine(mLastName);
-        reader.ReadLine(mType);
-        reader.ReadLine(mBirthdate);
-        reader.ReadLine(mNationality[0]);
-        reader.ReadLine(Unknown._1);
-        reader.ReadLine(mExperience);
-        if (reader.IsVersionGreaterOrEqual(0x2007, 0x1E)) {
-            reader.ReadLine(mNickname);
-            reader.ReadLine(mPseudonym);
-            reader.ReadLine(mNationality[1]);
-            Int clubId;
-            reader.ReadLine(clubId);
-            // mFavouriteClub = FifamClub::GetClub(clubId);
-            reader.ReadLine(clubId);
-            // mWouldNeverWorkForClub = FifamClub::GetClub(clubId);
+    void Read(FifamReader &reader) {
+        if (reader.ReadStartIndex(L"STAFF")) {
+            //reader.ReadFullLine(mFirstName);
+            //reader.ReadFullLine(mLastName);
+            //reader.ReadLine(mType);
+            //reader.ReadLine(mBirthdate);
+            //reader.ReadLine(mNationality[0]);
+            //reader.ReadLine(Unknown._1);
+            //reader.ReadLine(mExperience);
+            //if (reader.IsVersionGreaterOrEqual(0x2007, 0x1E)) {
+            //    reader.ReadFullLine(mNickname);
+            //    reader.ReadFullLine(mPseudonym);
+            //    reader.ReadLine(mNationality[1]);
+            //    Int clubId;
+            //    reader.ReadLine(clubId);
+            //    // mFavouriteClub = FifamClub::GetClub(clubId);
+            //    reader.ReadLine(clubId);
+            //    // mWouldNeverWorkForClub = FifamClub::GetClub(clubId);
+            //}
+            //reader.ReadLine(mMotivationSkills);
+            //reader.ReadLine(mCoachingSkills);
+            //reader.ReadLine(mGoalkeepersTraining);
+            //reader.ReadLine(mNegotiationSkills);
+            //reader.ReadLine(mCharacterFocus);
+            //reader.ReadLine(mLanguage[0]);
+            //reader.ReadLine(mLanguage[1]);
+            //reader.ReadLine(mLanguage[2]);
+            //reader.ReadLine(mLanguage[3]);
+            //reader.ReadLine(mFavouriteFormation);
+            //reader.ReadLine(Unknown._2);
+            //reader.ReadLine(mStabilityOfBoardOfDirectors);
+            reader.ReadEndIndex(L"STAFF");
         }
-        reader.ReadLine(mMotivationSkills);
-        reader.ReadLine(mCoachingSkills);
-        reader.ReadLine(mGoalkeepersTraining);
-        reader.ReadLine(mNegotiationSkills);
-        reader.ReadLine(mCharacterFocus);
-        reader.ReadLine(mLanguage[0]);
-        reader.ReadLine(mLanguage[1]);
-        reader.ReadLine(mLanguage[2]);
-        reader.ReadLine(mLanguage[3]);
-        reader.ReadLine(mFavouriteFormation);
-        reader.ReadLine(Unknown._2);
-        reader.ReadLine(mStabilityOfBoardOfDirectors);
-        reader.ReadEndIndex(L"STAFF");
     }
 
     void Write(FifamWriter &writer, bool writeId = false) {

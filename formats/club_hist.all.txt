@@ -1,0 +1,47 @@
+INDEX format
+
+%INDEX%HIST
+zString<>         HistoryLine - Championships
+zString<>         HistoryLine - Cup Wins
+zString<>         HistoryLine - Super Cups Wins
+zString<>         HistoryLine - League Cup Wins
+zString<>         HistoryLine - European Cup Wins
+zString<>         HistoryLine - Champions League
+zString<>         HistoryLine - World Championship
+zString<>         HistoryLine - World Club Championship
+%INDEX%RECORD
+Byte              Record Home Win - Score 1
+Byte              Record Home Win - Score 2
+Int               Record Home Win - attendance (unused)
+zString<>         Record Home Win - Club name
+Short             Record Home Win - Year
+%INDEXEND%RECORD
+%INDEX%RECORD
+Byte              Record Home Defeat - Score 1
+Byte              Record Home Defeat - Score 2
+Int               Record Home Defeat - attendance (unused)
+zString<>         Record Home Defeat - Club name
+Short             Record Home Defeat - Year
+%INDEXEND%RECORD
+%INDEX%RECORD
+Byte              Record Away Win - Score 1
+Byte              Record Away Win - Score 2
+Int               Record Away Win - attendance (unused)
+zString<>         Record Away Win - Club name
+Short             Record Away Win - Year
+%INDEXEND%RECORD
+%INDEX%RECORD
+Byte              Record Away Defeat - Score 1
+Byte              Record Away Defeat - Score 2
+Int               Record Away Defeat - attendance (unused)
+zString<>         Record Away Defeat - Club name
+Short             Record Away Defeat - Year
+%INDEXEND%RECORD
+%INDEX%RECORD
+Byte              Record Attendance - score 1 (unused)
+Byte              Record Attendance - score 2 (unused)
+Int               Record Attendance - Attendance
+zString<>         Record Attendance - Club name
+Short             Record Attendance - Year
+%INDEXEND%RECORD
+%INDEXEND%HIST

@@ -80,8 +80,21 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="FifamClubAiStrategy.h" />
+    <ClInclude Include="FifamClubBadge.h" />
+    <ClInclude Include="FifamClubBadgeShape.h" />
+    <ClInclude Include="FifamClubBadgeType.h" />
     <ClInclude Include="FifamClubHistory.h" />
+    <ClInclude Include="FifamClubInterfaceColor.h" />
+    <ClInclude Include="FifamClubLandscape.h" />
+    <ClInclude Include="FifamClubMediaPressure.h" />
+    <ClInclude Include="FifamClubMerchandiseColor.h" />
     <ClInclude Include="FifamClubRecord.h" />
+    <ClInclude Include="FifamClubSettlement.h" />
+    <ClInclude Include="FifamClubTeamColor.h" />
+    <ClInclude Include="FifamCompID.h" />
+    <ClInclude Include="FifamCompRegion.h" />
+    <ClInclude Include="FifamCompType.h" />
     <ClInclude Include="FifamContinent.h" />
     <ClInclude Include="FifamBeg.h" />
     <ClInclude Include="FifamClimate.h" />
@@ -99,6 +112,7 @@
     <ClInclude Include="FifamEqualPointsSorting.h" />
     <ClInclude Include="FifamFlags.h" />
     <ClInclude Include="FifamFormation.h" />
+    <ClInclude Include="FifamGeoCoords.h" />
     <ClInclude Include="FifamKit.h" />
     <ClInclude Include="FifamKitBadgePosition.h" />
     <ClInclude Include="FifamKitColor.h" />
@@ -106,18 +120,21 @@
     <ClInclude Include="FifamLeagueSystemType.h" />
     <ClInclude Include="FifamAmateurRule.h" />
     <ClInclude Include="FifamNation.h" />
+    <ClInclude Include="FifamPerson.h" />
     <ClInclude Include="FifamPlayer.h" />
     <ClInclude Include="FifamPlayerAppearance.h" />
+    <ClInclude Include="FifamPoolSorting.h" />
     <ClInclude Include="FifamRedCardRule.h" />
     <ClInclude Include="FifamReferee.h" />
     <ClInclude Include="FifamRefereeType.h" />
     <ClInclude Include="FifamRegenPlayer.h" />
     <ClInclude Include="FifamManager.h" />
+    <ClInclude Include="FifamRelRule.h" />
     <ClInclude Include="FifamRoundID.h" />
-    <ClInclude Include="FifamShirtNumberColor.h" />
     <ClInclude Include="FifamShoeType.h" />
     <ClInclude Include="FifamSponsor.h" />
     <ClInclude Include="FifamStadium.h" />
+    <ClInclude Include="FifamStadiumType.h" />
     <ClInclude Include="FifamStaff.h" />
     <ClInclude Include="FifamLeagueCupSystemType.h" />
     <ClInclude Include="FifamSuperCupType.h" />
@@ -132,15 +149,18 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamClub.cpp" />
+    <ClCompile Include="FifamClubBadge.cpp" />
     <ClCompile Include="FifamClubHistory.cpp" />
     <ClCompile Include="FifamClubRecord.cpp" />
     <ClCompile Include="FifamCompetition.cpp" />
+    <ClCompile Include="FifamCompID.cpp" />
     <ClCompile Include="FifamCountry.cpp" />
     <ClCompile Include="FifamCountryAppearanceData.cpp" />
     <ClCompile Include="FifamCountryLeagueLevelInfo.cpp" />
     <ClCompile Include="FifamCupAlloc.cpp" />
     <ClCompile Include="FifamDatabase.cpp" />
     <ClCompile Include="FifamDate.cpp" />
+    <ClCompile Include="FifamGeoCoords.cpp" />
     <ClCompile Include="FifamKit.cpp" />
     <ClCompile Include="FifamPlayer.cpp" />
     <ClCompile Include="FifamPlayerAppearance.cpp" />

@@ -2,6 +2,8 @@
 
 void FifamStadium::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"STADIUM")) {
+        reader.ReadFullLine(mName);
+        reader.ReadFullLine(mCity);
         reader.ReadLine(Unknown._1);
         for (UInt i = 0; i < 8; i++) {
             reader.ReadLine(Unknown._data1[i]._1);
@@ -16,6 +18,8 @@ void FifamStadium::Read(FifamReader &reader) {
 
 void FifamStadium::Write(FifamWriter &writer) {
     writer.WriteStartIndex(L"STADIUM");
+    writer.WriteLine(mName);
+    writer.WriteLine(mCity);
     writer.WriteLine(Unknown._1);
     for (UInt i = 0; i < 8; i++) {
         writer.WriteLine(Unknown._data1[i]._1);

@@ -4,7 +4,7 @@ void FifamCupAlloc::Read(FifamReader &reader) {
     mRounds.clear();
 
     reader.ReadLine(mType);
-    reader.ReadLine(mNameKey);
+    reader.ReadFullLine(mNameKey);
     reader.ReadLine(mTeamsCount);
     UInt numRounds = reader.ReadLine<UInt>();
     mRounds.resize(numRounds);

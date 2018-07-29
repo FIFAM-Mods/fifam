@@ -3,14 +3,14 @@
 void FifamClubRecord::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"RECORD")) {
         if (reader.IsVersionGreaterOrEqual(0x2012, 0x01)) {
-            reader.ReadLine(mOpponentName);
+            reader.ReadFullLine(mOpponentName);
             reader.ReadLine(mYear, mScore1, mScore2, mAttendance);
         }
         else {
             reader.ReadLine(mScore1);
             reader.ReadLine(mScore2);
             reader.ReadLine(mAttendance);
-            reader.ReadLine(mOpponentName);
+            reader.ReadFullLine(mOpponentName);
             reader.ReadLine(mYear);
         }
         reader.ReadEndIndex(L"RECORD");

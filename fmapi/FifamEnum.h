@@ -86,6 +86,7 @@ private: \
     inline static bool _initializer1x = _InitDefaultValue(idname);
 
 #define ENUM_END(typeName) \
+private: \
     inline static bool _initializer0x = _InitEnum(); \
 public: \
     typeName() { \
@@ -229,6 +230,13 @@ template<typename T> \
 inline bool operator== (const typeName &a, const T &b) { \
     return a.ToInt() == b; \
 } \
+inline bool operator!= (const typeName &a, const typeName &b) { \
+    return a.ToInt() != b.ToInt(); \
+} \
+template<typename T> \
+inline bool operator!= (const typeName &a, const T &b) { \
+    return a.ToInt() != b; \
+} \
 inline bool operator< (const typeName &a, const typeName &b) { \
     return a.ToInt() < b.ToInt(); \
 } \
@@ -284,8 +292,7 @@ public: \
     } \
     void Write(FifamWriter &writer) { \
         writer.WriteOne(_value); \
-    } \
-private:
+    }
 
 #define ENUM_DEFAULT_READ_WRITE_STRING \
 public: \

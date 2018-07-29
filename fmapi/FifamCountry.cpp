@@ -47,7 +47,14 @@ void FifamCountry::Read(FifamReader &reader) {
         }
 
         if (reader.ReadStartIndex(L"CLUBS")) {
-            // TODO
+            UInt numClubs = reader.ReadLine<UInt>();
+            for (UInt i = 0; i < numClubs; i++) {
+                auto club = mDatabase->CreateClub(this);
+                club->Read(reader, i + 1);
+                mDatabase->AddClubToMap(club);
+            }
+            mNationalTeam.mCountry = this;
+            mNationalTeam.Read(reader, 0xFFFF);
             reader.ReadEndIndex(L"CLUBS");
         }
 
@@ -97,28 +104,28 @@ void FifamCountry::Read(FifamReader &reader) {
 
         if (reader.ReadStartIndex(countryMiscSectionName)) {
             if (reader.GetGameId() < 11) {
-                reader.ReadLine<String>();
-                reader.ReadLine<String>();
-                reader.ReadLine<String>();
+                reader.ReadFullLine();
+                reader.ReadFullLine();
+                reader.ReadFullLine();
                 reader.ReadLine(mOriginalLeagueSystem);
             }
-            reader.ReadLine(mFA_Name);
+            reader.ReadFullLine(mFA_Name);
             reader.ReadLineArray(mLanguages);
             reader.ReadLineArray(mLanguageFrequency);
             reader.ReadLine(mLeagueLevelWithReserveTeams);
             reader.ReadLine(Unknown._1);
             if (reader.GetGameId() < 11) {
-                reader.ReadLine(mFA_PresidentFirstName);
-                reader.ReadLine(mFA_PresidentLastName);
+                reader.ReadFullLine(mFA_PresidentFirstName);
+                reader.ReadFullLine(mFA_PresidentLastName);
                 reader.ReadLine(mFA_PresidentBirthDate);
             }
             if (!reader.IsVersionGreaterOrEqual(0x2007, 0x17)) {
-                reader.ReadLine(Unknown._2);
-                reader.ReadLine(Unknown._3);
-                reader.ReadLine(Unknown._4);
-                reader.ReadLine(Unknown._5);
-                reader.ReadLine(Unknown._6);
-                reader.ReadLine(Unknown._7);
+                reader.ReadFullLine(Unknown._2);
+                reader.ReadFullLine(Unknown._3);
+                reader.ReadFullLine(Unknown._4);
+                reader.ReadFullLine(Unknown._5);
+                reader.ReadFullLine(Unknown._6);
+                reader.ReadFullLine(Unknown._7);
             }
             UChar yelCardsRule;
             reader.ReadLine(yelCardsRule);
@@ -178,7 +185,12 @@ void FifamCountry::Read(FifamReader &reader) {
             reader.ReadLine(Unknown._12);
             reader.ReadLine(Unknown._13);
             reader.ReadLine(Unknown._14);
-            reader.ReadLine(mFlags);
+            UChar flags = reader.ReadLine<UChar>();
+            if (reader.GetGameId() <= 7)
+                flags &= 6;
+            else
+                flags &= 181;
+            mFlags.SetFromInt(flags);
             reader.ReadLine(Unknown._15);
             reader.ReadLine(mAmateurRule);
             reader.ReadLine(mClimate);
@@ -210,12 +222,13 @@ void FifamCountry::Read(FifamReader &reader) {
                 reader.ReadLine(mFifaRanking);
             }
             if (reader.GetGameId() < 11)
-                reader.ReadLine(Unknown._19);
+                reader.ReadFullLine(Unknown._19);
             reader.ReadLine(mNumContinentalChampions);
             reader.ReadLine(mNumWorldCups);
             reader.ReadLine(mNumContinentalRunnersUp);
             reader.ReadLine(mNumWorldCupRunnersUp);
-            reader.ReadLine(mNotes);
+            reader.ReadFullLine(mNotes);
+            reader.ReadEndIndex(countryMiscSectionName);
 
             CheckEnum(mYellowCardsLeagueRule);
             CheckEnum(mYellowCardsCupRule);
@@ -237,10 +250,7 @@ void FifamCountry::Read(FifamReader &reader) {
             CheckEnum(mAmateurRule);
             CheckEnum(mClimate);
             CheckEnum(mPreferredTransfersTerritory);
-
-            reader.ReadEndIndex(countryMiscSectionName);
         }
-
         reader.ReadEndIndex(L"COUNTRY");
     }
 }
@@ -386,7 +396,12 @@ void FifamCountry::Write(FifamWriter &writer) {
     writer.WriteLine(Unknown._12);
     writer.WriteLine(Unknown._13);
     writer.WriteLine(Unknown._14);
-    writer.WriteLine(mFlags);
+    UChar flags = mFlags.ToInt();
+    if (writer.GetGameId() <= 7)
+        flags &= 6;
+    else
+        flags &= 181;
+    writer.WriteLine(flags);
     writer.WriteLine(Unknown._15);
     writer.WriteLine(mAmateurRule);
     writer.WriteLine(mClimate);

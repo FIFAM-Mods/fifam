@@ -1,0 +1,39 @@
+KIT format
+
+%INDEX%KIT
+Byte              Home - Jersey ID
+Byte              Home - Shorts ID
+Byte              Home - Socks ID
+Byte              Home - Jersey colour 1
+Byte              Home - Jersey colour 2
+Byte              Home - Jersey colour 3
+Byte              __UNKNOWN__ (0)(home)
+Byte              __UNKNOWN__ (0)(home)
+Byte              __UNKNOWN__ (0)(home)
+Byte              Home - Shorts colour 1
+Byte              Home - Shorts colour 2
+Byte              Home - Shorts colour 3
+Byte              Home - Socks colour 1
+Byte              Home - Socks colour 2
+Byte              Home - Socks colour 3 (unused)
+Byte              Home - Shirt number colour
+Byte              Home - Badge position
+Byte              Away - Jersey ID
+Byte              Away - Shorts ID
+Byte              Away - Socks ID
+Byte              Away - Jersey colour 1
+Byte              Away - Jersey colour 2
+Byte              Away - Jersey colour 3
+Byte              __UNKNOWN__ (0)(away)
+Byte              __UNKNOWN__ (0)(away)
+Byte              __UNKNOWN__ (0)(away)
+Byte              Away - Shorts colour 1
+Byte              Away - Shorts colour 2
+Byte              Away - Shorts colour 3
+Byte              Home - Socks colour 1
+Byte              Home - Socks colour 2
+Byte              Home - Socks colour 3 (unused)
+Byte              Away - Shirt number colour
+Byte              Away - Badge position
+Int               Special kit - ID (duplicated)
+%INDEXEND%KIT

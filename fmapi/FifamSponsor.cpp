@@ -11,10 +11,10 @@ FifamSponsor::FifamSponsor(FifamSponsor const &rhs) {
 
 void FifamSponsor::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"SPONSOR")) {
-        reader.ReadLine(Unknown._1);
+        reader.ReadFullLine(Unknown._1);
         reader.ReadLine(Unknown._2);
-        reader.ReadLine(Unknown._3);
-        reader.ReadLine(Unknown._4);
+        reader.ReadFullLine(Unknown._3);
+        reader.ReadFullLine(Unknown._4);
         reader.ReadEndIndex(L"SPONSOR");
     }
 }

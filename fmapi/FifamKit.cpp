@@ -2,6 +2,10 @@
 
 void FifamKit::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"KIT")) {
+        UChar shirtColors[2][3];
+        UChar shortsColors[2][3];
+        UChar socksColors[2][3];
+        UChar shirtNumberColor[2];
         UChar secClrInd, trdClrInd;
         if (reader.GetGameId() < 9) {
             secClrInd = 2;
@@ -15,11 +19,11 @@ void FifamKit::Read(FifamReader &reader) {
             reader.ReadLine(mSpecialKitId);
             for (UInt i = 0; i < 2; i++) {
                 reader.ReadLine(mSets[i].mShirt, mSets[i].mShorts, mSets[i].mSocks);
-                reader.ReadLine(mSets[i].mShirtColors[0], mSets[i].mShirtColors[secClrInd], mSets[i].mShirtColors[trdClrInd]);
+                reader.ReadLine(shirtColors[i][0], shirtColors[i][secClrInd], shirtColors[i][trdClrInd]);
                 reader.ReadLineArray(mSets[i].Unknown._1);
-                reader.ReadLine(mSets[i].mShortsColors[0], mSets[i].mShortsColors[secClrInd], mSets[i].mShortsColors[trdClrInd]);
-                reader.ReadLineArray(mSets[i].mSocksColors);
-                reader.ReadLine(mSets[i].mShirtNumberColor, mSets[i].mBadgePosition);
+                reader.ReadLine(shortsColors[i][0], shortsColors[i][secClrInd], shortsColors[i][trdClrInd]);
+                reader.ReadLine(socksColors[i][0], socksColors[i][1], socksColors[i][2]);
+                reader.ReadLine(shirtNumberColor[i], mSets[i].mBadgePosition);
             }
         }
         else {
@@ -27,27 +31,47 @@ void FifamKit::Read(FifamReader &reader) {
                 reader.ReadLine(mSets[i].mShirt);
                 reader.ReadLine(mSets[i].mShorts);
                 reader.ReadLine(mSets[i].mSocks);
-                reader.ReadLine(mSets[i].mShirtColors[0]);
-                reader.ReadLine(mSets[i].mShirtColors[secClrInd]);
-                reader.ReadLine(mSets[i].mShirtColors[trdClrInd]);
+                reader.ReadLine(shirtColors[i][0]);
+                reader.ReadLine(shirtColors[i][secClrInd]);
+                reader.ReadLine(shirtColors[i][trdClrInd]);
                 for (UInt j = 0; j < 3; j++)
                     reader.ReadLine(mSets[i].Unknown._1[j]);
-                reader.ReadLine(mSets[i].mShortsColors[0]);
-                reader.ReadLine(mSets[i].mShortsColors[secClrInd]);
-                reader.ReadLine(mSets[i].mShortsColors[trdClrInd]);
+                reader.ReadLine(shortsColors[i][0]);
+                reader.ReadLine(shortsColors[i][secClrInd]);
+                reader.ReadLine(shortsColors[i][trdClrInd]);
                 for (UInt j = 0; j < 3; j++)
-                    reader.ReadLine(mSets[i].mSocksColors[j]);
-                reader.ReadLine(mSets[i].mShirtNumberColor);
+                    reader.ReadLine(socksColors[i][j]);
+                reader.ReadLine(shirtNumberColor[i]);
                 reader.ReadLine(mSets[i].mBadgePosition);
             }
             reader.ReadLine(mSpecialKitId);
         }
         reader.ReadEndIndex(L"KIT");
+        for (UInt i = 0; i < 2; i++) {
+            for (UInt j = 0; j < 3; j++) {
+                mSets[i].mShirtColors[j].SetFromTable(mKitColorTable, shirtColors[i][j]);
+                mSets[i].mShortsColors[j].SetFromTable(mKitColorTable, shirtColors[i][j]);
+                mSets[i].mSocksColors[j].SetFromTable(mKitColorTable, shirtColors[i][j]);
+            }
+            mSets[i].mShirtNumberColor.SetFromTable(mShirtNumberColorTable, shirtNumberColor[i]);
+        }
     }
 }
 
 void FifamKit::Write(FifamWriter &writer) {
     writer.WriteStartIndex(L"KIT");
+    UChar shirtColors[2][3];
+    UChar shortsColors[2][3];
+    UChar socksColors[2][3];
+    UChar shirtNumberColor[2];
+    for (UInt i = 0; i < 2; i++) {
+        for (UInt j = 0; j < 3; j++) {
+            shirtColors[i][j] = static_cast<UChar>(mSets[i].mShirtColors[j].FindIndexInTable(mKitColorTable));
+            shirtColors[i][j] = static_cast<UChar>(mSets[i].mShortsColors[j].FindIndexInTable(mKitColorTable));
+            shirtColors[i][j] = static_cast<UChar>(mSets[i].mSocksColors[j].FindIndexInTable(mKitColorTable));
+        }
+        shirtNumberColor[i] = static_cast<UChar>(mSets[i].mShirtNumberColor.FindIndexInTable(mShirtNumberColorTable));
+    }
     UChar shirt2ndClr, shirt3rdClr, shorts2ndClr, shorts3rdClr;
     if (writer.GetGameId() < 9) {
         shirt2ndClr = 2;
@@ -102,11 +126,11 @@ void FifamKit::Write(FifamWriter &writer) {
         writer.WriteLine(mSpecialKitId);
         for (UInt i = 0; i < 2; i++) {
             writer.WriteLine(shirt[i], mSets[i].mShorts, mSets[i].mSocks);
-            writer.WriteLine(mSets[i].mShirtColors[0], mSets[i].mShirtColors[shirt2ndClr], mSets[i].mShirtColors[shirt3rdClr]);
+            writer.WriteLine(shirtColors[i][0], shirtColors[i][shirt2ndClr], shirtColors[i][shirt3rdClr]);
             writer.WriteLineArray(mSets[i].Unknown._1);
-            writer.WriteLine(mSets[i].mShortsColors[0], mSets[i].mShortsColors[shorts2ndClr], mSets[i].mShortsColors[shorts3rdClr]);
-            writer.WriteLineArray(mSets[i].mSocksColors);
-            writer.WriteLine(mSets[i].mShirtNumberColor, mSets[i].mBadgePosition);
+            writer.WriteLine(shortsColors[i][0], shortsColors[i][shorts2ndClr], shortsColors[i][shorts3rdClr]);
+            writer.WriteLine(socksColors[i][0], socksColors[i][1], socksColors[i][2]);
+            writer.WriteLine(shirtNumberColor[i], mSets[i].mBadgePosition);
         }
     }
     else {
@@ -114,17 +138,17 @@ void FifamKit::Write(FifamWriter &writer) {
             writer.WriteLine(shirt[i]);
             writer.WriteLine(mSets[i].mShorts);
             writer.WriteLine(mSets[i].mSocks);
-            writer.WriteLine(mSets[i].mShirtColors[0]);
-            writer.WriteLine(mSets[i].mShirtColors[shirt2ndClr]);
-            writer.WriteLine(mSets[i].mShirtColors[shirt3rdClr]);
+            writer.WriteLine(shirtColors[i][0]);
+            writer.WriteLine(shirtColors[i][shirt2ndClr]);
+            writer.WriteLine(shirtColors[i][shirt3rdClr]);
             for (UInt j = 0; j < 3; j++)
                 writer.WriteLine(mSets[i].Unknown._1[j]);
-            writer.WriteLine(mSets[i].mShortsColors[0]);
-            writer.WriteLine(mSets[i].mShortsColors[shorts2ndClr]);
-            writer.WriteLine(mSets[i].mShortsColors[shorts3rdClr]);
+            writer.WriteLine(shortsColors[i][0]);
+            writer.WriteLine(shortsColors[i][shorts2ndClr]);
+            writer.WriteLine(shortsColors[i][shorts3rdClr]);
             for (UInt j = 0; j < 3; j++)
-                writer.WriteLine(mSets[i].mSocksColors[j]);
-            writer.WriteLine(mSets[i].mShirtNumberColor);
+                writer.WriteLine(socksColors[i][j]);
+            writer.WriteLine(shirtNumberColor[i]);
             writer.WriteLine(mSets[i].mBadgePosition);
         }
         writer.WriteLine(mSpecialKitId);

@@ -40,7 +40,22 @@
     <ClInclude Include="tests\FlagsTest.h">
       <Filter>tests</Filter>
     </ClInclude>
-    <ClInclude Include="tests\WriteDbTest.h">
+    <ClInclude Include="tests\ColorsTest.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\BadgeTest.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\GeoCoordsTest.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\CompIDTest.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\WriteDbCountriesTest.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\WriteDbClubsTest.h">
       <Filter>tests</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,4 +1,5 @@
 #pragma once
+#include "FifamPerson.h"
 #include "FifamTypes.h"
 #include "FifamDate.h"
 #include "FifamLanguage.h"
@@ -9,10 +10,8 @@
 class FifamClub;
 
 // @since FM07
-class FifamPlayer {
+class FifamPlayer : public FifamPerson {
 public:
-    // @since FM07
-    UInt mID = 0;
     // @UNKNOWN
     enum class Type { Player, Manager, Chairman, President, Stuff }
         mType = Type::Player;
@@ -354,41 +353,38 @@ public:
     } Unknown;
 
     void Read(FifamReader &reader) {
+        if (reader.ReadStartIndex(L"PLAYER")) {
+            //Bool bReserveTeam;
+            //UChar nFlags;
+            //
+            //reader.ReadFullLine(mFirstName);
+            //reader.ReadFullLine(mLastName);
+            //reader.ReadFullLine(mNickname);
+            //reader.ReadFullLine(mPseudonym);
+            //reader.ReadLine(Unknown._1);
+            //reader.ReadLine(bReserveTeam);
+            //reader.ReadLine(mNationality[0]);
+            //reader.ReadLine(mNationality[1]);
+            //reader.ReadLine(nFlags);
+            //if (nFlags & 1)
+            //    mNaturalised = true;
+            //if (nFlags & 2)
+            //    mBasque = true;
+            //if (nFlags & 4)
+            //    mRealPlayer = true;
+            //reader.ReadLine(mBirthday);
+            //reader.ReadLine(nFlags);
+            //
+            //if (nFlags & 0x40) // youth team
+            //    mTeam = Team::Youth;
+            //else if (bReserveTeam)
+            //    mTeam = Team::Reserve;
+            //else
+            //    mTeam = Team::First;
+            //
+            //mTalent = ((nFlags & 7) + 1) * 2 - 1;
 
-        Bool bReserveTeam;
-        UChar nFlags;
-
-        reader.ReadLine(mID);
-        reader.ReadStartIndex(L"PLAYER");
-        reader.ReadLine(mFirstName);
-        reader.ReadLine(mLastName);
-        reader.ReadLine(mNickname);
-        reader.ReadLine(mPseudonym);
-        reader.ReadLine(Unknown._1);
-        reader.ReadLine(bReserveTeam);
-        reader.ReadLine(mNationality[0]);
-        reader.ReadLine(mNationality[1]);
-        reader.ReadLine(nFlags);
-        if (nFlags & 1)
-            mNaturalised = true;
-        if (nFlags & 2)
-            mBasque = true;
-        if (nFlags & 4)
-            mRealPlayer = true;
-        reader.ReadLine(mBirthday);
-        reader.ReadLine(nFlags);
-
-        if (nFlags & 0x40) // youth team
-            mTeam = Team::Youth;
-        else if (bReserveTeam)
-            mTeam = Team::Reserve;
-        else
-            mTeam = Team::First;
-
-        mTalent = ((nFlags & 7) + 1) * 2 - 1;
-
-
-
-        reader.ReadEndIndex(L"PLAYER");
+            reader.ReadEndIndex(L"PLAYER");
+        }
     }
 };

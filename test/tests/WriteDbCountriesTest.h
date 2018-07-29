@@ -2,9 +2,9 @@
 #include "FifamDbEnvironment.h"
 
 template<typename Game, typename DbType>
-class WriteDbTest {
+class WriteDbCountriesTest {
 public:
-    WriteDbTest() {
+    WriteDbCountriesTest() {
         FifamDatabase *db = GetEnvironment<FifamDbEnvironment<Game, DbType>>().GetDatabase();
 
         FifamWriter writer(Utils::Format(L"country_misc_%02d.csv", Game::id()), Game::id(), Game::year(), Game::vernum(), Game::unicode());

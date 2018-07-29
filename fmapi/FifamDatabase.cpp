@@ -23,7 +23,7 @@ bool FifamDatabase::IsCountryPresent(UInt gameId, UChar nationId) {
     return GetInternalGameCountryId(gameId, nationId) != 0;
 }
 
-void FifamDatabase::Read(size_t gameId, Path const &dbPath) {
+void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
     Clear();
 
     path gamePath = dbPath.parent_path();
@@ -35,9 +35,9 @@ void FifamDatabase::Read(size_t gameId, Path const &dbPath) {
     FifamReader countriesReader(dbPath / L"Countries.sav", gameId, unicode);
     if (countriesReader.Available()) {
         auto &reader = countriesReader;
-        auto firstLine = reader.GetFullLine();
+        auto firstLine = reader.ReadFullLine();
         if (Utils::StartsWith(firstLine, L"Countries Version: ")) {
-            auto verParams = Utils::Split(firstLine, L" ");
+            auto verParams = Utils::Split(firstLine, ' ', false);
             if (verParams.size() >= 3) {
                 UInt countriesVer = Utils::ToNumber(verParams[2]);
                 if (countriesVer == 2 || countriesVer == 3) {
@@ -110,7 +110,7 @@ void FifamDatabase::Read(size_t gameId, Path const &dbPath) {
     }
 }
 
-void FifamDatabase::Write(size_t gameId, UShort vYear, UShort vNumber, Path const &dbPath) {
+void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const &dbPath) {
     if (!exists(dbPath))
         create_directories(dbPath);
     path gamePath = dbPath.parent_path();
@@ -161,6 +161,8 @@ void FifamDatabase::Clear() {
         delete club;
     mClubs.clear();
 
+    mClubsMap.clear();
+
     for (auto player : mPlayers)
         delete player;
     mPlayers.clear();
@@ -172,6 +174,8 @@ void FifamDatabase::Clear() {
     for (auto staff : mStaffs)
         delete staff;
     mStaffs.clear();
+
+    mPersonsMap.clear();
 
     for (auto stadium : mStadiums)
         delete stadium;
@@ -188,4 +192,34 @@ void FifamDatabase::Clear() {
 
 FifamDatabase::~FifamDatabase() {
     Clear();
+}
+
+FifamClub *FifamDatabase::CreateClub(FifamCountry *country) {
+    FifamClub *club = new FifamClub;
+    club->mCountry = country;
+    mClubs.insert(club);
+    country->mClubs.push_back(club);
+    return club;
+}
+
+void FifamDatabase::AddClubToMap(FifamClub *club) {
+    mClubsMap[club->mUniqueID] = club;
+}
+
+FifamPlayer *FifamDatabase::CreatePlayer(FifamClub *club, UInt id) {
+    FifamPlayer *player = new FifamPlayer;
+    player->mID = id;
+    mPlayers.insert(player);
+    mPersonsMap[id] = player;
+    club->mPlayers.push_back(player);
+    return player;
+}
+
+FifamStaff *FifamDatabase::CreateStaff(FifamClub *club, UInt id) {
+    FifamStaff *staff = new FifamStaff;
+    staff->mID = id;
+    mStaffs.insert(staff);
+    mPersonsMap[id] = staff;
+    club->mStaffs.push_back(staff);
+    return staff;
 }

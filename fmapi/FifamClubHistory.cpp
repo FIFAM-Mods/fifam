@@ -1,7 +1,7 @@
 #include "FifamClubHistory.h"
 
 void FifamClubHistory::Read(FifamReader &reader) {
-    if (reader.ReadStartIndex(L"HISTORY")) {
+    if (reader.ReadStartIndex(L"HIST")) {
         mLeagueWinYears = reader.ReadLineArray<UShort>();
         mCupWinYears = reader.ReadLineArray<UShort>();
         mSuperCupsWinYears = reader.ReadLineArray<UShort>();
@@ -15,12 +15,12 @@ void FifamClubHistory::Read(FifamReader &reader) {
         mRecordAwayWin.Read(reader);
         mRecordAwayDefeat.Read(reader);
         mRecordAttendance.Read(reader);
-        reader.ReadEndIndex(L"HISTORY");
+        reader.ReadEndIndex(L"HIST");
     }
 }
 
 void FifamClubHistory::Write(FifamWriter &writer) {
-    writer.WriteStartIndex(L"HISTORY");
+    writer.WriteStartIndex(L"HIST");
     writer.WriteLineArray(mLeagueWinYears);
     writer.WriteLineArray(mCupWinYears);
     writer.WriteLineArray(mSuperCupsWinYears);
@@ -34,5 +34,5 @@ void FifamClubHistory::Write(FifamWriter &writer) {
     mRecordAwayWin.Write(writer);
     mRecordAwayDefeat.Write(writer);
     mRecordAttendance.Write(writer);
-    writer.WriteEndIndex(L"HISTORY");
+    writer.WriteEndIndex(L"HIST");
 }

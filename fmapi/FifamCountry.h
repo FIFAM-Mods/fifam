@@ -219,6 +219,8 @@ public:
     Vector<FifamReferee *> mReferees;
     Vector<FifamStadium *> mStadiums;
     Vector<FifamSponsor *> mSponsors;
+    Vector<FifamClub *> mClubs;
+    FifamClub mNationalTeam;
 
     FifamReferee *AddReferee();
     FifamStadium *AddStadium();

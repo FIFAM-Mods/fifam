@@ -1,164 +1,108 @@
 FM07 CLUB format
 
+NUM_TR           5
+    0x2007.0x1A  6
+    
+NUM_LG           1
+    0x2007.0x14  2
+    0x2009.0x06  3
+
 %INDEX%CLUB1
 %INDEX%VERSION
 537329676
 %INDEXEND%VERSION
-zQString<29>[5]   Club name
-zQString<29>[5]   Club name 2 (duplicates first)
-zQString<10>[5]   10 character abberviation
-zQString<10>[5]   10 character abberviation 2 (duplicates first)
-Byte[5]           Uses 'the' for club abberviation (0/1)
-Byte[5]           Uses 'the' for term for fans (0/1)
-Byte[5]           Uses 'the' for term for second team term (0/1)
-zQString<5>[5]    4 character abberviation
-Byte[5]           Uses 'the' for club name in a phrase
-Byte[5]           Uses 'the' for club name in a phrase
-zQString<29>[5]   City name
-zString<19>       Term For Fans
-zString<19>       Second Team Term
-Int               Fan partnership with (club id)      
-Int               Fierce rival 1 (club id)
-Int               Fierce rival 2 (club id)
-Int               Fierce rival 3 (club id)
-Int               Fierce rival 4 (club id)
-Short             Year of foundation
-zString<119>      Address
-zString<19>       Telephone
-zString<119>      Website/Email
-zString<256>      Fansites
-zString<29>       __UNKNOWN__ (empty)
-zString<19>       Mascot name
-Int               Ititial capital
-Int               Ititial capital divided by 2
-Byte              Joint-stock company (0/1)
-Byte              __UNKNOWN__ (0)
-Byte              Starting rule (0 - none, 3 - points on new game)
-Byte              Points on new game (with "-")
-Int               Potential fans count
-Int               Average attendance last season
-Int               Count of sold season tickets
-Int               1st league total points
-Int               1st league total wins
-Int               1st league total draws
-Int               1st league total loses
-Int               1st league total goals
-Int               1st league total goals against
-Int               1st league total leaderships in table
-Int               Stadium venue - if higher than 999, set to 0
-Int               Stadium capacity - if higher than 150000, set to 150000
-zQString<29>[5]   Stadium name (limited by 29 in Editor, 1024 by default)
-Byte              Stadium type
-Byte              Flags: 1 - stadium big main stand, 128 - can't be deleted in the editor
-Byte              Club centre
-Byte              Medical department
-Byte              Merchandising
-Byte              Youth department
-Byte              Training grounds
-Byte              Media
-Byte              Research
-Short             Last Season Flags: 1 - promoted, 2 - reserve team promoted, 4 - relegated, 8 - reserve team relegated, 16 - cup winner, 32 - reserve team cup winner, 64 - cup finalist, 128 - reserve team cup finalist, 256 - does not take part in IT-Cup
-zString<40>       Badge path
-Byte              Club colour        |-
-Byte              __UNKNOWN__ (0)    |
-Byte              Merchandise colour | Array
-Byte              Header colour      |
-Byte              Background colour  |-
+--{ Added in FM08 - 0x2007.0x12 }
+Int               Unique ID
+---------------------------------
+zQString<29>[NUM_TR] Club name
+zQString<29>[NUM_TR] Club name 2 (duplicates first)
+zQString<10>[NUM_TR] 10 character abberviation
+zQString<10>[NUM_TR] 10 character abberviation 2 (duplicates first)
+Byte[NUM_TR]         club abberviation article
+Byte[NUM_TR]         term for fans article
+Byte[NUM_TR]         term for second team article
+--{ Added in FM11 - 0x2011.0x05 }
+Byte[NUM_TR]         
+Byte[NUM_TR]         
+Byte[NUM_TR]         
+---------------------------------
+zQString<5>[NUM_TR]  4 character abberviation
+Byte[NUM_TR]         Usage for club name in a phrase
+Byte[NUM_TR]         Usage for club name in a phrase
+zQString<29>[NUM_TR] City name
+
+zString<19>          Term For Fans
+zString<19>          Second Team Term
+Int                  Fan partnership with (club id)      
+Int                  Fierce rival 1 (club id)
+Int                  Fierce rival 2 (club id)
+Int                  Fierce rival 3 (club id)
+Int                  Fierce rival 4 (club id)
+Short                Year of foundation
+zString<119>         Address
+zString<19>          Telephone
+zString<119>         Website/Email
+zString<256>         Fansites
+zString<29>          __UNKNOWN__ (empty)
+zString<19>          Mascot name
+Int                  Ititial capital
+Int                  Transfer budget
+Byte                 Joint-stock company (0/1)
+Byte                 __UNKNOWN__ (0)
+Byte                 Some flags (3 (1+2) - has penalty points)
+Byte                 Points on new game (-30 - 0)
+Int                  Potential fans count
+Int                  Average attendance last season
+Int                  Count of sold season tickets
+Int[NUM_LG]          N league total points
+Int[NUM_LG]          N league total wins
+Int[NUM_LG]          N league total draws
+Int[NUM_LG]          N league total loses
+Int[NUM_LG]          N league total goals
+Int[NUM_LG]          N league total goals against
+Int[NUM_LG]          N league total leaderships in table
+Int                  Stadium venue - if higher than 999, set to 0
+Int                  Stadium capacity - if higher than 150000, set to 150000
+zQString<29>[NUM_TR] Stadium name (limited by 29 in Editor, 1024 by default)
+Byte                 Stadium type: 0 - oval, 1 - rounded corners, 2 - football stadium
+Byte                 Flags: 1 - stadium big main stand, 128 - can't be deleted in the editor
+Byte                 Club centre
+Byte                 Medical department
+Byte                 Merchandising
+Byte                 Youth department
+Byte                 Training grounds
+Byte                 Media
+Byte                 Research
+--{ Added in FM08 0x2007.0x0E }
+Byte                 Media Preassure (0 - low, 1 - normal, 2 - high, 3 - extreme)
+Int                  Flags: 0x400000 - rich guy controlled, 0x1000000 - youth players are basques
+-------------------------------
+Short                Last Season Flags: 1 - promoted, 2 - reserve team promoted, 4 - relegated, 8 - reserve team relegated, 16 - cup winner, 32 - reserve team cup winner, 64 - cup finalist, 128 - reserve team cup finalist, 256 - does not take part in IT-Cup
+zString<40>          Badge path
+Byte                 Club colour        |-
+Byte                 __UNKNOWN__ (0)    |
+Byte                 Merchandise colour | Array
+Byte                 Header colour      |
+Byte                 Background colour  |-
 %INDEX%HIST
-zString<>         HistoryLine - Championships
-zString<>         HistoryLine - Cup Wins
-zString<>         HistoryLine - Super Cups Wins
-zString<>         HistoryLine - League Cup Wins
-zString<>         HistoryLine - European Cup Wins
-zString<>         HistoryLine - Champions League
-zString<>         HistoryLine - World Championship
-zString<>         HistoryLine - World Club Championship
-%INDEX%RECORD
-Byte              Record Home Win - Score 1
-Byte              Record Home Win - Score 2
-Int               Record Home Win - attendance (unused)
-zString<>         Record Home Win - Club name
-Short             Record Home Win - Year
-%INDEXEND%RECORD
-%INDEX%RECORD
-Byte              Record Home Defeat - Score 1
-Byte              Record Home Defeat - Score 2
-Int               Record Home Defeat - attendance (unused)
-zString<>         Record Home Defeat - Club name
-Short             Record Home Defeat - Year
-%INDEXEND%RECORD
-%INDEX%RECORD
-Byte              Record Away Win - Score 1
-Byte              Record Away Win - Score 2
-Int               Record Away Win - attendance (unused)
-zString<>         Record Away Win - Club name
-Short             Record Away Win - Year
-%INDEXEND%RECORD
-%INDEX%RECORD
-Byte              Record Away Defeat - Score 1
-Byte              Record Away Defeat - Score 2
-Int               Record Away Defeat - attendance (unused)
-zString<>         Record Away Defeat - Club name
-Short             Record Away Defeat - Year
-%INDEXEND%RECORD
-%INDEX%RECORD
-Byte              Record Attendance - score 1 (unused)
-Byte              Record Attendance - score 2 (unused)
-Int               Record Attendance - Attendance
-zString<>         Record Attendance - Club name
-Short             Record Attendance - Year
-%INDEXEND%RECORD
 %INDEXEND%HIST
-Int               Latitude value
-Int               Longitude value
-Byte              National club prestige
-Byte              International club prestige
-zString<>         __UNKNOWN__ (empty)
-Byte              Transfers country 1
-Byte              Transfers country 2
-Byte              Youth players come from (country id)
-Int               Special kit - ID
-Int               Players count
-Int               Staff count
+Int                  Latitude value
+Int                  Longitude value
+Byte                 National club prestige
+Byte                 International club prestige
+zString<>            __UNKNOWN__ (empty)
+Byte                 Transfers country 1
+Byte                 Transfers country 2
+Byte                 Youth players come from (country id)
+Int                  FIFA ID
+Int                  Players count
+--{ PLAYERS }
+Int                  Staff count
+--{ STAFF }
 %INDEX%KIT
-Byte              Home - Jersey ID
-Byte              Home - Shorts ID
-Byte              Home - Socks ID
-Byte              Home - Jersey colour 1
-Byte              Home - Jersey colour 2
-Byte              Home - Jersey colour 3
-Byte              __UNKNOWN__ (0)(home)
-Byte              __UNKNOWN__ (0)(home)
-Byte              __UNKNOWN__ (0)(home)
-Byte              Home - Shorts colour 1
-Byte              Home - Shorts colour 2
-Byte              Home - Shorts colour 3
-Byte              Home - Socks colour 1
-Byte              Home - Socks colour 2
-Byte              Home - Socks colour 3 (unused)
-Byte              Home - Shirt number colour
-Byte              Home - Badge position
-Byte              Away - Jersey ID
-Byte              Away - Shorts ID
-Byte              Away - Socks ID
-Byte              Away - Jersey colour 1
-Byte              Away - Jersey colour 2
-Byte              Away - Jersey colour 3
-Byte              __UNKNOWN__ (0)(away)
-Byte              __UNKNOWN__ (0)(away)
-Byte              __UNKNOWN__ (0)(away)
-Byte              Away - Shorts colour 1
-Byte              Away - Shorts colour 2
-Byte              Away - Shorts colour 3
-Byte              Home - Socks colour 1
-Byte              Home - Socks colour 2
-Byte              Home - Socks colour 3 (unused)
-Byte              Away - Shirt number colour
-Byte              Away - Badge position
-Int               Special kit - ID (duplicated)
 %INDEXEND%KIT
-Int               Lowest league 1 (comp id)
-Int               Lowest league 2 (comp id)
-Int               Lowest league 3 (comp id)
-Int               Lowest league 4 (comp id) (maybe unused)
+Int                  Lowest league 1 (comp id)
+Int                  Lowest league 2 (comp id)
+Int                  Lowest league 3 (comp id)
+Int                  Lowest league 4 (comp id) (maybe unused)
 %INDEXEND%CLUB1

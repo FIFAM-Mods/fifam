@@ -16,8 +16,8 @@ FifamReferee::FifamReferee(String const &firstName, String const &lastName, Fifa
 
 void FifamReferee::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"REFEREE")) {
-        reader.ReadLine(mFirstName);
-        reader.ReadLine(mLastName);
+        reader.ReadFullLine(mFirstName);
+        reader.ReadFullLine(mLastName);
         reader.ReadLine(mType);
         reader.ReadEndIndex(L"REFEREE");
     }

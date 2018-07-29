@@ -9,6 +9,7 @@
 
 class FifamEnum;
 class FifamFlags;
+class FifamClub;
 
 class Utilities {
 public:
@@ -122,39 +123,46 @@ public:
     }
 
     template<typename Container, typename T = typename Container::value_type>
-    void WriteArray(Container const &ary, char sep = ',') {
+    void WriteArray(Container const &ary, wchar_t sep = L',') {
         for (size_t i = 0; i < ary.size(); i++) {
             WriteOne(ary[i]);
             if (i != ary.size() - 1)
-                WriteOne(Utils::CharToStr(sep));
+                WriteOne(sep);
         }
     }
 
     template<typename Container, typename T = typename Container::value_type>
-    void WriteLineArray(Container const &ary, char sep = ',') {
+    void WriteLineArray(Container const &ary, wchar_t sep = L',') {
         WriteArray(ary, sep);
         WriteOne(L"\n");
     }
 
     template<typename T>
-    void WriteLineTranslationArray(TrArray<T> const &ary, char sep = ',') {
+    void WriteTranslationArray(TrArray<T> const &ary, wchar_t sep = L',') {
         Vector<T> vec;
         for (size_t i = 0; i < ary.size(); i++) {
-            if (i < 5 || GetGameId() >= 8)
+            if (i < 5 || IsVersionGreaterOrEqual(0x2007, 0x1A))
                 vec.push_back(ary[i]);
         }
-        WriteLineArray(vec, sep);
+        WriteArray(vec, sep);
     }
 
-    void WriteLineTranslationArray(TrArray<String> const &ary, char sep = ',', bool quoted = false);
+    template<typename T>
+    void WriteLineTranslationArray(TrArray<T> const &ary, wchar_t sep = L',') {
+        WriteTranslationArray(ary, sep);
+        WriteOne(L"\n");
+    }
+
+    void WriteTranslationArray(TrArray<String> const &ary, wchar_t sep = L',', bool quoted = false);
+    void WriteLineTranslationArray(TrArray<String> const &ary, wchar_t sep = L',', bool quoted = false);
 
     template<typename T>
-    void WritePackedLineArray(Vector<T> const &ary, char sep = ',') {
+    void WritePackedLineArray(Vector<T> const &ary, wchar_t sep = L',') {
         WriteOne(L"{ ");
         for (size_t i = 0; i < ary.size(); i++) {
             WriteOne(ary[i]);
             if (i != ary.size() - 1)
-                WriteOne(Utils::CharToStr(sep));
+                WriteOne(sep);
         }
         WriteOne(L" }");
         WriteOne(L"\n");
@@ -192,6 +200,7 @@ private:
     void StrToArg(String const &str, float &arg);
     void StrToArg(String const &str, double &arg);
     void StrToArg(String const &str, wchar_t *arg);
+    void StrToArg(String const &str, FifamClub *&arg);
     void StrToArg(String const &str, String &arg);
     void StrToArg(String const &str, FifamDate &arg);
     void StrToArg(String const &str, Hexademical arg);
@@ -233,7 +242,7 @@ public:
     template<typename... ArgTypes>
     void ReadLine(ArgTypes&&... args) {
         GetLine();
-        auto strArgs = Utils::Split(mLine, L",");
+        auto strArgs = Utils::Split(mLine, L',');
         size_t currArg = 0;
         ReadOneArg(strArgs, currArg, std::forward<ArgTypes>(args)...);
     }
@@ -255,39 +264,39 @@ public:
     }
 
     template<typename... ArgTypes>
-    void ReadLineWithSeparator(char sep, ArgTypes&&... args) {
+    void ReadLineWithSeparator(wchar_t sep, ArgTypes&&... args) {
         GetLine();
-        auto strArgs = Utils::Split(mLine, Utils::CharToStr(sep));
+        auto strArgs = Utils::Split(mLine, sep);
         size_t currArg = 0;
         ReadOneArg(strArgs, currArg, std::forward<ArgTypes>(args)...);
     }
 
     template<typename Container>
-    size_t ReadLineArray(Container &out, char sep = ',') {
+    size_t ReadLineArray(Container &out, wchar_t sep = L',') {
         GetLine();
-        Vector<String> strArgs = Utils::Split(mLine, Utils::CharToStr(sep));
-        size_t count = std::min(out.size(), strArgs.size());
+        Vector<String> strArgs = Utils::Split(mLine, sep);
+        size_t count = Utils::Min(out.size(), strArgs.size());
         for (size_t i = 0; i < count; i++)
             StrToArg(strArgs[i], out[i]);
-        return std::max(out.size(), strArgs.size());
+        return Utils::Max(out.size(), strArgs.size());
     }
 
     template<typename T>
-    size_t ReadLineTranslationArray(TrArray<T> &out, char sep = ',') {
+    size_t ReadLineTranslationArray(TrArray<T> &out, wchar_t sep = L',') {
         auto result = ReadLineArray(out, sep);
-        if (GetGameId() <= 7 && out.size() >= FifamTranslation::NUM_TRANSLATIONS)
+        if (!IsVersionGreaterOrEqual(0x2007, 0x1A) && out.size() >= FifamTranslation::NUM_TRANSLATIONS)
             out[FifamTranslation::Polish] = out[FifamTranslation::English];
         return result;
     }
 
     void RemoveQuotes(String &str);
-    size_t ReadLineTranslationArray(TrArray<String> &out, char sep = ',', bool quoted = false);
+    size_t ReadLineTranslationArray(TrArray<String> &out, wchar_t sep = L',');
 
     template<typename T>
-    Vector<T> ReadLineArray(char sep = ',') {
+    Vector<T> ReadLineArray(wchar_t sep = L',') {
         GetLine();
         Vector<T> ary;
-        Vector<String> strArgs = Utils::Split(mLine, Utils::CharToStr(sep));
+        Vector<String> strArgs = Utils::Split(mLine, sep);
         ary.resize(strArgs.size());
         for (size_t i = 0; i < strArgs.size(); i++)
             StrToArg(strArgs[i], ary[i]);
@@ -295,7 +304,7 @@ public:
     }
 
     template<typename T>
-    Vector<T> ReadPackedLineArray(char sep = ',') {
+    Vector<T> ReadPackedLineArray(wchar_t sep = L',') {
         GetLine();
         String line = mLine;
         auto startPos = line.find_first_of(L'{');
@@ -305,7 +314,7 @@ public:
         if (endPos != String::npos)
             line = line.substr(0, endPos);
         Vector<T> ary;
-        Vector<String> strArgs = Utils::Split(line, Utils::CharToStr(sep));
+        Vector<String> strArgs = Utils::Split(line, sep);
         ary.resize(strArgs.size());
         for (size_t i = 0; i < strArgs.size(); i++)
             StrToArg(strArgs[i], ary[i]);
@@ -321,6 +330,6 @@ public:
 
     bool ReadVersion();
 
-    String GetFullLine();
-    bool GetFullLine(String &out);
+    String ReadFullLine();
+    bool ReadFullLine(String &out);
 };

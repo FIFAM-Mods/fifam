@@ -2,9 +2,9 @@
 
 void FifamManager::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"MANAGER")) {
-        reader.ReadLine(mFirstName);
-        reader.ReadLine(mLastName);
-        reader.ReadLine(mPseudonym);
+        reader.ReadFullLine(mFirstName);
+        reader.ReadFullLine(mLastName);
+        reader.ReadFullLine(mPseudonym);
         reader.ReadLine(mNationality);
         reader.ReadLine(mBirthDay);
         reader.ReadLine(mMotivationSkills);

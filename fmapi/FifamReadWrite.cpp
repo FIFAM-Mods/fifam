@@ -195,15 +195,25 @@ void FifamWriter::WriteOne(bool value) {
 }
 
 void FifamWriter::WriteOne(wchar_t const *value) {
-    fputws(value, mFile);
+    String str = value;
+    WriteOne(str);
 }
 
 void FifamWriter::WriteOne(String const &value) {
+    if (value.length() > 1) {
+        String noqValue = value;
+        for (UInt i = 0; i < value.length(); i++) {
+            if (noqValue[i] == L'"')
+                noqValue[i] = L'\'';
+        }
+        fputws(noqValue.c_str(), mFile);
+        return;
+    }
     fputws(value.c_str(), mFile);
 }
 
 void FifamWriter::WriteOne(Hexademical const &value) {
-    fwprintf(mFile, L"%x", value());
+    fwprintf(mFile, L"%X", value());
 }
 
 void FifamWriter::WriteOne(Quoted const &value) {
@@ -244,17 +254,23 @@ void FifamWriter::WriteVersion() {
     WriteEndIndex(L"VERSION");
 }
 
-void FifamWriter::WriteLineTranslationArray(TrArray<String> const &ary, char sep, bool quoted) {
-    std::vector<String> vec;
+void FifamWriter::WriteTranslationArray(TrArray<String> const &ary, wchar_t sep, bool quoted) {
     for (size_t i = 0; i < ary.size(); i++) {
-        if (i < 5 || GetGameId() >= 8) {
+        if (i < 5 || IsVersionGreaterOrEqual(0x2007, 0x1A)) {
             if (quoted)
-                vec.push_back(L"\"" + ary[i] + L"\"");
-            else
-                vec.push_back(ary[i]);
+                WriteOne(L"\"");
+            WriteOne(ary[i]);
+            if (quoted)
+                WriteOne(L"\"");
+            if (i != ary.size() - 1)
+                WriteOne(sep);
         }
     }
-    WriteLineArray(vec, sep);
+}
+
+void FifamWriter::WriteLineTranslationArray(TrArray<String> const &ary, wchar_t sep, bool quoted) {
+    WriteTranslationArray(ary, sep, quoted);
+    WriteOne(L"\n");
 }
 
 void FifamWriter::WriteNewLine() {
@@ -387,13 +403,17 @@ void FifamReader::StrToArg(String const &str, wchar_t *arg) {
     wcscpy(arg, str.c_str());
 }
 
+void FifamReader::StrToArg(String const & str, FifamClub *&arg) {
+    arg = reinterpret_cast<FifamClub *>(str.empty() ? 0 : Utils::SafeConvertInt<unsigned int>(str));
+}
+
 void FifamReader::StrToArg(String const &str, String &arg) {
     arg = str;
 }
 
 void FifamReader::StrToArg(String const &str, FifamDate &arg) {
     if (IsVersionGreaterOrEqual(0x2009, 0xA) && !str.empty()) {
-        auto dateInfo = Utils::Split(str, L"-");
+        auto dateInfo = Utils::Split(str, L'-');
         if (dateInfo.size() == 3) {
             arg.day = Utils::SafeConvertInt<char>(dateInfo[0]);
             arg.month = Utils::SafeConvertInt<char>(dateInfo[1]);
@@ -423,14 +443,14 @@ bool FifamReader::ReadVersion() {
     return false;
 }
 
-String FifamReader::GetFullLine() {
+String FifamReader::ReadFullLine() {
     auto line = GetLine();
     if (line)
         return line;
     return String();
 }
 
-bool FifamReader::GetFullLine(String &out) {
+bool FifamReader::ReadFullLine(String &out) {
     auto line = GetLine();
     if (line) {
         out = line;
@@ -449,14 +469,9 @@ void FifamReader::RemoveQuotes(String &str) {
     }
 }
 
-size_t FifamReader::ReadLineTranslationArray(TrArray<String> &out, char sep, bool quoted) {
+size_t FifamReader::ReadLineTranslationArray(TrArray<String> &out, wchar_t sep) {
     auto result = ReadLineArray(out, sep);
-    if (GetGameId() <= 7 && out.size() >= FifamTranslation::NUM_TRANSLATIONS)
+    if (!IsVersionGreaterOrEqual(0x2007, 0x1A) && out.size() >= FifamTranslation::NUM_TRANSLATIONS)
         out[FifamTranslation::Polish] = out[FifamTranslation::English];
-    
-    if (quoted) {
-        for (auto &str : out)
-            RemoveQuotes(str);
-    }
     return result;
 }

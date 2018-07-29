@@ -39,25 +39,40 @@ std::wstring Utils::GetQuickName(std::wstring const &firstName, std::wstring con
     return std::wstring();
 }
 
-std::vector<std::wstring> Utils::Split(std::wstring const &str, std::wstring const &delim, bool trim) {
+std::vector<std::wstring> Utils::Split(std::wstring const &line, wchar_t delim, bool trim) {
     std::vector<std::wstring> result;
-    if (str.length() > 0) {
-        size_t b = 0;
-        size_t e = str.find(delim);
-        std::wstring res;
-        while (e != std::wstring::npos) {
-            res = str.substr(b, e - b);
-            if (trim)
-                Trim(res);
-            result.push_back(res);
-            b = e + delim.length();
-            e = str.find(delim, b);
+    std::wstring currStr;
+    auto AddStr = [&]() {
+        if (trim) {
+            std::wstring trimmed = currStr;
+            Utils::Trim(trimmed);
+            result.push_back(trimmed);
         }
-        res = str.substr(b);
-        if (trim)
-            Trim(res);
-        result.push_back(res);
+        else
+            result.push_back(currStr);
+        currStr.clear();
+    };
+    bool inQuotes = false;
+    for (size_t i = 0; i < line.length(); i++) {
+        auto c = line[i];
+        if (c == L'\r' || c == L'\n')
+            break;
+        if (!inQuotes) {
+            if (c == L'"')
+                inQuotes = true;
+            else if (c == delim)
+                AddStr();
+            else
+                currStr += c;
+        }
+        else {
+            if (c == L'"')
+                inQuotes = false;
+            else
+                currStr += c;
+        }
     }
+    AddStr();
     return result;
 }
 
@@ -158,4 +173,18 @@ void Utils::Replace(std::wstring& str, const std::wstring& from, const std::wstr
         str.replace(start_pos, from.length(), to);
         start_pos += to.length();
     }
+}
+
+int Utils::Clamp(int value, int min, int max) {
+    if (value < min)
+        return min;
+    else if (value > max)
+        return max;
+    return value;
+}
+
+int Utils::MapTo(int value, int input_start, int input_end, int output_start, int output_end) {
+    value = Clamp(value, input_start, input_end);
+    double slope = 1.0 * (output_end - output_start) / (input_end - input_start);
+    return static_cast<int>(output_start + (floor(slope * (value - input_start)) + 0.5));
 }

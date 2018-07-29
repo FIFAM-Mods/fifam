@@ -17,7 +17,7 @@ namespace Utils {
         return buf;
     }
 
-    std::vector<std::wstring> Split(std::wstring const &str, std::wstring const &delim, bool trim = true);
+    std::vector<std::wstring> Split(std::wstring const &str, wchar_t delim, bool trim = true);
     bool StartsWith(std::wstring const &str, std::wstring const &what);
     bool EndsWith(std::wstring const &str, std::wstring const &what);
     bool Compare(std::wstring const &str, size_t index, char c);
@@ -52,4 +52,21 @@ namespace Utils {
 
     float SafeConvertFloat(std::wstring const &str);
     double SafeConvertDouble(std::wstring const &str);
+
+    int Clamp(int value, int min, int max);
+    int MapTo(int value, int input_start, int input_end, int output_start, int output_end);
+
+    template<typename T>
+    T Min(T const &a, T const &b) {
+        if (a < b)
+            return a;
+        return b;
+    }
+
+    template<typename T>
+    T Max(T const &a, T const &b) {
+        if (a > b)
+            return a;
+        return b;
+    }
 };
