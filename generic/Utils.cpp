@@ -39,16 +39,13 @@ std::wstring Utils::GetQuickName(std::wstring const &firstName, std::wstring con
     return std::wstring();
 }
 
-std::vector<std::wstring> Utils::Split(std::wstring const &line, wchar_t delim, bool trim) {
+std::vector<std::wstring> Utils::Split(std::wstring const &line, wchar_t delim, bool trim, bool skipEmpty) {
     std::vector<std::wstring> result;
     std::wstring currStr;
     auto AddStr = [&]() {
-        if (trim) {
-            std::wstring trimmed = currStr;
-            Utils::Trim(trimmed);
-            result.push_back(trimmed);
-        }
-        else
+        if (trim)
+            Utils::Trim(currStr);
+        if (!skipEmpty || !currStr.empty())
             result.push_back(currStr);
         currStr.clear();
     };

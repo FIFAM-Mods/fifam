@@ -37,6 +37,8 @@ void FifamCompID::SetFromStr(String const &str) {
 }
 
 String FifamCompID::ToStr() {
+    if (IsNull())
+        return L"None";
     Int regionId = mRegion.ToInt();
     if (mIsTemplate)
         regionId = -regionId;
@@ -69,4 +71,8 @@ void FifamCompID::Set(FifamCompRegion const &region, String const &type, UShort 
 
 FifamCompID::FifamCompID(UInt id) {
     SetFromInt(id);
+}
+
+bool FifamCompID::IsNull() {
+    return ToInt() == 0;
 }

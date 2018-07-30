@@ -43,13 +43,13 @@ zString<119>         Address
 zString<19>          Telephone
 zString<119>         Website/Email
 zString<256>         Fansites
-zString<29>          __UNKNOWN__ (empty)
+zString<29>          Newspaper
 zString<19>          Mascot name
 Int                  Ititial capital
 Int                  Transfer budget
 Byte                 Joint-stock company (0/1)
-Byte                 __UNKNOWN__ (0)
-Byte                 Some flags (3 (1+2) - has penalty points)
+Byte                 __UNKNOWN__ (0-18, 80 (Stuttgart), 192 (Wigan))
+Byte                 Some flags (3 (1+2) - has penalty points), 16 - ? (Club Sport Herediano), 64 - ? (Universitatea Craiova)
 Byte                 Points on new game (-30 - 0)
 Int                  Potential fans count
 Int                  Average attendance last season
@@ -65,7 +65,7 @@ Int                  Stadium venue - if higher than 999, set to 0
 Int                  Stadium capacity - if higher than 150000, set to 150000
 zQString<29>[NUM_TR] Stadium name (limited by 29 in Editor, 1024 by default)
 Byte                 Stadium type: 0 - oval, 1 - rounded corners, 2 - football stadium
-Byte                 Flags: 1 - stadium big main stand, 128 - can't be deleted in the editor
+Byte                 Flags: 1 - stadium big main stand, 128 - can be deleted in the editor (2-128 values are used mainly by Hungarian (since 07) and French (since 08) clubs
 Byte                 Club centre
 Byte                 Medical department
 Byte                 Merchandising
@@ -75,22 +75,22 @@ Byte                 Media
 Byte                 Research
 --{ Added in FM08 0x2007.0x0E }
 Byte                 Media Preassure (0 - low, 1 - normal, 2 - high, 3 - extreme)
-Int                  Flags: 0x400000 - rich guy controlled, 0x1000000 - youth players are basques
+Int                  Additional flags: 0x400000 - rich guy controlled, 0x1000000 - youth players are basques, (0-34 - unknown values, only for clubs from Ecuador)
 -------------------------------
 Short                Last Season Flags: 1 - promoted, 2 - reserve team promoted, 4 - relegated, 8 - reserve team relegated, 16 - cup winner, 32 - reserve team cup winner, 64 - cup finalist, 128 - reserve team cup finalist, 256 - does not take part in IT-Cup
 zString<40>          Badge path
-Byte                 Club colour        |-
-Byte                 __UNKNOWN__ (0)    |
-Byte                 Merchandise colour | Array
-Byte                 Header colour      |
-Byte                 Background colour  |-
+Byte                 Club colour                            |-
+Byte                 Club colour 2                          |
+Byte                 Merchandise colour                     | Array
+Byte                 Header colour                          |
+Byte                 Background colour                      |-
 %INDEX%HIST
 %INDEXEND%HIST
 Int                  Latitude value
 Int                  Longitude value
 Byte                 National club prestige
 Byte                 International club prestige
-zString<>            __UNKNOWN__ (empty)
+zString<>            __UNKNOWN__ (empty), 0 for some clubs in Ecuador (prob. mistake)
 Byte                 Transfers country 1
 Byte                 Transfers country 2
 Byte                 Youth players come from (country id)

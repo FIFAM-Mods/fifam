@@ -12,15 +12,13 @@
 #include "tests\CompIDTest.h"
 
 void RunTests() {
-    //RunTest<GeoCoordsTest>();
-    RunTest<WriteDbClubsTest<FM07, Default>>();
-
-    //RunTest<WriteDbCountriesTest<FM07, External>>();
-    //RunTest<WriteDbCountriesTest<FM08, External>>();
-    //RunTest<WriteDbCountriesTest<FM09, External>>();
-    //RunTest<WriteDbCountriesTest<FM10, External>>();
-    //RunTest<WriteDbCountriesTest<FM11, External>>();
-    //RunTest<WriteDbCountriesTest<FM12, External>>();
-    //RunTest<WriteDbCountriesTest<FM13, External>>();
-    //RunTest<WriteDbCountriesTest<FM14, External>>();
+    //RunTest<ReadWriteTest>();
+    //RunTest<WriteDbClubsTest<FM07, External>>();
+    //RunTest<WriteDbClubsTest<FM08, External>>();
+    //RunTest<WriteDbClubsTest<FM09, External>>();
+    //RunTest<WriteDbClubsTest<FM10, External>>();
+    //RunTest<WriteDbClubsTest<FM11, External>>();
+    //RunTest<WriteDbClubsTest<FM12, External>>();
+    //RunTest<WriteDbClubsTest<FM13, External>>();
+    RunTest<WriteDbClubsTest<FM14, External>>();
 }

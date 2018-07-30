@@ -15,7 +15,9 @@
 #include "FifamClubBadge.h"
 #include "FifamClubInterfaceColor.h"
 #include "FifamClubTeamColor.h"
+#include "FifamClubMerchandiseColor.h"
 #include "FifamGeoCoords.h"
+#include "FifamFormation.h"
 #include "Color.h"
 
 class FifamCountry;
@@ -77,6 +79,9 @@ public:
     // @maxsize 255
     String mFansites;
     // @since FM07
+    // @maxsize 29
+    String mNewspaper;
+    // @since FM07
     // @maxsize 19
     String mMascotName;
     // @since FM07
@@ -96,7 +101,8 @@ public:
     // @since FM07
     UShort mYearOfFoundation = 1900;
     // @since FM07
-    UInt mInitialCapital = 0;
+    // can be negative
+    Int mInitialCapital = 0;
     // @since FM07
     UInt mTransferBudget = 0;
     // @since FM07
@@ -105,6 +111,7 @@ public:
     // 3 (1+2) - penalty points
     UChar mPenaltyFlags = 0;
     // @since FM07
+    // 0 or negative
     Char mPenaltyPoints = 0;
     // @since FM07
     UInt mPotentialFansCount = 0;
@@ -126,12 +133,18 @@ public:
     Array<UInt, 3> mLeagueTotalGoalsAgainst = {};
     // @since FM07
     Array<UInt, 3> mLeagueTotalLeadershipsInTable = {};
+
+    /* Staadium */
+
     // @since FM07
     // if higher than 999, set to 0
     UInt mStadiumVenue = 0;
+    // @since FM12
+    UInt mStadiumStandingsCapacity = 0;
     // @since FM07
-    // if higher than 150000, set to 150000
-    UInt mStadiumCapacity = 0;
+    UInt mStadiumSeatsCapacity = 0;
+    // @since FM12
+    UInt mStadiumVipCapacity = 0;
     // @since FM07
     // @maxsize 29 in Editor
     TrArray<String> mStadiumName;
@@ -139,7 +152,7 @@ public:
     FifamStadiumType mStadiumType;
     // @since FM07
     // 1 - stadium big main stand, 128 - can't be deleted in the editor
-    UChar mFlags = 0; 
+    UChar mFlags = 0;
 
     /* Club grounds */
 
@@ -147,11 +160,11 @@ public:
     // @range [0;6]
     UChar mClubFacilities = 0; // club centre in 07 (0-5), 0-6
     // @since FM07
-    // @range [0;10]
-    UChar mYouthCentre = 0; // youth department in 07 (0-5), 1(0)-10 in FM12
+    // @range [1;10]
+    UChar mYouthCentre = 0; // youth department in 07 (0-5), 1-10 in FM12
     // @since FM07
     // @range [0;10]
-    UChar mYouthBoardingSchool = 0; // youth department in 07 (0-5), 1(0)-10 in FM12
+    UChar mYouthBoardingSchool = 0; // youth department in 07 (0-5), 0-10 in FM12
     // @since FM07
     // @until FM12
     // @range [0;5]
@@ -187,6 +200,9 @@ public:
     // @since FM07
     ColorPair mClubColour;
     // @since FM07
+    // unknown color (usually same as first color)
+    ColorPair mClubColour2;
+    // @since FM07
     Color mMerchandiseColour;
     // @since FM07
     Color mHeaderColour;
@@ -201,9 +217,7 @@ public:
     // @since FM07
     UChar mInternationalPrestige = 0;
     // @since FM07
-    FifamNation mTransfersCountry1;
-    // @since FM07
-    FifamNation mTransfersCountry2;
+    Array<FifamNation, 2> mTransfersCountry;
     // @since FM07
     FifamNation mYouthPlayersCountry;
     // @since FM07
@@ -230,17 +244,29 @@ public:
     TrArray<UChar> mTermForTeam1Article = {};
     // @since FM11
     TrArray<UChar> mTermForTeam2Article = {};
+    // @since FM11
+    UInt mSponsorAmount = 0;
+    // @since FM11
+    // years count
+    UChar mSponsorDuration = 0;
+    // @since FM11
+    Bool mSpecialSponsor = false;
+    // @since FM11
+    UInt mIndividualTvMoney = 0;
+
+    // @since FM12
+    UInt mFanMembers = 0;
+
+    // @since FM13
+    Array<FifamFormation, 2> mPreferredFormations;
+    // @since FM13
+    Array<FifamPlayer *, 3> mCaptains = {};
 
     struct {
         // @since FM07
-        // @maxsize 29
-        String _1; // empty
-        // @since FM07
         UChar _2 = 0; // 0
         // @since FM07
-        // unknown color
-        UChar _3 = 0; // 0
-        // @since FM07
+        // always empty in 07
         String _4;
     } Unknown;
 
@@ -398,6 +424,7 @@ public:
         { 212, 102, 141 }
     };
 
+    void ReadClubMembers(FifamReader &reader);
     void Read(FifamReader &reader, UInt id);
     void Write(FifamWriter &writer, UInt id);
 };

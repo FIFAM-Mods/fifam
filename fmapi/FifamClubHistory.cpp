@@ -2,14 +2,14 @@
 
 void FifamClubHistory::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"HIST")) {
-        mLeagueWinYears = reader.ReadLineArray<UShort>();
-        mCupWinYears = reader.ReadLineArray<UShort>();
-        mSuperCupsWinYears = reader.ReadLineArray<UShort>();
-        mLeagueCupWinYears = reader.ReadLineArray<UShort>();
-        mEuroTrophyWinYears = reader.ReadLineArray<UShort>();
-        mChampionsCupWinYears = reader.ReadLineArray<UShort>();
-        mWorldChampionshipWinYears = reader.ReadLineArray<UShort>();
-        mWorldClubChampionshipWinYears = reader.ReadLineArray<UShort>();
+        mLeagueWinYears = reader.ReadLineArray<UShort>(L',', true);
+        mCupWinYears = reader.ReadLineArray<UShort>(L',', true);
+        mSuperCupsWinYears = reader.ReadLineArray<UShort>(L',', true);
+        mLeagueCupWinYears = reader.ReadLineArray<UShort>(L',', true);
+        mEuroTrophyWinYears = reader.ReadLineArray<UShort>(L',', true);
+        mChampionsCupWinYears = reader.ReadLineArray<UShort>(L',', true);
+        mWorldChampionshipWinYears = reader.ReadLineArray<UShort>(L',', true);
+        mWorldClubChampionshipWinYears = reader.ReadLineArray<UShort>(L',', true);
         mRecordHomeWin.Read(reader);
         mRecordHomeDefeat.Read(reader);
         mRecordAwayWin.Read(reader);

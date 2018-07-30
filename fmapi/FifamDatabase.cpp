@@ -63,7 +63,7 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
         auto &country = mCountries[i];
         if (!country)
             continue;
-        std::wcout << L"Reading contry " << country->mId << L" (" << Tr(country->mName) << L")" << std::endl;
+        std::wcout << L"Reading country " << country->mId << L" (" << Tr(country->mName) << L")" << std::endl;
         UChar countryFileId = GetInternalGameCountryId(gameId, i + 1);
         if (countryFileId != 0) {
             Path countryDataPath;

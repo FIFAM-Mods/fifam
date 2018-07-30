@@ -151,6 +151,10 @@ void FifamWriter::WriteOne(char value) {
     fwprintf(mFile, L"%d", value);
 }
 
+void FifamWriter::WriteOne(wchar_t value) {
+    fputwc(value, mFile);
+}
+
 void FifamWriter::WriteOne(short value) {
     fwprintf(mFile, L"%d", value);
 }
@@ -405,6 +409,10 @@ void FifamReader::StrToArg(String const &str, wchar_t *arg) {
 
 void FifamReader::StrToArg(String const & str, FifamClub *&arg) {
     arg = reinterpret_cast<FifamClub *>(str.empty() ? 0 : Utils::SafeConvertInt<unsigned int>(str));
+}
+
+void FifamReader::StrToArg(String const & str, FifamPlayer *&arg) {
+    arg = reinterpret_cast<FifamPlayer *>(str.empty() ? 0 : Utils::SafeConvertInt<unsigned int>(str));
 }
 
 void FifamReader::StrToArg(String const &str, String &arg) {

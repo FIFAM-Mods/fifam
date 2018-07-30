@@ -67,6 +67,7 @@
     <ClInclude Include="FifamClubMerchandiseColor.h" />
     <ClInclude Include="FifamPerson.h" />
     <ClInclude Include="FifamGeoCoords.h" />
+    <ClInclude Include="FifamShirtNumberColor.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamDate.cpp" />

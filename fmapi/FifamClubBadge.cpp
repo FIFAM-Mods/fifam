@@ -364,7 +364,7 @@ void FifamClubBadge::SetBadgePath(String const &str) {
     else if (Utils::StartsWith(line, L"generic\\256x256\\"))
         badgeName = line.substr(16);
     else {
-        SetClub(badgeName);
+        SetClub(str);
         return;
     }
     auto dotPos = badgeName.find(L'.');

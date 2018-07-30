@@ -20,6 +20,10 @@
 #include "FifamCountryFlags.h"
 #include "FifamCountryAppearanceData.h"
 
+/*
+TODO: resolve club UID (>206)
+*/
+
 class FifamDatabase;
 
 class FifamCountry {

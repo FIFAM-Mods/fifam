@@ -72,7 +72,7 @@ ENUM_BEGIN(FifamKitColor, UChar)
     ENUM_MEMBER(58, Blue8,   L"Blue8")
     ENUM_MEMBER(59, Yellow8, L"Yellow8")
     ENUM_MEMBER(60, Brown8,  L"Brown8")
-    ENUM_MEMBER(61, Gold2,    L"Gold2")
+    ENUM_MEMBER(61, Gold2,   L"Gold2")
     ENUM_MEMBER(62, Violet8, L"Violet8")
     ENUM_MEMBER(63, Black,   L"Black")
 

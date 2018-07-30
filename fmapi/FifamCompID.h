@@ -27,4 +27,5 @@ struct FifamCompID {
     String ToHexStr();
     void SetFromStr(String const &str);
     String ToStr();
+    bool IsNull();
 };

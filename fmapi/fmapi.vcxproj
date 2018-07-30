@@ -131,6 +131,7 @@
     <ClInclude Include="FifamManager.h" />
     <ClInclude Include="FifamRelRule.h" />
     <ClInclude Include="FifamRoundID.h" />
+    <ClInclude Include="FifamShirtNumberColor.h" />
     <ClInclude Include="FifamShoeType.h" />
     <ClInclude Include="FifamSponsor.h" />
     <ClInclude Include="FifamStadium.h" />

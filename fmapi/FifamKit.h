@@ -1,6 +1,8 @@
 #pragma once
 #include "FifamTypes.h"
 #include "FifamKitBadgePosition.h"
+#include "FifamKitColor.h"
+#include "FifamShirtNumberColor.h"
 #include "Color.h"
 #include "FifamReadWrite.h"
 
@@ -31,7 +33,7 @@ public:
 
         struct {
             // @since FM07
-            Array<UChar, 3> _1 = {};
+            Array<Color, 3> _1 = {};
         } Unknown;
     };
     // @since FM07
@@ -105,7 +107,6 @@ public:
         { 92, 0, 156 },
         { 0, 0, 0 }
     };
-
     inline static Vector<Color> mShirtNumberColorTable = {
         { 0, 0, 0 },
         { 255, 255, 255 },

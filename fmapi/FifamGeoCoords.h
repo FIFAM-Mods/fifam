@@ -46,4 +46,5 @@ struct FifamGeoCoords {
     FifamGeoCoords();
     FifamGeoCoords(Int latitudeValue, Int longitudeValue);
     FifamGeoCoords(FifamLatitude const &latitude, FifamLongitude const &longitude);
+    void Set(Int latitudeValue, Int longitudeValue);
 };

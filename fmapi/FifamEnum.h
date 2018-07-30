@@ -221,6 +221,11 @@ public: \
     typeName(T rhs) { \
         SetFromInt(rhs); \
     } \
+    static typeName MakeFromInt(underlyingtype_t value) { \
+        typeName result; \
+        result.SetFromInt(value); \
+        return result; \
+    } \
 }; \
  \
 inline bool operator== (const typeName &a, const typeName &b) { \

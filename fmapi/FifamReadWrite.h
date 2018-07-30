@@ -10,6 +10,7 @@
 class FifamEnum;
 class FifamFlags;
 class FifamClub;
+class FifamPlayer;
 
 class Utilities {
 public:
@@ -48,6 +49,7 @@ class FifamWriter : public FifamFileWorker {
 public:
     FifamWriter(Path const &filename, size_t gameId, unsigned short vYear, unsigned short vNumber, bool unicode = true);
     void WriteOne(char value);
+    void WriteOne(wchar_t value);
     void WriteOne(short value);
     void WriteOne(int value);
     void WriteOne(unsigned char value);
@@ -201,6 +203,7 @@ private:
     void StrToArg(String const &str, double &arg);
     void StrToArg(String const &str, wchar_t *arg);
     void StrToArg(String const &str, FifamClub *&arg);
+    void StrToArg(String const &str, FifamPlayer *&arg);
     void StrToArg(String const &str, String &arg);
     void StrToArg(String const &str, FifamDate &arg);
     void StrToArg(String const &str, Hexademical arg);
@@ -293,10 +296,10 @@ public:
     size_t ReadLineTranslationArray(TrArray<String> &out, wchar_t sep = L',');
 
     template<typename T>
-    Vector<T> ReadLineArray(wchar_t sep = L',') {
+    Vector<T> ReadLineArray(wchar_t sep = L',', bool skipEmpty = false) {
         GetLine();
         Vector<T> ary;
-        Vector<String> strArgs = Utils::Split(mLine, sep);
+        Vector<String> strArgs = Utils::Split(mLine, sep, skipEmpty);
         ary.resize(strArgs.size());
         for (size_t i = 0; i < strArgs.size(); i++)
             StrToArg(strArgs[i], ary[i]);

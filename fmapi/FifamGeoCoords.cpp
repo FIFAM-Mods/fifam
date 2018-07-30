@@ -68,11 +68,15 @@ FifamLongitude::FifamLongitude(UChar direction, UShort degrees, UShort minutes) 
 FifamGeoCoords::FifamGeoCoords() {}
 
 FifamGeoCoords::FifamGeoCoords(Int latitudeValue, Int longitudeValue) {
-    mLatitude.SetFromInt(latitudeValue);
-    mLongitude.SetFromInt(longitudeValue);
+    Set(latitudeValue, longitudeValue);
 }
 
 FifamGeoCoords::FifamGeoCoords(FifamLatitude const &latitude, FifamLongitude const &longitude) {
     mLatitude = latitude;
     mLongitude = longitude;
+}
+
+void FifamGeoCoords::Set(Int latitudeValue, Int longitudeValue) {
+    mLatitude.SetFromInt(latitudeValue);
+    mLongitude.SetFromInt(longitudeValue);
 }
