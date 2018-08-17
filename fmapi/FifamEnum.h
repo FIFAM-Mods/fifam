@@ -318,7 +318,7 @@ public: \
     void Write(FifamWriter & writer)
 
 template<typename E>
-void CheckEnum(E const &e) {
+void FifamCheckEnum(E const &e) {
     if (e.GetWasSetFromUnknown())
         Error("Enum %s was set from unknown value: %u", typeid(e).name(), e.GetUnknown());
 }

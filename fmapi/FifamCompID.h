@@ -12,15 +12,15 @@
 struct FifamCompID {
     FifamCompRegion mRegion;
     FifamCompType mType;
-    UShort mLevel = 0;
+    UShort mIndex = 0;
     Bool mIsTemplate = false;
 
     FifamCompID();
     FifamCompID(UInt id);
-    FifamCompID(FifamCompRegion const &region, FifamCompType const &type, UShort level, Bool isTemplate = false);
-    void Set(FifamCompRegion const &region, FifamCompType const &type, UShort level, Bool isTemplate = false);
-    FifamCompID(FifamCompRegion const &region, String const &type, UShort level, Bool isTemplate = false);
-    void Set(FifamCompRegion const &region, String const &type, UShort level, Bool isTemplate = false);
+    FifamCompID(FifamCompRegion const &region, FifamCompType const &type, UShort index, Bool isTemplate = false);
+    void Set(FifamCompRegion const &region, FifamCompType const &type, UShort index, Bool isTemplate = false);
+    FifamCompID(FifamCompRegion const &region, String const &type, UShort index, Bool isTemplate = false);
+    void Set(FifamCompRegion const &region, String const &type, UShort index, Bool isTemplate = false);
     void SetFromInt(UInt value);
     UInt ToInt();
     void SetFromHexStr(String const &str);
@@ -28,4 +28,5 @@ struct FifamCompID {
     void SetFromStr(String const &str);
     String ToStr();
     bool IsNull();
+    static UInt Translate(UInt id, UInt gameFrom, UInt gameTo);
 };

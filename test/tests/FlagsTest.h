@@ -8,7 +8,7 @@ class FlagsTest {
 public:
     FlagsTest() {
         // присвоение флагов из из перечисления
-        Flags<FifamBeg> flags = FifamBeg::WithPenalty | FifamBeg::WithExtraTime | FifamBeg::NoPremierLeagueTeams;
+        FifamFlags<FifamBeg> flags = FifamBeg::WithPenalty | FifamBeg::WithExtraTime | FifamBeg::NoPremierLeagueTeams;
         std::wcout << flags.ToStr() << std::endl;
 
         // присвоение флагов из строки с разделителем

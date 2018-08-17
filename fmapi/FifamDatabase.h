@@ -1,6 +1,7 @@
 #pragma once
 #include "FifamCountry.h"
 #include "FifamCupAlloc.h"
+#include "FifamClubLink.h"
 #include <iostream>
 
 /*
@@ -10,6 +11,7 @@
 class FifamDatabase {
 public:
     static const UChar NUM_COUNTRIES = 207;
+    static const UInt LATEST_GAME_VERSION = 14;
 
     Array<FifamCountry *, NUM_COUNTRIES> mCountries = {};
     Map<UInt, FifamClub *> mClubsMap;
@@ -34,4 +36,11 @@ public:
     void AddClubToMap(FifamClub *club);
     FifamPlayer *CreatePlayer(FifamClub *club, UInt id);
     FifamStaff *CreateStaff(FifamClub *club, UInt id);
+
+    void ResolveClubLinks(FifamClub *club, UInt gameId);
+    FifamClubLink ClubFromID(UInt ID);
+    FifamPlayer *PlayerFromID(UInt ID);
+    UInt ClubToID(FifamClubLink const &clubLink);
+    UInt PlayerToID(FifamPlayer const *player);
+    UInt TranslateClubID(UInt ID, UInt gameFrom, UInt gameTo);
 };

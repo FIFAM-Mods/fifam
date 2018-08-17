@@ -30,7 +30,7 @@ public:
         // @since FM07
         FifamRoundID mRoundID;
         // @since FM07
-        Flags<FifamBeg> mFlags = FifamBeg::_1stLeg | FifamBeg::WithExtraTime | FifamBeg::WithPenalty;
+        FifamFlags<FifamBeg> mFlags = FifamBeg::_1stLeg | FifamBeg::WithExtraTime | FifamBeg::WithPenalty;
     };
 
     // @since FM07

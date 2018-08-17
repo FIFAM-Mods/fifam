@@ -8,9 +8,7 @@
 #include "FifamTranslation.h"
 
 class FifamEnum;
-class FifamFlags;
-class FifamClub;
-class FifamPlayer;
+class FifamBaseFlags;
 
 class Utilities {
 public:
@@ -75,7 +73,7 @@ public:
         value.Write(*this);
     }
 
-    template<typename T, typename = std::enable_if_t<std::is_base_of_v<FifamFlags, T>>, typename = void, typename = void>
+    template<typename T, typename = std::enable_if_t<std::is_base_of_v<FifamBaseFlags, T>>, typename = void, typename = void>
     void WriteOne(T const &value) {
         WriteOne(value.ToInt());
     }
@@ -140,7 +138,7 @@ public:
     }
 
     template<typename T>
-    void WriteTranslationArray(TrArray<T> const &ary, wchar_t sep = L',') {
+    void WriteTranslationArray(FifamTrArray<T> const &ary, wchar_t sep = L',') {
         Vector<T> vec;
         for (size_t i = 0; i < ary.size(); i++) {
             if (i < 5 || IsVersionGreaterOrEqual(0x2007, 0x1A))
@@ -150,13 +148,13 @@ public:
     }
 
     template<typename T>
-    void WriteLineTranslationArray(TrArray<T> const &ary, wchar_t sep = L',') {
+    void WriteLineTranslationArray(FifamTrArray<T> const &ary, wchar_t sep = L',') {
         WriteTranslationArray(ary, sep);
         WriteOne(L"\n");
     }
 
-    void WriteTranslationArray(TrArray<String> const &ary, wchar_t sep = L',', bool quoted = false);
-    void WriteLineTranslationArray(TrArray<String> const &ary, wchar_t sep = L',', bool quoted = false);
+    void WriteTranslationArray(FifamTrArray<String> const &ary, wchar_t sep = L',', bool quoted = false);
+    void WriteLineTranslationArray(FifamTrArray<String> const &ary, wchar_t sep = L',', bool quoted = false);
 
     template<typename T>
     void WritePackedLineArray(Vector<T> const &ary, wchar_t sep = L',') {
@@ -202,8 +200,6 @@ private:
     void StrToArg(String const &str, float &arg);
     void StrToArg(String const &str, double &arg);
     void StrToArg(String const &str, wchar_t *arg);
-    void StrToArg(String const &str, FifamClub *&arg);
-    void StrToArg(String const &str, FifamPlayer *&arg);
     void StrToArg(String const &str, String &arg);
     void StrToArg(String const &str, FifamDate &arg);
     void StrToArg(String const &str, Hexademical arg);
@@ -219,7 +215,7 @@ private:
         arg.Read(*this, str);
     }
 
-    template<typename T, typename = std::enable_if_t<std::is_base_of_v<FifamFlags, T>>, typename = void, typename = void>
+    template<typename T, typename = std::enable_if_t<std::is_base_of_v<FifamBaseFlags, T>>, typename = void, typename = void>
     void StrToArg(String const &str, T &arg) {
         if (!str.empty())
             arg.SetFromInt(Utils::SafeConvertInt<typename T::underlyingtype_t>(str));
@@ -285,7 +281,7 @@ public:
     }
 
     template<typename T>
-    size_t ReadLineTranslationArray(TrArray<T> &out, wchar_t sep = L',') {
+    size_t ReadLineTranslationArray(FifamTrArray<T> &out, wchar_t sep = L',') {
         auto result = ReadLineArray(out, sep);
         if (!IsVersionGreaterOrEqual(0x2007, 0x1A) && out.size() >= FifamTranslation::NUM_TRANSLATIONS)
             out[FifamTranslation::Polish] = out[FifamTranslation::English];
@@ -293,7 +289,7 @@ public:
     }
 
     void RemoveQuotes(String &str);
-    size_t ReadLineTranslationArray(TrArray<String> &out, wchar_t sep = L',');
+    size_t ReadLineTranslationArray(FifamTrArray<String> &out, wchar_t sep = L',');
 
     template<typename T>
     Vector<T> ReadLineArray(wchar_t sep = L',', bool skipEmpty = false) {

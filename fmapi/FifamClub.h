@@ -1,5 +1,6 @@
 #pragma once
 
+#include "FifamClubLink.h"
 #include "FifamPlayer.h"
 #include "FifamStaff.h"
 #include "FifamTranslation.h"
@@ -18,8 +19,12 @@
 #include "FifamClubMerchandiseColor.h"
 #include "FifamGeoCoords.h"
 #include "FifamFormation.h"
+#include "FifamClubTeamType.h"
+#include "FifamClubLastSeasonInfo.h"
+#include "FifamClubPenaltyType.h"
 #include "Color.h"
 
+class FifamDatabase;
 class FifamCountry;
 
 /* Articles
@@ -42,30 +47,30 @@ public:
     UInt mUniqueID = 0;
     // @since FM07
     // @maxsize 29
-    TrArray<String> mName;
+    FifamTrArray<String> mName;
     // @since FM07
     // @maxsize 29
-    TrArray<String> mName2;
+    FifamTrArray<String> mName2;
     // @since FM07
     // @maxsize 10
-    TrArray<String> mShortName;
+    FifamTrArray<String> mShortName;
     // @since FM07
     // @maxsize 10
-    TrArray<String> mShortName2;
+    FifamTrArray<String> mShortName2;
     // @since FM07
     // @maxsize 4
-    TrArray<String> mAbbreviation;
+    FifamTrArray<String> mAbbreviation;
     // @since FM07
     // @maxsize 29
-    TrArray<String> mCityName;
+    FifamTrArray<String> mCityName;
     // @since FM07
     // @maxsize 19
     // not an array before FM11
-    TrArray<String> mPlayerInText;
+    FifamTrArray<String> mPlayerInText;
     // @since FM07
     // @maxsize 19
     // not an array before FM11
-    TrArray<String> mFanName1;
+    FifamTrArray<String> mFanName1;
     // @since FM07
     // @maxsize 119
     String mAddress;
@@ -85,19 +90,19 @@ public:
     // @maxsize 19
     String mMascotName;
     // @since FM07
-    TrArray<UChar> mAbbreviationArticle = {};
+    FifamTrArray<UChar> mAbbreviationArticle = {};
     // @since FM07
-    TrArray<UChar> mPlayerInTextArticle = {};
+    FifamTrArray<UChar> mPlayerInTextArticle = {};
     // @since FM07
-    TrArray<UChar> mFanName1Article = {};
+    FifamTrArray<UChar> mFanName1Article = {};
     // @since FM07
-    TrArray<UChar> mClubNameUsageInPhrase = {};
+    FifamTrArray<UChar> mClubNameUsageInPhrase = {};
     // @since FM07
-    TrArray<UChar> mClubNameUsageInPhrase2 = {};
+    FifamTrArray<UChar> mClubNameUsageInPhrase2 = {};
     // @since FM07
-    FifamClub *mPartnershipClub = nullptr;
+    FifamClubLink mPartnershipClub;
     // @since FM07
-    Array<FifamClub *, 4> mRivalClubs = {};
+    Array<FifamClubLink, 4> mRivalClubs;
     // @since FM07
     UShort mYearOfFoundation = 1900;
     // @since FM07
@@ -108,8 +113,8 @@ public:
     // @since FM07
     Bool mJointStockCompany = false;
     // @since FM07
-    // 3 (1+2) - penalty points
-    UChar mPenaltyFlags = 0;
+    // 3 (1+2) - penalty points, 16 - ? (Club Sport Herediano), 64 - ? (Universitatea Craiova)
+    FifamClubPenaltyType mPenaltyType;
     // @since FM07
     // 0 or negative
     Char mPenaltyPoints = 0;
@@ -147,12 +152,13 @@ public:
     UInt mStadiumVipCapacity = 0;
     // @since FM07
     // @maxsize 29 in Editor
-    TrArray<String> mStadiumName;
+    FifamTrArray<String> mStadiumName;
     // @since FM07
     FifamStadiumType mStadiumType;
     // @since FM07
-    // 1 - stadium big main stand, 128 - can't be deleted in the editor
-    UChar mFlags = 0;
+    Bool mStadiumBigMainStand = false;
+    // @since FM07
+    Bool mCanBeDeletedInEditor = false;
 
     /* Club grounds */
 
@@ -191,10 +197,12 @@ public:
     FifamClubLandscape mLandscape;
     // @since FM12
     FifamClubSettlement mSettlement;
-
     // @since FM07
-    // 1 - promoted, 2 - reserve team promoted, 4 - relegated, 8 - reserve team relegated, 16 - cup winner, 32 - reserve team cup winner, 64 - cup finalist, 128 - reserve team cup finalist, 256 - does not take part in IT - Cup
-    UShort mLastSeasonFlags = 0;
+    FifamClubLastSeasonInfo mFirstTeamLastSeasonInfo;
+    // @since FM07
+    FifamClubLastSeasonInfo mReserveTeamLastSeasonInfo;
+    // @since FM07
+    Bool mDoesNotTakePartInITCup = false;
     // @since FM07
     FifamClubBadge mBadge;
     // @since FM07
@@ -230,20 +238,26 @@ public:
     // @since FM08
     FifamClubMediaPressure mMediaPressure;
     // @since FM08
-    UInt mAdditionalFlags = 0; // 0x400000 - rich guy controlled, 0x1000000 - youth players are basques
+    Bool mTraditionalClub = false;
+    // @since FM08
+    Bool mCantPlayInLeague = false;
+    // @since FM08
+    Bool mRichGuyControlled = false;
+    // @since FM08
+    Bool mYouthPlayersAreBasques = false;
 
     // @since FM11
-    TrArray<String> mFanName2;
+    FifamTrArray<String> mFanName2;
     // @since FM11
-    TrArray<String> mTermForTeam1;
+    FifamTrArray<String> mTermForTeam1;
     // @since FM11
-    TrArray<String> mTermForTeam2;
+    FifamTrArray<String> mTermForTeam2;
     // @since FM11
-    TrArray<UChar> mFanName2Article = {};
+    FifamTrArray<UChar> mFanName2Article = {};
     // @since FM11
-    TrArray<UChar> mTermForTeam1Article = {};
+    FifamTrArray<UChar> mTermForTeam1Article = {};
     // @since FM11
-    TrArray<UChar> mTermForTeam2Article = {};
+    FifamTrArray<UChar> mTermForTeam2Article = {};
     // @since FM11
     UInt mSponsorAmount = 0;
     // @since FM11
@@ -264,13 +278,33 @@ public:
 
     struct {
         // @since FM07
+        // 0-18, 80 (Stuttgart), 192 (Wigan), unused
         UChar _2 = 0; // 0
         // @since FM07
-        // always empty in 07
+        // @until FM12
+        // always empty in 07, unused
         String _4;
+
+        // @since FM07
+        struct {
+            // @since FM07
+            Bool _2;
+            // @since FM07
+            Bool _4;
+            // @since FM07
+            Bool _8;
+            // @since FM07
+            Bool _16;
+            // @since FM07
+            Bool _32;
+            // @since FM07
+            Bool _64;
+        } flags;
     } Unknown;
 
     FifamCountry *mCountry = nullptr;
+    FifamDatabase *mDatabase = nullptr;
+    Bool mIsNationalTeam = false;
     Vector<FifamPlayer *> mPlayers;
     Vector<FifamStaff *> mStaffs;
 
@@ -424,6 +458,7 @@ public:
         { 212, 102, 141 }
     };
 
+    void WriteClubMembers(FifamWriter &writer);
     void ReadClubMembers(FifamReader &reader);
     void Read(FifamReader &reader, UInt id);
     void Write(FifamWriter &writer, UInt id);

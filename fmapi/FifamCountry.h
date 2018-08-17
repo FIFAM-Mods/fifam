@@ -16,13 +16,7 @@
 #include "FifamClimate.h"
 #include "FifamAmateurRule.h"
 #include "FifamManager.h"
-#include "FifamFlags.h"
-#include "FifamCountryFlags.h"
 #include "FifamCountryAppearanceData.h"
-
-/*
-TODO: resolve club UID (>206)
-*/
 
 class FifamDatabase;
 
@@ -30,12 +24,12 @@ class FifamCountry {
 public:
     // @since FM07
     // @maxsize 30
-    TrArray<String> mName;
+    FifamTrArray<String> mName;
     // @since FM07
     // @maxsize 4
-    TrArray<String> mAbbr;
+    FifamTrArray<String> mAbbr;
     // @since FM07
-    TrArray<Bool> mNameGender = {}; // 0: in % 1: in the % 2: on % 3: on the % 4: - 5: - 6: -
+    FifamTrArray<Bool> mNameGender = {}; // 0: in % 1: in the % 2: on % 3: on the % 4: - 5: - 6: -
     // @since FM07
     FifamContinent mContinent;
     // @since FM07
@@ -105,7 +99,9 @@ public:
     // @since FM07
     UChar mYearsForNaturalization = 0;
     // @since FM07
-    Flags<FifamCountryFlags> mFlags;
+    Bool mGeneratePlayers = false;
+    // @since FM07
+    Bool mNoTerracesAllowed = false;
     // @since FM07
     // move between teams rule
     FifamAmateurRule mAmateurRule;
@@ -155,34 +151,37 @@ public:
     // @maxsize 128 in FM11
     // @maxsize 196 in FM13
     String mNotes;
+    // @since FM07
+    // @maxsize 28
+    String mMostImportantMagazine;
+    // @since FM07
+    // @until FM08
+    // @maxsize 16
+    String mNewspaperReporterFirstName;
+    // @since FM07
+    // @until FM08
+    // @maxsize 20
+    String mNewspaperReporterLastName;
+    // @since FM07
+    // @until FM08
+    // @maxsize 16
+    String mReporterInTheStadiumFirstName;
+    // @since FM07
+    // @until FM08
+    // @maxsize 20
+    String mReporterInTheStadiumLastName;
+    // @since FM07
+    // @until FM08
+    // @maxsize 16
+    String mReporterInTheStudioFirstName;
+    // @since FM07
+    // @until FM08
+    // @maxsize 20
+    String mReporterInTheStudioLastName;
 
     struct {
         // @since FM07
         UChar _1 = 0;
-        // @since FM07
-        // @until FM08
-        // @maxsize 16
-        String _2;
-        // @since FM07
-        // @until FM08
-        // @maxsize 20
-        String _3;
-        // @since FM07
-        // @until FM08
-        // @maxsize 16
-        String _4;
-        // @since FM07
-        // @until FM08
-        // @maxsize 20
-        String _5;
-        // @since FM07
-        // @until FM08
-        // @maxsize 16
-        String _6;
-        // @since FM07
-        // @until FM08
-        // @maxsize 20
-        String _7;
         // @since FM07
         // @until FM08
         Bool _8 = 0;
@@ -209,9 +208,22 @@ public:
         // @since FM07
         // 1 or 3
         UInt _18 = 0;
+
         // @since FM07
-        // @maxsize 28
-        String _19;
+        struct {
+            // @since FM07
+            Bool _1;
+            // @since FM07
+            Bool _8;
+            // @since FM07
+            Bool _16;
+            // @since FM07
+            Bool _32;
+            // @since FM07
+            Bool _64;
+            // @since FM07
+            Bool _128;
+        } flags;
     } Unknown;
 
     // Country .sav files were read

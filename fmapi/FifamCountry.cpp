@@ -54,6 +54,7 @@ void FifamCountry::Read(FifamReader &reader) {
                 mDatabase->AddClubToMap(club);
             }
             mNationalTeam.mCountry = this;
+            mNationalTeam.mIsNationalTeam = true;
             mNationalTeam.Read(reader, 0xFFFF);
             reader.ReadEndIndex(L"CLUBS");
         }
@@ -120,12 +121,12 @@ void FifamCountry::Read(FifamReader &reader) {
                 reader.ReadLine(mFA_PresidentBirthDate);
             }
             if (!reader.IsVersionGreaterOrEqual(0x2007, 0x17)) {
-                reader.ReadFullLine(Unknown._2);
-                reader.ReadFullLine(Unknown._3);
-                reader.ReadFullLine(Unknown._4);
-                reader.ReadFullLine(Unknown._5);
-                reader.ReadFullLine(Unknown._6);
-                reader.ReadFullLine(Unknown._7);
+                reader.ReadFullLine(mNewspaperReporterFirstName);
+                reader.ReadFullLine(mNewspaperReporterLastName);
+                reader.ReadFullLine(mReporterInTheStadiumFirstName);
+                reader.ReadFullLine(mReporterInTheStadiumLastName);
+                reader.ReadFullLine(mReporterInTheStudioFirstName);
+                reader.ReadFullLine(mReporterInTheStudioLastName);
             }
             UChar yelCardsRule;
             reader.ReadLine(yelCardsRule);
@@ -190,7 +191,22 @@ void FifamCountry::Read(FifamReader &reader) {
                 flags &= 6;
             else
                 flags &= 181;
-            mFlags.SetFromInt(flags);
+            if (flags & 1)
+                Unknown.flags._1 = true;
+            if (flags & 2)
+                mGeneratePlayers = true;
+            if (flags & 4)
+                mNoTerracesAllowed = true;
+            if (flags & 8)
+                Unknown.flags._8 = true;
+            if (flags & 16)
+                Unknown.flags._16 = true;
+            if (flags & 32)
+                Unknown.flags._32 = true;
+            if (flags & 64)
+                Unknown.flags._64 = true;
+            if (flags & 128)
+                Unknown.flags._128 = true;
             reader.ReadLine(Unknown._15);
             reader.ReadLine(mAmateurRule);
             reader.ReadLine(mClimate);
@@ -222,7 +238,7 @@ void FifamCountry::Read(FifamReader &reader) {
                 reader.ReadLine(mFifaRanking);
             }
             if (reader.GetGameId() < 11)
-                reader.ReadFullLine(Unknown._19);
+                reader.ReadFullLine(mMostImportantMagazine);
             reader.ReadLine(mNumContinentalChampions);
             reader.ReadLine(mNumWorldCups);
             reader.ReadLine(mNumContinentalRunnersUp);
@@ -230,9 +246,9 @@ void FifamCountry::Read(FifamReader &reader) {
             reader.ReadFullLine(mNotes);
             reader.ReadEndIndex(countryMiscSectionName);
 
-            CheckEnum(mYellowCardsLeagueRule);
-            CheckEnum(mYellowCardsCupRule);
-            CheckEnum(mRedCardRule);
+            FifamCheckEnum(mYellowCardsLeagueRule);
+            FifamCheckEnum(mYellowCardsCupRule);
+            FifamCheckEnum(mRedCardRule);
             if (validForAllCompsFlags >= 8)
                 Error("validForAllCompsFlags: unknown value (%u)", validForAllCompsFlags);
             if (secondYellowCardLeaguesState >= 32)
@@ -240,16 +256,16 @@ void FifamCountry::Read(FifamReader &reader) {
             if ((redCardOptions & 4) || (redCardOptions & 8) || (redCardOptions >= 32))
                 Error("redCardOptions: unknown value (%u)", redCardOptions);
             for (UInt i = 0; i < numLeagueLevels; i++)
-                CheckEnum(mLeagueLevels[i].mEqualPointsSorting);
-            CheckEnum(mCupSystemType);
+                FifamCheckEnum(mLeagueLevels[i].mEqualPointsSorting);
+            FifamCheckEnum(mCupSystemType);
             if (cupOptions >= 4)
                 Error("cupOptions: unknown value (%u)", cupOptions);
-            CheckEnum(mSuperCupType);
+            FifamCheckEnum(mSuperCupType);
             for (UInt i = 0; i < 4; i++)
-                CheckEnum(mLeagueCupSystemType[i]);
-            CheckEnum(mAmateurRule);
-            CheckEnum(mClimate);
-            CheckEnum(mPreferredTransfersTerritory);
+                FifamCheckEnum(mLeagueCupSystemType[i]);
+            FifamCheckEnum(mAmateurRule);
+            FifamCheckEnum(mClimate);
+            FifamCheckEnum(mPreferredTransfersTerritory);
         }
         reader.ReadEndIndex(L"COUNTRY");
     }
@@ -313,8 +329,8 @@ void FifamCountry::Write(FifamWriter &writer) {
 
     writer.WriteStartIndex(countryMiscSectionName);
     if (writer.GetGameId() < 11) {
-        writer.WriteLine(Tr(mName));
-        writer.WriteLine(Tr(mAbbr));
+        writer.WriteLine(FifamTr(mName));
+        writer.WriteLine(FifamTr(mAbbr));
         writer.WriteLine((mContinent.ToInt() & 7) | (mTerritory.ToInt() << 3));
         writer.WriteLine(mOriginalLeagueSystem);
     }
@@ -329,12 +345,12 @@ void FifamCountry::Write(FifamWriter &writer) {
         writer.WriteLine(mFA_PresidentBirthDate);
     }
     if (!writer.IsVersionGreaterOrEqual(0x2007, 0x17)) {
-        writer.WriteLine(Unknown._2);
-        writer.WriteLine(Unknown._3);
-        writer.WriteLine(Unknown._4);
-        writer.WriteLine(Unknown._5);
-        writer.WriteLine(Unknown._6);
-        writer.WriteLine(Unknown._7);
+        writer.WriteLine(mNewspaperReporterFirstName);
+        writer.WriteLine(mNewspaperReporterLastName);
+        writer.WriteLine(mReporterInTheStadiumFirstName);
+        writer.WriteLine(mReporterInTheStadiumLastName);
+        writer.WriteLine(mReporterInTheStudioFirstName);
+        writer.WriteLine(mReporterInTheStudioLastName);
     }
     UChar yelCardsRule = mYellowCardsLeagueRule.ToInt() & 0x7F;
     if (mYellowCardsLeagueAfterYelRed)
@@ -396,7 +412,23 @@ void FifamCountry::Write(FifamWriter &writer) {
     writer.WriteLine(Unknown._12);
     writer.WriteLine(Unknown._13);
     writer.WriteLine(Unknown._14);
-    UChar flags = mFlags.ToInt();
+    UChar flags = 0;
+    if (Unknown.flags._1)
+        flags |= 1;
+    if (mGeneratePlayers)
+        flags |= 2;
+    if (mNoTerracesAllowed)
+        flags |= 4;
+    if (Unknown.flags._8)
+        flags |= 8;
+    if (Unknown.flags._16)
+        flags |= 16;
+    if (Unknown.flags._32)
+        flags |= 32;
+    if (Unknown.flags._64)
+        flags |= 64;
+    if (Unknown.flags._128)
+        flags |= 128;
     if (writer.GetGameId() <= 7)
         flags &= 6;
     else
@@ -432,7 +464,7 @@ void FifamCountry::Write(FifamWriter &writer) {
         writer.WriteLine(mFifaRanking);
     }
     if (writer.GetGameId() < 11)
-        writer.WriteLine(Unknown._19);
+        writer.WriteLine(mMostImportantMagazine);
     writer.WriteLine(mNumContinentalChampions);
     writer.WriteLine(mNumWorldCups);
     writer.WriteLine(mNumContinentalRunnersUp);

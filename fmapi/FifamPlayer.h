@@ -6,17 +6,14 @@
 #include "FifamReadWrite.h"
 #include "FifamPlayerAppearance.h"
 #include "FifamNation.h"
+#include "FifamPersonType.h"
 
 class FifamClub;
 
 // @since FM07
 class FifamPlayer : public FifamPerson {
 public:
-    // @UNKNOWN
-    enum class Type { Player, Manager, Chairman, President, Stuff }
-        mType = Type::Player;
-
-    // @UNKNOWN
+    // @since FM07
     UInt mCommentaryId = 0;
     // @since FM07
     // @maxsize 19
@@ -32,34 +29,48 @@ public:
     // @maxsize 19
     String mNickname;
     // @since FM07
-    FifamNation mNationality[2];
+    Array<FifamNation, 2> mNationality;
     // @since FM07
-    FifamLanguage mLanguages[3];
+    Array<FifamLanguage, 4> mLanguages;
     // @since FM07
     FifamDate mBirthday;
     // @since FM07
     // there are two boolean flags, `IsReserve` and `IsYouth`
     // if none of them enabled then player is in the first team
     // both flags can be enabled in FM07, can't be enabled since FM08
-    enum class Team { First, Reserve, Youth }
-        mTeam = Team::First;
-    
+    Bool mInReserveTeam = false;
+    // @since FM07
+    Bool mInYouthTeam = false;
     // @since FM07
     // called as `Does not Count as a Foreign Player by Individual Decision of Local FA` in FM07
-    Bool mNaturalised = false;
+    Bool mIsNaturalised = false;
     // @since FM07
-    Bool mBasque = false; 
+    Bool mIsBasque = false; 
     // @since FM07
-    Bool mRealPlayer = false;
-
-    UChar mTalent = 0; // 0-9
-    UChar mPotential = 0; // FM07 only
+    Bool mIsRealPlayer = false;
+    // @since FM07
+    // @range [0;9]
+    UChar mTalent = 0;
+    // @since FM07
+    // @until FM08
+    // @range [0;99]
+    UChar mPotential = 0;
+    // @since FM07
+    // @range [0;4]
     UChar mLeftFoot = 0;
+    // @since FM07
+    // @range [0;4]
     UChar mRightFoot = 0;
-    UChar mHeroStatus = 0; // 0-10
-    UChar mKitNumber[2] = { 0, 0 }; // only one in old FMs
-    UChar mNationalExperience = 0; // experience in new FMs
-    UChar mInternationalExperience = 0; // experience in new FMs
+    // @since FM07
+    // @range [0;10]
+    UChar mHeroStatus = 0;
+    // @since FM07
+    // @range [0;99]
+    Array<UChar, 2> mKitNumber[2] = {};
+    // @since FM07
+    UChar mNationalExperience = 0;
+    // @since FM07
+    UChar mInternationalExperience = 0;
 
     // @since FM07
     enum class Position { NA, GK, RB, LB, CB, SW, RWB, LWB, AC, DM, RM, LM, CM, RW, LW, AM, CF, ST }
@@ -352,39 +363,82 @@ public:
         UChar _1;
     } Unknown;
 
+    FifamPlayer() {
+        mPersonType = FifamPersonType::Player;
+    }
+
     void Read(FifamReader &reader) {
         if (reader.ReadStartIndex(L"PLAYER")) {
-            //Bool bReserveTeam;
-            //UChar nFlags;
-            //
-            //reader.ReadFullLine(mFirstName);
-            //reader.ReadFullLine(mLastName);
-            //reader.ReadFullLine(mNickname);
-            //reader.ReadFullLine(mPseudonym);
-            //reader.ReadLine(Unknown._1);
-            //reader.ReadLine(bReserveTeam);
-            //reader.ReadLine(mNationality[0]);
-            //reader.ReadLine(mNationality[1]);
-            //reader.ReadLine(nFlags);
-            //if (nFlags & 1)
-            //    mNaturalised = true;
-            //if (nFlags & 2)
-            //    mBasque = true;
-            //if (nFlags & 4)
-            //    mRealPlayer = true;
-            //reader.ReadLine(mBirthday);
-            //reader.ReadLine(nFlags);
-            //
-            //if (nFlags & 0x40) // youth team
-            //    mTeam = Team::Youth;
-            //else if (bReserveTeam)
-            //    mTeam = Team::Reserve;
-            //else
-            //    mTeam = Team::First;
-            //
-            //mTalent = ((nFlags & 7) + 1) * 2 - 1;
+            if (reader.IsVersionGreaterOrEqual(0x2012, 0x01)) {
 
+            }
+            else {
+                reader.ReadFullLine(mFirstName);
+                reader.ReadFullLine(mLastName);
+                reader.ReadFullLine(mNickname);
+                reader.ReadFullLine(mPseudonym);
+                reader.ReadLine(mPersonType);
+                reader.ReadLine(mInReserveTeam);
+                reader.ReadLine(mNationality[0]);
+                reader.ReadLine(mNationality[1]);
+                UChar playerBasicFlags = reader.ReadLine<UChar>();
+                if (playerBasicFlags & 1)
+                    mIsNaturalised = true;
+                if (playerBasicFlags & 2)
+                    mIsBasque = true;
+                if (playerBasicFlags & 4)
+                    mIsRealPlayer = true;
+                reader.ReadLine(mBirthday);
+                if (reader.IsVersionGreaterOrEqual(0x2009, 0x02)) {
+                    reader.ReadLine(mTalent);
+                    UChar footPrefs = reader.ReadLine<UChar>();
+                    mRightFoot = footPrefs & 0xF;
+                    mLeftFoot = (footPrefs >> 4) & 0xF;
+                }
+                else {
+                    UChar flags = reader.ReadLine<UChar>();
+                    UChar footPrefs = (flags >> 3) & 7;
+                    mTalent = (flags & 7) * 2 + 1;
+                    mInYouthTeam = (flags & 0x40) == 0x40;
+                    switch (footPrefs) {
+                    case 0:
+                        mRightFoot = 4;
+                        mLeftFoot = 0;
+                        break;
+                    case 1:
+                        mRightFoot = 0;
+                        mLeftFoot = 4;
+                        break;
+                    case 2:
+                        mRightFoot = 4;
+                        mLeftFoot = 2;
+                        break;
+                    case 3:
+                        mRightFoot = 2;
+                        mLeftFoot = 4;
+                        break;
+                    default:
+                        break;
+                    }
+                }
+                reader.ReadLine(mHeroStatus);
+
+                if (playerBasicFlags >= 8)
+                    Error("playerBasicFlags: unknown value (%u)", playerBasicFlags);
+            }
             reader.ReadEndIndex(L"PLAYER");
+
+            FifamCheckEnum(mPersonType);
+            FifamCheckEnum(mNationality[0]);
+            FifamCheckEnum(mNationality[1]);
+            if (mLeftFoot > 4)
+                Error("mLeftFoot: unknown value (%u)", mLeftFoot);
+            if (mRightFoot > 4)
+                Error("mRightFoot: unknown value (%u)", mRightFoot);
         }
+    }
+
+    void Write(FifamWriter &writer) {
+
     }
 };

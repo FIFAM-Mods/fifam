@@ -81,7 +81,7 @@ Byte        International experience
 Byte        Shirt number
 Byte        Reserve shirt number
 Int         Special face id
-Int         ___UNKNOWN___ (2261955) maybe commentary id
+Int         Empics ID (2261955)
 Int         First club - country id    | removed in FM08
 Int         First club - id            | removed in FM08
 Int         Previous club - country id | removed in FM08
@@ -136,6 +136,9 @@ Int         Injury end - month
 Int         Injury end - year
 %INDEXEND%DATE
 Int         Loan (Moves to) transfer fee
+--{ Added in FM08 }--
+Int         Loan fee
+---------------------
 Byte        Shoe type:  White = 1, Black = 2, Blue = 3, Red = 4, Yellow = 5, WhiteBlue = 6, WhiteBlack = 7, WhiteLightBlue = 8, YellowBlack = 9
 Byte        ___UNKNOWN___ (0)
 %INDEX%HIST

@@ -26,6 +26,6 @@ public:
         std::wofstream out(Utils::Format(L"CountryNames%d.txt", Game::id()));
         WriteCountryDef(out, 0, L"None");
         for (size_t i = 0; i < 207; i++)
-            WriteCountryDef(out, i + 1, Tr(db->mCountries[i]->mName));
+            WriteCountryDef(out, i + 1, FifamTr(db->mCountries[i]->mName));
     }
 };

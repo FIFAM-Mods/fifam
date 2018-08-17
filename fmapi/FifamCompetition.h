@@ -1,13 +1,11 @@
 #pragma once
 
 #include "FifamTypes.h"
-#include "FifamNation.h"
+#include "FifamCompID.h"
 
 class FifamCompetition {
 public:
-    FifamNation mCountry = FifamNation::None;
-
-    enum Kind {
+    enum DbType {
         Round,
         Pool,
         League,
@@ -18,12 +16,11 @@ public:
         RelSwitherland,
         RelScotland1,
         RelScotland2
-    } mKind = Kind::Round;
+    } mKind = Round;
 
-    Char mIndex = 0;
-
-    // Competition ID:
-    // { Country, Kind, Index }
-
-
+    FifamCompID mID;
+    UChar mNumSubsAllowed = 0;
+    UChar mLeagueLevel = 0; // 0 = highest - international competitions always have 0
+    Array<FifamCompID, 32> mPredecessors;
+    Array<FifamCompID, 32> mSuccessors;
 };

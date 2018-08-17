@@ -29,13 +29,13 @@ public:
 };
 
 template<typename T>
-using TrArray = Array<T, FifamTranslation::NUM_TRANSLATIONS>;
+using FifamTrArray = Array<T, FifamTranslation::NUM_TRANSLATIONS>;
 
 template<typename T>
-T Tr(TrArray<T> const &trAry) {
+T FifamTr(FifamTrArray<T> const &trAry) {
     return trAry[FifamTranslation::English];
 }
 
-inline wchar_t const *Tr_c(TrArray<String> const &trAry) {
+inline wchar_t const *FifamTr_c(FifamTrArray<String> const &trAry) {
     return trAry[FifamTranslation::English].c_str();
 }

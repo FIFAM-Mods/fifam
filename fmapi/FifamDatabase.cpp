@@ -1,4 +1,6 @@
 #include "FifamDatabase.h"
+#include "FifamUtils.h"
+#include "FifamReadWrite.h"
 #include <iostream>
 
 FifamDatabase::FifamDatabase() {}
@@ -24,6 +26,7 @@ bool FifamDatabase::IsCountryPresent(UInt gameId, UChar nationId) {
 }
 
 void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
+
     Clear();
 
     path gamePath = dbPath.parent_path();
@@ -63,7 +66,7 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
         auto &country = mCountries[i];
         if (!country)
             continue;
-        std::wcout << L"Reading country " << country->mId << L" (" << Tr(country->mName) << L")" << std::endl;
+        std::wcout << L"Reading country " << country->mId << L" (" << FifamTr(country->mName) << L")" << std::endl;
         UChar countryFileId = GetInternalGameCountryId(gameId, i + 1);
         if (countryFileId != 0) {
             Path countryDataPath;
@@ -106,6 +109,18 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
                     cupAllocReader.ReadEndIndex(Utils::Format(L"CUP%d", i + 1));
                 }
             }
+        }
+    }
+
+    // Resolve competition, club, player links
+
+    for (UChar i = 0; i < NUM_COUNTRIES; i++) {
+        if (mCountries[i]) {
+            auto &country = mCountries[i];
+            std::wcout << L"Resolving links in country " << country->mId << L" (" << FifamTr(country->mName) << L")" << std::endl;
+            for (FifamClub *club : country->mClubs)
+                ResolveClubLinks(club, gameId);
+            ResolveClubLinks(&country->mNationalTeam, gameId);
         }
     }
 }
@@ -196,6 +211,7 @@ FifamDatabase::~FifamDatabase() {
 
 FifamClub *FifamDatabase::CreateClub(FifamCountry *country) {
     FifamClub *club = new FifamClub;
+    club->mDatabase = this;
     club->mCountry = country;
     mClubs.insert(club);
     country->mClubs.push_back(club);
@@ -222,4 +238,71 @@ FifamStaff *FifamDatabase::CreateStaff(FifamClub *club, UInt id) {
     mPersonsMap[id] = staff;
     club->mStaffs.push_back(staff);
     return staff;
+}
+
+void FifamDatabase::ResolveClubLinks(FifamClub *club, UInt gameId) {
+    club->mUniqueID = TranslateClubID(club->mUniqueID, gameId, LATEST_GAME_VERSION);
+    for (UInt i = 0; i < 4; i++)
+        club->mLowestLeagues[i].Translate(club->mLowestLeagues[i].ToInt(), gameId, LATEST_GAME_VERSION);
+    club->mPartnershipClub = ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(club->mPartnershipClub), gameId, LATEST_GAME_VERSION));
+    for (UInt i = 0; i < 4; i++)
+        club->mRivalClubs[i] = ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(club->mRivalClubs[i]), gameId, LATEST_GAME_VERSION));
+    for (UInt i = 0; i < 3; i++)
+        club->mCaptains[i] = PlayerFromID(FifamUtils::GetSavedPlayerIDFromPlayerPtr(club->mCaptains[i]));
+}
+
+FifamClubLink FifamDatabase::ClubFromID(UInt ID) {
+    FifamClubLink result;
+    if (ID != 0) {
+        unsigned char countryId = (ID >> 16) & 0xFF;
+        if (countryId > 0 && countryId <= NUM_COUNTRIES && mCountries[countryId - 1]) {
+            result.mTeamType.SetFromInt(ID >> 24);
+            unsigned short index = ID & 0xFFFF;
+            if (index == 0xFFFF)
+                result.mPtr = &mCountries[countryId - 1]->mNationalTeam;
+            if (index > 0 && index <= mCountries[countryId - 1]->mClubs.size())
+                result.mPtr = mCountries[countryId - 1]->mClubs[index - 1];
+        }
+    }
+    return result;
+}
+
+FifamPlayer *FifamDatabase::PlayerFromID(UInt ID) {
+    if (ID != 0) {
+        auto it = mPersonsMap.find(ID);
+        if (it != mPersonsMap.end()) {
+            if (it->second->mPersonType == FifamPersonType::Player)
+                return reinterpret_cast<FifamPlayer *>(it->second);;
+        }
+    }
+    return nullptr;
+}
+
+UInt FifamDatabase::ClubToID(FifamClubLink const &link) {
+    if (link.IsValid() && link.mPtr->mCountry) {
+        FifamCountry *country = link.mPtr->mCountry;
+        if (link.mPtr == &country->mNationalTeam)
+            return 0xFFFF | (country->mId << 16) | (link.mTeamType.ToInt() << 24);
+        else {
+            auto it = std::find(country->mClubs.begin(), country->mClubs.end(), link.mPtr);
+            if (it != country->mClubs.end()) {
+                auto index = std::distance(country->mClubs.begin(), it);
+                return index | (country->mId << 16) | (link.mTeamType.ToInt() << 24);
+            }
+        }
+    }
+    return 0;
+}
+
+UInt FifamDatabase::PlayerToID(FifamPlayer const *player) {
+    return player->mID;
+}
+
+UInt FifamDatabase::TranslateClubID(UInt ID, UInt gameFrom, UInt gameTo) {
+    if (gameFrom > 8 && gameTo > 8)
+        return ID;
+    UChar region = (ID >> 16) & 0xFF;
+    if (FifamUtils::ConvertRegion(region, gameFrom, gameTo))
+        return (ID & 0xFF00FFFF) | (region << 16);
+    return 0;
 }

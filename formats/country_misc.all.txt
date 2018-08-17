@@ -1,7 +1,7 @@
 @project FIFAM Formats Research
 @purpose FIFAM,FIFA,FootballManager DB Universal Converter
 @section COUNTRY_MIST FIFAM07-10
-@section COUNTRY_MISC FIFAM11-14
+@section COUNTRY_MISC FIFAM11
 @author Dmitry
 @author Purkas
 
@@ -9,7 +9,7 @@
 --{ Removed in FM11 }
 zString<256>        unused (info from Countries.sav is used) - country name
 zString<256>        unused (info from Countries.sav is used) - country abbr
-zString<256>        unused (info from Countries.sav is used) - Geographic Area: lower 3 bits - association, higher bits - territory
+zString<256>        unused (info from Countries.sav is used) - Geographic Area: lower 3 bits - continent, higher bits - territory
 Short               Original League System ID, 0 - none, 14 - English, 18 - French, 21 - German, 42 - Scottish, 45 - Spanish
 ---------------------
 zString<9>          Football Association Name
@@ -27,12 +27,12 @@ Int                 FA President - Year of Birth
 %INDEXEND%DATE
 ---------------------
 --{ Removed in FM08 }
-zString<16>         __UNKNOWN__ - unknown first name (always a fake name)
-zString<20>         __UNKNOWN__ - unknown last name (always a fake name)
-zString<16>         __UNKNOWN__ - unknown first name (always a fake name)
-zString<20>         __UNKNOWN__ - unknown last name (always a fake name)
-zString<16>         __UNKNOWN__ - unknown first name (always a fake name)
-zString<20>         __UNKNOWN__ - unknown last name (always a fake name)
+zString<16>         Newspaper reporter - first name (always a fake name)
+zString<20>         Newspaper reporter - last name (always a fake name)
+zString<16>         Reporter in the stadium - first name (always a fake name)
+zString<20>         Reporter in the stadium - last name (always a fake name)
+zString<16>         Reporter in the studio - first name (always a fake name)
+zString<20>         Reporter in the studio - last name (always a fake name)
 ---------------------
 Byte                Yellow Cards Supension (league) rule (0-5), higher bit - Yellow Cards Count in Second Yellow sendings off
 Byte                Yellow Cards Supension (cup) rule (0-5), higher bit - Yellow Cards Count in Second Yellow sendings off
@@ -58,8 +58,8 @@ Byte                __UNKNOWN__ - always 0
 Byte                __UNKNOWN__ - always 0
 Byte                __UNKNOWN__ - always 0
 Byte                __UNKNOWN__ - always 1
-Byte                Flags, FM07: 2 - Generate Names, 4 - No Terraces Allowed, FM08: 1 - Unknown (Ukraine only), 4 - No Terraces Allowed, 16 - Unknown, 32 - Unknown, 128 - Unknown
-Byte                __UNKNOWN__ - always 0 - unknown (compared with 205, maybe some country id?) ; ignored in 13
+Byte                Flags, FM07: 2 - Generate Names, 4 - No Terraces Allowed, FM08: 1 - WinterBreak/Indoor? (Ukraine only), 4 - No Terraces Allowed, 16 - Unknown, 32 - Unknown, 128 - Unknown
+Byte                __UNKNOWN__ - always 0 - unknown (compared with 205, maybe some country id?) ; unused in FM13
 Byte                Move Between 1st/2nd Team: 0 - None, 1 - Only 1 Player Week, 2 - Players U24, 3 - Only while transfer Periods 
 Byte                Climate : 0 - Cold, 1 - Cool, 2 - Moderate, 3 - Warm, 4 - Hot
 Short               Assesment Points Last Year
@@ -69,8 +69,8 @@ Short               Assesment Points 4 Year Ago
 Short               Assesment Points 5 Year Ago
 Short               Assesment Points 6 Year Ago
 Byte                Probability for Overseas Transfers %
-Int                 __UNKNOWN__ 0 England only - 1500
-Int                 __UNKNOWN__ 0 England - 2000, Russia (always) - 1
+Int                 __UNKNOWN__ 0 England only - 1500 ; unused in FM13
+Int                 __UNKNOWN__ 0 England - 2000, Russia (always) - 1 ; unused in FM13
 --{ Removed in FM11 }
 %INDEX%MANAGER 
 zString<16>         unused - Manager first name
@@ -118,7 +118,7 @@ Byte                Preferred transfers territory
 Short               FIFA ranking
 -------------------
 --{ Removed in FM11 }
-zString<28>         __UNKNOWN__ (empty) ; Venezuela - "Aridegol", FM08: England - 1, Scotland - 0
+zString<28>         Most important magazine (FM05) ; Venezuela - "Aridegol", FM08: England - 1, Scotland - 0
 ---------------------
 Short               Continental Champions
 Short               World Cups

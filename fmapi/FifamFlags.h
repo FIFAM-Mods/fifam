@@ -3,10 +3,10 @@
 #include "Utils.h"
 #include "FifamReadWrite.h"
 
-class FifamFlags {};
+class FifamBaseFlags {};
 
 template<typename T, size_t numBits = sizeof(typename T::underlyingtype_t) * 8>
-class Flags : FifamFlags {
+class FifamFlags : FifamBaseFlags {
 public:
     using underlyingtype_t = typename T::underlyingtype_t;
 private:
@@ -14,7 +14,7 @@ private:
     underlyingtype_t _unknown = 0;
     bool _wasSetFromUnknown = false;
 public:
-    Flags() {}
+    FifamFlags() {}
 
     bool GetWasSetFromUnknown() const {
         return _wasSetFromUnknown;
@@ -138,30 +138,30 @@ public:
     bool None() const { return _bitset.none(); }
     bool Count() const { return _bitset.count(); }
 
-    Flags &operator= (underlyingtype_t flags) {
+    FifamFlags &operator= (underlyingtype_t flags) {
         SetFromInt(flags);
         return *this;
     }
 
-    Flags &operator= (std::wstring const &strFlags) {
+    FifamFlags &operator= (std::wstring const &strFlags) {
         SetFromStr(strFlags);
         return *this;
     }
 
-    Flags &operator= (std::vector<std::wstring> const &ary) {
+    FifamFlags &operator= (std::vector<std::wstring> const &ary) {
         SetFromStrAry(ary);
         return *this;
     }
 
-    Flags(underlyingtype_t flags) {
+    FifamFlags(underlyingtype_t flags) {
         SetFromInt(flags);
     }
 
-    Flags(std::wstring const &strFlags) {
+    FifamFlags(std::wstring const &strFlags) {
         SetFromStr(strFlags);
     }
 
-    Flags(std::vector<std::wstring> const &ary) {
+    FifamFlags(std::vector<std::wstring> const &ary) {
         SetFromStrAry(ary);
     }
 
@@ -188,7 +188,7 @@ public:
 };
 
 template<typename F>
-void CheckFlags(F const &f) {
+void FifamCheckFlags(F const &f) {
     if (f.GetWasSetFromUnknown())
         Error("Flags %s were set from unknown value: %u", typeid(f).name(), f.GetUnknown());
 }

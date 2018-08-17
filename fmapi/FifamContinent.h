@@ -13,4 +13,6 @@ ENUM_BEGIN(FifamContinent, UChar)
     ENUM_MEMBER(6, None,         L"None")
     ENUM_DEFAULT_VALUE(None)
     ENUM_DEFAULT_READ_WRITE
+
+    static const unsigned int NUM_CONTINENTS = 6;
 ENUM_END(FifamContinent)

@@ -3,17 +3,17 @@
 
  id command                             additional_in_line_params                             arguments                                    comment
   0 END_OF_ENTRY                        -                                                     -                                            finishes script executing
-  1 XXXBUILD_COUNTERXXX                 COMPETITION_ID                                        SHORT, BYTE                                  
+  1 XXXBUILD_COUNTERXXX                 COMPETITION_ID                                        SHORT, BYTE                                  ---UNUSED--- unused in game and editor
   2 RESERVE_ASSESSMENT_TEAMS            INT(assesmentPos), INT(numTeams)                      -                                            reserve space for % teams from country that is at position % on the assessement table
   3 GET_CHAMP                           COMPETITION_ID                                        -                                            add champion of (COMPETITION_ID) to the competition
   4 GET_EUROPEAN_ASSESSMENT_TEAMS       INT(assesmentPos), INT(tablePosStart), INT(numTeams)  -                                            add % teams beginning by position % from country with assessment position %. If they are in already in the pool, skip them
   5 FILL_ASSESSMENT_RESERVES            -                                                     -                                            traverse all countries and fill the pool with the reserved teams
   6 GET_CHAMP_OR_RUNNER_UP              COMPETITION_ID                                        -                                            
-  7 GET_TAB_X_TO_Y                      COMPETITION_ID                                        SHORT, BYTE                                  
+  7 GET_TAB_X_TO_Y                      COMPETITION_ID                                        SHORT(startPos), BYTE(numTeams)                     
   8 GET_TAB_SURE_X_TO_Y_Z               COMPETITION_ID                                        BYTE, BYTE, BYTE                             
   9 GET_TAB_LEVEL_X_TO_Y                -                                                     BYTE(level), SHORT(startPos), BYTE(numTeams) 
- 10 GET_TAB_SPARE                       -                                                     -                                            
- 11 GET_TAB_LEVEL_START_X_TO_Y          -                                                     BYTE(level), SHORT(startPos), BYTE(numTeams)                            
+ 10 GET_TAB_SPARE                       -                                                     -                                            add teams from country spare to the league (teams in RELEGATION competition are ignored)
+ 11 GET_TAB_LEVEL_START_X_TO_Y          -                                                     BYTE(level), SHORT(startPos), BYTE(numTeams) 
  12 GET_EUROPEAN_ASSESSMENT_CUPWINNER   INT                                                   -                                            add the national cup winner or runners-up
  13 GET_WINNER                          COMPETITION_ID(DB_ROUND)                              -                                            add winners of round (COMPETITION_ID) to the competition
  14 GET_LOSER                           COMPETITION_ID(DB_ROUND)                              -                                            add losers of round (COMPETITION_ID) to the competition
@@ -27,9 +27,9 @@
  22 GET_NAT_OCEANIA                     -                                                     -                                            
  23 GET_HOST                            -                                                     -                                            add host teams to the competition (max 2 host teams)
  24 GET_INTERNATIONAL_TAB_LEVEL_X_TO_Y  COMPETITION_ID                                        BYTE, SHORT, BYTE                            
- 25 GET_INTERNATIONAL_SPARE             COMPETITION_ID                                        INT                                          
+ 25 GET_INTERNATIONAL_SPARE             COMPETITION_ID                                        INT                                          ---UNUSED--- unused by game
  26 GET_RUNNER_UP                       COMPETITION_ID                                        -                                            add runner-up of (COMPETITION_ID) to the competition
- 27 GET_RELEGATED_TEAMS                 COMPETITION_ID                                        -                                            
+ 27 GET_RELEGATED_TEAMS                 COMPETITION_ID                                        -                                            ---UNUSED--- unused by game
  28 GET_INTERNATIONAL_TEAMS             INT, INT                                              -                                            
  29 GET_CC_FA_WINNER                    COMPETITION_ID                                        -                                            set last team of the competition to the champion of (COMPETITION_ID)
  30 GET_CC_SPARE                        -                                                     -                                            fill all free slots in the competition with spare teams from the country of the competition

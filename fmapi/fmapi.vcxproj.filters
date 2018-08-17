@@ -41,7 +41,6 @@
     <ClInclude Include="FifamClimate.h" />
     <ClInclude Include="FifamAmateurRule.h" />
     <ClInclude Include="FifamContinent.h" />
-    <ClInclude Include="FifamCountryFlags.h" />
     <ClInclude Include="FifamKit.h" />
     <ClInclude Include="FifamKitBadgePosition.h" />
     <ClInclude Include="FifamClubRecord.h" />
@@ -68,6 +67,21 @@
     <ClInclude Include="FifamPerson.h" />
     <ClInclude Include="FifamGeoCoords.h" />
     <ClInclude Include="FifamShirtNumberColor.h" />
+    <ClInclude Include="FifamPlayerHistory.h" />
+    <ClInclude Include="FifamPlayerHistoryEntry.h" />
+    <ClInclude Include="FifamPlayerContract.h" />
+    <ClInclude Include="FifamPersonType.h" />
+    <ClInclude Include="FifamClubLink.h" />
+    <ClInclude Include="FifamClubTeamType.h" />
+    <ClInclude Include="FifamCompPool.h" />
+    <ClInclude Include="FifamCopmCup.h" />
+    <ClInclude Include="FifamCompLeague.h" />
+    <ClInclude Include="FifamCompRound.h" />
+    <ClInclude Include="FifamScriptInstruction.h" />
+    <ClInclude Include="FifamRules.h" />
+    <ClInclude Include="FifamUtils.h" />
+    <ClInclude Include="FifamClubLastSeasonInfo.h" />
+    <ClInclude Include="FifamClubPenaltyType.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamDate.cpp" />
@@ -93,5 +107,11 @@
     <ClCompile Include="FifamClubBadge.cpp" />
     <ClCompile Include="FifamCompID.cpp" />
     <ClCompile Include="FifamGeoCoords.cpp" />
+    <ClCompile Include="FifamPlayerHistory.cpp" />
+    <ClCompile Include="FifamPlayerHistoryEntry.cpp" />
+    <ClCompile Include="FifamPlayerContract.cpp" />
+    <ClCompile Include="FifamClubLink.cpp" />
+    <ClCompile Include="FifamRules.cpp" />
+    <ClCompile Include="FifamUtils.cpp" />
   </ItemGroup>
 </Project>

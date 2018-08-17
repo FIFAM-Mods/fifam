@@ -48,7 +48,7 @@ zString<19>          Mascot name
 Int                  Ititial capital
 Int                  Transfer budget
 Byte                 Joint-stock company (0/1)
-Byte                 __UNKNOWN__ (0-18, 80 (Stuttgart), 192 (Wigan))
+Byte                 __UNKNOWN__ (0-18, 80 (Stuttgart), 192 (Wigan)) - unused in FM13
 Byte                 Some flags (3 (1+2) - has penalty points), 16 - ? (Club Sport Herediano), 64 - ? (Universitatea Craiova)
 Byte                 Points on new game (-30 - 0)
 Int                  Potential fans count

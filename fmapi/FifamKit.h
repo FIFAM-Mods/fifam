@@ -25,7 +25,9 @@ public:
         // @since FM07
         Array<Color, 3> mShortsColors;
         // @since FM07
-        Array<Color, 3> mSocksColors;
+        Array<Color, 2> mSocksColors;
+        // @since FM07
+        Color mCaptainArmbandColor;
         // @since FM07
         Color mShirtNumberColor;
         // @since FM07

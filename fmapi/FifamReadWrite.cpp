@@ -258,7 +258,7 @@ void FifamWriter::WriteVersion() {
     WriteEndIndex(L"VERSION");
 }
 
-void FifamWriter::WriteTranslationArray(TrArray<String> const &ary, wchar_t sep, bool quoted) {
+void FifamWriter::WriteTranslationArray(FifamTrArray<String> const &ary, wchar_t sep, bool quoted) {
     for (size_t i = 0; i < ary.size(); i++) {
         if (i < 5 || IsVersionGreaterOrEqual(0x2007, 0x1A)) {
             if (quoted)
@@ -272,7 +272,7 @@ void FifamWriter::WriteTranslationArray(TrArray<String> const &ary, wchar_t sep,
     }
 }
 
-void FifamWriter::WriteLineTranslationArray(TrArray<String> const &ary, wchar_t sep, bool quoted) {
+void FifamWriter::WriteLineTranslationArray(FifamTrArray<String> const &ary, wchar_t sep, bool quoted) {
     WriteTranslationArray(ary, sep, quoted);
     WriteOne(L"\n");
 }
@@ -407,14 +407,6 @@ void FifamReader::StrToArg(String const &str, wchar_t *arg) {
     wcscpy(arg, str.c_str());
 }
 
-void FifamReader::StrToArg(String const & str, FifamClub *&arg) {
-    arg = reinterpret_cast<FifamClub *>(str.empty() ? 0 : Utils::SafeConvertInt<unsigned int>(str));
-}
-
-void FifamReader::StrToArg(String const & str, FifamPlayer *&arg) {
-    arg = reinterpret_cast<FifamPlayer *>(str.empty() ? 0 : Utils::SafeConvertInt<unsigned int>(str));
-}
-
 void FifamReader::StrToArg(String const &str, String &arg) {
     arg = str;
 }
@@ -477,7 +469,7 @@ void FifamReader::RemoveQuotes(String &str) {
     }
 }
 
-size_t FifamReader::ReadLineTranslationArray(TrArray<String> &out, wchar_t sep) {
+size_t FifamReader::ReadLineTranslationArray(FifamTrArray<String> &out, wchar_t sep) {
     auto result = ReadLineArray(out, sep);
     if (!IsVersionGreaterOrEqual(0x2007, 0x1A) && out.size() >= FifamTranslation::NUM_TRANSLATIONS)
         out[FifamTranslation::Polish] = out[FifamTranslation::English];
