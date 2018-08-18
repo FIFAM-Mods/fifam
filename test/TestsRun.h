@@ -10,6 +10,9 @@
 #include "tests\BadgeTest.h"
 #include "tests\GeoCoordsTest.h"
 #include "tests\CompIDTest.h"
+#include "tests\WriteDbTest.h"
+#include "tests\RulesTest.h"
+#include "tests\WritePlayerHistoryTest.h"
 
 void RunTests() {
     //RunTest<ReadWriteTest>();
@@ -20,5 +23,8 @@ void RunTests() {
     //RunTest<WriteDbClubsTest<FM11, External>>();
     //RunTest<WriteDbClubsTest<FM12, External>>();
     //RunTest<WriteDbClubsTest<FM13, External>>();
-    RunTest<WriteDbClubsTest<FM14, External>>();
+    //RunTest<WriteDbClubsTest<FM14, External>>();
+    //RunTest<RulesTest<FM14, External>>();
+    //RunTest<WriteDbTest<FM14, External>>();
+    RunTest<WritePlayerHistoryTest<FM14, External>>();
 }

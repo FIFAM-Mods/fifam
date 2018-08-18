@@ -7,6 +7,7 @@
 #include "FifamPlayerAppearance.h"
 #include "FifamNation.h"
 #include "FifamPersonType.h"
+#include "FifamPlayerHistory.h"
 
 class FifamClub;
 
@@ -14,7 +15,7 @@ class FifamClub;
 class FifamPlayer : public FifamPerson {
 public:
     // @since FM07
-    UInt mCommentaryId = 0;
+    UInt mEmpicsId = 0;
     // @since FM07
     // @maxsize 19
     String mLastName;
@@ -295,43 +296,7 @@ public:
     Bool mRetiredFromNationalTeam = false;
 
     // @since FM07
-    struct HistoryRecord {
-        // @since FM07
-        FifamDate mStartDate;
-
-        // @since FM07
-        FifamDate mEndDate;
-
-        // @since FM07
-        FifamClub *mClub = nullptr;
-
-        // @since FM07
-        UShort mMatches = 0;
-
-        // @since FM07
-        UShort mGoals = 0;
-
-        // @since FM08
-        UShort mReserveMatches = 0;
-
-        // @since FM08
-        UShort mReserveGoals = 0;
-
-        // @since FM07
-        UInt mTransferFee = 0;
-
-        // @since FM07
-        Bool mLoan = false;
-
-        // @since FM08
-        Bool mStillInClub = false;
-
-        // @since UNKNOWN
-        Bool mWasACaptain = false;
-    };
-
-    // @since FM07
-    std::vector<HistoryRecord> mHistoryRecords;
+    FifamPlayerHistory mHistory;
 
     // Contract
 
@@ -363,82 +328,8 @@ public:
         UChar _1;
     } Unknown;
 
-    FifamPlayer() {
-        mPersonType = FifamPersonType::Player;
-    }
-
-    void Read(FifamReader &reader) {
-        if (reader.ReadStartIndex(L"PLAYER")) {
-            if (reader.IsVersionGreaterOrEqual(0x2012, 0x01)) {
-
-            }
-            else {
-                reader.ReadFullLine(mFirstName);
-                reader.ReadFullLine(mLastName);
-                reader.ReadFullLine(mNickname);
-                reader.ReadFullLine(mPseudonym);
-                reader.ReadLine(mPersonType);
-                reader.ReadLine(mInReserveTeam);
-                reader.ReadLine(mNationality[0]);
-                reader.ReadLine(mNationality[1]);
-                UChar playerBasicFlags = reader.ReadLine<UChar>();
-                if (playerBasicFlags & 1)
-                    mIsNaturalised = true;
-                if (playerBasicFlags & 2)
-                    mIsBasque = true;
-                if (playerBasicFlags & 4)
-                    mIsRealPlayer = true;
-                reader.ReadLine(mBirthday);
-                if (reader.IsVersionGreaterOrEqual(0x2009, 0x02)) {
-                    reader.ReadLine(mTalent);
-                    UChar footPrefs = reader.ReadLine<UChar>();
-                    mRightFoot = footPrefs & 0xF;
-                    mLeftFoot = (footPrefs >> 4) & 0xF;
-                }
-                else {
-                    UChar flags = reader.ReadLine<UChar>();
-                    UChar footPrefs = (flags >> 3) & 7;
-                    mTalent = (flags & 7) * 2 + 1;
-                    mInYouthTeam = (flags & 0x40) == 0x40;
-                    switch (footPrefs) {
-                    case 0:
-                        mRightFoot = 4;
-                        mLeftFoot = 0;
-                        break;
-                    case 1:
-                        mRightFoot = 0;
-                        mLeftFoot = 4;
-                        break;
-                    case 2:
-                        mRightFoot = 4;
-                        mLeftFoot = 2;
-                        break;
-                    case 3:
-                        mRightFoot = 2;
-                        mLeftFoot = 4;
-                        break;
-                    default:
-                        break;
-                    }
-                }
-                reader.ReadLine(mHeroStatus);
-
-                if (playerBasicFlags >= 8)
-                    Error("playerBasicFlags: unknown value (%u)", playerBasicFlags);
-            }
-            reader.ReadEndIndex(L"PLAYER");
-
-            FifamCheckEnum(mPersonType);
-            FifamCheckEnum(mNationality[0]);
-            FifamCheckEnum(mNationality[1]);
-            if (mLeftFoot > 4)
-                Error("mLeftFoot: unknown value (%u)", mLeftFoot);
-            if (mRightFoot > 4)
-                Error("mRightFoot: unknown value (%u)", mRightFoot);
-        }
-    }
-
-    void Write(FifamWriter &writer) {
-
-    }
+    FifamPlayer();
+    String GetName() const;
+    void Read(FifamReader &reader, FifamDatabase *database);
+    void Write(FifamWriter &writer, FifamDatabase *database);
 };

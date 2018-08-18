@@ -2,6 +2,7 @@
 #include "FifamCountry.h"
 #include "FifamCupAlloc.h"
 #include "FifamClubLink.h"
+#include "FifamRules.h"
 #include <iostream>
 
 /*
@@ -23,6 +24,7 @@ public:
     Set<FifamStadium *> mStadiums;
     Set<FifamSponsor *> mSponsors;
     Vector<FifamCupAlloc *> mCupTemplates;
+    FifamRules mRules;
 
     FifamDatabase();
     FifamDatabase(UInt gameId, const Path &dbPath);
@@ -38,6 +40,7 @@ public:
     FifamStaff *CreateStaff(FifamClub *club, UInt id);
 
     void ResolveClubLinks(FifamClub *club, UInt gameId);
+    void ResolvePlayerLinks(FifamPlayer *player, UInt gameId);
     FifamClubLink ClubFromID(UInt ID);
     FifamPlayer *PlayerFromID(UInt ID);
     UInt ClubToID(FifamClubLink const &clubLink);

@@ -8,7 +8,7 @@ void FifamClub::ReadClubMembers(FifamReader &reader) {
     for (UInt i = 0; i < playersCount; i++) {
         UInt id = reader.ReadLine<UInt>();
         auto player = mCountry->mDatabase->CreatePlayer(this, id);
-        player->Read(reader);
+        player->Read(reader, mDatabase);
     }
     UInt staffsCount = reader.ReadLine<UInt>();
     for (UInt i = 0; i < staffsCount; i++) {
@@ -21,7 +21,7 @@ void FifamClub::ReadClubMembers(FifamReader &reader) {
 void FifamClub::WriteClubMembers(FifamWriter &writer) {
     for (auto player : mPlayers) {
         writer.WriteLine(player->mID);
-        player->Write(writer);
+        player->Write(writer, mDatabase);
     }
     for (auto staff : mStaffs) {
         writer.WriteLine(staff->mID);

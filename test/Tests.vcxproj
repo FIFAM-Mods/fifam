@@ -98,11 +98,14 @@
     <ClInclude Include="tests\ColorsTest.h" />
     <ClInclude Include="tests\GeoCoordsTest.h" />
     <ClInclude Include="tests\ReadWriteTest.h" />
+    <ClInclude Include="tests\RulesTest.h" />
     <ClInclude Include="tests\ShowDbVersion.h" />
     <ClInclude Include="tests\ShowPlayers.h" />
     <ClInclude Include="tests\WriteCountries.h" />
     <ClInclude Include="tests\WriteDbClubsTest.h" />
     <ClInclude Include="tests\WriteDbCountriesTest.h" />
+    <ClInclude Include="tests\WriteDbTest.h" />
+    <ClInclude Include="tests\WritePlayerHistoryTest.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp" />

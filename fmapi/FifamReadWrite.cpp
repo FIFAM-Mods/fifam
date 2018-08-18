@@ -242,7 +242,7 @@ void FifamWriter::WriteEndIndex(String const &name, bool newLine) {
 
 void FifamWriter::WriteOne(FifamDate const &date) {
     if (IsVersionGreaterOrEqual(0x2009, 0xA))
-        WriteOne(Utils::Format(L"%02d-%02d-%04d", date.day, date.month, date.year));
+        WriteOne(Utils::Format(L"%04d-%02d-%02d", date.year, date.month, date.day));
     else {
         WriteStartIndex(L"DATE");
         WriteLine(date.day);
@@ -258,7 +258,7 @@ void FifamWriter::WriteVersion() {
     WriteEndIndex(L"VERSION");
 }
 
-void FifamWriter::WriteTranslationArray(FifamTrArray<String> const &ary, wchar_t sep, bool quoted) {
+void FifamWriter::WriteTranslationArray(FifamTrArray<String> const &ary, bool quoted, wchar_t sep) {
     for (size_t i = 0; i < ary.size(); i++) {
         if (i < 5 || IsVersionGreaterOrEqual(0x2007, 0x1A)) {
             if (quoted)
@@ -272,8 +272,8 @@ void FifamWriter::WriteTranslationArray(FifamTrArray<String> const &ary, wchar_t
     }
 }
 
-void FifamWriter::WriteLineTranslationArray(FifamTrArray<String> const &ary, wchar_t sep, bool quoted) {
-    WriteTranslationArray(ary, sep, quoted);
+void FifamWriter::WriteLineTranslationArray(FifamTrArray<String> const &ary, bool quoted, wchar_t sep) {
+    WriteTranslationArray(ary, quoted, sep);
     WriteOne(L"\n");
 }
 
@@ -352,7 +352,7 @@ bool FifamReader::ReadEndIndex(String const &name, bool moveToEofIfNotFound) {
 
 void FifamReader::ReadLine(FifamDate &date) {
     if (IsVersionGreaterOrEqual(0x2009, 0xA))
-        ReadLineWithSeparator('-', date.day, date.month, date.year);
+        ReadLineWithSeparator('-', date.year, date.month, date.day);
     else {
         ReadStartIndex(L"DATE");
         ReadLine(date.day);

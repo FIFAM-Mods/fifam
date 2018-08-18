@@ -153,8 +153,8 @@ public:
         WriteOne(L"\n");
     }
 
-    void WriteTranslationArray(FifamTrArray<String> const &ary, wchar_t sep = L',', bool quoted = false);
-    void WriteLineTranslationArray(FifamTrArray<String> const &ary, wchar_t sep = L',', bool quoted = false);
+    void WriteTranslationArray(FifamTrArray<String> const &ary, bool quoted = true, wchar_t sep = L',');
+    void WriteLineTranslationArray(FifamTrArray<String> const &ary, bool quoted = true, wchar_t sep = L',');
 
     template<typename T>
     void WritePackedLineArray(Vector<T> const &ary, wchar_t sep = L',') {

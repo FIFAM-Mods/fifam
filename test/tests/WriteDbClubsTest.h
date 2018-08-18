@@ -156,6 +156,9 @@ public:
                 L"KitHomeShirtColor_0",
                 L"KitHomeShirtColor_1",
                 L"KitHomeShirtColor_2",
+                L"KitHomeSleevesColor_0",
+                L"KitHomeSleevesColor_1",
+                L"KitHomeSleevesColor_2",
                 L"KitHomeShortsColor_0",
                 L"KitHomeShortsColor_1",
                 L"KitHomeShortsColor_2",
@@ -164,15 +167,15 @@ public:
                 L"KitHomeCaptainArmbandColor",
                 L"KitHomeShirtNumberColor",
                 L"KitHomeBadgePosition",
-                L"KitHomeUnknown_1_0",
-                L"KitHomeUnknown_1_1",
-                L"KitHomeUnknown_1_2",
                 L"KitAwayShirt",
                 L"KitAwayShorts",
                 L"KitAwaySocks",
                 L"KitAwayShirtColor_0",
                 L"KitAwayShirtColor_1",
                 L"KitAwayShirtColor_2",
+                L"KitAwaySleevesColor_0",
+                L"KitAwaySleevesColor_1",
+                L"KitAwaySleevesColor_2",
                 L"KitAwayShortsColor_0",
                 L"KitAwayShortsColor_1",
                 L"KitAwayShortsColor_2",
@@ -180,10 +183,7 @@ public:
                 L"KitAwaySocksColors_1",
                 L"KitAwayCaptainArmbandColor",
                 L"KitAwayShirtNumberColor",
-                L"KitAwayBadgePosition",
-                L"KitAwayUnknown_1_0",
-                L"KitAwayUnknown_1_1",
-                L"KitAwayUnknown_1_2"
+                L"KitAwayBadgePosition"
             );
             writer.WriteNewLine();
             auto WriteClub = [](FifamWriter &writer, FifamCountry *country, FifamClub *c) {
@@ -363,6 +363,9 @@ public:
                     FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Home].mShirtColors[0].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
                     FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Home].mShirtColors[1].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
                     FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Home].mShirtColors[2].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
+                    FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Home].mSleevesColors[0].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
+                    FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Home].mSleevesColors[1].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
+                    FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Home].mSleevesColors[2].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
                     FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Home].mShortsColors[0].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
                     FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Home].mShortsColors[1].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
                     FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Home].mShortsColors[2].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
@@ -371,15 +374,15 @@ public:
                     FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Home].mCaptainArmbandColor.FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
                     FifamShirtNumberColor::MakeFromInt(c->mKit.mSets[FifamKit::Home].mShirtNumberColor.FindIndexInTable(FifamKit::mShirtNumberColorTable)).ToStr(),
                     c->mKit.mSets[FifamKit::Home].mBadgePosition.ToStr(),
-                    FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Home].Unknown._1[0].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
-                    FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Home].Unknown._1[1].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
-                    FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Home].Unknown._1[2].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
                     c->mKit.mSets[FifamKit::Away].mShirt,
                     c->mKit.mSets[FifamKit::Away].mShorts,
                     c->mKit.mSets[FifamKit::Away].mSocks,
                     FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Away].mShirtColors[0].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
                     FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Away].mShirtColors[1].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
                     FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Away].mShirtColors[2].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
+                    FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Away].mSleevesColors[0].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
+                    FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Away].mSleevesColors[1].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
+                    FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Away].mSleevesColors[2].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
                     FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Away].mShortsColors[0].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
                     FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Away].mShortsColors[1].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
                     FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Away].mShortsColors[2].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
@@ -387,10 +390,7 @@ public:
                     FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Away].mSocksColors[1].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
                     FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Away].mCaptainArmbandColor.FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
                     FifamShirtNumberColor::MakeFromInt(c->mKit.mSets[FifamKit::Away].mShirtNumberColor.FindIndexInTable(FifamKit::mShirtNumberColorTable)).ToStr(),
-                    c->mKit.mSets[FifamKit::Away].mBadgePosition.ToStr(),
-                    FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Away].Unknown._1[0].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
-                    FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Away].Unknown._1[1].FindIndexInTable(FifamKit::mKitColorTable)).ToStr(),
-                    FifamKitColor::MakeFromInt(c->mKit.mSets[FifamKit::Away].Unknown._1[2].FindIndexInTable(FifamKit::mKitColorTable)).ToStr()
+                    c->mKit.mSets[FifamKit::Away].mBadgePosition.ToStr()
                 );
                 writer.WriteNewLine();
             };

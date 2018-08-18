@@ -134,6 +134,7 @@
     <ClInclude Include="FifamPlayerContract.h" />
     <ClInclude Include="FifamPlayerHistory.h" />
     <ClInclude Include="FifamPlayerHistoryEntry.h" />
+    <ClInclude Include="FifamPlayerPosition.h" />
     <ClInclude Include="FifamPoolSorting.h" />
     <ClInclude Include="FifamRedCardRule.h" />
     <ClInclude Include="FifamReferee.h" />

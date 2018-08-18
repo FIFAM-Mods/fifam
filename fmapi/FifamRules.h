@@ -4,12 +4,13 @@
 #include "FifamClubLink.h"
 #include "FifamReadWrite.h"
 
+class FifamDatabase;
+
 class FifamRules {
 public:
     struct ContinentalCupNames {
-        String mFirstCup;
-        String mSecondCup;
-        String mSuperCup;
+        FifamTrArray<String> mFirstCup;
+        FifamTrArray<String> mSecondCup;
     };
 
     struct ContinentalCupClubs {
@@ -19,37 +20,38 @@ public:
     };
     
     // @since FM07
-    ContinentalCupNames mContinentalCupNames[FifamContinent::NUM_CONTINENTS];
+    Array<ContinentalCupNames, FifamContinent::NUM_CONTINENTS> mContinentalCupNames;
     // @since FM07
-    ContinentalCupClubs mContinentalCupChampions[FifamContinent::NUM_CONTINENTS];
+    FifamTrArray<String> mEuropeanSuperCupName;
+    // @since FM07
+    Array<ContinentalCupClubs, FifamContinent::NUM_CONTINENTS> mContinentalCupChampions;
+    Array<ContinentalCupClubs, FifamContinent::NUM_CONTINENTS> mContinentalCupStadiums;
     // @since FM07
     UInt mPointsForHomeWin = 3;
     // @since FM07
     UInt mPointsForAwayWin = 3;
     // @since FM07
-    Bool mBonusPointForWinAgainsChampion = false;
+    Bool mBonusPointForWinAgainstChampion = false;
     // @since FM07
     Bool mBonusPointForMoreThan3Goals = false;
     // @since FM07
-    LimitedUnorderedSet<UShort, 16, 0> mInternationalFriendliesFirstSeason;
-    // @since FM07
-    LimitedUnorderedSet<UShort, 16, 0> mInternationalFriendliesSecondSeason;
+    UInt mNumSubsInFriendlyMatches = 7;
+    // @since FM08
+    Array<FifamClubLink, 3> mFairnessAwardWinners;
+    // @since FM09
+    Array<UShort, 16> mInternationalFriendliesFirstSeason;
+    // @since FM09
+    Array<UShort, 16> mInternationalFriendliesSecondSeason;
 
     struct {
         // @since FM07
-        FifamClubLink _1 = nullptr;
+        FifamClubLink _1;
         // @since FM07
-        FifamClubLink _2 = nullptr;
+        FifamClubLink _2;
         // @since FM07
         Bool _3 = false;
     } Unknown;
 
-    void Read(FifamReader &reader) {
-        if (reader.ReadStartIndex(L"RULES_AND_MISC")) {
-            if (reader.ReadVersion()) {
-
-            }
-            reader.ReadEndIndex(L"RULES_AND_MISC");
-        }
-    }
+    void Read(FifamReader &reader, FifamDatabase *database);
+    void Write(FifamWriter &writer, FifamDatabase *database);
 };

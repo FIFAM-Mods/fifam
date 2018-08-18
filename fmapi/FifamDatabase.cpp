@@ -91,10 +91,14 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
                         scriptReader.Close();
                     }
                 }
-
+    
             }
         }
     }
+
+    FifamReader rulesReader(dbPath / L"Rules.sav", gameId, unicode);
+    if (rulesReader.Available())
+        mRules.Read(rulesReader, this);
     if (!scriptPath.empty()) {
         path cupAllocPath = scriptPath / L"cupAlloc.txt";
         FifamReader cupAllocReader(scriptPath / L"cupAlloc.txt", 0, false);
@@ -114,15 +118,46 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
 
     // Resolve competition, club, player links
 
+    std::wcout << L"Resolving club links" << std::endl;
+    for (FifamClub *club : mClubs)
+        ResolveClubLinks(club, gameId);
+    std::wcout << L"Resolving national team links" << std::endl;
     for (UChar i = 0; i < NUM_COUNTRIES; i++) {
-        if (mCountries[i]) {
-            auto &country = mCountries[i];
-            std::wcout << L"Resolving links in country " << country->mId << L" (" << FifamTr(country->mName) << L")" << std::endl;
-            for (FifamClub *club : country->mClubs)
-                ResolveClubLinks(club, gameId);
-            ResolveClubLinks(&country->mNationalTeam, gameId);
-        }
+        if (mCountries[i])
+            ResolveClubLinks(&mCountries[i]->mNationalTeam, gameId);
     }
+    std::wcout << L"Resolving player links" << std::endl;
+    for (FifamPlayer *player : mPlayers)
+        ResolvePlayerLinks(player, gameId);
+    std::wcout << L"Resolving rules links" << std::endl;
+    for (UInt i = 0; i < FifamContinent::NUM_CONTINENTS; i++) {
+        mRules.mContinentalCupChampions[i].mFirstCup =
+            ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(mRules.mContinentalCupChampions[i].mFirstCup),
+                gameId, LATEST_GAME_VERSION));
+        mRules.mContinentalCupChampions[i].mSecondCup =
+            ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(mRules.mContinentalCupChampions[i].mSecondCup),
+                gameId, LATEST_GAME_VERSION));
+        mRules.mContinentalCupChampions[i].mSuperCup =
+            ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(mRules.mContinentalCupChampions[i].mSuperCup),
+                gameId, LATEST_GAME_VERSION));
+        mRules.mContinentalCupStadiums[i].mFirstCup =
+            ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(mRules.mContinentalCupStadiums[i].mFirstCup),
+                gameId, LATEST_GAME_VERSION));
+        mRules.mContinentalCupStadiums[i].mSecondCup =
+            ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(mRules.mContinentalCupStadiums[i].mSecondCup),
+                gameId, LATEST_GAME_VERSION));
+        mRules.mContinentalCupStadiums[i].mSuperCup =
+            ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(mRules.mContinentalCupStadiums[i].mSuperCup),
+                gameId, LATEST_GAME_VERSION));
+    }
+    for (UInt i = 0; i < 3; i++) {
+        mRules.mFairnessAwardWinners[i] = ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(
+            mRules.mFairnessAwardWinners[i]), gameId, LATEST_GAME_VERSION));
+    }
+    mRules.Unknown._1 = ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(mRules.Unknown._1),
+        gameId, LATEST_GAME_VERSION));
+    mRules.Unknown._2 = ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(mRules.Unknown._2),
+        gameId, LATEST_GAME_VERSION));
 }
 
 void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const &dbPath) {
@@ -142,8 +177,8 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
         for (UInt i = 0; i < NUM_COUNTRIES; i++) {
             auto &country = mCountries[i];
             if (country && IsCountryPresent(gameId, country->mId)) {
-                writer.WriteLineTranslationArray(country->mName);
-                writer.WriteLineTranslationArray(country->mAbbr);
+                writer.WriteLineTranslationArray(country->mName, false);
+                writer.WriteLineTranslationArray(country->mAbbr, false);
                 writer.WriteLineTranslationArray(country->mNameGender);
                 writer.WriteLine(country->mContinent);
                 writer.WriteLine(country->mFirstLanguageForNames);
@@ -152,6 +187,10 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
             }
         }
     }
+
+    FifamWriter rulesWriter(dbPath / L"Rules.sav", gameId, vYear, vNumber, unicode);
+    if (rulesWriter.Available())
+        mRules.Write(rulesWriter, this);
 
     if (!scriptPath.empty()) {
         path cupAllocPath = scriptPath / L"cupAlloc.txt";
@@ -251,6 +290,13 @@ void FifamDatabase::ResolveClubLinks(FifamClub *club, UInt gameId) {
         club->mCaptains[i] = PlayerFromID(FifamUtils::GetSavedPlayerIDFromPlayerPtr(club->mCaptains[i]));
 }
 
+void FifamDatabase::ResolvePlayerLinks(FifamPlayer *player, UInt gameId) {
+    if (!player->mHistory.mEntries.empty()) {
+        for (auto &entry : player->mHistory.mEntries)
+            entry.mClub = ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(entry.mClub), gameId, LATEST_GAME_VERSION));
+    }
+}
+
 FifamClubLink FifamDatabase::ClubFromID(UInt ID) {
     FifamClubLink result;
     if (ID != 0) {
@@ -287,7 +333,7 @@ UInt FifamDatabase::ClubToID(FifamClubLink const &link) {
             auto it = std::find(country->mClubs.begin(), country->mClubs.end(), link.mPtr);
             if (it != country->mClubs.end()) {
                 auto index = std::distance(country->mClubs.begin(), it);
-                return index | (country->mId << 16) | (link.mTeamType.ToInt() << 24);
+                return (index + 1) | (country->mId << 16) | (link.mTeamType.ToInt() << 24);
             }
         }
     }

@@ -23,6 +23,8 @@ public:
         // @since FM07
         Array<Color, 3> mShirtColors;
         // @since FM07
+        Array<Color, 3> mSleevesColors;
+        // @since FM07
         Array<Color, 3> mShortsColors;
         // @since FM07
         Array<Color, 2> mSocksColors;
@@ -32,11 +34,6 @@ public:
         Color mShirtNumberColor;
         // @since FM07
         FifamKitBadgePosition mBadgePosition;
-
-        struct {
-            // @since FM07
-            Array<Color, 3> _1 = {};
-        } Unknown;
     };
     // @since FM07
     Array<Set, 2> mSets;
