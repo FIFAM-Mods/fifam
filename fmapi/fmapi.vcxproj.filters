@@ -83,6 +83,7 @@
     <ClInclude Include="FifamClubLastSeasonInfo.h" />
     <ClInclude Include="FifamClubPenaltyType.h" />
     <ClInclude Include="FifamPlayerPosition.h" />
+    <ClInclude Include="FifamPlayerContractSquadRole.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamDate.cpp" />

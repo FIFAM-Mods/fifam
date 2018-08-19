@@ -67,6 +67,9 @@
     <ClInclude Include="tests\WritePlayerHistoryTest.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\WritePlayerContractTest.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

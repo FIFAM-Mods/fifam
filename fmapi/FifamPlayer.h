@@ -8,6 +8,8 @@
 #include "FifamNation.h"
 #include "FifamPersonType.h"
 #include "FifamPlayerHistory.h"
+#include "FifamPlayerContract.h"
+#include "FifamClubLink.h"
 
 class FifamClub;
 
@@ -273,15 +275,9 @@ public:
     } mShoeType = ShoeType::Black;
 
     // @only FM07
-    FifamClub *mFirstClub = nullptr;
-
+    FifamClubLink mFirstClub;
     // @only FM07
-    FifamClub *mPreviousClub = nullptr;
-
-    // @since FM07
-    // @format yyyy FM07
-    // @format dd-mm-yyyy FM13
-    FifamDate mJoinedClubDate;
+    FifamClubLink mPreviousClub;
 
     // @since FM07
     UChar mNationalTeamMatches = 0;
@@ -297,31 +293,20 @@ public:
 
     // @since FM07
     FifamPlayerHistory mHistory;
-
-    // Contract
-
-    FifamDate mContractEndDate; // dd-mm-yyyy in FM13, yyyy in FM07
-    UInt mBasicSalary = 0;
-    UInt mReleaseClause = 0; // 'fix transfer fee' in FM07
-    UChar mOptionClub = 0; // max 1 in FM07
-    UChar mOptionPlayer = 0; // max 1 in FM07
+    // @since
+    FifamPlayerContract mContract;
 
     // @since FM07
-    FifamClub *mFavouriteClub = nullptr;
-
+    FifamClubLink mFavouriteClub;
     // @since FM07
-    FifamClub *mWouldnSignFor = nullptr;
-
+    FifamClubLink mWouldnSignFor;
     // @since FM07
-    UShort mFavouriteCountry = 0;
-
+    FifamNation mFavouriteCountry;
     // @since FM13
-    FifamClub *mTransferRumors[3] = { nullptr, nullptr, nullptr };
-
+    Array<FifamClubLink, 3> mTransferRumors;
     // @since FM07
     // @maxsize 64 FM13
     String mComment;
-
 
     // Unknown data
     struct {

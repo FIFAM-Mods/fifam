@@ -141,7 +141,7 @@ class PlayerContract
 {
 public:
     int m_dwAppearancesInternationalClubMatchBonus;
-    int unknown1;
+    int unknown1; // Squad role: 0 - SquadPlayer, 1 - BuildTeamAroundYou, 2 - FirstTeamRegular, 3 - OneForTheFuture, 4 - ReservePlayer
     int m_dwSalaryImprovementPerYear;
     int m_dwSalaryDecreaseInCaseOfRelegation;
     union {

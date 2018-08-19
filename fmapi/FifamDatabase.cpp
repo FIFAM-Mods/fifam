@@ -295,6 +295,8 @@ void FifamDatabase::ResolvePlayerLinks(FifamPlayer *player, UInt gameId) {
         for (auto &entry : player->mHistory.mEntries)
             entry.mClub = ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(entry.mClub), gameId, LATEST_GAME_VERSION));
     }
+    player->mContract.mBuyBackClauseClub = 
+        ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(player->mContract.mBuyBackClauseClub), gameId, LATEST_GAME_VERSION));
 }
 
 FifamClubLink FifamDatabase::ClubFromID(UInt ID) {

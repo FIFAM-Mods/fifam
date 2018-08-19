@@ -13,6 +13,7 @@
 #include "tests\WriteDbTest.h"
 #include "tests\RulesTest.h"
 #include "tests\WritePlayerHistoryTest.h"
+#include "tests\WritePlayerContractTest.h"
 
 void RunTests() {
     //RunTest<ReadWriteTest>();
@@ -26,5 +27,5 @@ void RunTests() {
     //RunTest<WriteDbClubsTest<FM14, External>>();
     //RunTest<RulesTest<FM14, External>>();
     //RunTest<WriteDbTest<FM14, External>>();
-    RunTest<WritePlayerHistoryTest<FM14, External>>();
+    RunTest<WritePlayerContractTest<FM14, External>>();
 }

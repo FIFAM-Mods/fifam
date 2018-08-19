@@ -85,7 +85,6 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
             reader.ReadLine(mSponsorAmount, mSponsorDuration, mSpecialSponsor);
             reader.ReadLine(mPotentialFansCount, mAverageAttendanceLastSeason, mCountOfSoldSeasonTickets);
             reader.ReadLine(mFanMembers);
-            // TODO: prepare formation IDs
             if (reader.IsVersionGreaterOrEqual(0x2013, 0x06))
                 reader.ReadLineArray(mPreferredFormations);
             reader.ReadLineArray(mLeagueTotalPoints);
@@ -451,7 +450,6 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         writer.WriteLine(mSponsorAmount, mSponsorDuration, mSpecialSponsor);
         writer.WriteLine(mPotentialFansCount, mAverageAttendanceLastSeason, mCountOfSoldSeasonTickets);
         writer.WriteLine(mFanMembers);
-        // TODO: prepare formation IDs
         if (writer.IsVersionGreaterOrEqual(0x2013, 0x06))
             writer.WriteLineArray(mPreferredFormations);
         writer.WriteLineArray(mLeagueTotalPoints);

@@ -55,12 +55,6 @@ UInt FifamUtils::DBTranslateClubID(FifamDatabase *database, UInt ID, UInt gameTo
     return 0;
 }
 
-UInt FifamUtils::DBGetClubIDFromLink(FifamDatabase *database, FifamClubLink const &link) {
-    if (database && link.IsValid())
-        return database->ClubToID(link);
-    return 0;
-}
-
 UInt FifamUtils::DBClubLinkToID(FifamDatabase *database, FifamClubLink const &link, UInt gameTo) {
     if (database && link.IsValid())
         return database->TranslateClubID(database->ClubToID(link), FifamDatabase::LATEST_GAME_VERSION, gameTo);

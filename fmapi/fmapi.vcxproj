@@ -132,6 +132,7 @@
     <ClInclude Include="FifamPlayer.h" />
     <ClInclude Include="FifamPlayerAppearance.h" />
     <ClInclude Include="FifamPlayerContract.h" />
+    <ClInclude Include="FifamPlayerContractSquadRole.h" />
     <ClInclude Include="FifamPlayerHistory.h" />
     <ClInclude Include="FifamPlayerHistoryEntry.h" />
     <ClInclude Include="FifamPlayerPosition.h" />

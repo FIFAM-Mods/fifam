@@ -241,13 +241,20 @@ void FifamWriter::WriteEndIndex(String const &name, bool newLine) {
 }
 
 void FifamWriter::WriteOne(FifamDate const &date) {
+    UChar day = date.day;
+    UChar month = date.month;
+    UShort year = date.year;
+    if (year == 0) {
+        day = 0;
+        month = 0;
+    }
     if (IsVersionGreaterOrEqual(0x2009, 0xA))
-        WriteOne(Utils::Format(L"%04d-%02d-%02d", date.year, date.month, date.day));
+        WriteOne(Utils::Format(L"%04d-%02d-%02d", year, month, day));
     else {
         WriteStartIndex(L"DATE");
-        WriteLine(date.day);
-        WriteLine(date.month);
-        WriteLine(date.year);
+        WriteLine(day);
+        WriteLine(month);
+        WriteLine(year);
         WriteEndIndex(L"DATE", false);
     }
 }
@@ -415,9 +422,9 @@ void FifamReader::StrToArg(String const &str, FifamDate &arg) {
     if (IsVersionGreaterOrEqual(0x2009, 0xA) && !str.empty()) {
         auto dateInfo = Utils::Split(str, L'-');
         if (dateInfo.size() == 3) {
-            arg.day = Utils::SafeConvertInt<char>(dateInfo[0]);
-            arg.month = Utils::SafeConvertInt<char>(dateInfo[1]);
-            arg.year = Utils::SafeConvertInt<short>(dateInfo[2]);
+            arg.year = Utils::SafeConvertInt<Short>(dateInfo[0]);
+            arg.month = Utils::SafeConvertInt<Char>(dateInfo[1]);
+            arg.day = Utils::SafeConvertInt<Char>(dateInfo[2]);
             arg.Validate();
             return;
         }

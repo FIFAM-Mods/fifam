@@ -27,6 +27,8 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
             reader.ReadLine(mBirthday);
 
             mHistory.Read(reader, database);
+
+            mContract.Read(reader, database);
         }
         else {
             reader.ReadFullLine(mFirstName);
@@ -80,7 +82,6 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
             reader.ReadLine(mHeroStatus);
 
             mHistory.Read(reader, database);
-
 
             if (playerBasicFlags >= 8)
                 Error("playerBasicFlags: unknown value (%u)", playerBasicFlags);

@@ -16,10 +16,12 @@ bool Date::IsEmpty() {
 }
 
 void Date::MakeEmpty() {
-    Set(1, 1, 0);
+    Set(0, 0, 0);
 }
 
 std::wstring Date::ToString() {
+    if (year == 0)
+        return L"00.00.0000";
     return Utils::Format(L"%02d.%02d.%04d", day, month, year);
 }
 
