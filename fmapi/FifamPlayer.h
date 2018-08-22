@@ -87,9 +87,11 @@ public:
     // @range [0;99]
     UChar mShirtNumberReserveTeam = 0;
     // @since FM07
+    // @until FM11
     // @range 0-6
     UChar mNationalExperience = 0;
     // @since FM07
+    // @until FM11
     // @range 0-4
     UChar mInternationalExperience = 0;
     // @since FM11
@@ -99,7 +101,9 @@ public:
     FifamPlayerPosition mMainPosition;
     // @since FM11
     // @range 0-100
-    Array<UChar, 18> mPositionBias =  {};
+    Array<Float, 18> mPositionBias =  {};
+    // @since FM11
+    Float mMaxBias = 100.0f;
     // @since FM07
     FifamPlayerPlayingStyle mPlayingStyle;
     // @since FM07
@@ -189,8 +193,8 @@ public:
     String GetName() const;
     void Read(FifamReader &reader, FifamDatabase *database);
     void Write(FifamWriter &writer, FifamDatabase *database);
-    UChar GetLevel(FifamPlayerPosition position = FifamPlayerPosition::None,
-        FifamPlayerPlayingStyle style = FifamPlayerPlayingStyle::None) const;
-    Float GetPreciseLevel(FifamPlayerPosition position = FifamPlayerPosition::None,
-        FifamPlayerPlayingStyle style = FifamPlayerPlayingStyle::None) const;
+    UChar GetLevel(FifamPlayerPosition position, FifamPlayerPlayingStyle style, Bool experience = true);
+    UChar GetLevel(FifamPlayerPosition position, Bool experience = true);
+    UChar GetLevel(FifamPlayerPlayingStyle style, Bool experience = true);
+    UChar GetLevel(Bool experience = true);
 };

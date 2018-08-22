@@ -71,6 +71,7 @@ public:
     UChar Punching = 0; // FM07
     UChar ShotStopping = 0; // FM07
     UChar Throwing = 0; // FM07
+    UChar GkCrosses = 0; // FM07
 
     void Read(FifamReader &reader);
     void Write(FifamWriter &writer);

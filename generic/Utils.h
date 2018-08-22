@@ -42,9 +42,9 @@ namespace Utils {
 
     template<typename T>
     T SafeConvertInt(std::wstring const &str, bool isHex = false) {
-        unsigned int result = 0;
+        T result = 0;
         try {
-            result = static_cast<T>(std::stoul(str, 0, isHex ? 16 : 10));
+            result = static_cast<T>(std::stoull(str, 0, isHex ? 16 : 10));
         }
         catch (...) {}
         return result;

@@ -107,6 +107,7 @@
     <ClInclude Include="tests\WriteDbTest.h" />
     <ClInclude Include="tests\WritePlayerContractTest.h" />
     <ClInclude Include="tests\WritePlayerHistoryTest.h" />
+    <ClInclude Include="tests\WritePlayersTest.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp" />

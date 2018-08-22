@@ -79,7 +79,7 @@ void FifamPlayerAttributes::Read(FifamReader &reader) {
             Consistency,
             Intimidation,
             Leadership,
-            Crossing,
+            GkCrosses,
             Handling,
             Kicking,
             OneOnOne,
@@ -125,7 +125,7 @@ void FifamPlayerAttributes::Read(FifamReader &reader) {
         reader.ReadLine(Consistency);
         reader.ReadLine(Intimidation);
         reader.ReadLine(Leadership);
-        reader.ReadLine(Crossing);
+        reader.ReadLine(GkCrosses);
         reader.ReadLine(Handling);
         reader.ReadLine(Kicking);
         reader.ReadLine(OneOnOne);

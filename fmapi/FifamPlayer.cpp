@@ -65,8 +65,12 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
                 mPositionBias[FifamPlayerPosition::CF]   = positionBias[12];
                 mPositionBias[FifamPlayerPosition::ST]   = positionBias[13];
             }
-            else
-                reader.ReadLineArray(mPositionBias);
+            else {
+                Array<UChar, 18> positionBias;
+                reader.ReadLineArray(positionBias);
+                for (UInt i = 0; i < 18; i++)
+                    mPositionBias[i] = positionBias[i];
+            }
             mAttributes.Read(reader);
             reader.ReadLine(mInReserveTeam);
             UInt flags = reader.ReadLine<UInt>();
@@ -189,11 +193,11 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
                 mPositionBias = FifamPlayerLevel::GetDefaultBiasValues(mMainPosition);
                 for (UInt i = 0; i < 3; i++) {
                     if (PreferredPositions[i] != FifamPlayerPosition::None)
-                        mPositionBias[PreferredPositions[i].ToInt()] = 100 - i;
+                        mPositionBias[PreferredPositions[i].ToInt()] = (Float)(100 - i);
                 }
                 for (UInt i = 0; i < 3; i++) {
                     if (SecondaryPositions[i] != FifamPlayerPosition::None)
-                        mPositionBias[SecondaryPositions[i].ToInt()] = Utils::Clamp(i - 97, 96, 100);
+                        mPositionBias[SecondaryPositions[i].ToInt()] = Float(Utils::Clamp(i - 97, 96, 100));
                 }
             }
             mAttributes.Read(reader);
@@ -303,8 +307,8 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
             else
                 reader.ReadLine(Unknown._1);
 
-            if (playerBasicFlags >= 8)
-                Error("playerBasicFlags: unknown value (%u)", playerBasicFlags);
+            //if (playerBasicFlags >= 8)
+            //    Error("playerBasicFlags: unknown value (%u)", playerBasicFlags);
         }
         reader.ReadEndIndex(L"PLAYER");
 
@@ -333,6 +337,7 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
                 mAttributes.TeamWork /= 2;
             mAttributes.WorkRate = (UChar)(mAttributes.Stamina * 0.8f + mAttributes.TeamWork * 0.2f);
 
+            mAttributes.GkCrosses = (mAttributes.Positioning + mAttributes.Handling) / 2;
             mAttributes.ShotStopping = mAttributes.Reflexes;
             mAttributes.Punching = (UChar)(mAttributes.Strength * 0.15f + mAttributes.ShotStopping * 0.85f);
             if (mMainPosition == FifamPlayerPosition::GK)
@@ -343,6 +348,13 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
                 mAttributes.Throwing = 90;
         }
         else {
+            // re-calculate bias values
+            mMaxBias = *std::max_element(mPositionBias.begin(), mPositionBias.end());
+            if (mMaxBias != 100.0f && mMaxBias != 0.0f) {
+                Float mp = 100.0f / mMaxBias;
+                for (UInt i = 0; i < 18; i++)
+                    mPositionBias[i] *= mp;
+            }
             // generate all other attributes
             mAttributes.BallControl = (mAttributes.Technique + mAttributes.Touch) / 2;
             mAttributes.Volleys = (mAttributes.Technique + mAttributes.ShotPower) / 2;
@@ -391,6 +403,11 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
             //
         }
 
+        UInt totalLeagueMatches = 0;
+        for (auto &careerEntry : mHistory.mEntries)
+            totalLeagueMatches += careerEntry.mMatches + careerEntry.mReserveMatches;
+        UInt totalInternationalMatches = mNationalTeamMatches;
+
         if (reader.IsVersionGreaterOrEqual(0x2011, 0x04)) {
             UChar potentilValues[10] = { 50, 55, 60, 64, 68, 72, 76, 82, 88, 95 };
             if (mTalent > 9)
@@ -401,10 +418,44 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
             if (playerLevel > mPotential)
                 mPotential = playerLevel;
 
-            // calc nat/int experience
+            UChar expLevel = mGeneralExperience / 3;
+
+            if (totalLeagueMatches > 450)
+                mNationalExperience = 6;
+            else if (totalLeagueMatches > 350)
+                mNationalExperience = 5;
+            else if (totalLeagueMatches > 250)
+                mNationalExperience = 4;
+            else if (totalLeagueMatches > 150)
+                mNationalExperience = 3;
+            else if (totalLeagueMatches > 50)
+                mNationalExperience = 2;
+            else if (totalLeagueMatches > 20)
+                mNationalExperience = 1;
+            else
+                mNationalExperience = 0;
+
+            mNationalExperience = Utils::Min(mNationalExperience, expLevel);
+
+            if (totalInternationalMatches > 100)
+                mInternationalExperience = 4;
+            else if (totalInternationalMatches > 60)
+                mInternationalExperience = 3;
+            else if (totalInternationalMatches > 30)
+                mInternationalExperience = 2;
+            else if (totalInternationalMatches > 10)
+                mInternationalExperience = 1;
+            if (expLevel >= 6)
+                mInternationalExperience += 2;
+            else if (expLevel >= 5)
+                mInternationalExperience += 1;
+            if (mInternationalExperience > 4)
+                mInternationalExperience = 4;
         }
         else {
-            // calc general experience
+            mGeneralExperience = (UChar)((Float)(mNationalExperience * 2 + mInternationalExperience * 3) * 0.8f);
+            if (mGeneralExperience > 18)
+                mGeneralExperience = 18;
 
             // set player agent
             if (GetLevel() >= 55) {
@@ -422,7 +473,7 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
                 mPlayerAgent = FifamPlayerAgent::None;
         }
 
-        if (!reader.IsVersionGreaterOrEqual(0x2007, 0x16)) {
+        if (reader.IsVersionGreaterOrEqual(0x2007, 0x16)) {
             if (!mHistory.mEntries.empty()) {
                 mFirstClub = (*mHistory.mEntries.begin()).mClub;
                 if (mHistory.mEntries.size() > 1)
@@ -430,17 +481,17 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
             }
         }
 
-        FifamCheckEnum(mPersonType);
-        FifamCheckEnum(mNationality[0]);
-        FifamCheckEnum(mNationality[1]);
-        FifamCheckEnum(mMainPosition);
-        FifamCheckEnum(mPlayingStyle);
-        FifamCheckEnum(mPlayerAgent);
-        FifamCheckEnum(mChairmanStability);
-        if (mLeftFoot > 4)
-            Error("mLeftFoot: unknown value (%u)", mLeftFoot);
-        if (mRightFoot > 4)
-            Error("mRightFoot: unknown value (%u)", mRightFoot);
+        //FifamCheckEnum(mPersonType);
+        //FifamCheckEnum(mNationality[0]);
+        //FifamCheckEnum(mNationality[1]);
+        //FifamCheckEnum(mMainPosition);
+        //FifamCheckEnum(mPlayingStyle);
+        //FifamCheckEnum(mPlayerAgent);
+        //FifamCheckEnum(mChairmanStability);
+        //if (mLeftFoot > 4)
+        //    Error("mLeftFoot: unknown value (%u)", mLeftFoot);
+        //if (mRightFoot > 4)
+        //    Error("mRightFoot: unknown value (%u)", mRightFoot);
     }
 }
 
@@ -448,10 +499,18 @@ void FifamPlayer::Write(FifamWriter &writer, FifamDatabase *database) {
 
 }
 
-UChar FifamPlayer::GetLevel(FifamPlayerPosition position, FifamPlayerPlayingStyle style) const {
-    return (UChar)GetPreciseLevel(position, style);
+UChar FifamPlayer::GetLevel(FifamPlayerPosition position, FifamPlayerPlayingStyle style, Bool experience) {
+    return FifamPlayerLevel::GetPlayerLevel(this, position, style, experience);
 }
 
-Float FifamPlayer::GetPreciseLevel(FifamPlayerPosition position, FifamPlayerPlayingStyle style) const {
-    return 0.0f;
+UChar FifamPlayer::GetLevel(FifamPlayerPosition position, Bool experience) {
+    return GetLevel(position, mPlayingStyle, experience);
+}
+
+UChar FifamPlayer::GetLevel(FifamPlayerPlayingStyle style, Bool experience) {
+    return GetLevel(mMainPosition, style, experience);
+}
+
+UChar FifamPlayer::GetLevel(Bool experience) {
+    return GetLevel(mMainPosition, mPlayingStyle, experience);
 }
