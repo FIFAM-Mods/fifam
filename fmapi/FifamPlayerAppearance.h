@@ -1,5 +1,75 @@
 #pragma once
 #include "FifamTypes.h"
+#include "FifamEnum.h"
+
+ENUM_BEGIN(FifamSkinColor, UChar)
+    ENUM_MEMBER(0, White,    L"White")
+    ENUM_MEMBER(1, Asian,    L"Asian")
+    ENUM_MEMBER(2, Latin1,   L"Latin1")
+    ENUM_MEMBER(3, Latin2,   L"Latin2")
+    ENUM_MEMBER(4, African1, L"African1")
+    ENUM_MEMBER(5, African2, L"African2")
+    ENUM_MEMBER(6, African3, L"African3")
+    ENUM_DEFAULT_VALUE(White)
+    ENUM_DEFAULT_READ_WRITE
+ENUM_END(FifamSkinColor)
+
+ENUM_BEGIN(FifamFaceVariation, UChar)
+    ENUM_MEMBER(0, Normal,   L"Normal")
+    ENUM_MEMBER(1, Freckles, L"Freckles")
+    ENUM_MEMBER(2, Wrinkles, L"Wrinkles")
+    ENUM_DEFAULT_VALUE(Normal)
+    ENUM_DEFAULT_READ_WRITE
+ENUM_END(FifamFaceVariation)
+
+ENUM_BEGIN(FifamEyeColor, UChar)
+    ENUM_MEMBER(0, LightBlue, L"LightBlue")
+    ENUM_MEMBER(1, Brown,     L"Brown")
+    ENUM_MEMBER(2, GrayGreen, L"GrayGreen")
+    ENUM_MEMBER(3, Green,     L"Green")
+    ENUM_MEMBER(4, GreenBlue, L"GreenBlue")
+    ENUM_MEMBER(5, Grey,      L"Grey")
+    ENUM_MEMBER(6, Blue,      L"Blue")
+    ENUM_DEFAULT_VALUE(Brown)
+    ENUM_DEFAULT_READ_WRITE
+ENUM_END(FifamEyeColor)
+
+ENUM_BEGIN(FifamHairColor, UChar)
+    ENUM_MEMBER(0, Blonde,         L"Blonde")
+    ENUM_MEMBER(1, Black,          L"Black")
+    ENUM_MEMBER(2, MediumBlond,    L"MediumBlond")
+    ENUM_MEMBER(3, Darkbrown,      L"Darkbrown")
+    ENUM_MEMBER(4, Platinumblonde, L"Platinumblonde")
+    ENUM_MEMBER(5, Lightbrown,     L"Lightbrown")
+    ENUM_MEMBER(6, Brown,          L"Brown")
+    ENUM_MEMBER(7, Red,            L"Red")
+    ENUM_DEFAULT_VALUE(Black)
+    ENUM_DEFAULT_READ_WRITE
+ENUM_END(FifamHairColor)
+
+ENUM_BEGIN(FifamBeardType, UChar)
+    ENUM_MEMBER(0, None,       L"None")
+    ENUM_MEMBER(1, ChinBeard,  L"ChinBeard")
+    ENUM_MEMBER(2, KevinBeard, L"KevinBeard")
+    ENUM_MEMBER(3, FullGoatee, L"FullGoatee")
+    ENUM_MEMBER(4, Full,       L"Full")
+    ENUM_MEMBER(5, Moustash,   L"Moustash")
+    ENUM_MEMBER(6, Shadow,     L"Shadow")
+    ENUM_MEMBER(7, Goatee,     L"Goatee")
+    ENUM_MEMBER(8, Unshaven,   L"Unshaven")
+    ENUM_DEFAULT_VALUE(None)
+    ENUM_DEFAULT_READ_WRITE
+ENUM_END(FifamBeardType)
+
+ENUM_BEGIN(FifamBeardColor, UChar)
+    ENUM_MEMBER(0, Black,        L"Black")
+    ENUM_MEMBER(1, Blonde,       L"Blonde")
+    ENUM_MEMBER(2, Brown,        L"Brown")
+    ENUM_MEMBER(3, MediumBlonde, L"MediumBlonde")
+    ENUM_MEMBER(4, Red,          L"Red")
+    ENUM_DEFAULT_VALUE(Black)
+    ENUM_DEFAULT_READ_WRITE
+ENUM_END(FifamBeardColor)
 
 // @since FM07
 class FifamPlayerAppearance {
@@ -7,55 +77,21 @@ public:
     // @since FM07
     UChar mGenericFace = 0; // generic face ID
     // @since FM11
-    enum class SkinColour { White = 0, Asian = 1, Latin1 = 2, Latin2 = 3, African1 = 4, African2 = 5, African3 = 6 };
+    FifamSkinColor mSkinColor;
     // @since FM11
-    SkinColour mSkinColour = SkinColour::White;
+    FifamFaceVariation mFaceVariation;
     // @since FM11
-    enum class FaceVariation { Normal = 0, Freckles = 1, Wrinkles = 2 };
-    // @since FM11
-    FaceVariation mFaceVariation = FaceVariation::Normal;
-    // @since FM11
-    enum class EyeColour { LightBlue = 0, Brown = 1, GrayGreen = 2, Green = 3, GreenBlue = 4, Grey = 5, Blue = 6 };
-    // @since FM11
-    EyeColour mEyeColour = EyeColour::Brown;
+    FifamEyeColor mEyeColour;
     // @since FM07
-    enum class HairColour {
-        Blonde = 0,         // FM07: 4
-        Black = 1,          // FM07: 1
-        MediumBlond = 2,    // FM07: 3
-        Darkbrown = 3,      // FM07: - since FM11
-        Platinumblonde = 4, // FM07: - since FM11
-        Lightbrown = 5,     // FM07: - since fM11
-        Brown = 6,          // FM07: 2
-        Red = 7             // FM07: 5
-    };
-
-    // @since FM07
-    HairColour mHairColour = HairColour::Black;
+    FifamHairColor mHairColor;
     // @since FM07
     UChar mHairStyle = 0;
     // @since FM11
     Bool mSideburns = false;
-
     // @since FM07
-    enum class BeardType {
-        None = 0,       // FM07: 1
-        ChinBeard = 1,  // FM07: - since FM11
-        KevinBeard = 2, // FM07: - since FM11
-        FullGoatee = 3, // FM07: 5
-        Full = 4,       // FM07: 6
-        Moustash = 5,   // FM07: 3
-        Shadow = 6,     // FM07: 4
-        Goatee = 7,     // FM07: 2
-        Unshaven = 8    // FM07: - since FM11
-    };
-
-    // @since FM07
-    BeardType mBeardType = BeardType::None;
+    FifamBeardType mBeardType;
     // @since FM11
-    enum class BeardColour { Black = 0, Blonde = 1, Brown = 2, MediumBlonde = 3, Red = 4 };
-    // @since FM11
-    BeardColour mBeardColour = BeardColour::Black;
+    FifamBeardColor mBeardColor;
 
     struct AppearanceInfo07 {
         UChar faceId = 0;
@@ -64,6 +100,6 @@ public:
         UChar beardType = 0;
     };
 
-    void Apply07AppearanceInfo(AppearanceInfo07 const &data);
+    void SetFrom07AppearanceInfo(AppearanceInfo07 const &data);
     AppearanceInfo07 Get07AppearanceInfo();
 };

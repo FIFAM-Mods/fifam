@@ -15,4 +15,6 @@ public:
     static UInt GetSavedPlayerIDFromPlayerPtr(FifamPlayer *&ptr);
     static UInt DBTranslateClubID(FifamDatabase *database, UInt ID, UInt gameTo);
     static UInt DBClubLinkToID(FifamDatabase *database, FifamClubLink const &link, UInt gameTo);
+    static UChar GetCountryIDFromClubID(UInt clubID);
+    static String GetPlayerName(FifamPlayer *player);
 };

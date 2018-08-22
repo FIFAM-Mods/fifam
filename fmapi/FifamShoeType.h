@@ -32,8 +32,12 @@ ENUM_BEGIN(FifamShoeType, UChar)
                 SetUnknown(id);
                 SetDefaultValue();
             }
-            else
-                SetFromInt(id);
+            else {
+                if (id == YellowBlack && reader.IsVersionGreaterOrEqual(0x2012, 0x01) && !reader.IsVersionGreaterOrEqual(0x2013, 0x0B))
+                    SetFromInt(Black);
+                else
+                    SetFromInt(id);
+            }
         }
         else
             SetDefaultValue();
@@ -60,7 +64,11 @@ ENUM_BEGIN(FifamShoeType, UChar)
             else
                 writer.WriteOne(Black);
         }
-        else
-            writer.WriteOne(ToInt());
+        else {
+            if (ToInt() == YellowBlack && writer.IsVersionGreaterOrEqual(0x2012, 0x01) && !writer.IsVersionGreaterOrEqual(0x2013, 0x0B))
+                writer.WriteOne(Black);
+            else
+                writer.WriteOne(ToInt());
+        }
     }
 ENUM_END(FifamShoeType)

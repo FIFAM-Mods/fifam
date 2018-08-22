@@ -7,9 +7,19 @@
 #include "FifamPlayerAppearance.h"
 #include "FifamNation.h"
 #include "FifamPersonType.h"
+#include "FifamPlayerAttributes.h"
 #include "FifamPlayerHistory.h"
 #include "FifamPlayerContract.h"
+#include "FifamPlayerStartingConditions.h"
 #include "FifamClubLink.h"
+#include "FifamPlayerPosition.h"
+#include "FifamPlayerPlayingStyle.h"
+#include "FifamShoeType.h"
+#include "FifamPlayerAgent.h"
+#include "FifamFormation.h"
+#include "FifamChairmanStability.h"
+#include "FifamPlayerCharacter.h"
+#include "FifamFlags.h"
 
 class FifamClub;
 
@@ -55,6 +65,9 @@ public:
     // @range [0;9]
     UChar mTalent = 0;
     // @since FM07
+    // @range 0-7
+    UChar mTacticalEducation = 0;
+    // @since FM07
     // @until FM08
     // @range [0;99]
     UChar mPotential = 0;
@@ -69,252 +82,115 @@ public:
     UChar mHeroStatus = 0;
     // @since FM07
     // @range [0;99]
-    Array<UChar, 2> mKitNumber[2] = {};
+    UChar mShirtNumberFirstTeam = 0;
     // @since FM07
+    // @range [0;99]
+    UChar mShirtNumberReserveTeam = 0;
+    // @since FM07
+    // @range 0-6
     UChar mNationalExperience = 0;
     // @since FM07
+    // @range 0-4
     UChar mInternationalExperience = 0;
-
+    // @since FM11
+    // @range 0-18
+    UChar mGeneralExperience = 0;
     // @since FM07
-    enum class Position { NA, GK, RB, LB, CB, SW, RWB, LWB, AC, DM, RM, LM, CM, RW, LW, AM, CF, ST }
-        mMainPosition = Position::NA;
-
-    // @since UNKNOWN
-    UChar mPositionBias[18] =  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
+    FifamPlayerPosition mMainPosition;
+    // @since FM11
+    // @range 0-100
+    Array<UChar, 18> mPositionBias =  {};
     // @since FM07
-    enum class PlayingStyle {
-        None,
-        AttackingFB, // Attacking full-back
-        DefenceFB, // Defensive full-back
-        Libero, // Builds up
-        SimplePasser,
-        BallWinner,
-        HardMan, // Fighter
-        Holding, // Closes gaps
-        BallWinnerMidfield,
-        BoxToBox,
-        Busy,
-        PlayMaker,
-        Dribbler,
-        Winger,
-        TargetMan,
-        PenaltyBox,
-        RunsChannels,
-        PullsWideLeft,
-        PullsWideRight,
-        DribblerAttack,
-        HoldsUp,
-        // new FMs
-        BusyAttacker,
-        TowerStrength,
-        DistanceShooter
-    } mPlayingStyle = PlayingStyle::None;
-
+    FifamPlayerPlayingStyle mPlayingStyle;
     // @since FM07
-    struct Skills {
-        UChar BallControl = 0; // FM13
-        UChar Volleys = 0; // FM13
-        UChar Dribbling = 0;
-        UChar Finishing = 0;
-        UChar ShotPower = 0;
-        UChar LongShots = 0;
-        UChar Crossing = 0;
-        UChar Passing = 0;
-        UChar LongPassing = 0;
-        UChar Header = 0;
-        UChar TackleStanding = 0; // Tackling in FM07
-        UChar TackleSliding = 0; // Tackling in FM07
-        UChar ManMarking = 0;
-        UChar Technique = 0; // FM07
-        UChar Creativity = 0; // FM07
-        UChar Flair = 0; // FM07
-        UChar Touch = 0; // FM07
-
-        // Physical skills
-
-        UChar Balance = 0; // FM13
-        UChar Acceleration = 0;
-        UChar Pace = 0;
-        UChar Agility = 0;
-        UChar Jumping = 0;
-        UChar Strength = 0;
-        UChar Stamina = 0;
-        UChar WorkRate = 0;
-        UChar ForwardRuns = 0; // FM07
-
-        // Mental skills
-
-        UChar PosOffensive = 0; // FM13
-        UChar PosDefensive = 0; // FM13
-        UChar Vision = 0; // FM13
-        UChar Reactions = 0; // FM13
-        UChar TacticAwareness = 0; // FM13*
-        UChar Aggression = 0;
-        UChar Composure = 0;
-        UChar Consistency = 0;
-        UChar Leadership = 0; // FM07*
-        UChar Anticipation = 0; // FM07
-        UChar Concentration = 0; // FM07
-        UChar Decision = 0; // FM07
-        UChar Determination = 0; // FM07
-        UChar TeamWork = 0; // FM07
-        UChar Initimidation = 0; // FM07
-
-        // Set pieces
-
-        UChar FreeKicks = 0;
-        UChar Corners = 0;
-        UChar PenaltyShot = 0;
-
-        // Goalkeeper skills
-
-        UChar Diving = 0; // FM13
-        UChar Reflexes = 0; // FM13
-        UChar Handling = 0;
-        UChar Positioning = 0;
-        UChar OneOnOne = 0;
-        UChar Kicking = 0;
-        UChar Punching = 0; // FM07
-        UChar ShotStopping = 0; // FM07
-        UChar Throwing = 0; // FM07
-    };
-
+    FifamPlayerAttributes mAttributes;
     // @since FM07
-    Skills mSkills;
-
-    // Character
-
-    struct Character {
-        // FM07,08 only
-        Bool AttitudeToWin = false; // 0x01
-        Bool Complacent = false; // 0x02
-        //
-        Bool StrongNerves = false; // 0x04
-        Bool WeakNerves = false;
-        Bool Fairness = false;
-        Bool HardMan = false;
-        Bool Introvert = false;
-        Bool IdentificationHigh = false;
-        Bool IdentificationLow = false;
-        Bool LanguageGenius = false;
-        Bool MediaDarling = false;
-        Bool ScandalProne = false;
-        Bool Flexibility = false;
-        Bool Inflexibility = false;
-        Bool Ambition = false;
-        Bool HighTrainingWorkRate = false;
-        Bool LazyInTraining = false;
-        Bool Temperament = false;
-        Bool FansFavorite = false;
-        Bool Adaptability = false;
-        Bool Professionalism = false;
-        Bool LongThrows = false;
-        Bool DrivenFreeKicks = false;
-        // since FM13
-        Bool Diva = false; // 0x01
-        Bool LifestyleIcon = false; // 0x02
-        Bool InjuryProne = false; // 0x800000
-        Bool Composure = false;
-        Bool Teamplayer = false;
-        Bool Egoist = false;
-        Bool LacksAmbition = false;
-        Bool LittleInjuryProne = false;
-        Bool LongThrowOuts = false;
-        Bool UninterestedInMedia = false;
-        Bool Forgiving = false;
-        Bool NotForgiving = false;
-        Bool HappyMan = false;
-        Bool Critic = false;
-        Bool Extrovert = false;
-        Bool Independent = false;
-        Bool NeedsAttention = false;
-        Bool DoesntLikeNewLang = false;
-        Bool Unknown = false;
-    };
-
-    Character mCharacter;
-
-    // Appearance
-
-    UInt mSpecialFace = 0; // special FIFA face ID
-    UChar mGenericFace = 0;
-    UChar mSkinColour = 0;
-    UChar mFaceVariation = 0;
-
-    enum class EyeColour { Blue, Brown, GrayGreen, Green, GreenBlue, Grey, LightBlue };
-
-    EyeColour mEyeColour = EyeColour::Grey;
-
-    enum class HairColour { Black, Blonde, Brown, MediumBlonde, Red, /*FM13*/ DarkBrown, LightBrown, PlatinumBlonde };
-
-    HairColour mHairColour = HairColour::Black;
-
-    UChar mHairStyle = 0;
-
-    Bool mSideburns = false;
-
-    enum class BeardType { None, Shadow, Tash, Goatee, FullGoatee, FullBeard, /*FM13*/ Unshaven, ChinBeard, KevinBeard };
-
-    BeardType mBeardType = BeardType::None;
-
-    enum class BeardColour { Black, Blonde, Brown, MediumBlonde, Red };
-
-    BeardColour mBeardColour = BeardColour::Black;
-
+    FifamFlags<FifamPlayerCharacter> mCharacter;
     // @since FM07
-    UChar mHeight;
-
+    FifamPlayerAppearance mAppearance;
     // @since FM07
-    UChar mWeight;
-
+    UInt mSpecialFace = 0;
     // @since FM07
-    enum class ShoeType {
-        Black, White, Red, Blue, Yellow, WhiteBlack, WhiteBlue, WhiteLightBlue, YellowBlack,
-        /* since FM13 */ Green, Grey, Orange, Magenta, BrightRed, DarkBlue, LightGreen, LightYellow, WhiteRed, BlackRed
-    } mShoeType = ShoeType::Black;
-
-    // @only FM07
+    UChar mHeight = 178;
+    // @since FM07
+    UChar mWeight = 70;
+    // @since FM07
+    FifamShoeType mShoeType;
+    // @since FM07
+    UChar mLongSleeves = 0;
+    // @since FM07
+    // @until FM08
     FifamClubLink mFirstClub;
-    // @only FM07
+    // @since FM07
+    // @until FM08
     FifamClubLink mPreviousClub;
-
     // @since FM07
     UChar mNationalTeamMatches = 0;
-
     // @since FM07
     UChar mNationalTeamGoals = 0;
-
     // @since FM07
     Bool mCurrentlyInNationalTeam = false;
-
     // @since FM07
     Bool mRetiredFromNationalTeam = false;
-
+    // @since FM13
+    Bool mNoContractExtension = false; // TODO: Check if it works in FM12
+    // @since FM10
+    // @until FM12
+    Bool mContractIsCancelledIfRelegated = false;
+    // @since FM13
+    Bool mIsCaptain = false; // TODO: Check if it works in FM12
+    // @since FM07
+    FifamPlayerStartingConditions mStartingConditions;
     // @since FM07
     FifamPlayerHistory mHistory;
-    // @since
+    // @since 12
     FifamPlayerContract mContract;
-
+    // @since FM07
+    UInt mCurrentEstimatedMarketValue = 0;
+    // @since FM11
+    FifamPlayerAgent mPlayerAgent;
     // @since FM07
     FifamClubLink mFavouriteClub;
     // @since FM07
     FifamClubLink mWouldnSignFor;
     // @since FM07
-    FifamNation mFavouriteCountry;
+    FifamPlayer *mManagerFavouritePlayer = nullptr;
     // @since FM13
     Array<FifamClubLink, 3> mTransferRumors;
     // @since FM07
     // @maxsize 64 FM13
     String mComment;
 
+    // Employee data
+
+    // @since FM07
+    // @range 0-15
+    UChar mManagerMotivationSkills = 0;
+    // @since FM07
+    // @range 0-15
+    UChar mManagerCoachingSkills = 0;
+    // @since FM07
+    // @range 0-15
+    UChar mManagerGoalkeepersTraining = 0;
+    // @since FM07
+    // @range 0-15
+    UChar mManagerNegotiationSkills = 0;
+    // @since FM07
+    FifamFormation mManagerFavouriteFormation;
+    // @since FM07
+    FifamChairmanStability mChairmanStability;
+
     // Unknown data
     struct {
-        UChar _1;
+        UChar _1 = 0;
     } Unknown;
 
     FifamPlayer();
     String GetName() const;
     void Read(FifamReader &reader, FifamDatabase *database);
     void Write(FifamWriter &writer, FifamDatabase *database);
+    UChar GetLevel(FifamPlayerPosition position = FifamPlayerPosition::None,
+        FifamPlayerPlayingStyle style = FifamPlayerPlayingStyle::None) const;
+    Float GetPreciseLevel(FifamPlayerPosition position = FifamPlayerPosition::None,
+        FifamPlayerPlayingStyle style = FifamPlayerPlayingStyle::None) const;
 };

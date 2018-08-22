@@ -1,5 +1,6 @@
 #pragma once
 #include "FifamDbEnvironment.h"
+#include "FifamUtils.h"
 
 template<typename Game, typename DbType>
 class WriteDbClubsTest {
@@ -309,9 +310,9 @@ public:
                     c->mYouthPlayersAreBasques,
                     c->mPreferredFormations[0].ToStr(),
                     c->mPreferredFormations[1].ToStr(),
-                    reinterpret_cast<UInt>(c->mCaptains[0]),
-                    reinterpret_cast<UInt>(c->mCaptains[1]),
-                    reinterpret_cast<UInt>(c->mCaptains[2]),
+                    FifamUtils::GetPlayerName(c->mCaptains[0]),
+                    FifamUtils::GetPlayerName(c->mCaptains[1]),
+                    FifamUtils::GetPlayerName(c->mCaptains[2]),
                     c->Unknown._2,
                     Quoted(c->Unknown._4)
                 );

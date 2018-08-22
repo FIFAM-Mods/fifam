@@ -13,7 +13,7 @@ public:
     // @since FM07
     FifamDate mEndDate;
     // @since FM07
-    FifamClubLink mClub;
+    mutable FifamClubLink mClub;
     // @since FM07
     UShort mMatches = 0;
     // @since FM08
@@ -38,3 +38,5 @@ public:
     void Read(FifamReader &reader, FifamDatabase *database);
     void Write(FifamWriter &writer, FifamDatabase *database);
 };
+
+bool operator<(FifamPlayerHistoryEntry const &lhs, FifamPlayerHistoryEntry const &rhs);

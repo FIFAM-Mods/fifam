@@ -34,9 +34,7 @@ bool FifamClubLink::IsYouthTeam() const {
 
 String FifamClubLink::GetTeamName() const {
     String result;
-    if (!IsValid())
-        result = L"None";
-    else {
+    if (IsValid()) {
         result = FifamTr(mPtr->mName);
         if (!IsFirstTeam())
             result += L" (" + mTeamType.ToStr() + L")";

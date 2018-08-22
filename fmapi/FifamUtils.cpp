@@ -1,6 +1,7 @@
 #include "FifamUtils.h"
 #include "FifamClubLink.h"
 #include "FifamDatabase.h"
+#include "FifamPlayer.h"
 
 UChar FifamUtils::GetConvertedRegion(UChar region, UInt gameFrom, UInt gameTo) {
     if (gameFrom < 8) {
@@ -59,4 +60,14 @@ UInt FifamUtils::DBClubLinkToID(FifamDatabase *database, FifamClubLink const &li
     if (database && link.IsValid())
         return database->TranslateClubID(database->ClubToID(link), FifamDatabase::LATEST_GAME_VERSION, gameTo);
     return 0;
+}
+
+UChar FifamUtils::GetCountryIDFromClubID(UInt clubID) {
+    return (clubID >> 16) & 0xFF;
+}
+
+String FifamUtils::GetPlayerName(FifamPlayer *player) {
+    if (player)
+        return player->GetName();
+    return L"";
 }

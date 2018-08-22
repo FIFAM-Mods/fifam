@@ -1,6 +1,7 @@
 #pragma once
 #include "FifamTypes.h"
 #include "FifamEnum.h"
+#include "FifamPlayerPositionRole.h"
 
 ENUM_BEGIN(FifamPlayerPosition, UChar)
     ENUM_MEMBER( 0,  None, L"None")
@@ -78,5 +79,31 @@ ENUM_BEGIN(FifamPlayerPosition, UChar)
         }
         else
             writer.WriteOne(ToInt());
+    }
+
+    FifamPlayerPositionRole GetRole() {
+        static Vector<Pair<UChar, UChar>> table = {
+            { FifamPlayerPositionRole::None,       None },
+            { FifamPlayerPositionRole::Goalkeeper, GK },
+            { FifamPlayerPositionRole::Defender,   RB },
+            { FifamPlayerPositionRole::Defender,   LB },
+            { FifamPlayerPositionRole::Defender,   CB },
+            { FifamPlayerPositionRole::Defender,   SW },
+            { FifamPlayerPositionRole::Defender,   RWB },
+            { FifamPlayerPositionRole::Defender,   LWB },
+            { FifamPlayerPositionRole::Midfielder, ANC },
+            { FifamPlayerPositionRole::Midfielder, DM },
+            { FifamPlayerPositionRole::Midfielder, RM },
+            { FifamPlayerPositionRole::Midfielder, LM },
+            { FifamPlayerPositionRole::Midfielder, CM },
+            { FifamPlayerPositionRole::Attacker,   RW },
+            { FifamPlayerPositionRole::Attacker,   LW },
+            { FifamPlayerPositionRole::Midfielder, AM },
+            { FifamPlayerPositionRole::Attacker,   CF },
+            { FifamPlayerPositionRole::Attacker,   ST }
+        };
+        FifamPlayerPositionRole result;
+        result.TranslateFrom<UChar>(ToInt(), table);
+        return result;
     }
 ENUM_END(FifamPlayerPosition)

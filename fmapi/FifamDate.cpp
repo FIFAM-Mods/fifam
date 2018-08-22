@@ -4,17 +4,17 @@
 
 FifamDate::FifamDate() : Date() {}
 
-FifamDate::FifamDate(unsigned int Days) {
-    Set(Days);
+FifamDate::FifamDate(UInt Days) {
+    SetDays(Days);
 }
 
-FifamDate::FifamDate(unsigned int Day, unsigned int Month, unsigned int Year) : Date(Day, Month, Year) {}
+FifamDate::FifamDate(UInt Day, UInt Month, UInt Year) : Date(Day, Month, Year) {}
 
-void FifamDate::Set(unsigned int Days) {
-    unsigned int j = Days - 1721119;
+void FifamDate::SetDays(UInt Days) {
+    UInt j = Days - 1721119;
     year = (j * 4 - 1) / 146097;
     j = j * 4 - 146097 * year - 1;
-    unsigned int x = j / 4;
+    UInt x = j / 4;
     j = (x * 4 + 3) / 1461;
     year = 100 * year + j;
     x = (x * 4) + 3 - 1461 * j;
@@ -30,22 +30,22 @@ void FifamDate::Set(unsigned int Days) {
     }
 }
 
-unsigned int FifamDate::GetDays() {
-    unsigned int d = day, m = month, y = year;
+UInt FifamDate::GetDays() const {
+    UInt d = day, m = month, y = year;
     if (m > 2)
         m -= 3;
     else {
         m += 9;
         y--;
     }
-    unsigned int c = y / 100;
-    unsigned int ya = y - 100 * c;
+    UInt c = y / 100;
+    UInt ya = y - 100 * c;
     return 1721119 + d + (146097 * c) / 4 + (1461 * ya) / 4 + (153 * m + 2) / 5;
 }
 
 void FifamDate::Validate() {
 
-    unsigned char daysInMonth[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    UChar daysInMonth[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
     if (month == 0 || month > 12)
         month = 1;
@@ -59,4 +59,36 @@ void FifamDate::Validate() {
 
     if (year < 1700 || year > 3000)
         year = 0;
+}
+
+bool FifamDate::operator==(FifamDate const &rhs) const {
+    return Date::operator==(rhs);
+}
+
+void FifamDate::operator=(FifamDate const &rhs) {
+    Date::operator=(rhs);
+}
+
+bool FifamDate::operator!=(FifamDate const &rhs) const {
+    return Date::operator!=(rhs);
+}
+
+bool FifamDate::operator>(FifamDate const &rhs) const {
+    return Date::operator>(rhs);
+}
+
+bool FifamDate::operator>=(FifamDate const &rhs) const {
+    return Date::operator>=(rhs);
+}
+
+bool FifamDate::operator<(FifamDate const &rhs) const {
+    return Date::operator<(rhs);
+}
+
+bool FifamDate::operator<=(FifamDate const &rhs) const {
+    return Date::operator<=(rhs);
+}
+
+Int operator-(FifamDate const &lhs, FifamDate const &rhs) {
+    return (Int)lhs.GetDays() - (Int)rhs.GetDays();
 }

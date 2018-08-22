@@ -11,7 +11,7 @@ void Date::Set(unsigned int Day, unsigned int Month, unsigned int Year) {
     year = Year;
 }
 
-bool Date::IsEmpty() {
+bool Date::IsEmpty() const {
     return year == 0;
 }
 
@@ -19,13 +19,13 @@ void Date::MakeEmpty() {
     Set(0, 0, 0);
 }
 
-std::wstring Date::ToString() {
+std::wstring Date::ToString() const {
     if (year == 0)
         return L"00.00.0000";
     return Utils::Format(L"%02d.%02d.%04d", day, month, year);
 }
 
-bool Date::operator==(Date const &rhs) {
+bool Date::operator==(Date const &rhs) const {
     return year == rhs.year && month == rhs.month && day == rhs.day;
 }
 
@@ -35,11 +35,11 @@ void Date::operator=(Date const &rhs) {
     this->day = rhs.day;
 }
 
-bool Date::operator!=(Date const &rhs) {
+bool Date::operator!=(Date const &rhs) const {
     return year != rhs.year || month != rhs.month || day != rhs.day;
 }
 
-bool Date::operator>(Date const &rhs) {
+bool Date::operator>(Date const &rhs) const {
     if (year > rhs.year)
         return true;
     else if (year == rhs.year) {
@@ -54,7 +54,7 @@ bool Date::operator>(Date const &rhs) {
     return false;
 }
 
-bool Date::operator>=(Date const &rhs) {
+bool Date::operator>=(Date const &rhs) const {
     if (year > rhs.year)
         return true;
     else if (year == rhs.year) {
@@ -69,7 +69,7 @@ bool Date::operator>=(Date const &rhs) {
     return false;
 }
 
-bool Date::operator<(Date const &rhs) {
+bool Date::operator<(Date const &rhs) const {
     if (year < rhs.year)
         return true;
     else if (year == rhs.year) {
@@ -84,7 +84,7 @@ bool Date::operator<(Date const &rhs) {
     return false;
 }
 
-bool Date::operator<=(Date const &rhs) {
+bool Date::operator<=(Date const &rhs) const {
     if (year < rhs.year)
         return true;
     else if (year == rhs.year) {

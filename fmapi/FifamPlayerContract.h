@@ -7,11 +7,14 @@
 class FifamDatabase;
 
 struct FifamPlayerContractClauseOption {
-    // @since
+    // @since FM10
     Bool mEnabled = false;
-    // @since
+    // @since FM12
     // @range 0-150
     UChar mPercent = 0; // % of MV
+    // @since FM10
+    // @until FM12
+    UInt mValue = 0; // money value
 };
 
 // @since FM07

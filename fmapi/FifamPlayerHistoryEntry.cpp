@@ -66,8 +66,8 @@ void FifamPlayerHistoryEntry::Write(FifamWriter &writer, FifamDatabase *database
     }
     else {
         writer.WriteLine(Unknown._1);
-        if (mClub.IsValid() && mClub.mPtr->mCountry && club) {
-            writer.WriteLine(mClub.mPtr->mCountry->mId);
+        if (club) {
+            writer.WriteLine(FifamUtils::GetCountryIDFromClubID(club));
             writer.WriteLine(club);
         }
         else {
@@ -80,4 +80,8 @@ void FifamPlayerHistoryEntry::Write(FifamWriter &writer, FifamDatabase *database
         writer.WriteLine(mGoals);
         writer.WriteLine(flags);
     }
+}
+
+bool operator<(FifamPlayerHistoryEntry const &lhs, FifamPlayerHistoryEntry const &rhs) {
+    return lhs.mStartDate < rhs.mStartDate;
 }

@@ -11,15 +11,15 @@ public:
     Date(unsigned int Day, unsigned int Month, unsigned int Year);
     Date(Date const &rhs);
     void Set(unsigned int Day, unsigned int Month, unsigned int Year);
-    bool IsEmpty();
+    bool IsEmpty() const;
     void MakeEmpty();
-    std::wstring ToString();
+    std::wstring ToString() const;
 
-    bool operator==(Date const &rhs);
+    bool operator==(Date const &rhs) const;
     void operator=(Date const &rhs);
-    bool operator!=(Date const &rhs);
-    bool operator>(Date const &rhs);
-    bool operator>=(Date const &rhs);
-    bool operator<(Date const &rhs);
-    bool operator<=(Date const &rhs);
+    bool operator!=(Date const &rhs) const;
+    bool operator>(Date const &rhs) const;
+    bool operator>=(Date const &rhs) const;
+    bool operator<(Date const &rhs) const;
+    bool operator<=(Date const &rhs) const;
 };

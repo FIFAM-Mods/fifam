@@ -39,11 +39,13 @@ public:
     FifamPlayer *CreatePlayer(FifamClub *club, UInt id);
     FifamStaff *CreateStaff(FifamClub *club, UInt id);
 
-    void ResolveClubLinks(FifamClub *club, UInt gameId);
-    void ResolvePlayerLinks(FifamPlayer *player, UInt gameId);
+    void ResolveLinksForClub(FifamClub *club, UInt gameId);
+    void ResolveLinksForPlayer(FifamPlayer *player, UInt gameId);
     FifamClubLink ClubFromID(UInt ID);
     FifamPlayer *PlayerFromID(UInt ID);
     UInt ClubToID(FifamClubLink const &clubLink);
     UInt PlayerToID(FifamPlayer const *player);
     UInt TranslateClubID(UInt ID, UInt gameFrom, UInt gameTo);
+    void ResolveClubLink(FifamClubLink &clubLink, UInt gameFrom, UInt gameTo = LATEST_GAME_VERSION);
+    void ResolvePlayerLink(FifamPlayer *&player);
 };

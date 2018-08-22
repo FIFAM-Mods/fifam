@@ -80,6 +80,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="FifamChairmanStability.h" />
     <ClInclude Include="FifamClubAiStrategy.h" />
     <ClInclude Include="FifamClubBadge.h" />
     <ClInclude Include="FifamClubBadgeShape.h" />
@@ -130,12 +131,20 @@
     <ClInclude Include="FifamPerson.h" />
     <ClInclude Include="FifamPersonType.h" />
     <ClInclude Include="FifamPlayer.h" />
+    <ClInclude Include="FifamPlayerAgent.h" />
     <ClInclude Include="FifamPlayerAppearance.h" />
+    <ClInclude Include="FifamPlayerAttributes.h" />
+    <ClInclude Include="FifamPlayerCharacter.h" />
     <ClInclude Include="FifamPlayerContract.h" />
     <ClInclude Include="FifamPlayerContractSquadRole.h" />
     <ClInclude Include="FifamPlayerHistory.h" />
     <ClInclude Include="FifamPlayerHistoryEntry.h" />
+    <ClInclude Include="FifamPlayerInjuryType.h" />
+    <ClInclude Include="FifamPlayerLevel.h" />
+    <ClInclude Include="FifamPlayerPlayingStyle.h" />
     <ClInclude Include="FifamPlayerPosition.h" />
+    <ClInclude Include="FifamPlayerPositionRole.h" />
+    <ClInclude Include="FifamPlayerStartingConditions.h" />
     <ClInclude Include="FifamPoolSorting.h" />
     <ClInclude Include="FifamRedCardRule.h" />
     <ClInclude Include="FifamReferee.h" />
@@ -182,9 +191,12 @@
     <ClCompile Include="FifamKit.cpp" />
     <ClCompile Include="FifamPlayer.cpp" />
     <ClCompile Include="FifamPlayerAppearance.cpp" />
+    <ClCompile Include="FifamPlayerAttributes.cpp" />
     <ClCompile Include="FifamPlayerContract.cpp" />
     <ClCompile Include="FifamPlayerHistory.cpp" />
     <ClCompile Include="FifamPlayerHistoryEntry.cpp" />
+    <ClCompile Include="FifamPlayerLevel.cpp" />
+    <ClCompile Include="FifamPlayerStartingConditions.cpp" />
     <ClCompile Include="FifamReadWrite.cpp" />
     <ClCompile Include="FifamReferee.cpp" />
     <ClCompile Include="FifamRegenPlayer.cpp" />

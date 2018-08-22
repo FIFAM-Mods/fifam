@@ -84,6 +84,15 @@
     <ClInclude Include="FifamClubPenaltyType.h" />
     <ClInclude Include="FifamPlayerPosition.h" />
     <ClInclude Include="FifamPlayerContractSquadRole.h" />
+    <ClInclude Include="FifamPlayerLevel.h" />
+    <ClInclude Include="FifamPlayerCharacter.h" />
+    <ClInclude Include="FifamPlayerPlayingStyle.h" />
+    <ClInclude Include="FifamPlayerPositionRole.h" />
+    <ClInclude Include="FifamPlayerAgent.h" />
+    <ClInclude Include="FifamChairmanStability.h" />
+    <ClInclude Include="FifamPlayerStartingConditions.h" />
+    <ClInclude Include="FifamPlayerInjuryType.h" />
+    <ClInclude Include="FifamPlayerAttributes.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamDate.cpp" />
@@ -115,5 +124,8 @@
     <ClCompile Include="FifamClubLink.cpp" />
     <ClCompile Include="FifamRules.cpp" />
     <ClCompile Include="FifamUtils.cpp" />
+    <ClCompile Include="FifamPlayerLevel.cpp" />
+    <ClCompile Include="FifamPlayerStartingConditions.cpp" />
+    <ClCompile Include="FifamPlayerAttributes.cpp" />
   </ItemGroup>
 </Project>

@@ -46,16 +46,16 @@ void FifamPlayerContract::Read(FifamReader &reader, FifamDatabase *database) {
         }
         reader.ReadEndIndex(L"CONTRACT");
 
-        mClauseForeignClub.mEnabled = (releaseClauseFlags & 0x01) == 0x01;
-        mClauseHigherLeague.mEnabled = (releaseClauseFlags & 0x02) == 0x02;
-        mClauseRelegation.mEnabled = (releaseClauseFlags & 0x04) == 0x04;
-        mClauseNoInternational.mEnabled = (releaseClauseFlags & 0x08) == 0x08;
-        mClauseNoPromotion.mEnabled = (releaseClauseFlags & 0x10) == 0x10;
+        mClauseForeignClub.mEnabled = Utils::CheckFlag(releaseClauseFlags, 0x01);
+        mClauseHigherLeague.mEnabled = Utils::CheckFlag(releaseClauseFlags, 0x02);
+        mClauseRelegation.mEnabled = Utils::CheckFlag(releaseClauseFlags, 0x04);
+        mClauseNoInternational.mEnabled = Utils::CheckFlag(releaseClauseFlags, 0x08);
+        mClauseNoPromotion.mEnabled = Utils::CheckFlag(releaseClauseFlags, 0x10);
 
         mOptionClub = (flags >> 2) & 3;
-        mHighestPaidPlayer = (flags & 0x0010) == 0x0010;
-        mExtendAvoidRelegation = (flags & 0x0020) == 0x0020;
-        mJobOption = (flags & 0x0040) == 0x0040;
+        mHighestPaidPlayer = Utils::CheckFlag(flags, 0x0010);
+        mExtendAvoidRelegation = Utils::CheckFlag(flags, 0x0020);
+        mJobOption = Utils::CheckFlag(flags, 0x0040);
         mOptionPlayer = (flags >> 13) & 3;
     }
 }

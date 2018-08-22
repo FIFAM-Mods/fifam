@@ -83,6 +83,7 @@
     <ClCompile Include="Date.cpp" />
     <ClCompile Include="Hexademical.cpp" />
     <ClCompile Include="Quoted.cpp" />
+    <ClCompile Include="Random.cpp" />
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -91,6 +92,7 @@
     <ClInclude Include="Error.h" />
     <ClInclude Include="Hexademical.h" />
     <ClInclude Include="Quoted.h" />
+    <ClInclude Include="Random.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

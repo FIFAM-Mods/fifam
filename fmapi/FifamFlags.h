@@ -50,7 +50,7 @@ public:
 
     bool Check(underlyingtype_t flag) const {
         if (T::Present(flag))
-            return (_bitset & flag) == flag;
+            return (_bitset.to_ullong() & flag) == flag;
         return false;
     }
 
@@ -66,7 +66,7 @@ public:
         bool result = true;
         Clear();
         for (size_t i = 0; i < numBits; i++) {
-            if ((flags & (1 << i)) && T::Present(1 << i))
+            if ((flags & (1ull << i)) && T::Present(1ull << i))
                 _bitset[i] = true;
             else if (result)
                 result = false;
@@ -104,7 +104,7 @@ public:
     }
 
     typename underlyingtype_t ToInt() const {
-        return static_cast<underlyingtype_t>(_bitset.to_ulong());
+        return static_cast<underlyingtype_t>(_bitset.to_ullong());
     }
 
     std::wstring ToStr(std::wstring const &sep = L",") const {
@@ -117,7 +117,7 @@ public:
                 else
                     result += sep;
                 T tmp;
-                tmp.SetFromInt(1 << i);
+                tmp.SetFromInt(1ull << i);
                 result += tmp.ToStr();
             }
         }

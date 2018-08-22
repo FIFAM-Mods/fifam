@@ -131,10 +131,10 @@ void FifamCountry::Read(FifamReader &reader) {
             UChar yelCardsRule;
             reader.ReadLine(yelCardsRule);
             mYellowCardsLeagueRule.SetFromInt(yelCardsRule & 0x7F);
-            mYellowCardsLeagueAfterYelRed = (yelCardsRule & 0x80) == 0x80;
+            mYellowCardsLeagueAfterYelRed = Utils::CheckFlag(yelCardsRule, 0x80);
             reader.ReadLine(yelCardsRule);
             mYellowCardsCupRule.SetFromInt(yelCardsRule & 0x7F);
-            mYellowCardsCupAfterYelRed = (yelCardsRule & 0x80) == 0x80;
+            mYellowCardsCupAfterYelRed = Utils::CheckFlag(yelCardsRule, 0x80);
             UChar redCardOptions = reader.ReadLine<UChar>();
             if (redCardOptions & 1)
                 Unknown._8 = true;

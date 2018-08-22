@@ -1,11 +1,14 @@
-FM07 PLAYER format
+FM07-11 PLAYER format
+
+NUM_POSITIONS  18 since 0x2011.0x04
+NUM_ATTRIBUTES 43 since 0x2009.0x0A
 
 Int         Id
 %INDEX%PLAYER
 zString<16> First Name
 zString<20> Last Name
 zString<20> Nickname
-zString<20> Pseudonym (actual nickname?)
+zString<20> Pseudonym
 Byte        Player type (0 - Player, 1 - Manager, 2 - Chief exec, 3 - Chairman)
 Byte        Is in reserve team (0/1)
 Byte        Nationality
@@ -16,14 +19,27 @@ Int         Birthdate - day
 Int         Birthdate - month
 Int         Birthdate - year
 %INDEXEND%DATE
+--{ Since FM09 0x2009.0x02 }--
+Byte        Talent (0-9)
+Byte        Foot prefs (lower 4 bits - right foot (0-4), higher 4 bits - left foot (0-4)
+--{ Before }------------------
 Byte        Flags: 3 bits - talent (Normal = 0, Gigantic = 4), 4th bit - foot (0 - right, 1 - left), 5th bit - both foots, 6th bit - , 7th bit - youth player
+------------------------------
 Byte        Hero status
+--{ Since FM11 0x2011.0x04 }--
+Byte[NUM_POSITIONS] Position bias
+Byte        Preferred position
+--{ Before }------------------
 Byte        Preferred position 1
 Byte        Preferred position 2
 Byte        Preferred position 3
 Byte        Secondary position 1
 Byte        Secondary position 2
 Byte        Secondary position 3
+------------------------------
+--{ Since FM11 0x2009.0x0A }--
+Byte[NUM_ATTRIBUTES] Player attributes
+--{ Before }------------------
 Byte        Shot Power
 Byte        Long Shots
 Byte        Dribbling
@@ -67,30 +83,51 @@ Byte        Positioning
 Byte        Punching
 Byte        Shot Stopping
 Byte        Throwing
+------------------------------
 Byte        Playing style
+--{ Removed in FM11 0x2011.0x04 }--
 Byte        Potential
+-----------------------------------
 Int         Character traits (for player), Character focus (for board)
+--{ Since FM11 0x2011.0x01 }--
+Short       Generic face id
+Byte        Hair style
+Byte        Hair colour
+Byte        Beard
+Byte        Sideburns
+Byte        Beard colour
+Byte        Skin colour
+Byte        Variation
+Byte        Eye colour
+--{ Before }------------------
 Byte        Hair color: Black = 1, Brown = 2, MediumBlonde = 3, Blonde = 4, Red = 5
 Byte        Generic face id
 Byte        Hair style
 Byte        Facial hair style
+------------------------------
 Byte        Height
 Byte        Weight
+--{ Since FM11 0x2011.0x04 }--
+Byte        Experience
+--{ Before }------------------
 Byte        National experience
 Byte        International experience
+------------------------------
 Byte        Shirt number
 Byte        Reserve shirt number
 Int         Special face id
-Int         Empics ID (2261955)
-Int         First club - country id    | removed in FM08
-Int         First club - id            | removed in FM08
-Int         Previous club - country id | removed in FM08
-Int         Previous club - id         | removed in FM08
+Int         Empics ID
+--{ Removed in FM08 0x2007.0x16 }--
+Int         First club - country id
+Int         First club - id
+Int         Previous club - country id
+Int         Previous club - id
+-----------------------------------
 Short       Joined club year
 Short       Contract valid until year
 Int         Basic salary
 Int         Fix transfer fee
-Int         ___UNKNOWN___ (0)
+Int         Current Estimated Market Value (in old TCMs)
 Byte        National team apps
 Byte        National team goals
 Byte        Manager motivation skills    |-
@@ -101,16 +138,48 @@ Byte        Language 1
 Byte        Language 2
 Byte        Language 3
 Byte        Language 4
+--{ Since FM10 0x2009.0x0A }--
+Int         Favourite club - id
+Int         Wouldn't sign for club - id
+Int         Favourite player club  - id
+--{ Before }------------------
 Int         Favourite club - country id
 Int         Favourite club - id
+--{ Added in FM08 0x2007.0x1E }--
+Int         Wouldn't sign for club - id
+---------------------------------
 Int         Favourite player club  - country id
 Int         Favourite player club  - id
+------------------------------
 Int         Favourite player - id
 Byte        Manager favourite formation
 Byte        Manager stability of board of directors
 Byte        Tactical education
 Byte        Flags: 1 - retired from national team, 2 - currently in national team. 64 - 1year option for club, 128 - 1year option for player
-Byte        Start condition (state) 1 - injury, 4 - retirement, 2 - league ban, 8 - loan, 16 - moves to, 32 - loaned to
+            Since FM10 (0x2009.0x0A):    256 - contract will extend in case of avoiding relegation
+                                         512 - options club enabled
+                                        1024 - release clause if no international competition enabled
+                                        2048 - contract is cancelled if the club is relegated
+                                        4096 - release clause if the club is relegated (doesn't work properly in Editor) enabled
+                                        8192 - release clause if the club doesn't get promoted (doesn't work properly in Editor) enabled
+                                       16384 - contract will be extended after X matches enabled
+                                       32768 - options player enabled
+--{ Added in FM10 0x2009.0x07 }--
+Byte        Options player (0-20 before FM11, 0-2 since FM11, doesn't work properly in FM10 Editor)
+Byte        Options club (0-20 before FM11, 0-2 since FM11, doesn't work properly in FM10 Editor)
+Byte        Contract will be extended after X matches (0-20 before FM11, 0-99 since FM11, doesn't work properly in Editor)
+Int         Release clause if no international competition
+Int         Release clause if the club is relegated
+Int         Release clause if the club doesn't get promoted
+---------------------------------
+--{ Since FM11 0x2011.0x03 }--
+Int         Num SOS conditions (max 4 in FM11)
+--{ Array (size: Num SOS conditions) }--
+Int(ConditionType), Int(Param1), Int(Param2), Int(Param3), Int(Param4), Int(Param5)
+
+----------------------------------------
+--{ Before }------------------
+Byte        Start condition (state) 1 - injury, 2 - league ban, 4 - retirement, 8 - loan, 16 - moves to, 32 - loaned to, since FM11: 64 - Ban until
 Byte        Loan (Moves to) club - country id
 Int         Loan (Moves to) club - id
 %INDEX%DATE
@@ -124,7 +193,7 @@ Int         Loan end - month
 Int         Loan end - year
 %INDEXEND%DATE
 Byte        League ban number of matches
-Byte        ___UNKNOWN___ (0)
+Byte        Injury type
 %INDEX%DATE
 Int         Injury start - day
 Int         Injury start - month
@@ -136,30 +205,14 @@ Int         Injury end - month
 Int         Injury end - year
 %INDEXEND%DATE
 Int         Loan (Moves to) transfer fee
---{ Added in FM08 }--
-Int         Loan fee
----------------------
+--{ Added in FM08 0x2007.0x10 }--
+SignedInt   Buy option (-1 - ingame-generated, 0 - has no option)
+---------------------------------
+------------------------------
 Byte        Shoe type:  White = 1, Black = 2, Blue = 3, Red = 4, Yellow = 5, WhiteBlue = 6, WhiteBlack = 7, WhiteLightBlue = 8, YellowBlack = 9
-Byte        ___UNKNOWN___ (0)
+Byte        Long sleeves (0/1, 2?)
 %INDEX%HIST
-Int         Entries count
-Byte        ___UNKNOWN___ (0/1)
-Int         Club country id | removed in FM08
-Int         Club id
-%INDEX%DATE
-Int         Start date - day
-Int         Start date - month
-Int         Start date - year
-%INDEXEND%DATE
-%INDEX%DATE
-Int         End date - day
-Int         End date - month
-Int         End date - year
-%INDEXEND%DATE
-Short       Matches
-Short       Goals
-Byte        Loan flag (0/1)
 %INDEXEND%HIST
 zString     Comment
-Byte        ___UNKNOWN___ (30,33)
+Byte        Since FM11 0x2011.0x01: Player agent, unknown before
 %INDEXEND%PLAYER

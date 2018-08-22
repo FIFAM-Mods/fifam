@@ -1,0 +1,26 @@
+FM07-08 PLAYER > HIST format
+
+%INDEX%HIST
+Int         Entries count
+Byte        ___UNKNOWN___ (0/1)
+--{ Removed in FM08 }--
+Int         Club country id
+-----------------------
+Int         Club id
+%INDEX%DATE
+Int         Start date - day
+Int         Start date - month
+Int         Start date - year
+%INDEXEND%DATE
+%INDEX%DATE
+Int         End date - day
+Int         End date - month
+Int         End date - year
+%INDEXEND%DATE
+Short       Matches
+Short       Goals
+--{ Added in FM08 }--
+Int         Transfer fee
+---------------------
+Byte        Flags: 1 - Loan, 2 (since FM08) - Still in this club
+%INDEXEND%HIST

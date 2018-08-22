@@ -24,8 +24,8 @@ void RunTests() {
     //RunTest<WriteDbClubsTest<FM11, External>>();
     //RunTest<WriteDbClubsTest<FM12, External>>();
     //RunTest<WriteDbClubsTest<FM13, External>>();
-    //RunTest<WriteDbClubsTest<FM14, External>>();
+    RunTest<WriteDbClubsTest<FM14, External>>();
     //RunTest<RulesTest<FM14, External>>();
     //RunTest<WriteDbTest<FM14, External>>();
-    RunTest<WritePlayerContractTest<FM14, External>>();
+    //RunTest<WritePlayerContractTest<FM14, External>>();
 }

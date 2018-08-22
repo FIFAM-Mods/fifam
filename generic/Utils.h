@@ -69,4 +69,9 @@ namespace Utils {
             return a;
         return b;
     }
+
+    template<typename A, typename B>
+    bool CheckFlag(A flagsInt, B flag) {
+        return (flagsInt & flag) == flag;
+    }
 };

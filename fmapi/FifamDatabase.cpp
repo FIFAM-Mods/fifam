@@ -120,44 +120,28 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
 
     std::wcout << L"Resolving club links" << std::endl;
     for (FifamClub *club : mClubs)
-        ResolveClubLinks(club, gameId);
+        ResolveLinksForClub(club, gameId);
     std::wcout << L"Resolving national team links" << std::endl;
     for (UChar i = 0; i < NUM_COUNTRIES; i++) {
         if (mCountries[i])
-            ResolveClubLinks(&mCountries[i]->mNationalTeam, gameId);
+            ResolveLinksForClub(&mCountries[i]->mNationalTeam, gameId);
     }
     std::wcout << L"Resolving player links" << std::endl;
     for (FifamPlayer *player : mPlayers)
-        ResolvePlayerLinks(player, gameId);
+        ResolveLinksForPlayer(player, gameId);
     std::wcout << L"Resolving rules links" << std::endl;
     for (UInt i = 0; i < FifamContinent::NUM_CONTINENTS; i++) {
-        mRules.mContinentalCupChampions[i].mFirstCup =
-            ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(mRules.mContinentalCupChampions[i].mFirstCup),
-                gameId, LATEST_GAME_VERSION));
-        mRules.mContinentalCupChampions[i].mSecondCup =
-            ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(mRules.mContinentalCupChampions[i].mSecondCup),
-                gameId, LATEST_GAME_VERSION));
-        mRules.mContinentalCupChampions[i].mSuperCup =
-            ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(mRules.mContinentalCupChampions[i].mSuperCup),
-                gameId, LATEST_GAME_VERSION));
-        mRules.mContinentalCupStadiums[i].mFirstCup =
-            ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(mRules.mContinentalCupStadiums[i].mFirstCup),
-                gameId, LATEST_GAME_VERSION));
-        mRules.mContinentalCupStadiums[i].mSecondCup =
-            ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(mRules.mContinentalCupStadiums[i].mSecondCup),
-                gameId, LATEST_GAME_VERSION));
-        mRules.mContinentalCupStadiums[i].mSuperCup =
-            ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(mRules.mContinentalCupStadiums[i].mSuperCup),
-                gameId, LATEST_GAME_VERSION));
+        ResolveClubLink(mRules.mContinentalCupChampions[i].mFirstCup, gameId);
+        ResolveClubLink(mRules.mContinentalCupChampions[i].mSecondCup, gameId);
+        ResolveClubLink(mRules.mContinentalCupChampions[i].mSuperCup, gameId);
+        ResolveClubLink(mRules.mContinentalCupStadiums[i].mFirstCup, gameId);
+        ResolveClubLink(mRules.mContinentalCupStadiums[i].mSecondCup, gameId);
+        ResolveClubLink(mRules.mContinentalCupStadiums[i].mSuperCup, gameId);
     }
-    for (UInt i = 0; i < 3; i++) {
-        mRules.mFairnessAwardWinners[i] = ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(
-            mRules.mFairnessAwardWinners[i]), gameId, LATEST_GAME_VERSION));
-    }
-    mRules.Unknown._1 = ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(mRules.Unknown._1),
-        gameId, LATEST_GAME_VERSION));
-    mRules.Unknown._2 = ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(mRules.Unknown._2),
-        gameId, LATEST_GAME_VERSION));
+    for (UInt i = 0; i < 3; i++)
+        ResolveClubLink(mRules.mFairnessAwardWinners[i], gameId);
+    ResolveClubLink(mRules.Unknown._1, gameId);
+    ResolveClubLink(mRules.Unknown._2, gameId);
 }
 
 void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const &dbPath) {
@@ -279,24 +263,32 @@ FifamStaff *FifamDatabase::CreateStaff(FifamClub *club, UInt id) {
     return staff;
 }
 
-void FifamDatabase::ResolveClubLinks(FifamClub *club, UInt gameId) {
+void FifamDatabase::ResolveLinksForClub(FifamClub *club, UInt gameId) {
     club->mUniqueID = TranslateClubID(club->mUniqueID, gameId, LATEST_GAME_VERSION);
     for (UInt i = 0; i < 4; i++)
         club->mLowestLeagues[i].Translate(club->mLowestLeagues[i].ToInt(), gameId, LATEST_GAME_VERSION);
-    club->mPartnershipClub = ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(club->mPartnershipClub), gameId, LATEST_GAME_VERSION));
+    ResolveClubLink(club->mPartnershipClub, gameId);
     for (UInt i = 0; i < 4; i++)
-        club->mRivalClubs[i] = ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(club->mRivalClubs[i]), gameId, LATEST_GAME_VERSION));
+        ResolveClubLink(club->mRivalClubs[i], gameId);
     for (UInt i = 0; i < 3; i++)
-        club->mCaptains[i] = PlayerFromID(FifamUtils::GetSavedPlayerIDFromPlayerPtr(club->mCaptains[i]));
+        ResolvePlayerLink(club->mCaptains[i]);
 }
 
-void FifamDatabase::ResolvePlayerLinks(FifamPlayer *player, UInt gameId) {
-    if (!player->mHistory.mEntries.empty()) {
-        for (auto &entry : player->mHistory.mEntries)
-            entry.mClub = ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(entry.mClub), gameId, LATEST_GAME_VERSION));
-    }
-    player->mContract.mBuyBackClauseClub = 
-        ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(player->mContract.mBuyBackClauseClub), gameId, LATEST_GAME_VERSION));
+void FifamDatabase::ResolveLinksForPlayer(FifamPlayer *player, UInt gameId) {
+    for (auto &entry : player->mHistory.mEntries)
+        ResolveClubLink(entry.mClub, gameId);
+    ResolveClubLink(player->mContract.mBuyBackClauseClub, gameId);
+    ResolveClubLink(player->mFirstClub, gameId);
+    ResolveClubLink(player->mPreviousClub, gameId);
+    ResolveClubLink(player->mFavouriteClub, gameId);
+    ResolveClubLink(player->mWouldnSignFor, gameId);
+    ResolvePlayerLink(player->mManagerFavouritePlayer);
+    for (UInt i = 0; i < 3; i++)
+        ResolveClubLink(player->mTransferRumors[i], gameId);
+    ResolveClubLink(player->mStartingConditions.mLoan.mLoanedClub, gameId);
+    ResolveClubLink(player->mStartingConditions.mFutureTransfer.mNewClub, gameId);
+    ResolveClubLink(player->mStartingConditions.mFutureLoan.mLoanedClub, gameId);
+    ResolveClubLink(player->mStartingConditions.mFutureReLoan.mLoanedClub, gameId);
 }
 
 FifamClubLink FifamDatabase::ClubFromID(UInt ID) {
@@ -353,4 +345,12 @@ UInt FifamDatabase::TranslateClubID(UInt ID, UInt gameFrom, UInt gameTo) {
     if (FifamUtils::ConvertRegion(region, gameFrom, gameTo))
         return (ID & 0xFF00FFFF) | (region << 16);
     return 0;
+}
+
+void FifamDatabase::ResolveClubLink(FifamClubLink &clubLink, UInt gameFrom, UInt gameTo) {
+    clubLink = ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(clubLink), gameFrom, gameTo));
+}
+
+void FifamDatabase::ResolvePlayerLink(FifamPlayer *&player) {
+    player = PlayerFromID(FifamUtils::GetSavedPlayerIDFromPlayerPtr(player));
 }
