@@ -12,7 +12,10 @@ UInt FifamCompID::ToInt() {
 }
 
 void FifamCompID::FifamCompID::SetFromHexStr(String const &str) {
-    SetFromInt(Utils::ToNumber(L"0x" + str));
+    if (Utils::StartsWith(str, L"0x"))
+        SetFromInt(Utils::ToNumber(str));
+    else
+        SetFromInt(Utils::ToNumber(L"0x" + str));
 }
 
 String FifamCompID::ToHexStr() {
@@ -66,6 +69,17 @@ FifamCompID::FifamCompID(FifamCompRegion const &region, String const &type, USho
 void FifamCompID::Set(FifamCompRegion const &region, String const &type, UShort index, Bool isTemplate) {
     mRegion = region;
     mType.SetFromStr(type);
+    mIndex = index;
+    mIsTemplate = isTemplate;
+}
+
+FifamCompID::FifamCompID(UChar regionId, FifamCompType const & type, UShort index, Bool isTemplate) {
+    Set(regionId, type, index, isTemplate);
+}
+
+void FifamCompID::Set(UChar regionId, FifamCompType const & type, UShort index, Bool isTemplate) {
+    mRegion.SetFromInt(regionId);
+    mType = type;
     mIndex = index;
     mIsTemplate = isTemplate;
 }

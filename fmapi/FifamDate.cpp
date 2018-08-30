@@ -45,12 +45,12 @@ UInt FifamDate::GetDays() const {
 
 void FifamDate::Validate() {
 
-    UChar daysInMonth[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    UChar daysInMonth[] = { 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
     if (month == 0 || month > 12)
         month = 1;
 
-    if (day == 0 || day > daysInMonth[month])
+    if (day == 0 || day > daysInMonth[month - 1])
         day = 1;
     else if (month == 2 && day == 29 && !(year % 4)) {
         day = 1;

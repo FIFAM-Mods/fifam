@@ -1,3 +1,4 @@
+﻿#include <Windows.h>
 #include "Utils.h"
 #include <chrono>
 #include <ctime>
@@ -42,7 +43,7 @@ std::wstring Utils::GetQuickName(std::wstring const &firstName, std::wstring con
 std::vector<std::wstring> Utils::Split(std::wstring const &line, wchar_t delim, bool trim, bool skipEmpty) {
     std::vector<std::wstring> result;
     std::wstring currStr;
-    auto AddStr = [&]() {
+    auto AddStr = [&,trim,skipEmpty]() {
         if (trim)
             Utils::Trim(currStr);
         if (!skipEmpty || !currStr.empty())
@@ -184,4 +185,26 @@ int Utils::MapTo(int value, int input_start, int input_end, int output_start, in
     value = Clamp(value, input_start, input_end);
     double slope = 1.0 * (output_end - output_start) / (input_end - input_start);
     return static_cast<int>(output_start + (floor(slope * (value - input_start)) + 0.5));
+}
+
+std::wstring Utils::GetStringWithoutUnicodeChars(std::wstring const &src) {
+    std::wstring str = src;
+    for (size_t i = 0; i < str.length(); i++) {
+        if (str[i] == L'ð')
+            str[i] = L'o';
+        else if (str[i] == L'ß')
+            str[i] = L's';
+        else if (str[i] == L'Þ')
+            str[i] = L'P';
+    }
+    int mbSize = WideCharToMultiByte(20127, 0, str.c_str(), -1, NULL, 0, NULL, NULL);
+    char *mb = new char[mbSize];
+    WideCharToMultiByte(20127, 0, str.c_str(), -1, mb, mbSize, NULL, NULL);
+    int wcSize = MultiByteToWideChar(20127, 0, mb, -1, NULL, 0);
+    wchar_t *wc = new wchar_t[wcSize];
+    MultiByteToWideChar(20127, 0, mb, -1, wc, wcSize);
+    str = wc;
+    delete[] mb;
+    delete[] wc;
+    return str;
 }

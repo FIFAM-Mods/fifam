@@ -110,6 +110,7 @@
     <ClInclude Include="FifamCopmCup.h" />
     <ClInclude Include="FifamCountry.h" />
     <ClInclude Include="FifamCountryAppearanceData.h" />
+    <ClInclude Include="FifamCountryCompetitions.h" />
     <ClInclude Include="FifamCountryLeagueLevelInfo.h" />
     <ClInclude Include="FifamCupAlloc.h" />
     <ClInclude Include="FifamCupAllocType.h" />
@@ -117,9 +118,11 @@
     <ClInclude Include="FifamDatabase.h" />
     <ClInclude Include="FifamEnum.h" />
     <ClInclude Include="FifamEqualPointsSorting.h" />
+    <ClInclude Include="FifamFifaWorldPlayer.h" />
     <ClInclude Include="FifamFlags.h" />
     <ClInclude Include="FifamFormation.h" />
     <ClInclude Include="FifamGeoCoords.h" />
+    <ClInclude Include="FifamHistoric.h" />
     <ClInclude Include="FifamKit.h" />
     <ClInclude Include="FifamKitBadgePosition.h" />
     <ClInclude Include="FifamKitColor.h" />
@@ -183,11 +186,13 @@
     <ClCompile Include="FifamCompID.cpp" />
     <ClCompile Include="FifamCountry.cpp" />
     <ClCompile Include="FifamCountryAppearanceData.cpp" />
+    <ClCompile Include="FifamCountryCompetitions.cpp" />
     <ClCompile Include="FifamCountryLeagueLevelInfo.cpp" />
     <ClCompile Include="FifamCupAlloc.cpp" />
     <ClCompile Include="FifamDatabase.cpp" />
     <ClCompile Include="FifamDate.cpp" />
     <ClCompile Include="FifamGeoCoords.cpp" />
+    <ClCompile Include="FifamHistoric.cpp" />
     <ClCompile Include="FifamKit.cpp" />
     <ClCompile Include="FifamPlayer.cpp" />
     <ClCompile Include="FifamPlayerAppearance.cpp" />

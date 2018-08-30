@@ -7,104 +7,12 @@
 #include <Windows.h>
 #include "Error.h"
 
-void Utilities::skipBom_UTF8(FILE *file) {
-    fseek(file, 0, SEEK_END);
-    unsigned int size = ftell(file);
-    if (size > 2) {
-        fseek(file, 0, SEEK_SET);
-        unsigned char dummy[3];
-        fread(dummy, 1, 3, file);
-    }
-}
-
-unsigned int Utilities::extractClubId(wchar_t *str) {
-    unsigned int id = 0;
-    if (wcslen(str) > 2 && str[0] == '0' && str[1] == '0') {
-        if (str[2] == '0')
-            swscanf_s(&str[2], L"%X", &id);
-        else
-            swscanf_s(&str[3], L"%X", &id);
-    }
-    else
-        swscanf_s(str, L"%X", &id);
-    return id;
-}
-
-unsigned int Utilities::getCountryId(unsigned int uid) {
-    return (uid >> 16) & 0xFF;
-}
-
-unsigned int Utilities::getAdditionalFlags(unsigned int uid) {
-    return (uid >> 24) & 0xFF;
-}
-
-unsigned int Utilities::getClubIdOnly(unsigned int uid) {
-    return uid & 0xFFFF;
-}
-
-void Utilities::RemoveNewLine(wchar_t *line) {
-    size_t ln = wcslen(line) - 1;
-    if (line[ln - 1] == L'\r')
-        line[ln - 1] = 0;
-    else if (line[ln] == L'\n')
-        line[ln] = 0;
-}
-
-void Utilities::CopyStr(wchar_t *dest, wchar_t *src, unsigned int maxLen) {
-    wcsncpy(dest, src, maxLen);
-    dest[maxLen - 1] = 0;
-}
-
-void Utilities::FixWrongCharacters(wchar_t *str) {
-    size_t len = wcslen(str);
-    for (size_t i = 0; i < len; i++) {
-        if (str[i] == L'ð')
-            str[i] = L'o';
-        else if (str[i] == L'ß')
-            str[i] = L's';
-        else if (str[i] == L'Þ')
-            str[i] = L'P';
-    }
-}
-
-wchar_t *Utilities::RemoveAccented(wchar_t *str) {
-    FixWrongCharacters(str);
-    int size = WideCharToMultiByte(20127, 0, str, -1, NULL, 0, NULL, NULL);
-    char *mb = new char[size];
-    WideCharToMultiByte(20127, 0, str, -1, mb, size, NULL, NULL);
-    MultiByteToWideChar(20127, 0, mb, -1, str, size);
-    delete[] mb;
-    return str;
-}
-
-char *Utilities::RemoveAccented(char *dest, wchar_t *str) {
-    FixWrongCharacters(str);
-    int size = WideCharToMultiByte(20127, 0, str, -1, NULL, 0, NULL, NULL); // 0xFDE9
-    WideCharToMultiByte(20127, 0, str, -1, dest, size, NULL, NULL);
-    return dest;
-}
-
-void Utilities::SkipLines(size_t num, FILE *file) {
-    wchar_t line[4096];
-    for (size_t i = 0; i < num; i++)
-        fgetws(line, 4096, file);
-}
-
-void Utilities::ReadLine(wchar_t *line, size_t num, FILE *file) {
-    for (size_t i = 0; i < num; i++)
-        fgetws(line, 4096, file);
-}
-
-void Utilities::ReadLine(wchar_t *line, FILE *file) {
-    fgetws(line, 4096, file);
-}
-
-
 bool FifamFileWorker::IsVersionGreaterOrEqual(unsigned short year, unsigned short number) {
     return mVersion.IsGreaterOrEqual(year, number);
 }
 
-FifamFileWorker::FifamFileWorker(size_t gameId) {
+FifamFileWorker::FifamFileWorker(Bool unicode, UInt gameId) {
+    mUnicode = unicode;
     mGameId = gameId;
 }
 
@@ -131,9 +39,25 @@ bool FifamFileWorker::Available() {
     return mFile != nullptr;
 }
 
+long FifamFileWorker::GetPosition() {
+    return ftell(mFile);
+}
+
+void FifamFileWorker::SetPosition(long pos) {
+    fseek(mFile, pos, SEEK_SET);
+}
+
+long FifamFileWorker::GetSize() {
+    auto currPos = GetPosition();
+    fseek(mFile, 0, SEEK_END);
+    auto result = GetPosition();
+    SetPosition(currPos);
+    return result;
+}
+
 
 FifamWriter::FifamWriter(Path const &filename, size_t gameId, unsigned short vYear, unsigned short vNumber, bool unicode) :
-    FifamFileWorker(gameId)
+    FifamFileWorker(unicode, gameId)
 {
     mFile = _wfopen(filename.c_str(), unicode ? L"wb" : L"wt");
     if (mFile && unicode) {
@@ -204,16 +128,21 @@ void FifamWriter::WriteOne(wchar_t const *value) {
 }
 
 void FifamWriter::WriteOne(String const &value) {
-    if (value.length() > 1) {
-        String noqValue = value;
-        for (UInt i = 0; i < value.length(); i++) {
+    String str;
+    if (GetGameId() >= 8)
+        str = value;
+    else
+        str = Utils::GetStringWithoutUnicodeChars(value);
+    if (str.length() > 1) {
+        String noqValue = str;
+        for (UInt i = 0; i < str.length(); i++) {
             if (noqValue[i] == L'"')
                 noqValue[i] = L'\'';
         }
         fputws(noqValue.c_str(), mFile);
         return;
     }
-    fputws(value.c_str(), mFile);
+    fputws(str.c_str(), mFile);
 }
 
 void FifamWriter::WriteOne(Hexademical const &value) {
@@ -266,16 +195,17 @@ void FifamWriter::WriteVersion() {
 }
 
 void FifamWriter::WriteTranslationArray(FifamTrArray<String> const &ary, bool quoted, wchar_t sep) {
-    for (size_t i = 0; i < ary.size(); i++) {
-        if (i < 5 || IsVersionGreaterOrEqual(0x2007, 0x1A)) {
-            if (quoted)
-                WriteOne(L"\"");
-            WriteOne(ary[i]);
-            if (quoted)
-                WriteOne(L"\"");
-            if (i != ary.size() - 1)
-                WriteOne(sep);
-        }
+    size_t num_tr = 6;
+    if (!IsVersionGreaterOrEqual(0x2007, 0x1A))
+        num_tr = 5;
+    for (size_t i = 0; i < num_tr; i++) {
+        if (quoted)
+            WriteOne(L"\"");
+        WriteOne(ary[i]);
+        if (quoted)
+            WriteOne(L"\"");
+        if (i != num_tr - 1)
+            WriteOne(sep);
     }
 }
 
@@ -290,9 +220,17 @@ void FifamWriter::WriteNewLine() {
 
 
 FifamReader::FifamReader(Path const &filename, size_t gameId, bool unicode) :
-    FifamFileWorker(gameId)
+    FifamFileWorker(unicode, gameId)
 {
-    mFile = _wfopen(filename.c_str(), unicode ? L"r, ccs=UTF-8" : L"rt");
+    mFile = _wfopen(filename.c_str(), L"rt");
+    if (mFile) {
+        if (GetSize() >= 3) {
+            UChar sign[3];
+            fread(sign, 1, 3, mFile);
+            if (sign[0] != 0xEF || sign[1] != 0xBB || sign[2] != 0xBF)
+                SetPosition(0);
+        }
+    }
 }
 
 FifamReader::FifamReader(Path const &filename, size_t gameId, unsigned short vYear, unsigned short vNumber) :
@@ -302,14 +240,20 @@ FifamReader::FifamReader(Path const &filename, size_t gameId, unsigned short vYe
 }
 
 bool FifamReader::IsEof() {
-    return feof(mFile);
+    return GetPosition() == GetSize();
 }
 
 wchar_t *FifamReader::GetLine() {
+    static char cLine[BUFFER_SIZE];
+    cLine[0] = 0;
     mLine[0] = 0;
-    while (fgetws(mLine, BUFFER_SIZE, mFile)) {
-        if (mLine[0] != L';') {
-            mLine[wcscspn(mLine, L"\r\n")] = 0;
+    while (fgets(cLine, BUFFER_SIZE, mFile)) {
+        if (cLine[0] != ';') {
+            cLine[strcspn(cLine, "\r\n")] = 0;
+            if (mUnicode)
+                MultiByteToWideChar(CP_UTF8, 0, cLine, BUFFER_SIZE, mLine, BUFFER_SIZE);
+            else
+                MultiByteToWideChar(1250, 0, cLine, BUFFER_SIZE, mLine, BUFFER_SIZE);
             return mLine;
         }
     }
@@ -318,25 +262,30 @@ wchar_t *FifamReader::GetLine() {
 }
 
 bool FifamReader::CheckLine(String const &str, bool skipIfTrue) {
-    auto savedPos = ftell(mFile);
+    auto savedPos = GetPosition();
     auto line = GetLine();
     if (line && !str.compare(line)) {
-        if (!skipIfTrue) {
-            fseek(mFile, savedPos, SEEK_SET);
-        }
+        if (!skipIfTrue)
+            SetPosition(savedPos);
         return true;
     }
+    SetPosition(savedPos);
     return false;
 }
 
 bool FifamReader::FindLine(String const &str, bool skipIfFound, bool moveToEofIfNotFound) {
-    auto savedPos = ftell(mFile);
+    auto savedFilePos = GetPosition();
     while (!IsEof()) {
-        if (CheckLine(str, skipIfFound))
+        auto savedLinePos = GetPosition();
+        auto line = GetLine();
+        if (line && !str.compare(line)) {
+            if (!skipIfFound)
+                SetPosition(savedLinePos);
             return true;
+        }
     }
     if (!moveToEofIfNotFound)
-        fseek(mFile, savedPos, SEEK_SET);
+        SetPosition(savedFilePos);
     return false;
 }
 

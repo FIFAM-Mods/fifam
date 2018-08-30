@@ -3,7 +3,7 @@
 #include "FifamCupAlloc.h"
 #include "FifamClubLink.h"
 #include "FifamRules.h"
-#include <iostream>
+#include "FifamHistoric.h"
 
 /*
     Minimum supported version: FM07 0x2007.0x0C
@@ -25,6 +25,7 @@ public:
     Set<FifamSponsor *> mSponsors;
     Vector<FifamCupAlloc *> mCupTemplates;
     FifamRules mRules;
+    FifamHistoric mHistoric;
 
     FifamDatabase();
     FifamDatabase(UInt gameId, const Path &dbPath);
@@ -48,4 +49,6 @@ public:
     UInt TranslateClubID(UInt ID, UInt gameFrom, UInt gameTo);
     void ResolveClubLink(FifamClubLink &clubLink, UInt gameFrom, UInt gameTo = LATEST_GAME_VERSION);
     void ResolvePlayerLink(FifamPlayer *&player);
+    FifamClub *GetClubFromUID(UInt uid);
+    void GetClubFromUID(FifamClubLink &link, UInt uid);
 };

@@ -15,7 +15,8 @@
 #include "tests\WritePlayerHistoryTest.h"
 #include "tests\WritePlayerContractTest.h"
 #include "tests\WritePlayersTest.h"
+#include "tests\FifaWorldPlayersTest.h"
 
 void RunTests() {
-    RunTest<WritePlayersTest<FM14, External>>();
+    RunTest<FifaWorldPlayersTest<FM14, External>>();
 }

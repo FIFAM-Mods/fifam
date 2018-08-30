@@ -73,6 +73,9 @@
     <ClInclude Include="tests\WritePlayersTest.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\FifaWorldPlayersTest.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

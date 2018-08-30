@@ -21,6 +21,8 @@ struct FifamCompID {
     void Set(FifamCompRegion const &region, FifamCompType const &type, UShort index, Bool isTemplate = false);
     FifamCompID(FifamCompRegion const &region, String const &type, UShort index, Bool isTemplate = false);
     void Set(FifamCompRegion const &region, String const &type, UShort index, Bool isTemplate = false);
+    FifamCompID(UChar regionId, FifamCompType const &type, UShort index, Bool isTemplate = false);
+    void Set(UChar regionId, FifamCompType const &type, UShort index, Bool isTemplate = false);
     void SetFromInt(UInt value);
     UInt ToInt();
     void SetFromHexStr(String const &str);

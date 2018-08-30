@@ -17,6 +17,7 @@
 #include "FifamAmateurRule.h"
 #include "FifamManager.h"
 #include "FifamCountryAppearanceData.h"
+#include "FifamCountryCompetitions.h"
 
 class FifamDatabase;
 
@@ -182,6 +183,8 @@ public:
     struct {
         // @since FM07
         UChar _1 = 0;
+        // @since FM08
+        UInt _2 = 0; // always 0
         // @since FM07
         // @until FM08
         Bool _8 = 0;
@@ -236,14 +239,20 @@ public:
     Vector<FifamStadium *> mStadiums;
     Vector<FifamSponsor *> mSponsors;
     Vector<FifamClub *> mClubs;
+    Map<UInt, FifamClub *> mClubsMap;
     FifamClub mNationalTeam;
+    FifamCountryCompetitions mCompetitions;
 
     FifamReferee *AddReferee();
     FifamStadium *AddStadium();
     FifamSponsor *AddSponsor();
     FifamCountry(UInt id, FifamDatabase *db);
-    void Read(FifamReader &reader);
-    void ReadFixtures(FifamReader &reader);
-    void ReadScript(FifamReader &reader);
-    void Write(FifamWriter &writer);
+    bool Read(FifamReader &reader);
+    bool ReadFixtures(FifamReader &reader);
+    bool ReadScript(FifamReader &reader);
+    bool Write(FifamWriter &writer);
+    bool WriteFixtures(FifamWriter &writer);
+    bool WriteScript(FifamWriter &writer);
+
+    bool IsCompetitionSystemCorrect();
 };

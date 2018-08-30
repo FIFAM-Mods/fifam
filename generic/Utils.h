@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <string>
 #include <vector>
 #include <ctime>
@@ -74,4 +74,14 @@ namespace Utils {
     bool CheckFlag(A flagsInt, B flag) {
         return (flagsInt & flag) == flag;
     }
+
+    template<typename A, typename B>
+    void SetFlag(A &flagsInt, B flag, bool enable) {
+        if (enable)
+            flagsInt |= flag;
+        else
+            flagsInt &= ~flag;
+    }
+
+    std::wstring GetStringWithoutUnicodeChars(std::wstring const &src);
 };

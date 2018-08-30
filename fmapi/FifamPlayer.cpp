@@ -137,12 +137,9 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
             reader.ReadLine(mNationality[0]);
             reader.ReadLine(mNationality[1]);
             UChar playerBasicFlags = reader.ReadLine<UChar>();
-            if (playerBasicFlags & 1)
-                mIsNaturalised = true;
-            if (playerBasicFlags & 2)
-                mIsBasque = true;
-            if (playerBasicFlags & 4)
-                mIsRealPlayer = true;
+            mIsNaturalised = Utils::CheckFlag(playerBasicFlags, 1);
+            mIsBasque = Utils::CheckFlag(playerBasicFlags, 2);
+            mIsRealPlayer = Utils::CheckFlag(playerBasicFlags, 4);
             reader.ReadLine(mBirthday);
             if (reader.IsVersionGreaterOrEqual(0x2009, 0x02)) {
                 reader.ReadLine(mTalent);
@@ -197,7 +194,7 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
                 }
                 for (UInt i = 0; i < 3; i++) {
                     if (SecondaryPositions[i] != FifamPlayerPosition::None)
-                        mPositionBias[SecondaryPositions[i].ToInt()] = Float(Utils::Clamp(i - 97, 96, 100));
+                        mPositionBias[SecondaryPositions[i].ToInt()] = Float(Utils::Clamp(97 - i, 96, 100));
                 }
             }
             mAttributes.Read(reader);
@@ -205,12 +202,25 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
             if (!reader.IsVersionGreaterOrEqual(0x2011, 0x04))
                 reader.ReadLine(mPotential);
             reader.ReadLine(mCharacter);
-            FifamPlayerAppearance::AppearanceInfo07 info07;
-            reader.ReadLine(info07.hairColor);
-            reader.ReadLine(info07.faceId);
-            reader.ReadLine(info07.hairId);
-            reader.ReadLine(info07.beardType);
-            mAppearance.SetFrom07AppearanceInfo(info07);
+            if (reader.IsVersionGreaterOrEqual(0x2011, 0x01)) {
+                reader.ReadLine(mAppearance.mGenericFace);
+                reader.ReadLine(mAppearance.mHairStyle);
+                reader.ReadLine(mAppearance.mHairColor);
+                reader.ReadLine(mAppearance.mBeardType);
+                reader.ReadLine(mAppearance.mSideburns);
+                reader.ReadLine(mAppearance.mBeardColor);
+                reader.ReadLine(mAppearance.mSkinColor);
+                reader.ReadLine(mAppearance.mFaceVariation);
+                reader.ReadLine(mAppearance.mEyeColour);
+            }
+            else {
+                FifamPlayerAppearance::AppearanceInfo07 info07;
+                reader.ReadLine(info07.hairColor);
+                reader.ReadLine(info07.faceId);
+                reader.ReadLine(info07.hairId);
+                reader.ReadLine(info07.beardType);
+                mAppearance.SetFrom07AppearanceInfo(info07);
+            }
             reader.ReadLine(mHeight);
             reader.ReadLine(mWeight);
             if (reader.IsVersionGreaterOrEqual(0x2011, 0x04))
@@ -273,10 +283,6 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
                 mContract.mClauseRelegation.mEnabled = Utils::CheckFlag(contractFlags, 0x1000);
                 mContract.mClauseNoPromotion.mEnabled = Utils::CheckFlag(contractFlags, 0x2000);
             }
-            if (mContract.mOptionClub == 0 && Utils::CheckFlag(contractFlags, 0x40))
-                mContract.mOptionClub = 1;
-            if (mContract.mOptionPlayer == 0 && Utils::CheckFlag(contractFlags, 0x80))
-                mContract.mOptionPlayer = 1;
             if (reader.IsVersionGreaterOrEqual(0x2009, 0x07)) {
                 UChar optionPlayer = reader.ReadLine<UChar>();
                 if (Utils::CheckFlag(contractFlags, 0x8000)) {
@@ -297,6 +303,10 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
                 mContract.mClauseRelegation.mValue = reader.ReadLine<UInt>();
                 mContract.mClauseNoPromotion.mValue = reader.ReadLine<UInt>();
             }
+            if (mContract.mOptionClub == 0 && Utils::CheckFlag(contractFlags, 0x40))
+                mContract.mOptionClub = 1;
+            if (mContract.mOptionPlayer == 0 && Utils::CheckFlag(contractFlags, 0x80))
+                mContract.mOptionPlayer = 1;
             mStartingConditions.Read(reader, database);
             reader.ReadLine(mShoeType);
             reader.ReadLine(mLongSleeves);
@@ -349,11 +359,13 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
         }
         else {
             // re-calculate bias values
-            mMaxBias = *std::max_element(mPositionBias.begin(), mPositionBias.end());
-            if (mMaxBias != 100.0f && mMaxBias != 0.0f) {
-                Float mp = 100.0f / mMaxBias;
-                for (UInt i = 0; i < 18; i++)
-                    mPositionBias[i] *= mp;
+            if (reader.IsVersionGreaterOrEqual(0x2011, 0x04)) {
+                mMaxBias = *std::max_element(mPositionBias.begin(), mPositionBias.end());
+                if (mMaxBias != 100.0f && mMaxBias != 0.0f) {
+                    Float mp = 100.0f / mMaxBias;
+                    for (UInt i = 0; i < 18; i++)
+                        mPositionBias[i] *= mp;
+                }
             }
             // generate all other attributes
             mAttributes.BallControl = (mAttributes.Technique + mAttributes.Touch) / 2;
@@ -496,7 +508,354 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
 }
 
 void FifamPlayer::Write(FifamWriter &writer, FifamDatabase *database) {
+    FifamPlayerPlayingStyle playingStyle = mPlayingStyle;
+    if (writer.GetGameId() < 13 && playingStyle.ToInt() >= FifamPlayerPlayingStyle::BusyAttacker)
+        playingStyle = FifamPlayerLevel::GetBestStyleForPlayer(this, false);
+    Array<UChar, 18> positionBias12;
+    if (!writer.IsVersionGreaterOrEqual(0x2013, 0x01)) {
+        float maxBias = mMaxBias;
+        if (maxBias == 100.0f)
+            maxBias = (Float)FifamPlayerLevel::GetPlayerLevel12(this, mMainPosition, mPlayingStyle);
+        for (UInt i = 0; i < 18; i++)
+            positionBias12[i] = (UChar)(mPositionBias[i] * (maxBias / 100.0f));
+    }
+    writer.WriteStartIndex(L"PLAYER");
+    if (writer.IsVersionGreaterOrEqual(0x2012, 0x01)) {
+        writer.WriteLine(mPersonType);
+        Array<String, 5> namesArray = { mFirstName, mLastName, mNickname, mPseudonym, L"0" };
+        writer.WriteLineArray(namesArray, '|');
+        writer.WriteLineArray(mNationality);
+        writer.WriteLineArray(mLanguages);
+        writer.WriteLine(mBirthday);
+        if (writer.IsVersionGreaterOrEqual(0x2013, 0x04)) {
+            UChar leadership = 1;
+            // convert leadership from [0;99] to [1;10]
+            if (mAttributes.Leadership >= 90)
+                leadership = 10;
+            else if (mAttributes.Leadership >= 85)
+                leadership = 9;
+            else if (mAttributes.Leadership >= 80)
+                leadership = 8;
+            else if (mAttributes.Leadership >= 75)
+                leadership = 7;
+            else if (mAttributes.Leadership >= 70)
+                leadership = 6;
+            else if (mAttributes.Leadership >= 60)
+                leadership = 5;
+            else if (mAttributes.Leadership >= 50)
+                leadership = 4;
+            else if (mAttributes.Leadership >= 40)
+                leadership = 3;
+            else if (mAttributes.Leadership >= 30)
+                leadership = 2;
+            //
+            writer.WriteLine(mTalent, mTacticalEducation, leadership, mGeneralExperience, mMainPosition);
+        }
+        else
+            writer.WriteLine(mTalent, mTacticalEducation, mGeneralExperience, mMainPosition);
+        if (writer.IsVersionGreaterOrEqual(0x2013, 0x01)) {
+            Array<UChar, 14> positionBias = {
+                (UChar)mPositionBias[FifamPlayerPosition::None],
+                (UChar)mPositionBias[FifamPlayerPosition::GK],
+                (UChar)mPositionBias[FifamPlayerPosition::RB],
+                (UChar)mPositionBias[FifamPlayerPosition::LB],
+                (UChar)mPositionBias[FifamPlayerPosition::CB],
+                (UChar)mPositionBias[FifamPlayerPosition::DM],
+                (UChar)mPositionBias[FifamPlayerPosition::RM],
+                (UChar)mPositionBias[FifamPlayerPosition::LM],
+                (UChar)mPositionBias[FifamPlayerPosition::CM],
+                (UChar)mPositionBias[FifamPlayerPosition::RW],
+                (UChar)mPositionBias[FifamPlayerPosition::LW],
+                (UChar)mPositionBias[FifamPlayerPosition::AM],
+                (UChar)mPositionBias[FifamPlayerPosition::CF],
+                (UChar)mPositionBias[FifamPlayerPosition::ST]
+            };
+            if ((UChar)mPositionBias[FifamPlayerPosition::SW] == 100)
+                positionBias[4] = 100;
+            if ((UChar)mPositionBias[FifamPlayerPosition::RWB] == 100)
+                positionBias[2] = 100;
+            if ((UChar)mPositionBias[FifamPlayerPosition::LWB] == 100)
+                positionBias[3] = 100;
+            if ((UChar)mPositionBias[FifamPlayerPosition::ANC] == 100)
+                positionBias[5] = 100;
+            writer.WriteLineArray(positionBias);
+        }
+        else
+            writer.WriteLineArray(positionBias12);
+        mAttributes.Write(writer);
+        writer.WriteLine(mInReserveTeam);
+        UInt flags = 0;
+        Utils::SetFlag(flags, 0x1, mIsNaturalised);
+        Utils::SetFlag(flags, 0x2, mIsBasque);
+        Utils::SetFlag(flags, 0x4, mIsRealPlayer);
+        Utils::SetFlag(flags, 0x8, mInYouthTeam);
+        Utils::SetFlag(flags, 0x10, mRetiredFromNationalTeam);
+        Utils::SetFlag(flags, 0x20, mCurrentlyInNationalTeam);
+        if (writer.GetGameId() > 12) {
+            Utils::SetFlag(flags, 0x40, mNoContractExtension);
+            Utils::SetFlag(flags, 0x80, mIsCaptain);
+        }
+        writer.WriteLine(flags);
+        writer.WriteLine((mRightFoot & 0xF) | ((mLeftFoot & 0xF) << 4));
+        writer.WriteLine(mHeroStatus);
+        writer.WriteLine(playingStyle);
+        if (writer.IsVersionGreaterOrEqual(0x2013, 0x03)) {
+            auto characterFlagas = mCharacter.ToInt() & 0x7FFFFFFFFF;
+            if (mCharacter.Check(FifamPlayerCharacter::Diva))
+                characterFlagas |= 1;
+            if (mCharacter.Check(FifamPlayerCharacter::LifestyleIcon))
+                characterFlagas |= 2;
+            writer.WriteLine(characterFlagas);
+        }
+        else
+            writer.WriteLine(mCharacter.ToInt() & 0xFFFFFF);
+        writer.WriteLine(mAppearance.mGenericFace,
+            mAppearance.mHairStyle,
+            mAppearance.mHairColor,
+            mAppearance.mBeardType,
+            mAppearance.mSideburns,
+            mAppearance.mBeardColor,
+            mAppearance.mSkinColor,
+            mAppearance.mFaceVariation,
+            mAppearance.mEyeColour,
+            mShoeType,
+            mLongSleeves);
+        writer.WriteLine(mSpecialFace, mEmpicsId, mHeight, mWeight, mShirtNumberFirstTeam, mShirtNumberReserveTeam);
+        writer.WriteLine(mPlayerAgent);
+        writer.WriteLine(mNationalTeamMatches, mNationalTeamGoals);
+        writer.WriteLine(FifamUtils::DBClubLinkToID(database, mFavouriteClub, writer.GetGameId()));
+        writer.WriteLine(FifamUtils::DBClubLinkToID(database, mWouldnSignFor, writer.GetGameId()));
+        if (writer.IsVersionGreaterOrEqual(0x2013, 0x02)) {
+            writer.WriteLine(FifamUtils::DBClubLinkToID(database, mTransferRumors[0], writer.GetGameId()));
+            writer.WriteLine(FifamUtils::DBClubLinkToID(database, mTransferRumors[1], writer.GetGameId()));
+            writer.WriteLine(FifamUtils::DBClubLinkToID(database, mTransferRumors[2], writer.GetGameId()));
+        }
+        mStartingConditions.Write(writer, database);
+        mHistory.Write(writer, database);
+        mContract.Write(writer, database);
+        writer.WriteLine(mManagerMotivationSkills, mManagerCoachingSkills, mManagerGoalkeepersTraining, mManagerNegotiationSkills);
+        writer.WriteLine(mManagerFavouriteFormation);
+        writer.WriteLine(mChairmanStability);
+        writer.WriteLine(mComment);
+    }
+    else {
+        writer.WriteLine(mFirstName);
+        writer.WriteLine(mLastName);
+        writer.WriteLine(mNickname);
+        writer.WriteLine(mPseudonym);
+        writer.WriteLine(mPersonType);
+        writer.WriteLine(mInReserveTeam);
+        writer.WriteLine(mNationality[0]);
+        writer.WriteLine(mNationality[1]);
+        UChar playerBasicFlags = 0;
+        Utils::SetFlag(playerBasicFlags, 1, mIsNaturalised);
+        Utils::SetFlag(playerBasicFlags, 2, mIsBasque);
+        Utils::SetFlag(playerBasicFlags, 4, mIsRealPlayer);
+        writer.WriteLine(playerBasicFlags);
+        writer.WriteLine(mBirthday);
+        if (writer.IsVersionGreaterOrEqual(0x2009, 0x02)) {
+            writer.WriteLine(mTalent);
+            writer.WriteLine((mRightFoot & 0xF) | ((mLeftFoot & 0xF) << 4));
+        }
+        else {
+            UChar talent = mTalent / 2;
+            UChar footPrefs = 0;
+            if (mRightFoot >= 2 && mLeftFoot >= 2) {
+                if (mLeftFoot > mRightFoot)
+                    footPrefs = 3;
+                else
+                    footPrefs = 2;
+            }
+            else {
+                if (mLeftFoot > mRightFoot)
+                    footPrefs = 1;
+                else
+                    footPrefs = 0;
+            }
+            UChar flags = (talent & 7) | ((footPrefs & 7) << 3);
+            Utils::SetFlag(flags, 0x40, mInYouthTeam);
+            writer.WriteLine(flags);
+        }
+        writer.WriteLine(mHeroStatus);
 
+        if (writer.IsVersionGreaterOrEqual(0x2011, 0x04)) {
+            for (UInt i = 0; i < 18; i++)
+                writer.WriteLine(positionBias12[i]);
+            writer.WriteLine(mMainPosition);
+        }
+        else {
+            UnorderedSet<UInt> PreferredPositions;
+            UnorderedSet<UInt> SecondaryPositions;
+            PreferredPositions.insert(mMainPosition.ToInt());
+            using PositionPair = Pair<Float, UInt>;
+            Array<PositionPair, 18> bestPositions;
+            for (UInt i = 0; i < 18; i++) {
+                bestPositions[i].first = mPositionBias[i];
+                bestPositions[i].second = i;
+            }
+            bestPositions[0].first = 0.0f;
+            std::sort(bestPositions.begin(), bestPositions.end(), [](PositionPair const &a, PositionPair const &b) {
+                return a.first > b.first;
+            });
+            // preferred
+            for (UInt i = 0; i < 18; i++) {
+                if (bestPositions[i].first >= 98.0f) {
+                    if (PreferredPositions.size() < 3)
+                        PreferredPositions.insert(bestPositions[i].second);
+                }
+                else
+                    break;
+            }
+            // secondary
+            for (UInt i = 0; i < 18; i++) {
+                if (bestPositions[i].first >= 96.0f) {
+                    if (SecondaryPositions.size() < 3 && !PreferredPositions.count(bestPositions[i].second))
+                        SecondaryPositions.insert(bestPositions[i].second);
+                }
+                else
+                    break;
+            }
+            for (UInt i = 0; i < 3; i++) {
+                if (i < PreferredPositions.size())
+                    writer.WriteLine(*std::next(PreferredPositions.begin(), i));
+                else
+                    writer.WriteLine(0);
+            }
+            for (UInt i = 0; i < 3; i++) {
+                if (i < SecondaryPositions.size())
+                    writer.WriteLine(*std::next(SecondaryPositions.begin(), i));
+                else
+                    writer.WriteLine(0);
+            }
+        }
+        mAttributes.Write(writer);
+        writer.WriteLine(playingStyle);
+        if (!writer.IsVersionGreaterOrEqual(0x2011, 0x04))
+            writer.WriteLine(mPotential);
+        writer.WriteLine(mCharacter.ToInt() & 0xFFFFFF);
+        if (writer.IsVersionGreaterOrEqual(0x2011, 0x01)) {
+            writer.WriteLine(mAppearance.mGenericFace);
+            writer.WriteLine(mAppearance.mHairStyle);
+            writer.WriteLine(mAppearance.mHairColor);
+            writer.WriteLine(mAppearance.mBeardType);
+            writer.WriteLine(mAppearance.mSideburns);
+            writer.WriteLine(mAppearance.mBeardColor);
+            writer.WriteLine(mAppearance.mSkinColor);
+            writer.WriteLine(mAppearance.mFaceVariation);
+            writer.WriteLine(mAppearance.mEyeColour);
+        }
+        else {
+            auto info07 = mAppearance.Get07AppearanceInfo();
+            writer.WriteLine(info07.hairColor);
+            writer.WriteLine(info07.faceId);
+            writer.WriteLine(info07.hairId);
+            writer.WriteLine(info07.beardType);
+        }
+        writer.WriteLine(mHeight);
+        writer.WriteLine(mWeight);
+        if (writer.IsVersionGreaterOrEqual(0x2011, 0x04))
+            writer.WriteLine(mGeneralExperience);
+        else {
+            writer.WriteLine(mNationalExperience);
+            writer.WriteLine(mInternationalExperience);
+        }
+        writer.WriteLine(mShirtNumberFirstTeam);
+        writer.WriteLine(mShirtNumberReserveTeam);
+        writer.WriteLine(mSpecialFace);
+        writer.WriteLine(mEmpicsId);
+        if (!writer.IsVersionGreaterOrEqual(0x2007, 0x16)) {
+            auto firstClubId = FifamUtils::DBClubLinkToID(database, mFirstClub, writer.GetGameId());
+            writer.WriteLine(FifamUtils::GetCountryIDFromClubID(firstClubId));
+            writer.WriteLine(firstClubId);
+            auto previousClubId = FifamUtils::DBClubLinkToID(database, mPreviousClub, writer.GetGameId());
+            writer.WriteLine(FifamUtils::GetCountryIDFromClubID(previousClubId));
+            writer.WriteLine(previousClubId);
+        }
+        writer.WriteLine(mContract.mJoined.year);
+        writer.WriteLine(mContract.mValidUntil.year);
+        writer.WriteLine(mContract.mBasicSalary);
+        writer.WriteLine(mContract.mFixTransferFee);
+        writer.WriteLine(mCurrentEstimatedMarketValue);
+        writer.WriteLine(mNationalTeamMatches);
+        writer.WriteLine(mNationalTeamGoals);
+        writer.WriteLine(mManagerMotivationSkills);
+        writer.WriteLine(mManagerCoachingSkills);
+        writer.WriteLine(mManagerGoalkeepersTraining);
+        writer.WriteLine(mManagerNegotiationSkills);
+        writer.WriteLine(mLanguages[0]);
+        writer.WriteLine(mLanguages[1]);
+        writer.WriteLine(mLanguages[2]);
+        writer.WriteLine(mLanguages[3]);
+        if (writer.IsVersionGreaterOrEqual(0x2009, 0x0A)) {
+            writer.WriteLine(FifamUtils::DBClubLinkToID(database, mFavouriteClub, writer.GetGameId()));
+            writer.WriteLine(FifamUtils::DBClubLinkToID(database, mWouldnSignFor, writer.GetGameId()));
+            if (mManagerFavouritePlayer && mManagerFavouritePlayer->mClub)
+                writer.WriteLine(FifamUtils::DBClubLinkToID(database, FifamClubLink(mManagerFavouritePlayer->mClub), writer.GetGameId()));
+            else
+                writer.WriteLine(0);
+        }
+        else {
+            auto favouriteClubId = FifamUtils::DBClubLinkToID(database, mFavouriteClub, writer.GetGameId());
+            writer.WriteLine(FifamUtils::GetCountryIDFromClubID(favouriteClubId));
+            writer.WriteLine(favouriteClubId);
+            if (writer.IsVersionGreaterOrEqual(0x2007, 0x0E))
+                writer.WriteLine(FifamUtils::DBClubLinkToID(database, mWouldnSignFor, writer.GetGameId()));
+            
+            if (mManagerFavouritePlayer && mManagerFavouritePlayer->mClub) {
+                auto favouritePlayerClubId = FifamUtils::DBClubLinkToID(database, FifamClubLink(mManagerFavouritePlayer->mClub), writer.GetGameId());
+                writer.WriteLine(FifamUtils::GetCountryIDFromClubID(favouritePlayerClubId));
+                writer.WriteLine(favouritePlayerClubId);
+            }
+            else {
+                writer.WriteLine(0);
+                writer.WriteLine(0);
+            }
+        }
+        if (mManagerFavouritePlayer)
+            writer.WriteLine(mManagerFavouritePlayer->mID);
+        else
+            writer.WriteLine(0);
+        writer.WriteLine(mManagerFavouriteFormation);
+        writer.WriteLine(mChairmanStability);
+        writer.WriteLine(mTacticalEducation);
+        UInt contractFlags = 0;
+        Utils::SetFlag(contractFlags, 0x1, mRetiredFromNationalTeam);
+        Utils::SetFlag(contractFlags, 0x2, mCurrentlyInNationalTeam);
+        if (writer.IsVersionGreaterOrEqual(0x2009, 0x0A)) {
+            Utils::SetFlag(contractFlags, 0x100, mContract.mExtendAvoidRelegation);
+            Utils::SetFlag(contractFlags, 0x400, mContract.mClauseNoInternational.mEnabled);
+            Utils::SetFlag(contractFlags, 0x800, mContractIsCancelledIfRelegated);
+            Utils::SetFlag(contractFlags, 0x1000, mContract.mClauseRelegation.mEnabled);
+            Utils::SetFlag(contractFlags, 0x2000, mContract.mClauseNoPromotion.mEnabled);
+            Utils::SetFlag(contractFlags, 0x4000, mContract.mAutoExtend != 0);
+        }
+        if (writer.IsVersionGreaterOrEqual(0x2009, 0x07)) {
+            Utils::SetFlag(contractFlags, 0x200, mContract.mOptionClub != 0);
+            Utils::SetFlag(contractFlags, 0x8000, mContract.mOptionPlayer != 0);
+            writer.WriteLine(contractFlags);
+            writer.WriteLine(mContract.mOptionPlayer);
+            writer.WriteLine(mContract.mOptionClub);
+            writer.WriteLine(mContract.mAutoExtend);
+            writer.WriteLine(mContract.mClauseNoInternational.mValue);
+            writer.WriteLine(mContract.mClauseRelegation.mValue);
+            writer.WriteLine(mContract.mClauseNoPromotion.mValue);
+        }
+        else {
+            Utils::SetFlag(contractFlags, 0x40, mContract.mOptionClub != 0);
+            Utils::SetFlag(contractFlags, 0x80, mContract.mOptionPlayer != 0);
+            writer.WriteLine(contractFlags);
+        }
+        mStartingConditions.Write(writer, database);
+        writer.WriteLine(mShoeType);
+        writer.WriteLine(mLongSleeves);
+        mHistory.Write(writer, database);
+        writer.WriteLine(mComment);
+        if (writer.IsVersionGreaterOrEqual(0x2011, 0x01))
+            writer.WriteLine(mPlayerAgent);
+        else
+            writer.WriteLine(Unknown._1);
+    }
+    writer.WriteEndIndex(L"PLAYER");
 }
 
 UChar FifamPlayer::GetLevel(FifamPlayerPosition position, FifamPlayerPlayingStyle style, Bool experience) {
@@ -513,4 +872,8 @@ UChar FifamPlayer::GetLevel(FifamPlayerPlayingStyle style, Bool experience) {
 
 UChar FifamPlayer::GetLevel(Bool experience) {
     return GetLevel(mMainPosition, mPlayingStyle, experience);
+}
+
+Bool1 FifamPlayer::SortPlayersByLevel(FifamPlayer *player1, FifamPlayer *player2) {
+    return player1->GetLevel() > player2->GetLevel();
 }

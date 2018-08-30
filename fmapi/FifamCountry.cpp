@@ -31,29 +31,31 @@ FifamSponsor *FifamCountry::AddSponsor() {
     return sponsor;
 }
 
-void FifamCountry::Read(FifamReader &reader) {
+bool FifamCountry::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"COUNTRY")) {
-
         reader.ReadVersion();
-
+        if (reader.IsVersionGreaterOrEqual(0x2007, 0x12))
+            reader.SkipLine();
+        if (reader.IsVersionGreaterOrEqual(0x2007, 0x17))
+            reader.ReadLine(Unknown._2);
         if (reader.GetGameId() < 11) {
             if (reader.ReadStartIndex(L"COMPETITIONPART"))
                 reader.ReadEndIndex(L"COMPETITIONPART");
+            mCompetitions.Read(reader);
         }
-
-        if (reader.ReadStartIndex(L"COMPETITION")) {
-            // TODO
-            reader.ReadEndIndex(L"COMPETITION");
+        else {
+            // TODO: read competition levels and names
         }
-
         if (reader.ReadStartIndex(L"CLUBS")) {
             UInt numClubs = reader.ReadLine<UInt>();
             for (UInt i = 0; i < numClubs; i++) {
                 auto club = mDatabase->CreateClub(this);
                 club->Read(reader, i + 1);
                 mDatabase->AddClubToMap(club);
+                mClubsMap[club->mUniqueID] = club;
             }
             mNationalTeam.mCountry = this;
+            mNationalTeam.mDatabase = mDatabase;
             mNationalTeam.mIsNationalTeam = true;
             mNationalTeam.Read(reader, 0xFFFF);
             reader.ReadEndIndex(L"CLUBS");
@@ -268,23 +270,49 @@ void FifamCountry::Read(FifamReader &reader) {
             FifamCheckEnum(mPreferredTransfersTerritory);
         }
         reader.ReadEndIndex(L"COUNTRY");
+        return true;
     }
+    return false;
 }
 
-void FifamCountry::Write(FifamWriter &writer) {
+bool FifamCountry::Write(FifamWriter &writer) {
     writer.WriteStartIndex(L"COUNTRY");
     writer.WriteVersion();
-    if (writer.GetGameId() < 11) {
-        writer.WriteStartIndex(L"COMPETITIONPART");
-        // TODO
-        writer.WriteEndIndex(L"COMPETITIONPART");
+    if (writer.IsVersionGreaterOrEqual(0x2007, 0x12)) {
+        if (!mClubsMap.empty())
+            writer.WriteLine(mClubsMap.rbegin()->first);
+        else
+            writer.WriteLine(0);
     }
-    writer.WriteStartIndex(L"COMPETITION");
-    // TODO
-    writer.WriteEndIndex(L"COMPETITION");
-
+    if (writer.IsVersionGreaterOrEqual(0x2007, 0x17))
+        writer.WriteLine(Unknown._2);
+    if (writer.GetGameId() < 11) {
+        writer.WriteLine(IsCompetitionSystemCorrect());
+        //writer.WriteStartIndex(L"COMPETITIONPART");
+        //// TODO
+        //writer.WriteEndIndex(L"COMPETITIONPART");
+        mCompetitions.Write(writer);
+    }
+    else {
+        // TODO: Write league level names
+        writer.WriteLine(0);
+        if (writer.IsVersionGreaterOrEqual(0x2011, 0x08)) {
+            // TODO: Write country competition names
+            writer.WriteLine(1);
+            FifamCompID rootCompID = { (UChar)mId, FifamCompType::Root, 0 };
+            writer.Write(rootCompID.ToHexStr());
+            writer.Write(L",");
+            Array<String, 6> rootCompName;
+            for (UInt i = 0; i < 6; i++)
+                rootCompName[i] = L"Competition";
+            writer.WriteLineTranslationArray(rootCompName);
+        }
+    }
     writer.WriteStartIndex(L"CLUBS");
-    // TODO
+    writer.WriteLine(mClubs.size());
+    for (UInt i = 0; i < mClubs.size(); i++)
+        mClubs[i]->Write(writer, i + 1);
+    mNationalTeam.Write(writer, 0xFFFF);
     writer.WriteEndIndex(L"CLUBS");
 
     writer.WriteStartIndex(L"REFEREES");
@@ -303,6 +331,7 @@ void FifamCountry::Write(FifamWriter &writer) {
 
     writer.WriteStartIndex(L"STAFFS");
     // TODO
+    writer.WriteLine(0);
     writer.WriteEndIndex(L"STAFFS");
 
     if (writer.GetGameId() < 11) {
@@ -315,10 +344,12 @@ void FifamCountry::Write(FifamWriter &writer) {
 
     writer.WriteStartIndex(L"ADDMANAGER");
     // TODO
+    writer.WriteLine(0);
     writer.WriteEndIndex(L"ADDMANAGER");
 
     writer.WriteStartIndex(L"PLAYERPOOL");
     // TODO
+    writer.WriteLine(0);
     writer.WriteEndIndex(L"PLAYERPOOL");
 
     String countryMiscSectionName;
@@ -472,12 +503,43 @@ void FifamCountry::Write(FifamWriter &writer) {
     writer.WriteLine(mNotes);
     writer.WriteEndIndex(countryMiscSectionName);
     writer.WriteEndIndex(L"COUNTRY");
+    return true;
 }
 
-void FifamCountry::ReadFixtures(FifamReader &reader) {
-
+bool FifamCountry::ReadFixtures(FifamReader &reader) {
+    reader.ReadVersion();
+    while (reader.ReadStartIndex(L"COMPETITION")) {
+        
+        reader.ReadEndIndex(L"COMPETITION");
+    }
+    return true;
 }
 
-void FifamCountry::ReadScript(FifamReader &reader) {
+bool FifamCountry::ReadScript(FifamReader &reader) {
+    reader.ReadVersion();
+    while (reader.ReadStartIndex(L"COMPETITION")) {
+    
+        reader.ReadEndIndex(L"COMPETITION");
+    }
+    return true;
+}
 
+bool FifamCountry::WriteFixtures(FifamWriter &writer) {
+    writer.WriteVersion();
+
+    return true;
+}
+
+bool FifamCountry::WriteScript(FifamWriter &writer) {
+    writer.WriteVersion();
+
+    return true;
+}
+
+bool FifamCountry::IsCompetitionSystemCorrect() {
+    //if (mClubs.size() < 10)
+    //    return false;
+    // check num teams in league
+    // check competition errors
+    return false;
 }

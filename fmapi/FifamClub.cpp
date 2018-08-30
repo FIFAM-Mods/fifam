@@ -19,14 +19,17 @@ void FifamClub::ReadClubMembers(FifamReader &reader) {
 }
 
 void FifamClub::WriteClubMembers(FifamWriter &writer) {
+    writer.WriteLine(mPlayers.size());
     for (auto player : mPlayers) {
         writer.WriteLine(player->mID);
         player->Write(writer, mDatabase);
     }
-    for (auto staff : mStaffs) {
-        writer.WriteLine(staff->mID);
-        staff->Write(writer);
-    }
+    //writer.WriteLine(mStaffs.size());
+    //for (auto staff : mStaffs) {
+    //    writer.WriteLine(staff->mID);
+    //    staff->Write(writer);
+    //}
+    writer.WriteLine(0);
 }
 
 void FifamClub::Read(FifamReader &reader, UInt id) {

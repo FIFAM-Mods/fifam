@@ -10,37 +10,24 @@
 class FifamEnum;
 class FifamBaseFlags;
 
-class Utilities {
-public:
-    static void skipBom_UTF8(FILE *file);
-    static unsigned int extractClubId(wchar_t *str);
-    static unsigned int getCountryId(unsigned int uid);
-    static unsigned int getAdditionalFlags(unsigned int uid);
-    static unsigned int getClubIdOnly(unsigned int uid);
-    static void RemoveNewLine(wchar_t *line);
-    static void CopyStr(wchar_t *dest, wchar_t *src, unsigned int maxLen);
-    static void FixWrongCharacters(wchar_t *str);
-    static wchar_t *RemoveAccented(wchar_t *str);
-    static char *RemoveAccented(char *dest, wchar_t *str);
-    static void SkipLines(size_t num, FILE *file);
-    static void ReadLine(wchar_t *line, size_t num, FILE *file);
-    static void ReadLine(wchar_t *line, FILE *file);
-};
-
 class FifamFileWorker {
 protected:
     FILE *mFile = nullptr;
     size_t mGameId = 0;
     FifamVersion mVersion;
+    Bool mUnicode = true;
 
 public:
     bool IsVersionGreaterOrEqual(unsigned short year, unsigned short number);
-    FifamFileWorker(size_t gameId);
+    FifamFileWorker(Bool unicode, UInt gameId);
     ~FifamFileWorker();
     void Close();
     size_t GetGameId();
     FifamVersion GetVersion();
     bool Available();
+    long GetPosition();
+    void SetPosition(long pos);
+    long GetSize();
 };
 
 class FifamWriter : public FifamFileWorker {
@@ -140,10 +127,11 @@ public:
     template<typename T>
     void WriteTranslationArray(FifamTrArray<T> const &ary, wchar_t sep = L',') {
         Vector<T> vec;
-        for (size_t i = 0; i < ary.size(); i++) {
-            if (i < 5 || IsVersionGreaterOrEqual(0x2007, 0x1A))
-                vec.push_back(ary[i]);
-        }
+        size_t num_tr = 6;
+        if (!IsVersionGreaterOrEqual(0x2007, 0x1A))
+            num_tr = 5;
+        for (size_t i = 0; i < num_tr; i++)
+            vec.push_back(ary[i]);
         WriteArray(vec, sep);
     }
 
@@ -295,7 +283,7 @@ public:
     Vector<T> ReadLineArray(wchar_t sep = L',', bool skipEmpty = false) {
         GetLine();
         Vector<T> ary;
-        Vector<String> strArgs = Utils::Split(mLine, sep, skipEmpty);
+        Vector<String> strArgs = Utils::Split(mLine, sep, true, skipEmpty);
         ary.resize(strArgs.size());
         for (size_t i = 0; i < strArgs.size(); i++)
             StrToArg(strArgs[i], ary[i]);

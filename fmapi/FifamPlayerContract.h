@@ -64,6 +64,8 @@ public:
     // @since
     Bool mJobOption = false; // Job in Club after Active Career
     // @since
+    Bool mLoaned = false; // probably unused
+    // @since
     // @range 0-2
     UChar mOptionPlayer = 0; // Option Player (in Years)
     // @since

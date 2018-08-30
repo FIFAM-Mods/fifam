@@ -107,7 +107,7 @@ enum class BeardType07 {
 };
 
 using Face07to11Info = std::tuple<Face07, FifamSkinColor, UChar, FifamFaceVariation, FifamEyeColor>;
-static Vector<Face07to11Info> gFace07to11Mapping = {
+Vector<Face07to11Info> gFace07to11Mapping = {
 { Face07::Caucasian1,   FifamSkinColor::White,     25, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Caucasian2,   FifamSkinColor::White,     20, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Caucasian3,   FifamSkinColor::White,      3, FifamFaceVariation::Normal, FifamEyeColor::Brown },
@@ -201,45 +201,158 @@ static Vector<Face07to11Info> gFace07to11Mapping = {
 };
 
 using Hair07to11Info = std::tuple<UChar, UChar>;
-static Vector<Hair07to11Info> gHair07to11Mapping = {
-{ 1,  3 },
-{ 2, 66 },
-{ 3, 59 },
-{ 4, 67 },
-{ 5, 35 },
-{ 6, 13 },
-{ 7, 82 },
-{ 8, 49 },
-{ 9, 78 },
-{ 10, 48 },
+Vector<Hair07to11Info> gHair07to11Mapping = {
+{  1,  3 },
+{  2, 66 },
+{  3, 59 },
+{  4, 69 },
+{  5, 24 },
+{  6, 13 },
+{  7, 82 },
+{  8, 49 },
+{  9, 78 },
+{ 10, 71 },
 { 11,  1 },
-{ 12, 18 },
-{ 13,  4 },
-{ 14, 30 },
-{ 15, 0x00000000 },
-{ 16, 0x00000000 },
-{ 17, 0x00000000 },
-{ 18, 0x00000000 },
-{ 19, 0x00000000 },
-{ 20, 0x00000000 },
-{ 21, 0x00000000 },
+{ 12, 20 },
+{ 13, 81 },
+{ 14, 35 },
+{ 15,  7 },
+{ 16, 11 },
+{ 17, 65 },
+{ 18, 73 },
+{ 19, 17 },
+{ 20, 16 },
+{ 21, 18 },
 { 22, 14 },
-{ 23, 0x00000000 },
+{ 23, 30 },
 { 24, 29 },
 { 25, 22 },
-{ 26, 0x00000000 },
-{ 27, 0x00000000 },
-{ 28, 0x00000000 },
-{ 29, 0x00000000 },
-{ 30, 0x00000000 },
-{ 31, 0x00000000 },
-{ 32, 65 },
+{ 26, 36 },
+{ 27, 41 },
+{ 28, 52 },
+{ 29, 67 },
+{ 30, 76 },
+{ 31, 72 },
+{ 32, 62 },
 { 33, 64 },
 { 34, 70 },
-{ 35, 0x00000000 },
-{ 36, 0x00000000 },
-{ 37, 0x00000000 },
-{ 38, 0x00000000 }
+{ 35, 12 },
+{ 36, 15 },
+{ 37, 43 },
+{ 38, 34 }
+};
+
+UChar gFace11to07table[7][135] = {
+//  1   2   3   4   5   6   7   8   9  10  11  12  13  14  15  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31  32  33  34  35  36  37  38  39  40  41  42  43  44  45  46  47  48  49  50  51  52  53  54  55  56  57  58  59  60  61  62  63  64  65  66  67  68  69  70  71  72  73  74  75  76  77  78  79  80  81  82  83  84  85  86  87  88  89  90  91  92  93  94  95  96  97  98  99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 128 129 130 131 132 133 134 135 
+{  89, 88,  3, 50,  4, 53, 49,  7, 47, 30, 34, 34, 31, 86, 34, 48, 51,  9, 27,  2, 29, 33, 26,  6,  1, 28, 50, 34, 50, 88, 50, 34, 50, 34, 50, 47, 50, 47,  1, 58, 55, 88, 58, 88, 54, 54, 54, 87, 50,  1, 34, 88, 88, 75, 88, 88, 88, 88, 90, 88, 88, 88, 88, 34, 87, 79, 50,  1, 88, 88, 35, 88, 88,  1, 34,  1,  1,  1, 88,  1, 88,  1, 88, 50, 34, 34, 50, 88, 88, 34,  8, 88, 51, 90,  1, 88, 31,  1, 50,  1, 34, 52,  1, 34, 50,  1, 13,  4, 50,  6, 26, 88, 75, 88, 75, 88, 50, 87, 56,  1, 55, 58, 50, 57, 32, 54, 88, 50, 88, 79, 88, 55, 47, 90, 88, },
+{   1, 34, 31,  8,  6, 50, 50, 50, 34, 43, 34, 88, 36,  1, 34, 43, 34,  9, 34, 88, 34, 12, 34, 27, 34, 27, 34, 76, 75, 78, 50, 74, 37, 34, 73, 47, 10, 79,  8,  9, 72, 70, 71, 69, 12, 13, 11, 77, 34, 43, 34, 88, 88, 75, 88, 88, 88, 75, 90, 88, 88, 88, 88, 34, 87, 79, 50, 88, 88, 88, 87, 12, 88, 26, 34,  1,  1,  1, 88, 43, 88,  1, 43, 43, 88, 34, 50, 88, 88, 34,  8, 88,  1, 34, 43, 88, 43,  1, 50,  1, 88, 50,  1, 88, 34,  1, 34, 43, 26,  6, 26, 88, 75, 88, 75, 88, 50, 87, 50, 43,  1, 34, 50, 43, 34,  6, 88, 50, 88, 79, 88, 55, 88, 75, 88, },
+{  43, 74, 43,  8, 12, 43,  8, 10, 12, 81, 81, 38, 36, 43, 81, 43, 37,  9, 81, 75, 81, 12, 81, 10, 74, 10, 82, 43, 43, 12, 74, 12, 38, 81, 12, 38, 81, 81, 75, 38, 43, 38, 13, 38, 69, 74, 81, 75, 81, 43, 83, 81, 75, 83, 75, 75, 75, 81, 75, 81, 81, 75, 75, 81, 79, 81, 43, 43, 69, 44, 82, 12, 40, 24, 41, 12, 43, 12, 42, 46, 84, 43, 43, 43, 43, 21, 37, 45, 25, 23,  8, 82,  8, 81, 43, 39, 43, 43, 43, 38, 36, 12, 20, 81, 43, 43, 13, 43, 81, 36, 38, 38, 75, 81, 83, 75, 81, 81,  8, 43, 43, 72, 12, 43, 12,  8, 75, 81, 81, 79, 81, 83, 81, 83, 81, },
+{  36, 81, 43, 46, 43, 81, 37, 43, 38, 81, 81, 37, 36, 43, 81, 43, 37, 36, 81, 37, 81, 37, 36, 36, 81, 38, 81, 37, 81, 81, 81, 64, 37, 81, 43, 38, 81, 81, 84, 37, 44, 38, 64, 81, 37, 64, 81, 83, 81, 81, 83, 81, 81, 83, 83, 81, 81, 81, 80, 81, 81, 81, 81, 81, 83, 81, 43, 83, 36, 20, 82, 81, 81, 36, 81, 82, 82, 81, 82, 43, 81, 80, 43, 43, 43, 36, 43, 82, 43, 81, 37, 81, 85, 36, 43, 81, 81, 36, 37, 36, 36, 44, 38, 81, 81, 36, 20, 44, 81, 43, 81, 38, 81, 81, 83, 83, 81, 80, 81, 43, 43, 84, 43, 43, 37, 36, 85, 36, 81, 81, 81, 83, 81, 83, 81, },
+{  19, 67, 19, 81, 68, 81, 19, 19, 60, 81, 81, 19, 81, 60, 66, 60, 19, 19, 81, 60, 81, 81, 82, 14, 66, 19, 81, 19, 81, 66, 66, 66, 60, 81, 60, 60, 67, 60, 60, 60, 60, 60, 67, 66, 60, 60, 66, 81, 81, 81, 81, 81, 81, 64, 60, 81, 66, 81, 81, 81, 81, 81, 81, 81, 83, 81, 60, 67, 60, 68, 82, 66, 67, 19, 66, 82, 60, 60, 82, 14, 66, 67, 81, 63, 19, 85, 68, 82, 81, 81, 19, 82, 19, 82, 19, 19, 81, 19, 60, 19, 82, 19, 60, 81, 81, 60, 81, 81, 81, 68, 81, 60, 81, 81, 83, 83, 81, 81, 19, 19, 19, 66, 68, 66, 60, 19, 60, 66, 81, 81, 81, 81, 81, 83, 81, },
+{  19, 67, 19, 66, 59, 14, 60, 19, 66, 60, 66, 60, 66, 60, 66, 60, 60, 66, 66, 66, 66, 60, 66, 14, 66, 59, 66, 60, 66, 66, 66, 66, 60, 66, 60, 66, 66, 60, 66, 66, 60, 66, 67, 66, 60, 66, 66, 66, 66, 62, 17, 66, 66, 66, 18, 61, 19, 66, 67, 66, 60, 66, 66, 66, 66, 63, 67, 60, 60, 67, 60, 66, 67, 60, 66, 60, 60, 60, 60, 14, 66, 67, 66, 60, 67, 60, 60, 66, 60, 66, 60, 60, 60, 66, 60, 66, 60, 60, 59, 60, 66, 67, 60, 66, 66, 60, 67, 19, 66, 67, 66, 60, 66, 66, 66, 66, 67, 66, 67, 67, 67, 66, 67, 67, 60, 19, 60, 66, 67, 60, 59, 66, 66, 65, 68, },
+{  60, 67, 60, 66, 67, 60, 60, 19, 66, 60, 66, 60, 66, 60, 66, 66, 60, 60, 66, 66, 66, 60, 66, 14, 66, 60, 66, 60, 66, 66, 66, 66, 60, 66, 66, 66, 66, 60, 66, 66, 60, 66, 67, 66, 60, 66, 66, 66, 16, 66, 66, 15, 66, 66, 60, 66, 66, 66, 66, 66, 60, 66, 66, 66, 66, 66, 60, 67, 60, 60, 60, 66, 67, 60, 66, 60, 60, 60, 19, 14, 66, 67, 60, 60, 67, 60, 60, 66, 60, 66, 60, 66, 60, 66, 60, 66, 60, 60, 59, 60, 66, 60, 60, 66, 66, 60, 67, 19, 66, 60, 60, 60, 66, 60, 66, 66, 67, 66, 19, 67, 66, 66, 67, 60, 60, 19, 60, 66, 66, 60, 66, 66, 66, 60, 66, }
+};
+
+using Hair11to07Info = std::tuple<UChar, UChar>;
+Vector<Hair07to11Info> gHair11to07table = {
+{  1, 11 },
+{  2,  1 },
+{  3,  1 },
+{  4, 13 },
+{  5, 15 },
+{  6, 15 },
+{  7, 15 },
+{  8, 15 },
+{  9, 15 },
+{ 10, 15 },
+{ 11, 16 },
+{ 12, 35 },
+{ 13,  6 },
+{ 14, 22 },
+{ 15, 36 },
+{ 16, 20 },
+{ 17, 19 },
+{ 18, 21 },
+{ 19, 35 },
+{ 20, 12 },
+{ 21, 19 },
+{ 22, 25 },
+{ 23, 27 },
+{ 24,  5 },
+{ 25, 22 },
+{ 26, 22 },
+{ 27, 22 },
+{ 28, 24 },
+{ 29, 24 },
+{ 30, 23 },
+{ 31, 14 },
+{ 32, 14 },
+{ 33, 38 },
+{ 34, 38 },
+{ 35, 14 },
+{ 36, 26 },
+{ 37, 27 },
+{ 38, 27 },
+{ 39, 27 },
+{ 40, 27 },
+{ 41, 27 },
+{ 42, 37 },
+{ 43, 37 },
+{ 44, 26 },
+{ 45, 31 },
+{ 46,  8 },
+{ 47,  8 },
+{ 48, 27 },
+{ 49,  8 },
+{ 50,  8 },
+{ 51,  8 },
+{ 52, 28 },
+{ 53,  8 },
+{ 54, 33 },
+{ 55,  4 },
+{ 56,  4 },
+{ 57,  8 },
+{ 58, 31 },
+{ 59,  3 },
+{ 60, 18 },
+{ 61,  4 },
+{ 62, 32 },
+{ 63,  9 },
+{ 64, 33 },
+{ 65, 17 },
+{ 66,  2 },
+{ 67, 29 },
+{ 68,  2 },
+{ 69,  4 },
+{ 70, 34 },
+{ 71, 10 },
+{ 72, 31 },
+{ 73, 18 },
+{ 74, 17 },
+{ 75, 17 },
+{ 76, 30 },
+{ 77, 18 },
+{ 78,  9 },
+{ 79,  9 },
+{ 80,  2 },
+{ 81, 13 },
+{ 82,  7 },
+{ 83,  7 },
+{ 84, 34 },
+{ 85, 33 },
+{ 86,  7 },
+{ 87,  7 },
+{ 88, 34 },
+{ 89, 18 },
+{ 90,  4 },
+{ 91, 33 },
+{ 92, 33 },
+{ 93,  8 },
+{ 94, 27 },
+{ 95, 33 },
+{ 96, 33 },
+{ 97, 33 },
+{ 98,  5 },
 };
 
 void FifamPlayerAppearance::SetFrom07AppearanceInfo(AppearanceInfo07 const &data) {
@@ -270,7 +383,7 @@ void FifamPlayerAppearance::SetFrom07AppearanceInfo(AppearanceInfo07 const &data
     if (data.hairId >= 1 && data.hairId <= 38) {
         for (auto &hairInfo : gHair07to11Mapping) {
             if (std::get<0>(hairInfo) == data.hairId) {
-                mHairStyle = std::get<1>(hairInfo);
+                mHairStyle = g14HairEditorIdToReal[std::get<1>(hairInfo) - 1];
                 break;
             }
         }
@@ -294,13 +407,13 @@ void FifamPlayerAppearance::SetFrom07AppearanceInfo(AppearanceInfo07 const &data
     if (data.beardType >= 1 && data.beardType <= 6) {
         if (data.beardType == Utils::ToInt(BeardType07::Goatee))
             mBeardType = FifamBeardType::Goatee;
-        if (data.beardType == Utils::ToInt(BeardType07::Moustash))
+        else if (data.beardType == Utils::ToInt(BeardType07::Moustash))
             mBeardType = FifamBeardType::Moustash;
-        if (data.beardType == Utils::ToInt(BeardType07::Shadow))
+        else if (data.beardType == Utils::ToInt(BeardType07::Shadow))
             mBeardType = FifamBeardType::Shadow;
-        if (data.beardType == Utils::ToInt(BeardType07::FullGoatee))
+        else if (data.beardType == Utils::ToInt(BeardType07::FullGoatee))
             mBeardType = FifamBeardType::FullGoatee;
-        if (data.beardType == Utils::ToInt(BeardType07::Full))
+        else if (data.beardType == Utils::ToInt(BeardType07::Full))
             mBeardType = FifamBeardType::Full;
         else
             mBeardType = FifamBeardType::None;
@@ -326,19 +439,41 @@ FifamPlayerAppearance::AppearanceInfo07 FifamPlayerAppearance::Get07AppearanceIn
     result.faceId = 1;
     result.hairId = 1;
     result.hairColor = Utils::ToInt(HairColour07::Black);
-    result.beardType = Utils::ToInt(FifamBeardType::None);
+    result.beardType = Utils::ToInt(BeardType07::None);
 
     // Get face id
-
+    if (mGenericFace < 135)
+        result.faceId = gFace11to07table[mSkinColor.ToInt()][mGenericFace];
 
     // Get hair id
-
+    for (auto &hairInfo : gHair11to07table) {
+        if (g14HairEditorIdToReal[std::get<0>(hairInfo) - 1] == mHairStyle) {
+            result.hairId = std::get<1>(hairInfo);
+            break;
+        }
+    }
 
     // Get hair colour
-
+    if (mHairColor == FifamHairColor::Blonde)
+        result.hairColor = Utils::ToInt(HairColour07::Blonde);
+    else if (mHairColor == FifamHairColor::MediumBlond || mHairColor == FifamHairColor::Platinumblonde)
+        result.hairColor = Utils::ToInt(HairColour07::MediumBlond);
+    else if (mHairColor == FifamHairColor::Brown || mHairColor == FifamHairColor::Lightbrown || mHairColor == FifamHairColor::Darkbrown)
+        result.hairColor = Utils::ToInt(HairColour07::Brown);
+    else if (mHairColor == FifamHairColor::Red)
+        result.hairColor = Utils::ToInt(HairColour07::Red);
 
     // Get beard type
-
+    if (mBeardType == FifamBeardType::FullGoatee)
+        result.beardType = Utils::ToInt(BeardType07::FullGoatee);
+    if (mBeardType == FifamBeardType::Full)
+        result.beardType = Utils::ToInt(BeardType07::Full);
+    if (mBeardType == FifamBeardType::Moustash)
+        result.beardType = Utils::ToInt(BeardType07::Moustash);
+    if (mBeardType == FifamBeardType::Shadow || mBeardType == FifamBeardType::Unshaven)
+        result.beardType = Utils::ToInt(BeardType07::Shadow);
+    if (mBeardType == FifamBeardType::Goatee)
+        result.beardType = Utils::ToInt(BeardType07::Goatee);
 
     return result;
 }

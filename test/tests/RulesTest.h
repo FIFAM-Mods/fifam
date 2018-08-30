@@ -1,6 +1,4 @@
 #pragma once
-
-#pragma once
 #include "FifamDbEnvironment.h"
 
 template<typename Game, typename DbType>

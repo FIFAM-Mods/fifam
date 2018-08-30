@@ -189,6 +189,8 @@ public:
         UChar _1 = 0;
     } Unknown;
 
+    FifamClub *mClub = nullptr;
+
     FifamPlayer();
     String GetName() const;
     void Read(FifamReader &reader, FifamDatabase *database);
@@ -197,4 +199,5 @@ public:
     UChar GetLevel(FifamPlayerPosition position, Bool experience = true);
     UChar GetLevel(FifamPlayerPlayingStyle style, Bool experience = true);
     UChar GetLevel(Bool experience = true);
+    static bool SortPlayersByLevel(FifamPlayer *player1, FifamPlayer *player2);
 };

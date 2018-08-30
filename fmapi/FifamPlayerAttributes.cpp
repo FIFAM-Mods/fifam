@@ -215,7 +215,7 @@ void FifamPlayerAttributes::Write(FifamWriter &writer) {
             Consistency,
             Intimidation,
             Leadership,
-            Crossing,
+            GkCrosses,
             Handling,
             Kicking,
             OneOnOne,
@@ -261,7 +261,7 @@ void FifamPlayerAttributes::Write(FifamWriter &writer) {
         writer.WriteLine(Consistency);
         writer.WriteLine(Intimidation);
         writer.WriteLine(Leadership);
-        writer.WriteLine(Crossing);
+        writer.WriteLine(GkCrosses);
         writer.WriteLine(Handling);
         writer.WriteLine(Kicking);
         writer.WriteLine(OneOnOne);

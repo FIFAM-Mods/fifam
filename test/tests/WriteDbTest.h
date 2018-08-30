@@ -1,11 +1,12 @@
 #pragma once
 #include "FifamDbEnvironment.h"
 
-template<typename Game, typename DbType>
+template<typename From, typename To>
 class WriteDbTest {
 public:
     WriteDbTest() {
-        FifamDatabase *db = GetEnvironment<FifamDbEnvironment<Game, DbType>>().GetDatabase();
-        db->Write(Game::id(), Game::year(), Game::vernum(), L"fm_test\\test_db");
+        FifamDatabase *db = GetEnvironment<FifamDbEnvironment<From, External>>().GetDatabase();
+        db->Write(To::id(), To::year(), To::vernum(),
+            Utils::Format(L"D:\\Games\\FIFA Manager %02d\\database", To::id()).c_str());
     }
 };

@@ -227,7 +227,7 @@ void FifamPlayerStartingConditions::Write(FifamWriter &writer, FifamDatabase *da
         FifamDate transferStartDate;
         FifamDate transferEndDate;
         UChar numBanMatches = 0;
-        FifamPlayerInjuryType injuryType = 0;
+        UInt injuryType;
         FifamDate injuryStartDate;
         FifamDate injuryEndDate;
         UInt transferFee = 0;
@@ -266,7 +266,7 @@ void FifamPlayerStartingConditions::Write(FifamWriter &writer, FifamDatabase *da
         
         if (numWrittenConditions < numConditions && mInjury.mEnabled) {
             startConditionFlags |= 1;
-            injuryType = mInjury.mType;
+            injuryType = mInjury.mType.ToInt();
             injuryStartDate = mInjury.mStartDate;
             injuryEndDate = mInjury.mEndDate;
             numWrittenConditions++;
@@ -288,8 +288,10 @@ void FifamPlayerStartingConditions::Write(FifamWriter &writer, FifamDatabase *da
         writer.WriteLine(transferStartDate);
         writer.WriteLine(transferEndDate);
         writer.WriteLine(numBanMatches);
-        if (startConditionFlags & 1)
-            writer.WriteLine(TranslateInjuryTypeForGame(injuryType, writer.GetGameId(), injuryEndDate - injuryStartDate));
+        if (startConditionFlags & 1) {
+            writer.WriteLine(TranslateInjuryTypeForGame(FifamPlayerInjuryType::MakeFromInt(injuryType),
+                writer.GetGameId(), injuryEndDate - injuryStartDate));
+        }
         else
             writer.WriteLine(0);
         writer.WriteLine(injuryStartDate);

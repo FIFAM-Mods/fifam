@@ -94,6 +94,7 @@
     <ClInclude Include="TestsRun.h" />
     <ClInclude Include="tests\BadgeTest.h" />
     <ClInclude Include="tests\CompIDTest.h" />
+    <ClInclude Include="tests\FifaWorldPlayersTest.h" />
     <ClInclude Include="tests\FlagsTest.h" />
     <ClInclude Include="tests\ColorsTest.h" />
     <ClInclude Include="tests\GeoCoordsTest.h" />

@@ -93,6 +93,9 @@
     <ClInclude Include="FifamPlayerStartingConditions.h" />
     <ClInclude Include="FifamPlayerInjuryType.h" />
     <ClInclude Include="FifamPlayerAttributes.h" />
+    <ClInclude Include="FifamCountryCompetitions.h" />
+    <ClInclude Include="FifamFifaWorldPlayer.h" />
+    <ClInclude Include="FifamHistoric.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamDate.cpp" />
@@ -127,5 +130,7 @@
     <ClCompile Include="FifamPlayerLevel.cpp" />
     <ClCompile Include="FifamPlayerStartingConditions.cpp" />
     <ClCompile Include="FifamPlayerAttributes.cpp" />
+    <ClCompile Include="FifamCountryCompetitions.cpp" />
+    <ClCompile Include="FifamHistoric.cpp" />
   </ItemGroup>
 </Project>

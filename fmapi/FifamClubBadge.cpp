@@ -613,5 +613,5 @@ void FifamClubBadge::Read(FifamReader &reader) {
 }
 
 void FifamClubBadge::Write(FifamWriter &writer) {
-    writer.Write(GetBadgePath(writer.GetGameId()));
+    writer.WriteLine(GetBadgePath(writer.GetGameId()));
 }

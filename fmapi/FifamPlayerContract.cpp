@@ -56,6 +56,7 @@ void FifamPlayerContract::Read(FifamReader &reader, FifamDatabase *database) {
         mHighestPaidPlayer = Utils::CheckFlag(flags, 0x0010);
         mExtendAvoidRelegation = Utils::CheckFlag(flags, 0x0020);
         mJobOption = Utils::CheckFlag(flags, 0x0040);
+        mLoaned = Utils::CheckFlag(flags, 0x0080);
         mOptionPlayer = (flags >> 13) & 3;
     }
 }
@@ -63,25 +64,18 @@ void FifamPlayerContract::Read(FifamReader &reader, FifamDatabase *database) {
 void FifamPlayerContract::Write(FifamWriter &writer, FifamDatabase *database) {
     writer.WriteStartIndex(L"CONTRACT");
     UChar releaseClauseFlags = 0;
-    if (mClauseForeignClub.mEnabled)
-        releaseClauseFlags |= 0x01;
-    if (mClauseHigherLeague.mEnabled)
-        releaseClauseFlags |= 0x02;
-    if (mClauseRelegation.mEnabled)
-        releaseClauseFlags |= 0x04;
-    if (mClauseNoInternational.mEnabled)
-        releaseClauseFlags |= 0x08;
-    if (mClauseNoPromotion.mEnabled)
-        releaseClauseFlags |= 0x10;
+    Utils::SetFlag(releaseClauseFlags, 0x01, mClauseForeignClub.mEnabled);
+    Utils::SetFlag(releaseClauseFlags, 0x02, mClauseHigherLeague.mEnabled);
+    Utils::SetFlag(releaseClauseFlags, 0x04, mClauseRelegation.mEnabled);
+    Utils::SetFlag(releaseClauseFlags, 0x08, mClauseNoInternational.mEnabled);
+    Utils::SetFlag(releaseClauseFlags, 0x10, mClauseNoPromotion.mEnabled);
     UShort flags = 0;
     if (mOptionClub)
         flags |= (mOptionClub & 3) << 2;
-    if (mHighestPaidPlayer)
-        flags |= 0x0010;
-    if (mExtendAvoidRelegation)
-        flags |= 0x0020;
-    if (mJobOption)
-        flags |= 0x0040;
+    Utils::SetFlag(flags, 0x0010, mHighestPaidPlayer);
+    Utils::SetFlag(flags, 0x0020, mExtendAvoidRelegation);
+    Utils::SetFlag(flags, 0x0040, mJobOption);
+    Utils::SetFlag(flags, 0x0080, mLoaned);
     if (mOptionPlayer)
         flags |= (mOptionPlayer & 3) << 13;
     writer.WriteLine(
