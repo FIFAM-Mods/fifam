@@ -24,11 +24,11 @@ struct FifamCompID {
     FifamCompID(UChar regionId, FifamCompType const &type, UShort index, Bool isTemplate = false);
     void Set(UChar regionId, FifamCompType const &type, UShort index, Bool isTemplate = false);
     void SetFromInt(UInt value);
-    UInt ToInt();
+    UInt ToInt() const;
     void SetFromHexStr(String const &str);
-    String ToHexStr();
+    String ToHexStr() const;
     void SetFromStr(String const &str);
-    String ToStr();
-    bool IsNull();
+    String ToStr() const;
+    bool IsNull() const;
     static UInt Translate(UInt id, UInt gameFrom, UInt gameTo);
 };

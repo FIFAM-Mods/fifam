@@ -3,8 +3,15 @@
 #include "FifamTypes.h"
 #include "FifamNation.h"
 #include "FifamFormation.h"
+#include "FifamClubLink.h"
+#include "FifamChairmanStability.h"
+#include "FifamManagerFocus.h"
+#include "FifamClubStaffPosition.h"
+#include "FifamCoachPlayingOrientation.h"
+#include "FifamLanguage.h"
 
-class FifamClub;
+class FifamDatabase;
+class FifamPlayer;
 
 // @since FM07
 class FifamStaff : public FifamPerson {
@@ -21,80 +28,104 @@ public:
     // @since FM09
     // @maxsize 19
     String mNickname;
-
     // @since FM07
-    enum class Type : UChar {
-        Player,
-        Manager,
-        Chairman,
-        President,
-        AssistantCoach,
-        GoalkeeperCoach,
-        AmateurCoach,
-        YouthCoach,
-        Scout,
-        TeamDoctor,
-        SpecialistKnee,
-        SpecialistAnkle,
-        SpecialistMuscle,
-        Masseur,
-        Psychologist,
-        ManagingDirector,
-        MarketingGuy,
-        StadiumManager,
-        FanRepresentative
-    } mType = Type::Manager;
-
+    FifamClubStaffPosition mClubPosition;
     // @since FM07
     FifamDate mBirthdate;
-    // @[1]since FM07
-    // @[2]since FM09
-    FifamNation mNationality[2];
+    // [1] since FM07
+    // [2] since FM09
+    Array<FifamNation, 2> mNationality;
     // @since FM07
     // @range 0-4
     UChar mExperience = 0;
     // @since FM07
     // @range 0-15
-    UChar mMotivationSkills = 0;
+    UChar mManagerMotivationSkills = 0;
     // @since FM07
     // @range 0-15
-    UChar mCoachingSkills = 0;
+    UChar mManagerCoachingSkills = 0;
     // @since FM07
     // @range 0-15
-    UChar mGoalkeepersTraining = 0;
+    UChar mManagerGoalkeepersTraining = 0;
     // @since FM07
     // @range 0-15
-    UChar mNegotiationSkills = 0;
-
+    UChar mManagerNegotiationSkills = 0;
     // @since FM07
-    enum class CharacterFocus : Char {
-        None,
-        Offensive,
-        Defensive,
-        Discipline,
-        PlayerCharacter,
-        Fitness,
-        TacticalEducation,
-        Language,
-        LongContracts,
-        YoungPlayers,
-        ExperiencedPlayers,
-        // @since FM08
-        KeepsTeamTogether
-    } mCharacterFocus = CharacterFocus::None;
-
+    FifamManagerFocus mManagerFocus;
     // @since FM07
     Array<FifamLanguage, 4> mLanguage;
     // @since FM07
     FifamFormation mFavouriteFormation;
     // @since FM07
-    // @range 0-4
-    // 0 - less patient, 4 - more patient, can be set to negative value
-    UChar mStabilityOfBoardOfDirectors = 4;
+    FifamChairmanStability mChairmanStability;
     // @since FM09
-    FifamClub *mFavouriteClub = nullptr;
+    FifamClubLink mFavouriteClub;
     // @since FM09
-    FifamClub *mWouldNeverWorkForClub = nullptr;
+    FifamClubLink mWouldNeverWorkForClub;
+    // @since FM07
+    FifamPlayer *mFavouritePlayer = nullptr;
+    // @since FM09
+    struct PersonalityAttributes {
+        // @since FM09
+        UChar WillingnessToLearn = 0;
+        // @since FM09
+        UChar Resilence = 0;
+        // @since FM09
+        UChar Effort = 0;
+    } mPersonalityAttributes;
+    // @since FM09
+    struct Skills {
+        UChar Tactics = 0;
+        UChar FieldPlayerTraining = 0;
+        UChar GoalkeeperTraining = 0;
+        UChar FitnessTraining = 0;
+        UChar SkillEstimation = 0;
+        UChar TeamEstimation = 0;
+        UChar MotivationAbility = 0;
+        UChar BoneInjury = 0;
+        UChar KneeInjury = 0;
+        UChar MuscleInjury = 0;
+        UChar InjuryPrevention = 0;
+        UChar RegenerationAbility = 0;
+        UChar Arbitrate = 0;
+        UChar Negotiation = 0;
+        UChar Marketing = 0;
+        UChar Sponsoring = 0;
+        UChar Construction = 0;
+        UChar PR = 0;
+        UChar FanContact = 0;
+        UChar SportsLaw = 0;
+        UChar LaborLaw = 0;
+        UChar GeneralScouting = 0;
+        UChar TalentEstimation = 0;
+        UChar FieldSkillsEstimation = 0;
+        UChar GoalkeeperSkillsEstimation = 0;
+        UChar MentalSkillsEstimation = 0;
+        UChar PhysicalSkillsEstimation = 0;
+        UChar Networking = 0;
+    } mSkills;
+    // @since FM09
+    UChar mTalent = 0;
+    // @since FM09
+    FifamCoachPlayingOrientation mCoachPlayingOrientation;
+    // @since FM09
+    Vector<FifamNation> mScoutPreferredCountries;
+    // @since FM09
+    Bool mHasNoneJobData = true;
+    // @since FM09
+    Bool mHasCoachJobData = true;
+    // @since FM09
+    Bool mHasMedicineJobData = true;
+    // @since FM09
+    Bool mHasManagerJobData = true;
+    // @since FM09
+    Bool mHasPRJobData = true;
+    // @since FM09
+    Bool mHasLawyerJobData = true;
+    // @since FM09
+    Bool mHasScoutJobData = true;
+    // @since FM11
+    FifamDate mJoinedClubDate;
 
     struct {
         // @since FM07
@@ -103,78 +134,17 @@ public:
         Char _2 = 0; // 0-7, default 0
     } Unknown;
 
-    FifamStaff() {}
+    FifamClub *mClub = nullptr;
+    FifamNation mLinkedCountry;
 
-    void Read(FifamReader &reader) {
-        if (reader.ReadStartIndex(L"STAFF")) {
-            //reader.ReadFullLine(mFirstName);
-            //reader.ReadFullLine(mLastName);
-            //reader.ReadLine(mType);
-            //reader.ReadLine(mBirthdate);
-            //reader.ReadLine(mNationality[0]);
-            //reader.ReadLine(Unknown._1);
-            //reader.ReadLine(mExperience);
-            //if (reader.IsVersionGreaterOrEqual(0x2007, 0x1E)) {
-            //    reader.ReadFullLine(mNickname);
-            //    reader.ReadFullLine(mPseudonym);
-            //    reader.ReadLine(mNationality[1]);
-            //    Int clubId;
-            //    reader.ReadLine(clubId);
-            //    // mFavouriteClub = FifamClub::GetClub(clubId);
-            //    reader.ReadLine(clubId);
-            //    // mWouldNeverWorkForClub = FifamClub::GetClub(clubId);
-            //}
-            //reader.ReadLine(mMotivationSkills);
-            //reader.ReadLine(mCoachingSkills);
-            //reader.ReadLine(mGoalkeepersTraining);
-            //reader.ReadLine(mNegotiationSkills);
-            //reader.ReadLine(mCharacterFocus);
-            //reader.ReadLine(mLanguage[0]);
-            //reader.ReadLine(mLanguage[1]);
-            //reader.ReadLine(mLanguage[2]);
-            //reader.ReadLine(mLanguage[3]);
-            //reader.ReadLine(mFavouriteFormation);
-            //reader.ReadLine(Unknown._2);
-            //reader.ReadLine(mStabilityOfBoardOfDirectors);
-            reader.ReadEndIndex(L"STAFF");
-        }
-    }
-
-    void Write(FifamWriter &writer, bool writeId = false) {
-        if (writeId)
-            writer.WriteLine(mID);
-        writer.WriteStartIndex(L"STAFF");
-        writer.WriteLine(mFirstName);
-        writer.WriteLine(mLastName);
-        writer.WriteLine(mType);
-        writer.WriteLine(mBirthdate);
-        writer.WriteLine(mNationality);
-        writer.WriteLine(Unknown._1);
-        writer.WriteLine(mExperience);
-        if (writer.IsVersionGreaterOrEqual(0x2007, 0x1E)) {
-            writer.WriteLine(mNickname);
-            writer.WriteLine(mPseudonym);
-            writer.WriteLine(mNationality[1]);
-            writer.WriteLine(0);
-            //writer.WriteLine(FifamClub::GetID(mFavouriteClub));
-            writer.WriteLine(0);
-            //writer.WriteLine(FifamClub::GetID(mWouldNeverWorkForClub));
-        }
-        writer.WriteLine(mMotivationSkills);
-        writer.WriteLine(mCoachingSkills);
-        writer.WriteLine(mGoalkeepersTraining);
-        writer.WriteLine(mNegotiationSkills);
-        if (writer.GetGameId() < 8 && mCharacterFocus == CharacterFocus::KeepsTeamTogether)
-            writer.WriteLine(0);
-        else
-            writer.WriteLine(mCharacterFocus);
-        writer.WriteLine(mLanguage[0]);
-        writer.WriteLine(mLanguage[1]);
-        writer.WriteLine(mLanguage[2]);
-        writer.WriteLine(mLanguage[3]);
-        writer.WriteLine(mFavouriteFormation);
-        writer.WriteLine(Unknown._2);
-        writer.WriteLine(mStabilityOfBoardOfDirectors);
-        writer.WriteEndIndex(L"STAFF");
-    }
+    void Read(FifamReader &reader, FifamDatabase *database);
+    void ReadWorker(FifamReader &reader, FifamDatabase *database);
+    void ReadManager(FifamReader &reader, FifamDatabase *database);
+    void ReadFromPlayer(FifamReader &reader, FifamDatabase *database);
+    void Write(FifamWriter &writer, FifamDatabase *database);
+    void WriteManager(FifamWriter &writer, FifamDatabase *database);
+    void WriteWorker(FifamWriter &writer, FifamDatabase *database);
+    void WriteToPlayer(FifamWriter &writer, FifamDatabase *database);
+    UChar GetLevel();
+    UChar GetLevel(FifamClubStaffPosition position);
 };

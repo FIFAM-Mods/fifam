@@ -112,7 +112,7 @@ Vector<Face07to11Info> gFace07to11Mapping = {
 { Face07::Caucasian2,   FifamSkinColor::White,     20, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Caucasian3,   FifamSkinColor::White,      3, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Caucasian4,   FifamSkinColor::White,      5, FifamFaceVariation::Normal, FifamEyeColor::Brown },
-{ Face07::Caucasian5,   FifamSkinColor::White,     14, FifamFaceVariation::Normal, FifamEyeColor::Brown },
+{ Face07::Caucasian5,   FifamSkinColor::White,     14, FifamFaceVariation::Normal, FifamEyeColor::Brown }, // Dup
 { Face07::Caucasian6,   FifamSkinColor::White,     24, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Caucasian7,   FifamSkinColor::White,      8, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Caucasian8,   FifamSkinColor::White,     23, FifamFaceVariation::Normal, FifamEyeColor::Brown },
@@ -125,7 +125,7 @@ Vector<Face07to11Info> gFace07to11Mapping = {
 { Face07::Caucasian15,  FifamSkinColor::White,     22, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Caucasian16,  FifamSkinColor::White,     12, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Caucasian17,  FifamSkinColor::White,     14, FifamFaceVariation::Normal, FifamEyeColor::Brown },
-{ Face07::Caucasian18,  FifamSkinColor::White,    126, FifamFaceVariation::Normal, FifamEyeColor::Brown },
+{ Face07::Caucasian18,  FifamSkinColor::White,    126, FifamFaceVariation::Normal, FifamEyeColor::Brown }, // Dup
 { Face07::Caucasian19,  FifamSkinColor::White,      2, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Caucasian20,  FifamSkinColor::White,      1, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Caucasian21,  FifamSkinColor::White,     94, FifamFaceVariation::Normal, FifamEyeColor::Brown },
@@ -135,7 +135,7 @@ Vector<Face07to11Info> gFace07to11Mapping = {
 { Face07::EasternEur4,  FifamSkinColor::White,      4, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::EasternEur5,  FifamSkinColor::White,     17, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::EasternEur6,  FifamSkinColor::White,    102, FifamFaceVariation::Normal, FifamEyeColor::Brown },
-{ Face07::EasternEur7,  FifamSkinColor::White,      6, FifamFaceVariation::Normal, FifamEyeColor::Brown },
+{ Face07::EasternEur7,  FifamSkinColor::White,      6, FifamFaceVariation::Normal, FifamEyeColor::Brown }, // Dup
 { Face07::EasternEur8,  FifamSkinColor::White,    126, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::EasternEur9,  FifamSkinColor::White,    121, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::EasternEur10, FifamSkinColor::White,    119, FifamFaceVariation::Normal, FifamEyeColor::Brown },
@@ -143,7 +143,7 @@ Vector<Face07to11Info> gFace07to11Mapping = {
 { Face07::EasternEur12, FifamSkinColor::White,    122, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Latin1,       FifamSkinColor::Latin1,   103, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Latin2,       FifamSkinColor::Latin1,    86, FifamFaceVariation::Normal, FifamEyeColor::Brown },
-{ Face07::Latin3,       FifamSkinColor::Latin1,    88, FifamFaceVariation::Normal, FifamEyeColor::Brown },
+{ Face07::Latin3,       FifamSkinColor::Latin1,    88, FifamFaceVariation::Normal, FifamEyeColor::Brown }, // Dup
 { Face07::Latin4,       FifamSkinColor::Latin1,    90, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Latin5,       FifamSkinColor::Latin1,    74, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Latin6,       FifamSkinColor::Latin1,    89, FifamFaceVariation::Normal, FifamEyeColor::Brown },
@@ -162,7 +162,7 @@ Vector<Face07to11Info> gFace07to11Mapping = {
 { Face07::Arabic1,      FifamSkinColor::Latin2,    82, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Arabic2,      FifamSkinColor::Latin2,    78, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Arabic3,      FifamSkinColor::Latin2,    77, FifamFaceVariation::Normal, FifamEyeColor::Brown },
-{ Face07::Arabic4,      FifamSkinColor::Latin2,    68, FifamFaceVariation::Normal, FifamEyeColor::Brown },
+{ Face07::Arabic4,      FifamSkinColor::Latin2,    68, FifamFaceVariation::Normal, FifamEyeColor::Brown }, // Dup
 { Face07::Arabic5,      FifamSkinColor::Latin1,    81, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Arabic6,      FifamSkinColor::Latin2,    93, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::African1,     FifamSkinColor::African2,   6, FifamFaceVariation::Normal, FifamEyeColor::Brown },

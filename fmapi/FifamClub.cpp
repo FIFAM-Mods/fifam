@@ -14,7 +14,7 @@ void FifamClub::ReadClubMembers(FifamReader &reader) {
     for (UInt i = 0; i < staffsCount; i++) {
         UInt id = reader.ReadLine<UInt>();
         auto staff = mCountry->mDatabase->CreateStaff(this, id);
-        staff->Read(reader);
+        staff->Read(reader, mDatabase);
     }
 }
 
@@ -24,12 +24,11 @@ void FifamClub::WriteClubMembers(FifamWriter &writer) {
         writer.WriteLine(player->mID);
         player->Write(writer, mDatabase);
     }
-    //writer.WriteLine(mStaffs.size());
-    //for (auto staff : mStaffs) {
-    //    writer.WriteLine(staff->mID);
-    //    staff->Write(writer);
-    //}
-    writer.WriteLine(0);
+    writer.WriteLine(mStaffs.size());
+    for (auto staff : mStaffs) {
+        writer.WriteLine(staff->mID);
+        staff->Write(writer, mDatabase);
+    }
 }
 
 void FifamClub::Read(FifamReader &reader, UInt id) {
@@ -230,7 +229,7 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
             reader.ReadLine(mStadiumType);
             reader.ReadLine(clubFlags);
             if (!reader.IsVersionGreaterOrEqual(0x2011, 0x0D)) {
-                mClubFacilities = Utils::Clamp(reader.ReadLine<UChar>(), 0, 5) + 1;
+                mClubFacilities = Utils::MapTo(reader.ReadLine<UChar>(), 0, 5, 0, 6);
                 mMedicalDepartment = Utils::Clamp(reader.ReadLine<UChar>(), 0, 5);
                 mMerchandising = Utils::Clamp(reader.ReadLine<UChar>(), 0, 5);
                 UChar youthDepartment = reader.ReadLine<UChar>();
@@ -477,11 +476,12 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         writer.WriteLineArray(mTransfersCountry);
         writer.WriteLine(mYouthPlayersCountry);
         mKit.Write(writer);
-        writer.WriteLine(
-            mLowestLeagues[0].ToInt(),
-            mLowestLeagues[1].ToInt(),
-            mLowestLeagues[2].ToInt(),
-            mLowestLeagues[3].ToInt());
+        Array<UInt, 4> lowestLeaguesIDs;
+        for (UInt i = 0; i < 4; i++) {
+            lowestLeaguesIDs[i] =
+                FifamCompID::Translate(mLowestLeagues[i].ToInt(), FifamDatabase::LATEST_GAME_VERSION, writer.GetGameId());
+        }
+        writer.WriteLineArray(lowestLeaguesIDs);
         writer.WriteLine(mClubFacilities, mYouthCentre, mYouthBoardingSchool, mAiStrategy, mLandscape, mSettlement);
         WriteClubMembers(writer);
         if (writer.IsVersionGreaterOrEqual(0x2013, 0x0A)) {

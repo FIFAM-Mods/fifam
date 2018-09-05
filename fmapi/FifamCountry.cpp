@@ -10,25 +10,29 @@ FifamCountry::FifamCountry(UInt id, FifamDatabase *db) {
 FifamReferee *FifamCountry::AddReferee() {
     FifamReferee *referee = new FifamReferee;
     mReferees.push_back(referee);
-    if (mDatabase)
-        mDatabase->mReferees.insert(referee);
+    mDatabase->mReferees.insert(referee);
     return referee;
 }
 
 FifamStadium *FifamCountry::AddStadium() {
     FifamStadium *stadium = new FifamStadium;
     mStadiums.push_back(stadium);
-    if (mDatabase)
-        mDatabase->mStadiums.insert(stadium);
+    mDatabase->mStadiums.insert(stadium);
     return stadium;
 }
 
 FifamSponsor *FifamCountry::AddSponsor() {
     FifamSponsor *sponsor = new FifamSponsor;
     mSponsors.push_back(sponsor);
-    if (mDatabase)
-        mDatabase->mSponsors.insert(sponsor);
+    mDatabase->mSponsors.insert(sponsor);
     return sponsor;
+}
+
+FifamCACPlayer *FifamCountry::AddCACPlayer() {
+    FifamCACPlayer *player = new FifamCACPlayer;
+    mCACPlayers.push_back(player);
+    mDatabase->mCACPlayers.insert(player);
+    return player;
 }
 
 bool FifamCountry::Read(FifamReader &reader) {
@@ -77,9 +81,6 @@ bool FifamCountry::Read(FifamReader &reader) {
             }
         }
 
-        if (reader.ReadStartIndex(L"STAFFS"))
-            reader.ReadEndIndex(L"STAFFS");
-
         if (reader.GetGameId() < 11) {
             if (reader.ReadStartIndex(L"STADIUMS")) {
                 auto numStadiums = reader.ReadLine<UInt>();
@@ -89,13 +90,37 @@ bool FifamCountry::Read(FifamReader &reader) {
             }
         }
 
+        if (reader.IsVersionGreaterOrEqual(0x2009, 0x05)) {
+            if (reader.ReadStartIndex(L"STAFFS")) {
+                UInt numStaffs = reader.ReadLine<UInt>();
+                UInt nextFreeId = mDatabase->GetNextFreePersonID();
+                for (UInt i = 0; i < numStaffs; i++) {
+                    FifamStaff *staff = mDatabase->CreateStaff(nullptr, nextFreeId++);
+                    staff->ReadWorker(reader, mDatabase);
+                    staff->mLinkedCountry.SetFromInt(mId);
+                }
+                reader.ReadEndIndex(L"STAFFS");
+            }
+        }
+
         if (reader.ReadStartIndex(L"ADDMANAGER")) {
-            // TODO
+            UInt numStaffs = reader.ReadLine<UInt>();
+            UInt nextFreeId = mDatabase->GetNextFreePersonID();
+            for (UInt i = 0; i < numStaffs; i++) {
+                FifamStaff *staff = mDatabase->CreateStaff(nullptr, nextFreeId++);
+                if (reader.IsVersionGreaterOrEqual(0x2009, 0x05))
+                    staff->Read(reader, mDatabase);
+                else
+                    staff->ReadFromPlayer(reader, mDatabase);
+                staff->mLinkedCountry.SetFromInt(mId);
+            }
             reader.ReadEndIndex(L"ADDMANAGER");
         }
 
         if (reader.ReadStartIndex(L"PLAYERPOOL")) {
-            // TODO
+            UInt numCACPlayers = reader.ReadLine<UInt>();
+            for (UInt i = 0; i < numCACPlayers; i++)
+                AddCACPlayer()->Read(reader, mDatabase);
             reader.ReadEndIndex(L"PLAYERPOOL");
         }
 
@@ -146,12 +171,10 @@ bool FifamCountry::Read(FifamReader &reader) {
                 mRedCardBanFixedDuration = true;
             reader.ReadLine(mRedCardRule);
             UChar validForAllCompsFlags = reader.ReadLine<UChar>();
-            if (reader.GetGameId() < 8) {
-                if (validForAllCompsFlags & 1)
-                    mYellowCardsBanForAllComp = true;
-                if (validForAllCompsFlags & 2)
-                    mSecondYellowCardBanForAllComp = true;
-            }
+            if (validForAllCompsFlags & 1)
+                mYellowCardsBanForAllComp = true;
+            if (validForAllCompsFlags & 2)
+                mSecondYellowCardBanForAllComp = true;
             if (validForAllCompsFlags & 4)
                 mRedCardsBanForAllComp = true;
             UChar secondYellowCardLeaguesState = reader.ReadLine<UChar>();
@@ -329,10 +352,17 @@ bool FifamCountry::Write(FifamWriter &writer) {
         writer.WriteEndIndex(L"SPONSORS");
     }
 
-    writer.WriteStartIndex(L"STAFFS");
-    // TODO
-    writer.WriteLine(0);
-    writer.WriteEndIndex(L"STAFFS");
+    Vector<FifamStaff *> staffWorkers;
+    Vector<FifamStaff *> staffBoardAndManagers;
+
+    for (FifamStaff *staff : mDatabase->mStaffs) {
+        if (!staff->mClub && staff->mLinkedCountry.ToInt() == mId) {
+            if (staff->mClubPosition.ToInt() < 4)
+                staffBoardAndManagers.push_back(staff);
+            else
+                staffWorkers.push_back(staff);
+        }
+    }
 
     if (writer.GetGameId() < 11) {
         writer.WriteStartIndex(L"STADIUMS");
@@ -342,14 +372,28 @@ bool FifamCountry::Write(FifamWriter &writer) {
         writer.WriteEndIndex(L"STADIUMS");
     }
 
+    if (writer.IsVersionGreaterOrEqual(0x2009, 0x05)) {
+        writer.WriteStartIndex(L"STAFFS");
+        writer.WriteLine(staffWorkers.size());
+        for (FifamStaff *staff : staffWorkers)
+            staff->WriteWorker(writer, mDatabase);
+        writer.WriteEndIndex(L"STAFFS");
+    }
+
     writer.WriteStartIndex(L"ADDMANAGER");
-    // TODO
-    writer.WriteLine(0);
+    writer.WriteLine(staffBoardAndManagers.size());
+    for (FifamStaff *staff : staffBoardAndManagers) {
+        if (writer.IsVersionGreaterOrEqual(0x2009, 0x05))
+            staff->Write(writer, mDatabase);
+        else
+            staff->WriteToPlayer(writer, mDatabase);
+    }
     writer.WriteEndIndex(L"ADDMANAGER");
 
     writer.WriteStartIndex(L"PLAYERPOOL");
-    // TODO
-    writer.WriteLine(0);
+    writer.WriteLine(mCACPlayers.size());
+    for (auto player : mCACPlayers)
+        player->Write(writer, mDatabase);
     writer.WriteEndIndex(L"PLAYERPOOL");
 
     String countryMiscSectionName;
@@ -401,12 +445,10 @@ bool FifamCountry::Write(FifamWriter &writer) {
     writer.WriteLine(redCardOptions);
     writer.WriteLine(mRedCardRule);
     UChar validForAllCompsFlags = 0;
-    if (writer.GetGameId() < 8) {
-        if (mYellowCardsBanForAllComp)
-            validForAllCompsFlags |= 1;
-        if (mSecondYellowCardBanForAllComp)
-            validForAllCompsFlags |= 2;
-    }
+    if (mYellowCardsBanForAllComp)
+        validForAllCompsFlags |= 1;
+    if (mSecondYellowCardBanForAllComp)
+        validForAllCompsFlags |= 2;
     if (mRedCardsBanForAllComp)
         validForAllCompsFlags |= 4;
     writer.WriteLine(validForAllCompsFlags);

@@ -174,8 +174,15 @@ void FifamWriter::WriteOne(FifamDate const &date) {
     UChar month = date.month;
     UShort year = date.year;
     if (year == 0) {
-        day = 0;
-        month = 0;
+        if (GetGameId() >= 11) {
+            day = 0;
+            month = 0;
+        }
+        else {
+            year = 2000;
+            day = 1;
+            month = 1;
+        }
     }
     if (IsVersionGreaterOrEqual(0x2009, 0xA))
         WriteOne(Utils::Format(L"%04d-%02d-%02d", year, month, day));

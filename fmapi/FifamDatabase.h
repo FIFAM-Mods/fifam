@@ -20,10 +20,11 @@ public:
     Set<FifamClub *> mClubs;
     Set<FifamPlayer *> mPlayers;
     Set<FifamReferee *> mReferees;
-    Set<FifamStaff *> mStaffs;
+    Vector<FifamStaff *> mStaffs; // TODO: replace with Set
     Set<FifamStadium *> mStadiums;
     Set<FifamSponsor *> mSponsors;
     Vector<FifamCupAlloc *> mCupTemplates;
+    Set<FifamCACPlayer *> mCACPlayers;
     FifamRules mRules;
     FifamHistoric mHistoric;
 
@@ -42,6 +43,7 @@ public:
 
     void ResolveLinksForClub(FifamClub *club, UInt gameId);
     void ResolveLinksForPlayer(FifamPlayer *player, UInt gameId);
+    void ResolveLinksForStaff(FifamStaff *staff, UInt gameId);
     FifamClubLink ClubFromID(UInt ID);
     FifamPlayer *PlayerFromID(UInt ID);
     UInt ClubToID(FifamClubLink const &clubLink);
@@ -51,4 +53,5 @@ public:
     void ResolvePlayerLink(FifamPlayer *&player);
     FifamClub *GetClubFromUID(UInt uid);
     void GetClubFromUID(FifamClubLink &link, UInt uid);
+    UInt GetNextFreePersonID();
 };

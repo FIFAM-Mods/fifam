@@ -133,10 +133,10 @@ void FifamPlayerStartingConditions::Read(FifamReader &reader, FifamDatabase *dat
         UChar injuryType = reader.ReadLine<UChar>();
         FifamDate injuryStartDate = reader.ReadLine<FifamDate>();
         FifamDate injuryEndDate = reader.ReadLine<FifamDate>();
-        UInt transferFee = reader.ReadLine<UInt>();
         Int buyOption = 0;
         if (reader.IsVersionGreaterOrEqual(0x2007, 0x10))
             reader.ReadLine(buyOption);
+        UInt transferFee = reader.ReadLine<UInt>();
         if ((startConditionFlags & 1) || injuryType != 0)
             mInjury.Setup(injuryStartDate, injuryEndDate, FifamPlayerInjuryType::MakeFromInt(injuryType));
         if (startConditionFlags & 2)
@@ -296,9 +296,9 @@ void FifamPlayerStartingConditions::Write(FifamWriter &writer, FifamDatabase *da
             writer.WriteLine(0);
         writer.WriteLine(injuryStartDate);
         writer.WriteLine(injuryEndDate);
-        writer.WriteLine(transferFee);
         if (writer.IsVersionGreaterOrEqual(0x2007, 0x10))
             writer.WriteLine(transferBuyOption);
+        writer.WriteLine(transferFee);
     }
 }
 

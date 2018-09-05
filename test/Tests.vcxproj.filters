@@ -73,7 +73,7 @@
     <ClInclude Include="tests\WritePlayersTest.h">
       <Filter>tests</Filter>
     </ClInclude>
-    <ClInclude Include="tests\FifaWorldPlayersTest.h">
+    <ClInclude Include="tests\HistoricTest.h">
       <Filter>tests</Filter>
     </ClInclude>
   </ItemGroup>

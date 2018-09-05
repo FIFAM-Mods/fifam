@@ -94,8 +94,10 @@
     <ClInclude Include="FifamClubMerchandiseColor.h" />
     <ClInclude Include="FifamClubRecord.h" />
     <ClInclude Include="FifamClubSettlement.h" />
+    <ClInclude Include="FifamClubStaffPosition.h" />
     <ClInclude Include="FifamClubTeamColor.h" />
     <ClInclude Include="FifamClubTeamType.h" />
+    <ClInclude Include="FifamCoachPlayingOrientation.h" />
     <ClInclude Include="FifamCompID.h" />
     <ClInclude Include="FifamCompLeague.h" />
     <ClInclude Include="FifamCompPool.h" />
@@ -129,15 +131,18 @@
     <ClInclude Include="FifamLanguage.h" />
     <ClInclude Include="FifamLeagueSystemType.h" />
     <ClInclude Include="FifamAmateurRule.h" />
+    <ClInclude Include="FifamManagerFocus.h" />
     <ClInclude Include="FifamNation.h" />
     <ClInclude Include="FifamClubPenaltyType.h" />
     <ClInclude Include="FifamPerson.h" />
     <ClInclude Include="FifamPersonType.h" />
     <ClInclude Include="FifamPlayer.h" />
+    <ClInclude Include="FifamPlayerAbilityID.h" />
     <ClInclude Include="FifamPlayerAgent.h" />
     <ClInclude Include="FifamPlayerAppearance.h" />
     <ClInclude Include="FifamPlayerAttributes.h" />
     <ClInclude Include="FifamPlayerCharacter.h" />
+    <ClInclude Include="FifamPlayerCharacterID.h" />
     <ClInclude Include="FifamPlayerContract.h" />
     <ClInclude Include="FifamPlayerContractSquadRole.h" />
     <ClInclude Include="FifamPlayerHistory.h" />
@@ -152,7 +157,7 @@
     <ClInclude Include="FifamRedCardRule.h" />
     <ClInclude Include="FifamReferee.h" />
     <ClInclude Include="FifamRefereeType.h" />
-    <ClInclude Include="FifamRegenPlayer.h" />
+    <ClInclude Include="FifamCACPlayer.h" />
     <ClInclude Include="FifamManager.h" />
     <ClInclude Include="FifamRelRule.h" />
     <ClInclude Include="FifamRoundID.h" />
@@ -175,6 +180,7 @@
     <ClInclude Include="FifamDate.h" />
     <ClInclude Include="FmPlayer13.h" />
     <ClInclude Include="FifamReadWrite.h" />
+    <ClInclude Include="FifamWorstStartingStreak.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamClub.cpp" />
@@ -204,11 +210,12 @@
     <ClCompile Include="FifamPlayerStartingConditions.cpp" />
     <ClCompile Include="FifamReadWrite.cpp" />
     <ClCompile Include="FifamReferee.cpp" />
-    <ClCompile Include="FifamRegenPlayer.cpp" />
+    <ClCompile Include="FifamCACPlayer.cpp" />
     <ClCompile Include="FifamManager.cpp" />
     <ClCompile Include="FifamRules.cpp" />
     <ClCompile Include="FifamSponsor.cpp" />
     <ClCompile Include="FifamStadium.cpp" />
+    <ClCompile Include="FifamStaff.cpp" />
     <ClCompile Include="FifamUtils.cpp" />
     <ClCompile Include="FifamVersion.cpp" />
   </ItemGroup>

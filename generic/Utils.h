@@ -84,4 +84,9 @@ namespace Utils {
     }
 
     std::wstring GetStringWithoutUnicodeChars(std::wstring const &src);
+
+    template<typename Container, typename ItemType>
+    bool Contains(Container const &container, ItemType const &item) {
+        return std::find(container.begin(), container.end(), item) != container.end();
+    }
 };

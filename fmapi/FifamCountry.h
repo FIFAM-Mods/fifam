@@ -18,6 +18,7 @@
 #include "FifamManager.h"
 #include "FifamCountryAppearanceData.h"
 #include "FifamCountryCompetitions.h"
+#include "FifamCACPlayer.h"
 
 class FifamDatabase;
 
@@ -242,10 +243,12 @@ public:
     Map<UInt, FifamClub *> mClubsMap;
     FifamClub mNationalTeam;
     FifamCountryCompetitions mCompetitions;
+    Vector<FifamCACPlayer *> mCACPlayers;
 
     FifamReferee *AddReferee();
     FifamStadium *AddStadium();
     FifamSponsor *AddSponsor();
+    FifamCACPlayer *AddCACPlayer();
     FifamCountry(UInt id, FifamDatabase *db);
     bool Read(FifamReader &reader);
     bool ReadFixtures(FifamReader &reader);

@@ -184,7 +184,7 @@ int Utils::Clamp(int value, int min, int max) {
 int Utils::MapTo(int value, int input_start, int input_end, int output_start, int output_end) {
     value = Clamp(value, input_start, input_end);
     double slope = 1.0 * (output_end - output_start) / (input_end - input_start);
-    return static_cast<int>(output_start + (floor(slope * (value - input_start)) + 0.5));
+    return static_cast<int>(round(output_start + slope * (value - input_start)));
 }
 
 std::wstring Utils::GetStringWithoutUnicodeChars(std::wstring const &src) {

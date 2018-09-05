@@ -110,9 +110,7 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
             withoutReader.ReadVersion();
         if (withoutReader.ReadStartIndex(L"WITHOUT")) {
             UInt numPlayers = withoutReader.ReadLine<UInt>();
-            UInt nextFreeId = 1;
-            if (!mPersonsMap.empty())
-                nextFreeId = (*mPersonsMap.rbegin()).first;
+            UInt nextFreeId = GetNextFreePersonID();
             for (UInt i = 0; i < numPlayers; i++)
                 CreatePlayer(nullptr, nextFreeId++)->Read(withoutReader, this);
             withoutReader.ReadEndIndex(L"WITHOUT");
@@ -156,6 +154,12 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
     std::wcout << L"Resolving player links" << std::endl;
     for (FifamPlayer *player : mPlayers)
         ResolveLinksForPlayer(player, gameId);
+    std::wcout << L"Resolving staff links" << std::endl;
+    for (FifamStaff *staff : mStaffs)
+        ResolveLinksForStaff(staff, gameId);
+    std::wcout << L"Resolving CAC player links" << std::endl;
+    for (FifamCACPlayer *player : mCACPlayers)
+        ResolveClubLink(player->mPreferredClub, gameId);
     std::wcout << L"Resolving rules links" << std::endl;
     for (UInt i = 0; i < FifamContinent::NUM_CONTINENTS; i++) {
         ResolveClubLink(mRules.mContinentalCupChampions[i].mFirstCup, gameId);
@@ -173,6 +177,12 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
     for (auto &worldPlayer : mHistoric.mFifaWorldPlayers) {
         UInt clubUID = TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(worldPlayer.mClub), gameId, LATEST_GAME_VERSION);
         GetClubFromUID(worldPlayer.mClub, clubUID);
+    }
+    for (auto &worstStartingStreak : mHistoric.mWorstStartingStreaks) {
+        UInt clubUID = TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(worstStartingStreak.mClub), gameId, LATEST_GAME_VERSION);
+        GetClubFromUID(worstStartingStreak.mClub, clubUID);
+        worstStartingStreak.mCompID.SetFromInt(
+            FifamCompID::Translate(worstStartingStreak.mCompID.ToInt(), gameId, LATEST_GAME_VERSION));
     }
 }
 
@@ -262,8 +272,8 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
     if (rulesWriter.Available())
         mRules.Write(rulesWriter, this);
 
-    if (!historicPath.empty())
-        mHistoric.Write(historicPath, gameId, vYear, vNumber, this);
+    //if (!historicPath.empty())
+    //    mHistoric.Write(historicPath, gameId, vYear, vNumber, this);
 
     if (!scriptPath.empty()) {
         path cupAllocPath = scriptPath / L"cupAlloc.txt";
@@ -348,16 +358,20 @@ FifamPlayer *FifamDatabase::CreatePlayer(FifamClub *club, UInt id) {
 FifamStaff *FifamDatabase::CreateStaff(FifamClub *club, UInt id) {
     FifamStaff *staff = new FifamStaff;
     staff->mID = id;
-    mStaffs.insert(staff);
+    mStaffs.push_back(staff);
     mPersonsMap[id] = staff;
-    club->mStaffs.push_back(staff);
+    if (club)
+        club->mStaffs.push_back(staff);
+    staff->mClub = club;
     return staff;
 }
 
 void FifamDatabase::ResolveLinksForClub(FifamClub *club, UInt gameId) {
     club->mUniqueID = TranslateClubID(club->mUniqueID, gameId, LATEST_GAME_VERSION);
-    for (UInt i = 0; i < 4; i++)
-        club->mLowestLeagues[i].Translate(club->mLowestLeagues[i].ToInt(), gameId, LATEST_GAME_VERSION);
+    for (UInt i = 0; i < 4; i++) {
+        club->mLowestLeagues[i].SetFromInt(
+            FifamCompID::Translate(club->mLowestLeagues[i].ToInt(), gameId, LATEST_GAME_VERSION));
+    }
     ResolveClubLink(club->mPartnershipClub, gameId);
     for (UInt i = 0; i < 4; i++)
         ResolveClubLink(club->mRivalClubs[i], gameId);
@@ -380,6 +394,12 @@ void FifamDatabase::ResolveLinksForPlayer(FifamPlayer *player, UInt gameId) {
     ResolveClubLink(player->mStartingConditions.mFutureTransfer.mNewClub, gameId);
     ResolveClubLink(player->mStartingConditions.mFutureLoan.mLoanedClub, gameId);
     ResolveClubLink(player->mStartingConditions.mFutureReLoan.mLoanedClub, gameId);
+}
+
+void FifamDatabase::ResolveLinksForStaff(FifamStaff *staff, UInt gameId) {
+    ResolveClubLink(staff->mFavouriteClub, gameId);
+    ResolveClubLink(staff->mWouldNeverWorkForClub, gameId);
+    ResolvePlayerLink(staff->mFavouritePlayer);
 }
 
 FifamClubLink FifamDatabase::ClubFromID(UInt ID) {
@@ -456,4 +476,10 @@ FifamClub *FifamDatabase::GetClubFromUID(UInt uid) {
 void FifamDatabase::GetClubFromUID(FifamClubLink &link, UInt uid) {
     link.mTeamType = FifamClubTeamType::First;
     link.mPtr = GetClubFromUID(uid);
+}
+
+UInt FifamDatabase::GetNextFreePersonID() {
+    if (mPersonsMap.empty())
+        return 1;
+    return (*mPersonsMap.rbegin()).first;
 }

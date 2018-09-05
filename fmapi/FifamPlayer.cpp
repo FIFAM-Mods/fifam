@@ -142,6 +142,7 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
             mIsRealPlayer = Utils::CheckFlag(playerBasicFlags, 4);
             reader.ReadLine(mBirthday);
             if (reader.IsVersionGreaterOrEqual(0x2009, 0x02)) {
+                mInYouthTeam = Utils::CheckFlag(playerBasicFlags, 8);
                 reader.ReadLine(mTalent);
                 UChar footPrefs = reader.ReadLine<UChar>();
                 mRightFoot = footPrefs & 0xF;
@@ -263,7 +264,7 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
             else {
                 reader.SkipLine();
                 FifamUtils::SaveClubIDToClubLink(mFavouriteClub, reader.ReadLine<UInt>());
-                if (reader.IsVersionGreaterOrEqual(0x2007, 0x0E))
+                if (reader.IsVersionGreaterOrEqual(0x2007, 0x1E))
                     FifamUtils::SaveClubIDToClubLink(mWouldnSignFor, reader.ReadLine<UInt>());
                 reader.SkipLines(2);
             }
@@ -651,6 +652,8 @@ void FifamPlayer::Write(FifamWriter &writer, FifamDatabase *database) {
         Utils::SetFlag(playerBasicFlags, 1, mIsNaturalised);
         Utils::SetFlag(playerBasicFlags, 2, mIsBasque);
         Utils::SetFlag(playerBasicFlags, 4, mIsRealPlayer);
+        if (writer.IsVersionGreaterOrEqual(0x2009, 0x02))
+            Utils::SetFlag(playerBasicFlags, 8, mInYouthTeam);
         writer.WriteLine(playerBasicFlags);
         writer.WriteLine(mBirthday);
         if (writer.IsVersionGreaterOrEqual(0x2009, 0x02)) {
@@ -684,9 +687,9 @@ void FifamPlayer::Write(FifamWriter &writer, FifamDatabase *database) {
             writer.WriteLine(mMainPosition);
         }
         else {
-            UnorderedSet<UInt> PreferredPositions;
-            UnorderedSet<UInt> SecondaryPositions;
-            PreferredPositions.insert(mMainPosition.ToInt());
+            Vector<UInt> PreferredPositions;
+            Vector<UInt> SecondaryPositions;
+            PreferredPositions.push_back(mMainPosition.ToInt());
             using PositionPair = Pair<Float, UInt>;
             Array<PositionPair, 18> bestPositions;
             for (UInt i = 0; i < 18; i++) {
@@ -700,8 +703,8 @@ void FifamPlayer::Write(FifamWriter &writer, FifamDatabase *database) {
             // preferred
             for (UInt i = 0; i < 18; i++) {
                 if (bestPositions[i].first >= 98.0f) {
-                    if (PreferredPositions.size() < 3)
-                        PreferredPositions.insert(bestPositions[i].second);
+                    if (PreferredPositions.size() < 3 && !Utils::Contains(PreferredPositions, bestPositions[i].second))
+                        PreferredPositions.push_back(bestPositions[i].second);
                 }
                 else
                     break;
@@ -709,21 +712,21 @@ void FifamPlayer::Write(FifamWriter &writer, FifamDatabase *database) {
             // secondary
             for (UInt i = 0; i < 18; i++) {
                 if (bestPositions[i].first >= 96.0f) {
-                    if (SecondaryPositions.size() < 3 && !PreferredPositions.count(bestPositions[i].second))
-                        SecondaryPositions.insert(bestPositions[i].second);
+                    if (SecondaryPositions.size() < 3 && !Utils::Contains(PreferredPositions, bestPositions[i].second))
+                        SecondaryPositions.push_back(bestPositions[i].second);
                 }
                 else
                     break;
             }
             for (UInt i = 0; i < 3; i++) {
                 if (i < PreferredPositions.size())
-                    writer.WriteLine(*std::next(PreferredPositions.begin(), i));
+                    writer.WriteLine(PreferredPositions[i]);
                 else
                     writer.WriteLine(0);
             }
             for (UInt i = 0; i < 3; i++) {
                 if (i < SecondaryPositions.size())
-                    writer.WriteLine(*std::next(SecondaryPositions.begin(), i));
+                    writer.WriteLine(SecondaryPositions[i]);
                 else
                     writer.WriteLine(0);
             }
@@ -732,7 +735,7 @@ void FifamPlayer::Write(FifamWriter &writer, FifamDatabase *database) {
         writer.WriteLine(playingStyle);
         if (!writer.IsVersionGreaterOrEqual(0x2011, 0x04))
             writer.WriteLine(mPotential);
-        writer.WriteLine(mCharacter.ToInt() & 0xFFFFFF);
+        writer.WriteLine(mCharacter.ToInt() & 0x7FFFFF);
         if (writer.IsVersionGreaterOrEqual(0x2011, 0x01)) {
             writer.WriteLine(mAppearance.mGenericFace);
             writer.WriteLine(mAppearance.mHairStyle);

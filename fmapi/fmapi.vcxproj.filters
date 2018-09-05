@@ -16,7 +16,6 @@
     <ClInclude Include="FifamTranslation.h" />
     <ClInclude Include="FifamReferee.h" />
     <ClInclude Include="FifamSponsor.h" />
-    <ClInclude Include="FifamRegenPlayer.h" />
     <ClInclude Include="FifamStadium.h" />
     <ClInclude Include="FifamCompetition.h" />
     <ClInclude Include="FifamManager.h" />
@@ -96,6 +95,13 @@
     <ClInclude Include="FifamCountryCompetitions.h" />
     <ClInclude Include="FifamFifaWorldPlayer.h" />
     <ClInclude Include="FifamHistoric.h" />
+    <ClInclude Include="FifamWorstStartingStreak.h" />
+    <ClInclude Include="FifamCACPlayer.h" />
+    <ClInclude Include="FifamPlayerAbilityID.h" />
+    <ClInclude Include="FifamPlayerCharacterID.h" />
+    <ClInclude Include="FifamManagerFocus.h" />
+    <ClInclude Include="FifamClubStaffPosition.h" />
+    <ClInclude Include="FifamCoachPlayingOrientation.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamDate.cpp" />
@@ -105,7 +111,6 @@
     <ClCompile Include="FifamDatabase.cpp" />
     <ClCompile Include="FifamReferee.cpp" />
     <ClCompile Include="FifamSponsor.cpp" />
-    <ClCompile Include="FifamRegenPlayer.cpp" />
     <ClCompile Include="FifamStadium.cpp" />
     <ClCompile Include="FifamPlayer.cpp" />
     <ClCompile Include="FifamCompetition.cpp" />
@@ -132,5 +137,7 @@
     <ClCompile Include="FifamPlayerAttributes.cpp" />
     <ClCompile Include="FifamCountryCompetitions.cpp" />
     <ClCompile Include="FifamHistoric.cpp" />
+    <ClCompile Include="FifamCACPlayer.cpp" />
+    <ClCompile Include="FifamStaff.cpp" />
   </ItemGroup>
 </Project>

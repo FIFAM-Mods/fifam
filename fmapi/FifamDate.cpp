@@ -52,7 +52,7 @@ void FifamDate::Validate() {
 
     if (day == 0 || day > daysInMonth[month - 1])
         day = 1;
-    else if (month == 2 && day == 29 && !(year % 4)) {
+    else if (month == 2 && day == 29 && (year % 4)) {
         day = 1;
         month = 3;
     }

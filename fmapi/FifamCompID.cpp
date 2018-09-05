@@ -7,7 +7,7 @@ void FifamCompID::SetFromInt(UInt value) {
     mIndex = value & 0xFFFF;
 }
 
-UInt FifamCompID::ToInt() {
+UInt FifamCompID::ToInt() const {
     return mIndex | (mType.ToInt() << 16) | (mRegion.ToInt() << 24);
 }
 
@@ -18,7 +18,7 @@ void FifamCompID::FifamCompID::SetFromHexStr(String const &str) {
         SetFromInt(Utils::ToNumber(L"0x" + str));
 }
 
-String FifamCompID::ToHexStr() {
+String FifamCompID::ToHexStr() const {
     return Utils::Format(L"%08X", ToInt());
 }
 
@@ -40,7 +40,7 @@ void FifamCompID::SetFromStr(String const &str) {
     }
 }
 
-String FifamCompID::ToStr() {
+String FifamCompID::ToStr() const {
     if (IsNull())
         return L"None";
     Int regionId = mRegion.ToInt();
@@ -88,7 +88,7 @@ FifamCompID::FifamCompID(UInt id) {
     SetFromInt(id);
 }
 
-bool FifamCompID::IsNull() {
+bool FifamCompID::IsNull() const {
     return ToInt() == 0;
 }
 
