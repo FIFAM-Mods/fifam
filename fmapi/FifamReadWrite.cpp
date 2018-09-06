@@ -7,7 +7,7 @@
 #include <Windows.h>
 #include "Error.h"
 
-bool FifamFileWorker::IsVersionGreaterOrEqual(unsigned short year, unsigned short number) {
+Bool FifamFileWorker::IsVersionGreaterOrEqual(UShort year, UShort number) {
     return mVersion.IsGreaterOrEqual(year, number);
 }
 
@@ -27,7 +27,7 @@ void FifamFileWorker::Close() {
     }
 }
 
-size_t FifamFileWorker::GetGameId() {
+UInt FifamFileWorker::GetGameId() {
     return mGameId;
 }
 
@@ -35,19 +35,19 @@ FifamVersion FifamFileWorker::GetVersion() {
     return mVersion;
 }
 
-bool FifamFileWorker::Available() {
+Bool FifamFileWorker::Available() {
     return mFile != nullptr;
 }
 
-long FifamFileWorker::GetPosition() {
+Long FifamFileWorker::GetPosition() {
     return ftell(mFile);
 }
 
-void FifamFileWorker::SetPosition(long pos) {
+void FifamFileWorker::SetPosition(Long pos) {
     fseek(mFile, pos, SEEK_SET);
 }
 
-long FifamFileWorker::GetSize() {
+Long FifamFileWorker::GetSize() {
     auto currPos = GetPosition();
     fseek(mFile, 0, SEEK_END);
     auto result = GetPosition();
@@ -56,12 +56,12 @@ long FifamFileWorker::GetSize() {
 }
 
 
-FifamWriter::FifamWriter(Path const &filename, size_t gameId, unsigned short vYear, unsigned short vNumber, bool unicode) :
+FifamWriter::FifamWriter(Path const &filename, UInt gameId, UShort vYear, UShort vNumber, Bool unicode) :
     FifamFileWorker(unicode, gameId)
 {
     mFile = _wfopen(filename.c_str(), unicode ? L"wb" : L"wt");
     if (mFile && unicode) {
-        unsigned char sign[3];
+        UChar sign[3];
         sign[0] = 0xEF; sign[1] = 0xBB; sign[2] = 0xBF;
         fwrite(sign, 3, 1, mFile);
         fclose(mFile);
@@ -71,58 +71,58 @@ FifamWriter::FifamWriter(Path const &filename, size_t gameId, unsigned short vYe
     mVersion.Set(vYear, vNumber);
 }
 
-void FifamWriter::WriteOne(char value) {
+void FifamWriter::WriteOne(Char value) {
     fwprintf(mFile, L"%d", value);
 }
 
-void FifamWriter::WriteOne(wchar_t value) {
+void FifamWriter::WriteOne(WideChar value) {
     fputwc(value, mFile);
 }
 
-void FifamWriter::WriteOne(short value) {
+void FifamWriter::WriteOne(Short value) {
     fwprintf(mFile, L"%d", value);
 }
 
-void FifamWriter::WriteOne(int value) {
+void FifamWriter::WriteOne(Int value) {
     fwprintf(mFile, L"%d", value);
 }
 
-void FifamWriter::WriteOne(unsigned char value) {
+void FifamWriter::WriteOne(UChar value) {
     fwprintf(mFile, L"%u", value);
 }
 
-void FifamWriter::WriteOne(unsigned short value) {
+void FifamWriter::WriteOne(UShort value) {
     fwprintf(mFile, L"%u", value);
 }
 
-void FifamWriter::WriteOne(unsigned int value) {
+void FifamWriter::WriteOne(UInt value) {
     fwprintf(mFile, L"%u", value);
 }
 
-void FifamWriter::WriteOne(long long int value) {
+void FifamWriter::WriteOne(Int64 value) {
     fwprintf(mFile, L"%I64d", value);
 }
 
-void FifamWriter::WriteOne(unsigned long long int value) {
+void FifamWriter::WriteOne(UInt64 value) {
     fwprintf(mFile, L"%I64u", value);
 }
 
-void FifamWriter::WriteOne(float value) {
+void FifamWriter::WriteOne(Float value) {
     fwprintf(mFile, L"%f", value);
 }
 
-void FifamWriter::WriteOne(double value) {
+void FifamWriter::WriteOne(Double value) {
     fwprintf(mFile, L"%f", value);
 }
 
-void FifamWriter::WriteOne(bool value) {
+void FifamWriter::WriteOne(Bool value) {
     if (value)
         fputws(L"1", mFile);
     else
         fputws(L"0", mFile);
 }
 
-void FifamWriter::WriteOne(wchar_t const *value) {
+void FifamWriter::WriteOne(WideChar const *value) {
     String str = value;
     WriteOne(str);
 }
@@ -155,14 +155,14 @@ void FifamWriter::WriteOne(Quoted const &value) {
     WriteOne(L"\"");
 }
 
-void FifamWriter::WriteStartIndex(String const &name, bool newLine) {
+void FifamWriter::WriteStartIndex(String const &name, Bool newLine) {
     if (newLine)
         WriteLine(L"%INDEX%" + name);
     else
         WriteOne(L"%INDEX%" + name);
 }
 
-void FifamWriter::WriteEndIndex(String const &name, bool newLine) {
+void FifamWriter::WriteEndIndex(String const &name, Bool newLine) {
     if (newLine)
         WriteLine(L"%INDEXEND%" + name);
     else
@@ -201,11 +201,11 @@ void FifamWriter::WriteVersion() {
     WriteEndIndex(L"VERSION");
 }
 
-void FifamWriter::WriteTranslationArray(FifamTrArray<String> const &ary, bool quoted, wchar_t sep) {
-    size_t num_tr = 6;
+void FifamWriter::WriteTranslationArray(FifamTrArray<String> const &ary, Bool quoted, WideChar sep) {
+    UInt num_tr = 6;
     if (!IsVersionGreaterOrEqual(0x2007, 0x1A))
         num_tr = 5;
-    for (size_t i = 0; i < num_tr; i++) {
+    for (UInt i = 0; i < num_tr; i++) {
         if (quoted)
             WriteOne(L"\"");
         WriteOne(ary[i]);
@@ -216,7 +216,7 @@ void FifamWriter::WriteTranslationArray(FifamTrArray<String> const &ary, bool qu
     }
 }
 
-void FifamWriter::WriteLineTranslationArray(FifamTrArray<String> const &ary, bool quoted, wchar_t sep) {
+void FifamWriter::WriteLineTranslationArray(FifamTrArray<String> const &ary, Bool quoted, WideChar sep) {
     WriteTranslationArray(ary, quoted, sep);
     WriteOne(L"\n");
 }
@@ -226,7 +226,7 @@ void FifamWriter::WriteNewLine() {
 }
 
 
-FifamReader::FifamReader(Path const &filename, size_t gameId, bool unicode) :
+FifamReader::FifamReader(Path const &filename, UInt gameId, Bool unicode) :
     FifamFileWorker(unicode, gameId)
 {
     mFile = _wfopen(filename.c_str(), L"rt");
@@ -240,18 +240,18 @@ FifamReader::FifamReader(Path const &filename, size_t gameId, bool unicode) :
     }
 }
 
-FifamReader::FifamReader(Path const &filename, size_t gameId, unsigned short vYear, unsigned short vNumber) :
+FifamReader::FifamReader(Path const &filename, UInt gameId, UShort vYear, UShort vNumber) :
     FifamReader(filename, gameId)
 {
     mVersion.Set(vYear, vNumber);
 }
 
-bool FifamReader::IsEof() {
+Bool FifamReader::IsEof() {
     return GetPosition() == GetSize();
 }
 
-wchar_t *FifamReader::GetLine() {
-    static char cLine[BUFFER_SIZE];
+WideChar *FifamReader::GetLine() {
+    static Char cLine[BUFFER_SIZE];
     cLine[0] = 0;
     mLine[0] = 0;
     while (fgets(cLine, BUFFER_SIZE, mFile)) {
@@ -268,7 +268,7 @@ wchar_t *FifamReader::GetLine() {
     return nullptr;
 }
 
-bool FifamReader::CheckLine(String const &str, bool skipIfTrue) {
+Bool FifamReader::CheckLine(String const &str, Bool skipIfTrue) {
     auto savedPos = GetPosition();
     auto line = GetLine();
     if (line && !str.compare(line)) {
@@ -280,7 +280,7 @@ bool FifamReader::CheckLine(String const &str, bool skipIfTrue) {
     return false;
 }
 
-bool FifamReader::FindLine(String const &str, bool skipIfFound, bool moveToEofIfNotFound) {
+Bool FifamReader::FindLine(String const &str, Bool skipIfFound, Bool moveToEofIfNotFound) {
     auto savedFilePos = GetPosition();
     while (!IsEof()) {
         auto savedLinePos = GetPosition();
@@ -296,8 +296,8 @@ bool FifamReader::FindLine(String const &str, bool skipIfFound, bool moveToEofIf
     return false;
 }
 
-void FifamReader::SkipLines(size_t count) {
-    for (size_t i = 0; i < count; i++)
+void FifamReader::SkipLines(UInt count) {
+    for (UInt i = 0; i < count; i++)
         GetLine();
 }
 
@@ -305,11 +305,11 @@ void FifamReader::SkipLine() {
     SkipLines(1);
 }
 
-bool FifamReader::ReadStartIndex(String const &name, bool moveToEofIfNotFound) {
+Bool FifamReader::ReadStartIndex(String const &name, Bool moveToEofIfNotFound) {
     return FindLine(L"%INDEX%" + name, true, moveToEofIfNotFound);
 }
 
-bool FifamReader::ReadEndIndex(String const &name, bool moveToEofIfNotFound) {
+Bool FifamReader::ReadEndIndex(String const &name, Bool moveToEofIfNotFound) {
     return FindLine(L"%INDEXEND%" + name, true, moveToEofIfNotFound);
 }
 
@@ -326,47 +326,51 @@ void FifamReader::ReadLine(FifamDate &date) {
     date.Validate();
 }
 
-void FifamReader::StrToArg(String const &str, unsigned char &arg) {
-    arg = str.empty() ? 0 : Utils::SafeConvertInt<unsigned char>(str);
+void FifamReader::StrToArg(String const &str, Bool &arg) {
+    arg = str.empty() ? false : Utils::SafeConvertInt<Bool>(str);
 }
 
-void FifamReader::StrToArg(String const &str, char &arg) {
-    arg = str.empty() ? 0 : Utils::SafeConvertInt<char>(str);
+void FifamReader::StrToArg(String const &str, UChar &arg) {
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<UChar>(str);
 }
 
-void FifamReader::StrToArg(String const &str, unsigned short &arg) {
-    arg = str.empty() ? 0 : Utils::SafeConvertInt<unsigned short>(str);
+void FifamReader::StrToArg(String const &str, Char &arg) {
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<Char>(str);
 }
 
-void FifamReader::StrToArg(String const &str, short &arg) {
-    arg = str.empty() ? 0 : Utils::SafeConvertInt<short>(str);
+void FifamReader::StrToArg(String const &str, UShort &arg) {
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<UShort>(str);
 }
 
-void FifamReader::StrToArg(String const &str, unsigned int &arg) {
-    arg = str.empty() ? 0 : Utils::SafeConvertInt<unsigned int>(str);
+void FifamReader::StrToArg(String const &str, Short &arg) {
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<Short>(str);
 }
 
-void FifamReader::StrToArg(String const &str, int &arg) {
-    arg = str.empty() ? 0 : Utils::SafeConvertInt<unsigned int>(str);
+void FifamReader::StrToArg(String const &str, UInt &arg) {
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<UInt>(str);
 }
 
-void FifamReader::StrToArg(String const &str, unsigned long long int &arg) {
-    arg = str.empty() ? 0 : Utils::SafeConvertInt<unsigned long long int>(str);
+void FifamReader::StrToArg(String const &str, Int &arg) {
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<UInt>(str);
 }
 
-void FifamReader::StrToArg(String const &str, long long int &arg) {
-    arg = str.empty() ? 0 : Utils::SafeConvertInt<long long int>(str);
+void FifamReader::StrToArg(String const &str, UInt64 &arg) {
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<UInt64>(str);
 }
 
-void FifamReader::StrToArg(String const &str, float &arg) {
+void FifamReader::StrToArg(String const &str, Int64 &arg) {
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<Int64>(str);
+}
+
+void FifamReader::StrToArg(String const &str, Float &arg) {
     arg = str.empty() ? 0.0f : Utils::SafeConvertFloat(str);
 }
 
-void FifamReader::StrToArg(String const &str, double &arg) {
+void FifamReader::StrToArg(String const &str, Double &arg) {
     arg = str.empty() ? 0.0 : Utils::SafeConvertDouble(str);
 }
 
-void FifamReader::StrToArg(String const &str, wchar_t *arg) {
+void FifamReader::StrToArg(String const &str, WideChar *arg) {
     wcscpy(arg, str.c_str());
 }
 
@@ -389,7 +393,7 @@ void FifamReader::StrToArg(String const &str, FifamDate &arg) {
 }
 
 void FifamReader::StrToArg(String const &str, Hexademical arg) {
-    arg = str.empty() ? 0 : Utils::SafeConvertInt<unsigned int>(str, true);
+    arg = str.empty() ? 0 : Utils::SafeConvertInt<UInt>(str, true);
 }
 
 void FifamReader::StrToArg(String const &str, Quoted arg) {
@@ -398,7 +402,7 @@ void FifamReader::StrToArg(String const &str, Quoted arg) {
     arg = modstr;
 }
 
-bool FifamReader::ReadVersion() {
+Bool FifamReader::ReadVersion() {
     if (ReadStartIndex(L"VERSION")) {
         mVersion.Set(ReadLine<UInt>());
         return ReadEndIndex(L"VERSION");
@@ -413,7 +417,7 @@ String FifamReader::ReadFullLine() {
     return String();
 }
 
-bool FifamReader::ReadFullLine(String &out) {
+Bool FifamReader::ReadFullLine(String &out) {
     auto line = GetLine();
     if (line) {
         out = line;
@@ -432,7 +436,7 @@ void FifamReader::RemoveQuotes(String &str) {
     }
 }
 
-size_t FifamReader::ReadLineTranslationArray(FifamTrArray<String> &out, wchar_t sep) {
+UInt FifamReader::ReadLineTranslationArray(FifamTrArray<String> &out, WideChar sep) {
     auto result = ReadLineArray(out, sep);
     if (!IsVersionGreaterOrEqual(0x2007, 0x1A) && out.size() >= FifamTranslation::NUM_TRANSLATIONS)
         out[FifamTranslation::Polish] = out[FifamTranslation::English];

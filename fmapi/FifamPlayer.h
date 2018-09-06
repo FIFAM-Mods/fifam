@@ -199,5 +199,5 @@ public:
     UChar GetLevel(FifamPlayerPosition position, Bool experience = true);
     UChar GetLevel(FifamPlayerPlayingStyle style, Bool experience = true);
     UChar GetLevel(Bool experience = true);
-    static bool SortPlayersByLevel(FifamPlayer *player1, FifamPlayer *player2);
+    static Bool SortPlayersByLevel(FifamPlayer *player1, FifamPlayer *player2);
 };

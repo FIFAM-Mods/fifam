@@ -3,19 +3,19 @@
 
 class FifamVersion {
     union {
-        unsigned int mIntValue;
+        UInt mIntValue;
         struct {
-            unsigned int mNumber : 16;
-            unsigned int mYear : 16;
+            UInt mNumber : 16;
+            UInt mYear : 16;
         };
     };
 public:
     FifamVersion();
-    void Set(unsigned short year, unsigned short number);
-    void Set(unsigned int intValue);
-    unsigned short GetYear();
-    unsigned short GetNumber();
-    unsigned int GetIntValue();
-    bool IsGreaterOrEqual(unsigned short year, unsigned short number);
+    void Set(UShort year, UShort number);
+    void Set(UInt intValue);
+    UShort GetYear();
+    UShort GetNumber();
+    UInt GetIntValue();
+    Bool IsGreaterOrEqual(UShort year, UShort number);
     String GetString();
 };

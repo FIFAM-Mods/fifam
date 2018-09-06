@@ -25,7 +25,7 @@ public:
         Polish
     };
 
-    static const unsigned int NUM_TRANSLATIONS = 6;
+    static const UInt NUM_TRANSLATIONS = 6;
 };
 
 template<typename T>
@@ -36,6 +36,6 @@ T FifamTr(FifamTrArray<T> const &trAry) {
     return trAry[FifamTranslation::English];
 }
 
-inline wchar_t const *FifamTr_c(FifamTrArray<String> const &trAry) {
+inline WideChar const *FifamTr_c(FifamTrArray<String> const &trAry) {
     return trAry[FifamTranslation::English].c_str();
 }

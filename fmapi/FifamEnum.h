@@ -11,14 +11,14 @@ class typeName : FifamEnum { \
 public: \
     using underlyingtype_t = underlyingType; \
 private: \
-    using _MemberType = std::pair<underlyingtype_t, wchar_t const *>; \
-    using _MembersContainer = std::vector<_MemberType>; \
+    using _MemberType = Pair<underlyingtype_t, WideChar const *>; \
+    using _MembersContainer = Vector<_MemberType>; \
     underlyingtype_t _value = 0; \
-    bool _wasSetFromUnkown = false; \
+    Bool _wasSetFromUnkown = false; \
     underlyingtype_t _unknownValue = 0; \
 \
-    static bool &_hasGaps() { \
-        static bool var_hasGaps = true; \
+    static Bool &_hasGaps() { \
+        static Bool var_hasGaps = true; \
         return var_hasGaps; \
     } \
     static underlyingtype_t &_first() { \
@@ -29,8 +29,8 @@ private: \
         static underlyingtype_t var_last = 0; \
         return var_last; \
     } \
-    static bool &_hasDefault() { \
-        static bool var_hasDefault = false; \
+    static Bool &_hasDefault() { \
+        static Bool var_hasDefault = false; \
         return var_hasDefault; \
     } \
     static underlyingtype_t &_defaultValue() { \
@@ -42,11 +42,11 @@ private: \
         static _MembersContainer m; \
         return m; \
     } \
-    static underlyingtype_t _InitEnumMember(underlyingtype_t id, wchar_t const *name) { \
+    static underlyingtype_t _InitEnumMember(underlyingtype_t id, WideChar const *name) { \
         _members().emplace_back(id, name); \
         return id; \
     } \
-    static bool _InitEnum() { \
+    static Bool _InitEnum() { \
         _hasGaps() = true; \
         if (!_members().empty()) { \
             std::sort(_members().begin(), _members().end(), [](_MemberType const &a, _MemberType const &b) { \
@@ -66,7 +66,7 @@ private: \
         } \
         return true; \
     } \
-    static bool _InitDefaultValue(underlyingtype_t value) { \
+    static Bool _InitDefaultValue(underlyingtype_t value) { \
         _defaultValue() = value; \
         _hasDefault() = true; \
         return true; \
@@ -83,11 +83,11 @@ private: \
 #define ENUM_MEMBER(id, idname, strname) _ENUM_MEMBER_X(id, idname, strname, __LINE__)
 
 #define ENUM_DEFAULT_VALUE(idname) \
-    inline static bool _initializer1x = _InitDefaultValue(idname);
+    inline static Bool _initializer1x = _InitDefaultValue(idname);
 
 #define ENUM_END(typeName) \
 private: \
-    inline static bool _initializer0x = _InitEnum(); \
+    inline static Bool _initializer0x = _InitEnum(); \
 public: \
     typeName() { \
         if (_hasDefault()) \
@@ -95,7 +95,7 @@ public: \
         else \
             _value = _first(); \
     } \
-    static bool Present(underlyingtype_t value) { \
+    static Bool Present(underlyingtype_t value) { \
         if (!_hasGaps()) \
             return value >= _first() && value <= _last(); \
         for (auto const &m : _members()) { \
@@ -105,23 +105,23 @@ public: \
         return false; \
     } \
     underlyingtype_t ToInt() const { return _value; } \
-    std::wstring ToStr() const { \
+    String ToStr() const { \
         return ToCStr(); \
     } \
-    wchar_t const *ToCStr() const { \
+    WideChar const *ToCStr() const { \
         for (auto const &m : _members()) { \
             if (m.first == _value) \
                 return m.second; \
         } \
         return L""; \
     } \
-    bool GetWasSetFromUnknown() const { return _wasSetFromUnkown; } \
+    Bool GetWasSetFromUnknown() const { return _wasSetFromUnkown; } \
     void SetUnknown(underlyingtype_t value) { \
         _wasSetFromUnkown = true; \
         _unknownValue = value; \
     } \
     underlyingtype_t GetUnknown() const { return _unknownValue; } \
-    bool SetFromInt(underlyingtype_t value) { \
+    Bool SetFromInt(underlyingtype_t value) { \
         if (Present(value)) { \
             _value = value; \
             _wasSetFromUnkown = false; \
@@ -133,7 +133,7 @@ public: \
         _unknownValue = value; \
         return false; \
     } \
-    bool SetFromInt(underlyingtype_t value, underlyingtype_t defaultValue) { \
+    Bool SetFromInt(underlyingtype_t value, underlyingtype_t defaultValue) { \
         if (Present(value)) { \
             _value = value; \
             _wasSetFromUnkown = false; \
@@ -147,7 +147,7 @@ public: \
         _unknownValue = value; \
         return false; \
     } \
-    bool SetFromStr(std::wstring const &str) { \
+    Bool SetFromStr(String const &str) { \
         for (auto const &m : _members()) { \
             if (m.second == str) { \
                 _value = m.first; \
@@ -160,7 +160,7 @@ public: \
         _wasSetFromUnkown = true; \
        return false; \
     } \
-    bool SetFromStr(std::wstring const &str, std::wstring &unkStr) { \
+    Bool SetFromStr(String const &str, String &unkStr) { \
         SetFromStr(str); \
         if (_wasSetFromUnkown) \
             unkStr = str; \
@@ -168,7 +168,7 @@ public: \
             unkStr.clear(); \
         return !_wasSetFromUnkown; \
     } \
-    bool SetDefaultValue() { \
+    Bool SetDefaultValue() { \
         if (_hasDefault()) { \
             _value = _defaultValue(); \
             return true; \
@@ -176,16 +176,16 @@ public: \
         return false; \
     } \
     template<typename ToType> \
-    ToType TranslateTo(const Vector<std::pair<underlyingtype_t, ToType>> &table, ToType defaultValue = 0) { \
-        for (size_t i = 0; i < table.size(); i++) { \
+    ToType TranslateTo(const Vector<Pair<underlyingtype_t, ToType>> &table, ToType defaultValue = 0) { \
+        for (UInt i = 0; i < table.size(); i++) { \
             if (table[i].second == _value) \
                 return table[i].first; \
         } \
         return defaultValue; \
     } \
     template<typename FromType> \
-    bool TranslateFrom(FromType fromValue, const Vector<std::pair<FromType, underlyingtype_t>> &table) { \
-        for (size_t i = 0; i < table.size(); i++) { \
+    Bool TranslateFrom(FromType fromValue, const Vector<Pair<FromType, underlyingtype_t>> &table) { \
+        for (UInt i = 0; i < table.size(); i++) { \
             if (table[i].first == fromValue) { \
                 SetFromInt(table[i].second); \
                 return true; \
@@ -205,11 +205,11 @@ public: \
         _wasSetFromUnkown = rhs._wasSetFromUnkown; \
         _unknownValue = rhs._unknownValue; \
     } \
-    typeName &operator= (const std::wstring &rhs) { \
+    typeName &operator= (const String &rhs) { \
         SetFromStr(rhs); \
         return *this; \
     } \
-    typeName(const std::wstring &rhs) { \
+    typeName(const String &rhs) { \
         SetFromStr(rhs); \
     } \
     template<typename T, typename I = std::enable_if_t<std::is_enum_v<T>>> \
@@ -228,62 +228,62 @@ public: \
     } \
 }; \
  \
-inline bool operator== (const typeName &a, const typeName &b) { \
+inline Bool operator== (const typeName &a, const typeName &b) { \
     return a.ToInt() == b.ToInt(); \
 } \
 template<typename T> \
-inline bool operator== (const typeName &a, const T &b) { \
+inline Bool operator== (const typeName &a, const T &b) { \
     return a.ToInt() == b; \
 } \
-inline bool operator!= (const typeName &a, const typeName &b) { \
+inline Bool operator!= (const typeName &a, const typeName &b) { \
     return a.ToInt() != b.ToInt(); \
 } \
 template<typename T> \
-inline bool operator!= (const typeName &a, const T &b) { \
+inline Bool operator!= (const typeName &a, const T &b) { \
     return a.ToInt() != b; \
 } \
-inline bool operator< (const typeName &a, const typeName &b) { \
+inline Bool operator< (const typeName &a, const typeName &b) { \
     return a.ToInt() < b.ToInt(); \
 } \
 template<typename T> \
-inline bool operator< (const typeName &a, const T &b) { \
+inline Bool operator< (const typeName &a, const T &b) { \
     return a.ToInt() < b; \
 } \
 template<typename T> \
-inline bool operator< (const T &a, const typeName &b) { \
+inline Bool operator< (const T &a, const typeName &b) { \
     return a < b.ToInt(); \
 } \
-inline bool operator> (const typeName &a, const typeName &b) { \
+inline Bool operator> (const typeName &a, const typeName &b) { \
     return a.ToInt() > b.ToInt(); \
 } \
 template<typename T> \
-inline bool operator> (const typeName &a, const T &b) { \
+inline Bool operator> (const typeName &a, const T &b) { \
     return a.ToInt() > b; \
 } \
 template<typename T> \
-inline bool operator> (const T &a, const typeName &b) { \
+inline Bool operator> (const T &a, const typeName &b) { \
     return a > b.ToInt(); \
 } \
-inline bool operator<= (const typeName &a, const typeName &b) { \
+inline Bool operator<= (const typeName &a, const typeName &b) { \
     return a.ToInt() <= b.ToInt(); \
 } \
 template<typename T> \
-inline bool operator<= (const typeName &a, const T &b) { \
+inline Bool operator<= (const typeName &a, const T &b) { \
     return a.ToInt() <= b; \
 } \
 template<typename T> \
-inline bool operator<= (const T &a, const typeName &b) { \
+inline Bool operator<= (const T &a, const typeName &b) { \
     return a <= b.ToInt(); \
 } \
-inline bool operator>= (const typeName &a, const typeName &b) { \
+inline Bool operator>= (const typeName &a, const typeName &b) { \
     return a.ToInt() >= b.ToInt(); \
 } \
 template<typename T> \
-inline bool operator>= (const typeName &a, const T &b) { \
+inline Bool operator>= (const typeName &a, const T &b) { \
     return a.ToInt() >= b; \
 } \
 template<typename T> \
-inline bool operator>= (const T &a, const typeName &b) { \
+inline Bool operator>= (const T &a, const typeName &b) { \
     return a >= b.ToInt(); \
 }
 

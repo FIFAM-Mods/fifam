@@ -13,39 +13,39 @@ class FifamBaseFlags;
 class FifamFileWorker {
 protected:
     FILE *mFile = nullptr;
-    size_t mGameId = 0;
+    UInt mGameId = 0;
     FifamVersion mVersion;
     Bool mUnicode = true;
 
 public:
-    bool IsVersionGreaterOrEqual(unsigned short year, unsigned short number);
+    Bool IsVersionGreaterOrEqual(UShort year, UShort number);
     FifamFileWorker(Bool unicode, UInt gameId);
     ~FifamFileWorker();
     void Close();
-    size_t GetGameId();
+    UInt GetGameId();
     FifamVersion GetVersion();
-    bool Available();
-    long GetPosition();
-    void SetPosition(long pos);
-    long GetSize();
+    Bool Available();
+    Long GetPosition();
+    void SetPosition(Long pos);
+    Long GetSize();
 };
 
 class FifamWriter : public FifamFileWorker {
 public:
-    FifamWriter(Path const &filename, size_t gameId, unsigned short vYear, unsigned short vNumber, bool unicode = true);
-    void WriteOne(char value);
-    void WriteOne(wchar_t value);
-    void WriteOne(short value);
-    void WriteOne(int value);
-    void WriteOne(unsigned char value);
-    void WriteOne(unsigned short value);
-    void WriteOne(unsigned int value);
-    void WriteOne(long long int value);
-    void WriteOne(unsigned long long int value);
-    void WriteOne(float value);
-    void WriteOne(double value);
-    void WriteOne(bool value);
-    void WriteOne(wchar_t const *value);
+    FifamWriter(Path const &filename, UInt gameId, UShort vYear, UShort vNumber, Bool unicode = true);
+    void WriteOne(Char value);
+    void WriteOne(WideChar value);
+    void WriteOne(Short value);
+    void WriteOne(Int value);
+    void WriteOne(UChar value);
+    void WriteOne(UShort value);
+    void WriteOne(UInt value);
+    void WriteOne(Int64 value);
+    void WriteOne(UInt64 value);
+    void WriteOne(Float value);
+    void WriteOne(Double value);
+    void WriteOne(Bool value);
+    void WriteOne(WideChar const *value);
     void WriteOne(String const &value);
     void WriteOne(Hexademical const &value);
     void WriteOne(Quoted const &value);
@@ -65,18 +65,18 @@ public:
         WriteOne(value.ToInt());
     }
 
-    void WriteStartIndex(String const &name, bool newLine = true);
-    void WriteEndIndex(String const &name, bool newLine = true);
+    void WriteStartIndex(String const &name, Bool newLine = true);
+    void WriteEndIndex(String const &name, Bool newLine = true);
     void WriteOne(FifamDate const &date);
     void WriteVersion();
 private:
     template<typename One>
-    void WriteArgs(char sep, One &&arg) {
+    void WriteArgs(Char sep, One &&arg) {
         WriteOne(std::forward<One>(arg));
     }
 
     template<typename One, typename... Other>
-    void WriteArgs(char sep, One&& arg, Other&&... other) {
+    void WriteArgs(Char sep, One&& arg, Other&&... other) {
         WriteArgs(sep, std::forward<One>(arg));
         WriteOne(Utils::CharToStr(sep));
         WriteArgs(sep, std::forward<Other>(other)...);
@@ -104,14 +104,14 @@ public:
     }
 
     template <typename... ArgTypes>
-    void WriteLineWithSeparator(char sep, ArgTypes&&... args) {
+    void WriteLineWithSeparator(Char sep, ArgTypes&&... args) {
         WriteArgs(sep, std::forward<ArgTypes>(args)...);
         WriteOne(L"\n");
     }
 
     template<typename Container, typename T = typename Container::value_type>
-    void WriteArray(Container const &ary, wchar_t sep = L',') {
-        for (size_t i = 0; i < ary.size(); i++) {
+    void WriteArray(Container const &ary, WideChar sep = L',') {
+        for (UInt i = 0; i < ary.size(); i++) {
             WriteOne(ary[i]);
             if (i != ary.size() - 1)
                 WriteOne(sep);
@@ -119,35 +119,35 @@ public:
     }
 
     template<typename Container, typename T = typename Container::value_type>
-    void WriteLineArray(Container const &ary, wchar_t sep = L',') {
+    void WriteLineArray(Container const &ary, WideChar sep = L',') {
         WriteArray(ary, sep);
         WriteOne(L"\n");
     }
 
     template<typename T>
-    void WriteTranslationArray(FifamTrArray<T> const &ary, wchar_t sep = L',') {
+    void WriteTranslationArray(FifamTrArray<T> const &ary, WideChar sep = L',') {
         Vector<T> vec;
-        size_t num_tr = 6;
+        UInt num_tr = 6;
         if (!IsVersionGreaterOrEqual(0x2007, 0x1A))
             num_tr = 5;
-        for (size_t i = 0; i < num_tr; i++)
+        for (UInt i = 0; i < num_tr; i++)
             vec.push_back(ary[i]);
         WriteArray(vec, sep);
     }
 
     template<typename T>
-    void WriteLineTranslationArray(FifamTrArray<T> const &ary, wchar_t sep = L',') {
+    void WriteLineTranslationArray(FifamTrArray<T> const &ary, WideChar sep = L',') {
         WriteTranslationArray(ary, sep);
         WriteOne(L"\n");
     }
 
-    void WriteTranslationArray(FifamTrArray<String> const &ary, bool quoted = true, wchar_t sep = L',');
-    void WriteLineTranslationArray(FifamTrArray<String> const &ary, bool quoted = true, wchar_t sep = L',');
+    void WriteTranslationArray(FifamTrArray<String> const &ary, Bool quoted = true, WideChar sep = L',');
+    void WriteLineTranslationArray(FifamTrArray<String> const &ary, Bool quoted = true, WideChar sep = L',');
 
     template<typename T>
-    void WritePackedLineArray(Vector<T> const &ary, wchar_t sep = L',') {
+    void WritePackedLineArray(Vector<T> const &ary, WideChar sep = L',') {
         WriteOne(L"{ ");
-        for (size_t i = 0; i < ary.size(); i++) {
+        for (UInt i = 0; i < ary.size(); i++) {
             WriteOne(ary[i]);
             if (i != ary.size() - 1)
                 WriteOne(sep);
@@ -160,34 +160,35 @@ public:
 };
 
 class FifamReader : public FifamFileWorker {
-    static const size_t BUFFER_SIZE = 4096;
-    wchar_t mLine[BUFFER_SIZE];
+    static const UInt BUFFER_SIZE = 4096;
+    WideChar mLine[BUFFER_SIZE];
 public:
-    bool IsEof();
-    FifamReader(Path const &filename, size_t gameId, bool unicode = true);
-    FifamReader(Path const &filename, size_t gameId, unsigned short vYear, unsigned short vNumber);
+    Bool IsEof();
+    FifamReader(Path const &filename, UInt gameId, Bool unicode = true);
+    FifamReader(Path const &filename, UInt gameId, UShort vYear, UShort vNumber);
 private:
-    wchar_t *GetLine();
+    WideChar *GetLine();
 public:
-    bool CheckLine(String const &str, bool skipIfTrue = false);
-    bool FindLine(String const &str, bool skipIfFound = false, bool moveToEofIfNotFound = false);
-    void SkipLines(size_t count);
+    Bool CheckLine(String const &str, Bool skipIfTrue = false);
+    Bool FindLine(String const &str, Bool skipIfFound = false, Bool moveToEofIfNotFound = false);
+    void SkipLines(UInt count);
     void SkipLine();
-    bool ReadStartIndex(String const &name, bool moveToEofIfNotFound = false);
-    bool ReadEndIndex(String const &name, bool moveToEofIfNotFound = true);
+    Bool ReadStartIndex(String const &name, Bool moveToEofIfNotFound = false);
+    Bool ReadEndIndex(String const &name, Bool moveToEofIfNotFound = true);
     void ReadLine(FifamDate &date);
 private:
-    void StrToArg(String const &str, unsigned char &arg);
-    void StrToArg(String const &str, char &arg);
-    void StrToArg(String const &str, unsigned short &arg);
-    void StrToArg(String const &str, short &arg);
-    void StrToArg(String const &str, unsigned int &arg);
-    void StrToArg(String const &str, int &arg);
-    void StrToArg(String const &str, unsigned long long int &arg);
-    void StrToArg(String const &str, long long int &arg);
-    void StrToArg(String const &str, float &arg);
-    void StrToArg(String const &str, double &arg);
-    void StrToArg(String const &str, wchar_t *arg);
+    void StrToArg(String const &str, Bool &arg);
+    void StrToArg(String const &str, UChar &arg);
+    void StrToArg(String const &str, Char &arg);
+    void StrToArg(String const &str, UShort &arg);
+    void StrToArg(String const &str, Short &arg);
+    void StrToArg(String const &str, UInt &arg);
+    void StrToArg(String const &str, Int &arg);
+    void StrToArg(String const &str, UInt64 &arg);
+    void StrToArg(String const &str, Int64 &arg);
+    void StrToArg(String const &str, Float &arg);
+    void StrToArg(String const &str, Double &arg);
+    void StrToArg(String const &str, WideChar *arg);
     void StrToArg(String const &str, String &arg);
     void StrToArg(String const &str, FifamDate &arg);
     void StrToArg(String const &str, Hexademical arg);
@@ -212,7 +213,7 @@ private:
     }
 
     template<typename One>
-    void ReadOneArg(Vector<String> strArgs, size_t &currArg, One &&one) {
+    void ReadOneArg(Vector<String> strArgs, UInt &currArg, One &&one) {
         if (strArgs.size() > currArg)
             StrToArg(strArgs[currArg++], std::forward<One>(one));
         else
@@ -220,7 +221,7 @@ private:
     }
 
     template<typename One, typename... Other>
-    void ReadOneArg(Vector<String> strArgs, size_t &currArg, One&& one, Other&&... other) {
+    void ReadOneArg(Vector<String> strArgs, UInt &currArg, One&& one, Other&&... other) {
         ReadOneArg(strArgs, currArg, std::forward<One>(one));
         ReadOneArg(strArgs, currArg, std::forward<Other>(other)...);
     }
@@ -230,7 +231,7 @@ public:
     void ReadLine(ArgTypes&&... args) {
         GetLine();
         auto strArgs = Utils::Split(mLine, L',');
-        size_t currArg = 0;
+        UInt currArg = 0;
         ReadOneArg(strArgs, currArg, std::forward<ArgTypes>(args)...);
     }
 
@@ -246,30 +247,30 @@ public:
         if (endPos != String::npos)
             line = substr(0, endPos);
         auto strArgs = Utils::Split(line, L",");
-        size_t currArg = 0;
+        UInt currArg = 0;
         ReadOneArg(strArgs, currArg, std::forward<ArgTypes>(args)...);
     }
 
     template<typename... ArgTypes>
-    void ReadLineWithSeparator(wchar_t sep, ArgTypes&&... args) {
+    void ReadLineWithSeparator(WideChar sep, ArgTypes&&... args) {
         GetLine();
         auto strArgs = Utils::Split(mLine, sep);
-        size_t currArg = 0;
+        UInt currArg = 0;
         ReadOneArg(strArgs, currArg, std::forward<ArgTypes>(args)...);
     }
 
     template<typename Container>
-    size_t ReadLineArray(Container &out, wchar_t sep = L',') {
+    UInt ReadLineArray(Container &out, WideChar sep = L',') {
         GetLine();
         Vector<String> strArgs = Utils::Split(mLine, sep);
-        size_t count = Utils::Min(out.size(), strArgs.size());
-        for (size_t i = 0; i < count; i++)
+        UInt count = Utils::Min(out.size(), strArgs.size());
+        for (UInt i = 0; i < count; i++)
             StrToArg(strArgs[i], out[i]);
         return Utils::Max(out.size(), strArgs.size());
     }
 
     template<typename T>
-    size_t ReadLineTranslationArray(FifamTrArray<T> &out, wchar_t sep = L',') {
+    UInt ReadLineTranslationArray(FifamTrArray<T> &out, WideChar sep = L',') {
         auto result = ReadLineArray(out, sep);
         if (!IsVersionGreaterOrEqual(0x2007, 0x1A) && out.size() >= FifamTranslation::NUM_TRANSLATIONS)
             out[FifamTranslation::Polish] = out[FifamTranslation::English];
@@ -277,21 +278,21 @@ public:
     }
 
     void RemoveQuotes(String &str);
-    size_t ReadLineTranslationArray(FifamTrArray<String> &out, wchar_t sep = L',');
+    UInt ReadLineTranslationArray(FifamTrArray<String> &out, WideChar sep = L',');
 
     template<typename T>
-    Vector<T> ReadLineArray(wchar_t sep = L',', bool skipEmpty = false) {
+    Vector<T> ReadLineArray(WideChar sep = L',', Bool skipEmpty = false) {
         GetLine();
         Vector<T> ary;
         Vector<String> strArgs = Utils::Split(mLine, sep, true, skipEmpty);
         ary.resize(strArgs.size());
-        for (size_t i = 0; i < strArgs.size(); i++)
+        for (UInt i = 0; i < strArgs.size(); i++)
             StrToArg(strArgs[i], ary[i]);
         return ary;
     }
 
     template<typename T>
-    Vector<T> ReadPackedLineArray(wchar_t sep = L',') {
+    Vector<T> ReadPackedLineArray(WideChar sep = L',') {
         GetLine();
         String line = mLine;
         auto startPos = line.find_first_of(L'{');
@@ -303,7 +304,7 @@ public:
         Vector<T> ary;
         Vector<String> strArgs = Utils::Split(line, sep);
         ary.resize(strArgs.size());
-        for (size_t i = 0; i < strArgs.size(); i++)
+        for (UInt i = 0; i < strArgs.size(); i++)
             StrToArg(strArgs[i], ary[i]);
         return ary;
     }
@@ -315,8 +316,8 @@ public:
         return out;
     }
 
-    bool ReadVersion();
+    Bool ReadVersion();
 
     String ReadFullLine();
-    bool ReadFullLine(String &out);
+    Bool ReadFullLine(String &out);
 };

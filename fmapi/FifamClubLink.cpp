@@ -8,27 +8,27 @@ FifamClubLink::FifamClubLink(FifamClub *ptr, FifamClubTeamType const &teamType) 
     mTeamType = teamType;
 }
 
-bool FifamClubLink::IsValid() const {
+Bool FifamClubLink::IsValid() const {
     return mPtr != nullptr;
 }
 
-bool FifamClubLink::IsFirstTeam() const {
+Bool FifamClubLink::IsFirstTeam() const {
     return IsValid() && mTeamType == FifamClubTeamType::First;
 }
 
-bool FifamClubLink::IsReserveTeam() const {
+Bool FifamClubLink::IsReserveTeam() const {
     return IsValid() && mTeamType == FifamClubTeamType::Reserve;
 }
 
-bool FifamClubLink::IsYouthATeam() const {
+Bool FifamClubLink::IsYouthATeam() const {
     return IsValid() && mTeamType == FifamClubTeamType::YouthA;
 }
 
-bool FifamClubLink::IsYouthBTeam() const {
+Bool FifamClubLink::IsYouthBTeam() const {
     return IsValid() && mTeamType == FifamClubTeamType::YouthB;
 }
 
-bool FifamClubLink::IsYouthTeam() const {
+Bool FifamClubLink::IsYouthTeam() const {
     return IsYouthATeam() || IsYouthBTeam();
 }
 
@@ -40,4 +40,8 @@ String FifamClubLink::GetTeamName() const {
             result += L" (" + mTeamType.ToStr() + L")";
     }
     return result;
+}
+
+Bool operator==(FifamClubLink const & lhs, FifamClubLink const & rhs) {
+    return lhs.mPtr == rhs.mPtr && lhs.mTeamType == rhs.mTeamType;
 }

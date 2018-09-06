@@ -7,6 +7,7 @@
 #include <map>
 #include <set>
 #include <unordered_set>
+#include <bitset>
 #include <functional>
 #include <filesystem>
 #include <new>
@@ -24,14 +25,18 @@ using UInt = unsigned int;
 using Int64 = long long int;
 using UInt64 = unsigned long long int;
 using Long = long;
+using ULong = unsigned long;
 using Float = float;
 using Double = double;
-using Bool = unsigned char;
-using Bool1 = bool;
+using Bool = bool;
+using Bool8 = unsigned char;
+using Bool32 = unsigned int;
 using String = std::wstring;
 template<typename A, typename B>
 using Pair = std::pair<A, B>;
-template<typename T, size_t S>
+template<typename... Types>
+using Tuple = std::tuple<Types...>;
+template<typename T, UInt S>
 using Array = std::array<T, S>;
 template<typename T>
 using Vector = std::vector<T>;
@@ -47,6 +52,6 @@ template<typename T>
 using UnorderedSet = std::unordered_set<T>;
 template<typename T>
 using MultiSet = std::multiset<T>;
+template<UInt Bits>
+using BitSet = std::bitset<Bits>;
 using Path = path;
-
-#define SELECTANY __declspec(selectany)

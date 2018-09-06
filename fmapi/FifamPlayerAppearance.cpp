@@ -106,7 +106,7 @@ enum class BeardType07 {
     None = 1, Goatee = 2, Moustash = 3, Shadow = 4, FullGoatee = 5, Full = 6
 };
 
-using Face07to11Info = std::tuple<Face07, FifamSkinColor, UChar, FifamFaceVariation, FifamEyeColor>;
+using Face07to11Info = Tuple<Face07, FifamSkinColor, UChar, FifamFaceVariation, FifamEyeColor>;
 Vector<Face07to11Info> gFace07to11Mapping = {
 { Face07::Caucasian1,   FifamSkinColor::White,     25, FifamFaceVariation::Normal, FifamEyeColor::Brown },
 { Face07::Caucasian2,   FifamSkinColor::White,     20, FifamFaceVariation::Normal, FifamEyeColor::Brown },
@@ -200,7 +200,7 @@ Vector<Face07to11Info> gFace07to11Mapping = {
 { Face07::Asian17,      FifamSkinColor::Asian,     38, FifamFaceVariation::Normal, FifamEyeColor::Brown }
 };
 
-using Hair07to11Info = std::tuple<UChar, UChar>;
+using Hair07to11Info = Tuple<UChar, UChar>;
 Vector<Hair07to11Info> gHair07to11Mapping = {
 {  1,  3 },
 {  2, 66 },
@@ -253,7 +253,7 @@ UChar gFace11to07table[7][135] = {
 {  60, 67, 60, 66, 67, 60, 60, 19, 66, 60, 66, 60, 66, 60, 66, 66, 60, 60, 66, 66, 66, 60, 66, 14, 66, 60, 66, 60, 66, 66, 66, 66, 60, 66, 66, 66, 66, 60, 66, 66, 60, 66, 67, 66, 60, 66, 66, 66, 16, 66, 66, 15, 66, 66, 60, 66, 66, 66, 66, 66, 60, 66, 66, 66, 66, 66, 60, 67, 60, 60, 60, 66, 67, 60, 66, 60, 60, 60, 19, 14, 66, 67, 60, 60, 67, 60, 60, 66, 60, 66, 60, 66, 60, 66, 60, 66, 60, 60, 59, 60, 66, 60, 60, 66, 66, 60, 67, 19, 66, 60, 60, 60, 66, 60, 66, 66, 67, 66, 19, 67, 66, 66, 67, 60, 60, 19, 60, 66, 66, 60, 66, 66, 66, 60, 66, }
 };
 
-using Hair11to07Info = std::tuple<UChar, UChar>;
+using Hair11to07Info = Tuple<UChar, UChar>;
 Vector<Hair07to11Info> gHair11to07table = {
 {  1, 11 },
 {  2,  1 },

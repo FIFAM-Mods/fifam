@@ -61,7 +61,7 @@ void FifamDate::Validate() {
         year = 0;
 }
 
-bool FifamDate::operator==(FifamDate const &rhs) const {
+Bool FifamDate::operator==(FifamDate const &rhs) const {
     return Date::operator==(rhs);
 }
 
@@ -69,23 +69,23 @@ void FifamDate::operator=(FifamDate const &rhs) {
     Date::operator=(rhs);
 }
 
-bool FifamDate::operator!=(FifamDate const &rhs) const {
+Bool FifamDate::operator!=(FifamDate const &rhs) const {
     return Date::operator!=(rhs);
 }
 
-bool FifamDate::operator>(FifamDate const &rhs) const {
+Bool FifamDate::operator>(FifamDate const &rhs) const {
     return Date::operator>(rhs);
 }
 
-bool FifamDate::operator>=(FifamDate const &rhs) const {
+Bool FifamDate::operator>=(FifamDate const &rhs) const {
     return Date::operator>=(rhs);
 }
 
-bool FifamDate::operator<(FifamDate const &rhs) const {
+Bool FifamDate::operator<(FifamDate const &rhs) const {
     return Date::operator<(rhs);
 }
 
-bool FifamDate::operator<=(FifamDate const &rhs) const {
+Bool FifamDate::operator<=(FifamDate const &rhs) const {
     return Date::operator<=(rhs);
 }
 

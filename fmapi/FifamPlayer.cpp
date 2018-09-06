@@ -472,7 +472,7 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
 
             // set player agent
             if (GetLevel() >= 55) {
-                int randVal = Random::Get(0, 100);
+                Int randVal = Random::Get(0, 100);
                 if (randVal >= 65) {
                     if (randVal >= 90)
                         mPlayerAgent = FifamPlayerAgent::Lawyer;
@@ -877,6 +877,6 @@ UChar FifamPlayer::GetLevel(Bool experience) {
     return GetLevel(mMainPosition, mPlayingStyle, experience);
 }
 
-Bool1 FifamPlayer::SortPlayersByLevel(FifamPlayer *player1, FifamPlayer *player2) {
+Bool FifamPlayer::SortPlayersByLevel(FifamPlayer *player1, FifamPlayer *player2) {
     return player1->GetLevel() > player2->GetLevel();
 }

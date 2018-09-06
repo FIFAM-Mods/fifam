@@ -178,7 +178,6 @@
     <ClInclude Include="FifamUtils.h" />
     <ClInclude Include="FifamVersion.h" />
     <ClInclude Include="FifamDate.h" />
-    <ClInclude Include="FmPlayer13.h" />
     <ClInclude Include="FifamReadWrite.h" />
     <ClInclude Include="FifamWorstStartingStreak.h" />
   </ItemGroup>
@@ -190,6 +189,8 @@
     <ClCompile Include="FifamClubRecord.cpp" />
     <ClCompile Include="FifamCompetition.cpp" />
     <ClCompile Include="FifamCompID.cpp" />
+    <ClCompile Include="FifamCompLeague.cpp" />
+    <ClCompile Include="FifamCompRound.cpp" />
     <ClCompile Include="FifamCountry.cpp" />
     <ClCompile Include="FifamCountryAppearanceData.cpp" />
     <ClCompile Include="FifamCountryCompetitions.cpp" />

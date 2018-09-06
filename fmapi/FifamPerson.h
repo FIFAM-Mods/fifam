@@ -3,6 +3,6 @@
 
 class FifamPerson {
 public:
-    unsigned int mID;
+    UInt mID;
     FifamPersonType mPersonType;
 };

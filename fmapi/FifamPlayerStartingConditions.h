@@ -10,7 +10,7 @@ class FifamPlayerStartingCondition {
 public:
     Bool mEnabled = false;
 
-    bool Enabled();
+    Bool Enabled();
     void Enable();
     void Disable();
 };

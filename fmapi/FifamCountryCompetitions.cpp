@@ -1,6 +1,6 @@
 #include "FifamCountryCompetitions.h"
 
-bool FifamCountryCompetitions::Read(FifamReader & reader) {
+Bool FifamCountryCompetitions::Read(FifamReader & reader) {
     if (reader.ReadStartIndex(L"COMPETITION")) {
         // TODO
         reader.ReadEndIndex(L"COMPETITION");
@@ -8,7 +8,7 @@ bool FifamCountryCompetitions::Read(FifamReader & reader) {
     return true;
 }
 
-bool FifamCountryCompetitions::Write(FifamWriter & writer) {
+Bool FifamCountryCompetitions::Write(FifamWriter & writer) {
     writer.WriteStartIndex(L"COMPETITION");
     // TODO
     writer.WriteLine(0);

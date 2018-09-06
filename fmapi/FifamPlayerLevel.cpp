@@ -46,7 +46,7 @@ Array<Float, 18> FifamPlayerLevel::GetDefaultBiasValues(FifamPlayerPosition cons
     return ary;
 }
 
-FifamPlayerPlayingStyle FifamPlayerLevel::GetBestStyleForPlayer(FifamPlayer *player, bool includeNewStyles) {
+FifamPlayerPlayingStyle FifamPlayerLevel::GetBestStyleForPlayer(FifamPlayer *player, Bool includeNewStyles) {
     if (player->mMainPosition == FifamPlayerPosition::None || player->mMainPosition == FifamPlayerPosition::GK)
         return FifamPlayerPlayingStyle::None;
     FifamPlayerPlayingStyle result = FifamPlayerPlayingStyle::None;
@@ -89,7 +89,7 @@ FifamPlayerPlayingStyle FifamPlayerLevel::GetBestStyleForPlayer(FifamPlayer *pla
     return result;
 }
 
-UChar FifamPlayerLevel::GetPlayerLevel13(FifamPlayer *player, FifamPlayerPosition position, FifamPlayerPlayingStyle style, bool experience) {
+UChar FifamPlayerLevel::GetPlayerLevel13(FifamPlayer *player, FifamPlayerPosition position, FifamPlayerPlayingStyle style, Bool experience) {
     if (position.ToInt() == 0 || position.ToInt() > 17 || style.ToInt() > 23)
         return 0;
     static UChar gAttrTable[24][14][37] = {
@@ -554,7 +554,7 @@ UChar FifamPlayerLevel::GetPlayerLevel13(FifamPlayer *player, FifamPlayerPositio
     return (UChar)finalLevel;
 }
 
-UChar FifamPlayerLevel::GetPlayerLevel12(FifamPlayer *player, FifamPlayerPosition position, FifamPlayerPlayingStyle style, bool experience) {
+UChar FifamPlayerLevel::GetPlayerLevel12(FifamPlayer *player, FifamPlayerPosition position, FifamPlayerPlayingStyle style, Bool experience) {
     if (position == FifamPlayerPosition::None || position.ToInt() > 17)
         return 0;
     static Float gLevelCalcTable[18][44] = {
@@ -652,19 +652,19 @@ UChar FifamPlayerLevel::GetPlayerLevel12(FifamPlayer *player, FifamPlayerPositio
     return (UChar)finalLevel;
 }
 
-UChar FifamPlayerLevel::GetPlayerLevel(FifamPlayer *player, FifamPlayerPosition position, FifamPlayerPlayingStyle style, bool experience) {
+UChar FifamPlayerLevel::GetPlayerLevel(FifamPlayer *player, FifamPlayerPosition position, FifamPlayerPlayingStyle style, Bool experience) {
     return GetPlayerLevel13(player, position, style, experience);
 }
 
-UChar FifamPlayerLevel::GetPlayerLevel(FifamPlayer *player, FifamPlayerPosition position, bool experience) {
+UChar FifamPlayerLevel::GetPlayerLevel(FifamPlayer *player, FifamPlayerPosition position, Bool experience) {
     return GetPlayerLevel(player, position, player->mPlayingStyle, experience);
 }
 
-UChar FifamPlayerLevel::GetPlayerLevel(FifamPlayer *player, FifamPlayerPlayingStyle style, bool experience) {
+UChar FifamPlayerLevel::GetPlayerLevel(FifamPlayer *player, FifamPlayerPlayingStyle style, Bool experience) {
     return GetPlayerLevel(player, player->mMainPosition, style, experience);
 }
 
-UChar FifamPlayerLevel::GetPlayerLevel(FifamPlayer *player, bool experience) {
+UChar FifamPlayerLevel::GetPlayerLevel(FifamPlayer *player, Bool experience) {
     return GetPlayerLevel(player, player->mMainPosition, player->mPlayingStyle, experience);
 }
 

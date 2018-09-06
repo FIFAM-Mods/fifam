@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClInclude Include="FmPlayer13.h" />
     <ClInclude Include="FifamPlayer.h" />
     <ClInclude Include="FifamDate.h" />
     <ClInclude Include="FifamLanguage.h" />
@@ -139,5 +138,7 @@
     <ClCompile Include="FifamHistoric.cpp" />
     <ClCompile Include="FifamCACPlayer.cpp" />
     <ClCompile Include="FifamStaff.cpp" />
+    <ClCompile Include="FifamCompRound.cpp" />
+    <ClCompile Include="FifamCompLeague.cpp" />
   </ItemGroup>
 </Project>

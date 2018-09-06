@@ -15,18 +15,18 @@ public:
     class Round {
     public:
         // @since FM07
-        unsigned char mRound = 0;
+        UChar mRound = 0;
         // @since FM07
         // @max 10 in FM07
-        unsigned char mNumRounds = 0;
+        UChar mNumRounds = 0;
         // @since FM07
-        unsigned short mTeamsRound = 0;
+        UShort mTeamsRound = 0;
         // @since FM07
-        unsigned short mNewTeamsRound = 0;
+        UShort mNewTeamsRound = 0;
         // @since FM07
-        unsigned short mStartBeg = 0;
+        UShort mStartBeg = 0;
         // @since FM07
-        unsigned short mEndBeg = 0;
+        UShort mEndBeg = 0;
         // @since FM07
         FifamRoundID mRoundID;
         // @since FM07

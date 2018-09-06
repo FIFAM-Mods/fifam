@@ -1,8 +1,9 @@
 #pragma once
 #include "FifamReadWrite.h"
+#include "FifamCompetition.h"
 
 class FifamCountryCompetitions {
 public:
-    bool Read(FifamReader &reader);
-    bool Write(FifamWriter &writer);
+    Bool Read(FifamReader &reader);
+    Bool Write(FifamWriter &writer);
 };

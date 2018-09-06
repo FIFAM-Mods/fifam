@@ -9,7 +9,7 @@ FifamDatabase::FifamDatabase(UInt gameId, const Path &dbPath) {
     Read(gameId, dbPath);
 }
 
-unsigned int FifamDatabase::GetInternalGameCountryId(UInt gameId, UChar nationId) {
+UInt FifamDatabase::GetInternalGameCountryId(UInt gameId, UChar nationId) {
     FifamNation nation;
     nation.SetFromInt(nationId);
     if (gameId < 8) {
@@ -21,7 +21,7 @@ unsigned int FifamDatabase::GetInternalGameCountryId(UInt gameId, UChar nationId
     return nation.ToInt();
 }
 
-bool FifamDatabase::IsCountryPresent(UInt gameId, UChar nationId) {
+Bool FifamDatabase::IsCountryPresent(UInt gameId, UChar nationId) {
     return GetInternalGameCountryId(gameId, nationId) != 0;
 }
 
@@ -37,6 +37,10 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
     if (!exists(historicPath))
         historicPath.clear();
     Bool unicode = gameId >= 8;
+
+    ReadNamesFile(dbPath / L"MaleNames.txt", gameId, mMaleNames);
+    ReadNamesFile(dbPath / L"FemaleNames.txt", gameId, mFemaleNames);
+    ReadNamesFile(dbPath / L"Surnames.txt", gameId, mSurnames);
 
     FifamReader countriesReader(dbPath / L"Countries.sav", gameId, unicode);
     if (countriesReader.Available()) {
@@ -198,6 +202,10 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
         historicPath.clear();
     Bool unicode = gameId >= 8;
 
+    WriteNamesFile(dbPath / L"MaleNames.txt", gameId, mMaleNames);
+    WriteNamesFile(dbPath / L"FemaleNames.txt", gameId, mFemaleNames);
+    WriteNamesFile(dbPath / L"Surnames.txt", gameId, mSurnames);
+
     FifamWriter countriesWriter(dbPath / L"Countries.sav", gameId, 0, 0, unicode);
     if (countriesWriter.Available()) {
         auto &writer = countriesWriter;
@@ -314,6 +322,10 @@ void FifamDatabase::Clear() {
 
     mPersonsMap.clear();
 
+    for (auto player : mCACPlayers)
+        delete player;
+    mCACPlayers.clear();
+
     for (auto stadium : mStadiums)
         delete stadium;
     mStadiums.clear();
@@ -325,6 +337,10 @@ void FifamDatabase::Clear() {
     for (auto cupAlloc : mCupTemplates)
         delete cupAlloc;
     mCupTemplates.clear();
+
+    for (auto comp : mCompMap)
+        delete comp.second;
+    mCompMap.clear();
 }
 
 FifamDatabase::~FifamDatabase() {
@@ -405,10 +421,10 @@ void FifamDatabase::ResolveLinksForStaff(FifamStaff *staff, UInt gameId) {
 FifamClubLink FifamDatabase::ClubFromID(UInt ID) {
     FifamClubLink result;
     if (ID != 0) {
-        unsigned char countryId = (ID >> 16) & 0xFF;
+        UChar countryId = (ID >> 16) & 0xFF;
         if (countryId > 0 && countryId <= NUM_COUNTRIES && mCountries[countryId - 1]) {
             result.mTeamType.SetFromInt(ID >> 24);
-            unsigned short index = ID & 0xFFFF;
+            UShort index = ID & 0xFFFF;
             if (index == 0xFFFF)
                 result.mPtr = &mCountries[countryId - 1]->mNationalTeam;
             if (index > 0 && index <= mCountries[countryId - 1]->mClubs.size())
@@ -482,4 +498,53 @@ UInt FifamDatabase::GetNextFreePersonID() {
     if (mPersonsMap.empty())
         return 1;
     return (*mPersonsMap.rbegin()).first;
+}
+
+void FifamDatabase::ReadNamesFile(Path const &filepath, UInt gameId, NamesMap &outNames) {
+    outNames.clear();
+    Bool unicode = gameId >= 8;
+    FifamReader reader(filepath, gameId, unicode);
+    if (reader.Available()) {
+        FifamLanguage currLanguage = FifamLanguage::None;
+        while (!reader.IsEof()) {
+            String line = reader.ReadFullLine();
+            Utils::Trim(line);
+            if (!line.empty()) {
+                if (Utils::StartsWith(line, L"%"))
+                    currLanguage.SetFromInt(Utils::ToNumber(line.substr(1)));
+                else
+                    outNames[currLanguage].insert(line);
+            }
+        }
+    }
+}
+
+void FifamDatabase::WriteNamesFile(Path const &filepath, UInt gameId, NamesMap &names) {
+    auto WriteNamesForLanguage = [](FifamWriter &writer, UInt langId, Bool &firstLine, NamesMap &names) {
+        if (FifamLanguage::Present(langId)) {
+            FifamLanguage currLanguage;
+            currLanguage.SetFromInt(langId);
+            if (names.count(currLanguage) > 0) {
+                if (firstLine)
+                    firstLine = false;
+                else
+                    writer.WriteNewLine();
+                writer.Write(Utils::Format(L"%%%d %s", currLanguage.ToInt(), currLanguage.ToCStr()));
+                for (auto const &name : names[currLanguage]) {
+                    writer.WriteNewLine();
+                    writer.Write(name);
+                }
+            }
+        }
+    };
+    Bool unicode = gameId >= 8;
+    FifamWriter writer(filepath, gameId, 0, 0, unicode);
+    if (writer.Available()) {
+        Bool firstLine = true;
+        for (UInt i = 1; i <= 62; i++)
+            WriteNamesForLanguage(writer, i, firstLine, names);
+        WriteNamesForLanguage(writer, 0, firstLine, names);
+        for (UInt i = 63; i <= 127; i++)
+            WriteNamesForLanguage(writer, i, firstLine, names);
+    }
 }

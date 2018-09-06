@@ -250,12 +250,12 @@ public:
     FifamSponsor *AddSponsor();
     FifamCACPlayer *AddCACPlayer();
     FifamCountry(UInt id, FifamDatabase *db);
-    bool Read(FifamReader &reader);
-    bool ReadFixtures(FifamReader &reader);
-    bool ReadScript(FifamReader &reader);
-    bool Write(FifamWriter &writer);
-    bool WriteFixtures(FifamWriter &writer);
-    bool WriteScript(FifamWriter &writer);
+    Bool Read(FifamReader &reader);
+    Bool ReadFixtures(FifamReader &reader);
+    Bool ReadScript(FifamReader &reader);
+    Bool Write(FifamWriter &writer);
+    Bool WriteFixtures(FifamWriter &writer);
+    Bool WriteScript(FifamWriter &writer);
 
-    bool IsCompetitionSystemCorrect();
+    Bool IsCompetitionSystemCorrect();
 };

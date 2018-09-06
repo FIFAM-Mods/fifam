@@ -35,7 +35,7 @@ FifamCACPlayer *FifamCountry::AddCACPlayer() {
     return player;
 }
 
-bool FifamCountry::Read(FifamReader &reader) {
+Bool FifamCountry::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"COUNTRY")) {
         reader.ReadVersion();
         if (reader.IsVersionGreaterOrEqual(0x2007, 0x12))
@@ -298,7 +298,7 @@ bool FifamCountry::Read(FifamReader &reader) {
     return false;
 }
 
-bool FifamCountry::Write(FifamWriter &writer) {
+Bool FifamCountry::Write(FifamWriter &writer) {
     writer.WriteStartIndex(L"COUNTRY");
     writer.WriteVersion();
     if (writer.IsVersionGreaterOrEqual(0x2007, 0x12)) {
@@ -548,7 +548,7 @@ bool FifamCountry::Write(FifamWriter &writer) {
     return true;
 }
 
-bool FifamCountry::ReadFixtures(FifamReader &reader) {
+Bool FifamCountry::ReadFixtures(FifamReader &reader) {
     reader.ReadVersion();
     while (reader.ReadStartIndex(L"COMPETITION")) {
         
@@ -557,7 +557,7 @@ bool FifamCountry::ReadFixtures(FifamReader &reader) {
     return true;
 }
 
-bool FifamCountry::ReadScript(FifamReader &reader) {
+Bool FifamCountry::ReadScript(FifamReader &reader) {
     reader.ReadVersion();
     while (reader.ReadStartIndex(L"COMPETITION")) {
     
@@ -566,19 +566,19 @@ bool FifamCountry::ReadScript(FifamReader &reader) {
     return true;
 }
 
-bool FifamCountry::WriteFixtures(FifamWriter &writer) {
+Bool FifamCountry::WriteFixtures(FifamWriter &writer) {
     writer.WriteVersion();
 
     return true;
 }
 
-bool FifamCountry::WriteScript(FifamWriter &writer) {
+Bool FifamCountry::WriteScript(FifamWriter &writer) {
     writer.WriteVersion();
 
     return true;
 }
 
-bool FifamCountry::IsCompetitionSystemCorrect() {
+Bool FifamCountry::IsCompetitionSystemCorrect() {
     //if (mClubs.size() < 10)
     //    return false;
     // check num teams in league

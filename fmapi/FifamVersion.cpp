@@ -5,28 +5,28 @@ FifamVersion::FifamVersion() {
     mIntValue = 0;
 }
 
-void FifamVersion::Set(unsigned short year, unsigned short number) {
+void FifamVersion::Set(UShort year, UShort number) {
     mYear = year;
     mNumber = number;
 }
 
-void FifamVersion::Set(unsigned int intValue) {
+void FifamVersion::Set(UInt intValue) {
     mIntValue = intValue;
 }
 
-unsigned short FifamVersion::GetYear() {
+UShort FifamVersion::GetYear() {
     return mYear;
 }
 
-unsigned short FifamVersion::GetNumber() {
+UShort FifamVersion::GetNumber() {
     return mNumber;
 }
 
-unsigned int FifamVersion::GetIntValue() {
+UInt FifamVersion::GetIntValue() {
     return mIntValue;
 }
 
-bool FifamVersion::IsGreaterOrEqual(unsigned short year, unsigned short number) {
+Bool FifamVersion::IsGreaterOrEqual(UShort year, UShort number) {
     if (mYear > year)
         return true;
     return mYear == year && mNumber >= number;

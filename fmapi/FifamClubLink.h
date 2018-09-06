@@ -11,11 +11,13 @@ public:
 
     FifamClubLink();
     FifamClubLink(FifamClub *ptr, FifamClubTeamType const &teamType = FifamClubTeamType::First);
-    bool IsValid() const;
-    bool IsFirstTeam() const;
-    bool IsReserveTeam() const;
-    bool IsYouthATeam() const;
-    bool IsYouthBTeam() const;
-    bool IsYouthTeam() const;
+    Bool IsValid() const;
+    Bool IsFirstTeam() const;
+    Bool IsReserveTeam() const;
+    Bool IsYouthATeam() const;
+    Bool IsYouthBTeam() const;
+    Bool IsYouthTeam() const;
     String GetTeamName() const;
 };
+
+Bool operator==(FifamClubLink const &lhs, FifamClubLink const &rhs);

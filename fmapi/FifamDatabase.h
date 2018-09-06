@@ -28,10 +28,17 @@ public:
     FifamRules mRules;
     FifamHistoric mHistoric;
 
+    using NamesMap = Map<FifamLanguage, Set<String>>;
+    NamesMap mMaleNames;
+    NamesMap mFemaleNames;
+    NamesMap mSurnames;
+
+    Map<FifamCompID, FifamCompetition *> mCompMap;
+
     FifamDatabase();
     FifamDatabase(UInt gameId, const Path &dbPath);
-    unsigned int GetInternalGameCountryId(UInt gameId, UChar nationId);
-    bool IsCountryPresent(UInt gameId, UChar nationId);
+    UInt GetInternalGameCountryId(UInt gameId, UChar nationId);
+    Bool IsCountryPresent(UInt gameId, UChar nationId);
     void Read(UInt gameId, Path const &dbPath);
     void Write(UInt gameId, UShort vYear, UShort vNumber, Path const &dbPath);
     void Clear();
@@ -54,4 +61,6 @@ public:
     FifamClub *GetClubFromUID(UInt uid);
     void GetClubFromUID(FifamClubLink &link, UInt uid);
     UInt GetNextFreePersonID();
+    void ReadNamesFile(Path const &filepath, UInt gameId, NamesMap &outNames);
+    void WriteNamesFile(Path const &filepath, UInt gameId, NamesMap &names);
 };

@@ -51,10 +51,10 @@ ENUM_BEGIN(FifamScriptInstructionID, UChar)
     ENUM_MEMBER(45, ID_GET_UEFA5_CHAMP_OR_FINALIST,        L"GET_UEFA5_CHAMP_OR_FINALIST")
 ENUM_END(FifamScriptInstructionID)
 
-bool ExtractCompetitionID(FifamCompID &outID, String &line, size_t &linePos) {
-    size_t brace1Posn = line.find(linePos, L'{');
+Bool ExtractCompetitionID(FifamCompID &outID, String &line, UInt &linePos) {
+    UInt brace1Posn = line.find(linePos, L'{');
     if (brace1Posn != String::npos) {
-        size_t brace2Posn = line.find(brace1Posn + 1, L'}');
+        UInt brace2Posn = line.find(brace1Posn + 1, L'}');
         if (brace2Posn != String::npos) {
             outID.SetFromStr(line.substr(brace1Posn, brace2Posn - brace1Posn + 1));
             linePos = brace2Posn + 1;
@@ -64,8 +64,8 @@ bool ExtractCompetitionID(FifamCompID &outID, String &line, size_t &linePos) {
     return false;
 }
 
-bool ExtractCompetitionID(FifamCompID &outID, String &line) {
-    size_t linePos = 0;
+Bool ExtractCompetitionID(FifamCompID &outID, String &line) {
+    UInt linePos = 0;
     return ExtractCompetitionID(outID, line, linePos);
 }
 

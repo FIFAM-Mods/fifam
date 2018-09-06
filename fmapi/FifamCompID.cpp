@@ -30,10 +30,8 @@ void FifamCompID::SetFromStr(String const &str) {
         if (Utils::EndsWith(comps[2], L"}"))
             comps[2].pop_back();
         Int region = Utils::ToNumber(comps[0]);
-        if (region < 0) {
+        if (region < 0)
             region = -region;
-            mIsTemplate = true;
-        }
         mRegion.SetFromInt(region);
         mType.SetFromStr(comps[1]);
         mIndex = Utils::ToNumber(comps[2]);
@@ -44,51 +42,46 @@ String FifamCompID::ToStr() const {
     if (IsNull())
         return L"None";
     Int regionId = mRegion.ToInt();
-    if (mIsTemplate)
-        regionId = -regionId;
     return Utils::Format(L"{ %d, %s, %d }", regionId, mType.ToCStr(), mIndex);
 }
 
 FifamCompID::FifamCompID() {}
 
-FifamCompID::FifamCompID(FifamCompRegion const &region, FifamCompType const &type, UShort index, Bool isTemplate) {
-    Set(region, type, index, isTemplate);
+FifamCompID::FifamCompID(FifamCompRegion const &region, FifamCompType const &type, UShort index) {
+    Set(region, type, index);
 }
 
-void FifamCompID::Set(FifamCompRegion const &region, FifamCompType const &type, UShort index, Bool isTemplate) {
+void FifamCompID::Set(FifamCompRegion const &region, FifamCompType const &type, UShort index) {
     mRegion = region;
     mType = type;
     mIndex = index;
-    mIsTemplate = isTemplate;
 }
 
-FifamCompID::FifamCompID(FifamCompRegion const &region, String const &type, UShort index, Bool isTemplate) {
-    Set(region, type, index, isTemplate);
+FifamCompID::FifamCompID(FifamCompRegion const &region, String const &type, UShort index) {
+    Set(region, type, index);
 }
 
-void FifamCompID::Set(FifamCompRegion const &region, String const &type, UShort index, Bool isTemplate) {
+void FifamCompID::Set(FifamCompRegion const &region, String const &type, UShort index) {
     mRegion = region;
     mType.SetFromStr(type);
     mIndex = index;
-    mIsTemplate = isTemplate;
 }
 
-FifamCompID::FifamCompID(UChar regionId, FifamCompType const & type, UShort index, Bool isTemplate) {
-    Set(regionId, type, index, isTemplate);
+FifamCompID::FifamCompID(UChar regionId, FifamCompType const & type, UShort index) {
+    Set(regionId, type, index);
 }
 
-void FifamCompID::Set(UChar regionId, FifamCompType const & type, UShort index, Bool isTemplate) {
+void FifamCompID::Set(UChar regionId, FifamCompType const & type, UShort index) {
     mRegion.SetFromInt(regionId);
     mType = type;
     mIndex = index;
-    mIsTemplate = isTemplate;
 }
 
 FifamCompID::FifamCompID(UInt id) {
     SetFromInt(id);
 }
 
-bool FifamCompID::IsNull() const {
+Bool FifamCompID::IsNull() const {
     return ToInt() == 0;
 }
 
@@ -97,4 +90,16 @@ UInt FifamCompID::Translate(UInt id, UInt gameFrom, UInt gameTo) {
     if (FifamUtils::ConvertRegion(region, gameFrom, gameTo))
         return (id & 0xFFFFFF) | (region << 24);
     return 0;
+}
+
+Bool operator==(FifamCompID const & lhs, FifamCompID const & rhs) {
+    return lhs.ToInt() == rhs.ToInt();
+}
+
+Bool operator<(FifamCompID const & lhs, FifamCompID const & rhs) {
+    return lhs.ToInt() < rhs.ToInt();
+}
+
+Bool operator>(FifamCompID const & lhs, FifamCompID const & rhs) {
+    return lhs.ToInt() > rhs.ToInt();
 }

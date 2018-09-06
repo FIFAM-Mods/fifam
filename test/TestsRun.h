@@ -18,5 +18,5 @@
 #include "tests\HistoricTest.h"
 
 void RunTests() {
-    RunTest<WriteDbTest<FM10, FM10>>();
+    RunTest<WriteDbTest<FM14, FM14>>();
 }

@@ -1,22 +1,21 @@
 #pragma once
-#include <bitset>
 #include "Utils.h"
 #include "FifamReadWrite.h"
 
 class FifamBaseFlags {};
 
-template<typename T, size_t numBits = sizeof(typename T::underlyingtype_t) * 8>
+template<typename T, UInt numBits = sizeof(typename T::underlyingtype_t) * 8>
 class FifamFlags : FifamBaseFlags {
 public:
     using underlyingtype_t = typename T::underlyingtype_t;
 private:
-    std::bitset<numBits> _bitset;
+    BitSet<numBits> _bitset;
     underlyingtype_t _unknown = 0;
-    bool _wasSetFromUnknown = false;
+    Bool _wasSetFromUnknown = false;
 public:
     FifamFlags() {}
 
-    bool GetWasSetFromUnknown() const {
+    Bool GetWasSetFromUnknown() const {
         return _wasSetFromUnknown;
     }
 
@@ -24,7 +23,7 @@ public:
         return _unknown;
     }
 
-    bool Set(underlyingtype_t flag, bool state) {
+    Bool Set(underlyingtype_t flag, Bool state) {
         if (T::Present(flag)) {
             if (state)
                 _bitset |= flag;
@@ -39,7 +38,7 @@ public:
         return false;
     }
 
-    bool Set(std::wstring const &strFlag, bool state) {
+    Bool Set(String const &strFlag, Bool state) {
         T flag;
         if (flag.SetFromStr(strFlag)) {
             Set(flag, state);
@@ -48,24 +47,24 @@ public:
         return false;
     }
 
-    bool Check(underlyingtype_t flag) const {
+    Bool Check(underlyingtype_t flag) const {
         if (T::Present(flag))
             return (_bitset.to_ullong() & flag) == flag;
         return false;
     }
 
-    void Set(T const &flag, bool state) {
+    void Set(T const &flag, Bool state) {
         Set(flag.ToInt(), state);
     }
 
-    bool Check(T const &flag) const {
+    Bool Check(T const &flag) const {
         return Check(flag.ToInt());
     }
 
-    bool SetFromInt(underlyingtype_t flags) {
-        bool result = true;
+    Bool SetFromInt(underlyingtype_t flags) {
+        Bool result = true;
         Clear();
-        for (size_t i = 0; i < numBits; i++) {
+        for (UInt i = 0; i < numBits; i++) {
             if ((flags & (1ull << i)) && T::Present(1ull << i))
                 _bitset[i] = true;
             else if (result)
@@ -80,8 +79,8 @@ public:
         return result;
     }
 
-    bool SetFromStrAry(std::vector<std::wstring> const &ary) {
-        bool result = true;
+    Bool SetFromStrAry(Vector<String> const &ary) {
+        Bool result = true;
         Clear();
         if (!ary.empty()) {
             for (auto const &str : ary) {
@@ -98,7 +97,7 @@ public:
         return result;
     }
 
-    bool SetFromStr(std::wstring const &str, std::wstring const &sep = L",") {
+    Bool SetFromStr(String const &str, WideChar sep = L',') {
         auto ary = Utils::Split(str, sep);
         return SetFromStrAry(ary);
     }
@@ -107,10 +106,10 @@ public:
         return static_cast<underlyingtype_t>(_bitset.to_ullong());
     }
 
-    std::wstring ToStr(std::wstring const &sep = L",") const {
-        std::wstring result;
-        bool first = true;
-        for (size_t i = 0; i < numBits; i++) {
+    String ToStr(String const &sep = L",") const {
+        String result;
+        Bool first = true;
+        for (UInt i = 0; i < numBits; i++) {
             if (_bitset[i]) {
                 if (first)
                     first = false;
@@ -133,22 +132,22 @@ public:
         _bitset.set();
         _wasSetFromUnknown = false;
     }
-    bool All() const { return _bitset.all(); }
-    bool Any() const { return _bitset.any(); }
-    bool None() const { return _bitset.none(); }
-    bool Count() const { return _bitset.count(); }
+    Bool All() const { return _bitset.all(); }
+    Bool Any() const { return _bitset.any(); }
+    Bool None() const { return _bitset.none(); }
+    Bool Count() const { return _bitset.count(); }
 
-    FifamFlags &operator= (underlyingtype_t flags) {
+    FifamFlags &operator=(underlyingtype_t flags) {
         SetFromInt(flags);
         return *this;
     }
 
-    FifamFlags &operator= (std::wstring const &strFlags) {
+    FifamFlags &operator=(String const &strFlags) {
         SetFromStr(strFlags);
         return *this;
     }
 
-    FifamFlags &operator= (std::vector<std::wstring> const &ary) {
+    FifamFlags &operator=(Vector<String> const &ary) {
         SetFromStrAry(ary);
         return *this;
     }
@@ -157,11 +156,11 @@ public:
         SetFromInt(flags);
     }
 
-    FifamFlags(std::wstring const &strFlags) {
+    FifamFlags(String const &strFlags) {
         SetFromStr(strFlags);
     }
 
-    FifamFlags(std::vector<std::wstring> const &ary) {
+    FifamFlags(Vector<String> const &ary) {
         SetFromStrAry(ary);
     }
 
@@ -173,18 +172,6 @@ public:
     void Write(FifamWriter &writer) {
         writer.WriteOne(ToInt()); \
     }
-
-    /*
-    flag.TranslateFrom(value, {
-        { 0, Flag::Val1 },
-        { 1, Flag::Val2 }
-    });
-    val = flag.TranslateTo({
-        { Flag::Val1, 0 },
-        { Flag::Val2, 1 },
-        { Flag::Val3, 1 }
-    });
-    */
 };
 
 template<typename F>

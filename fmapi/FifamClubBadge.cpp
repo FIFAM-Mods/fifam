@@ -375,7 +375,7 @@ void FifamClubBadge::SetBadgePath(String const &str) {
         return;
     }
     SetColor(FifamClubBadgeShape::Crest, 1, 1, true, { {255, 255, 255}, { 0, 0, 0 }});
-    static const wchar_t *shapeNames[] = { L"ball", L"crest", L"diamond", L"flag", L"hexagon", L"oval", L"pill", L"rectangle", L"round", L"square", L"triangle" };
+    static const WideChar *shapeNames[] = { L"ball", L"crest", L"diamond", L"flag", L"hexagon", L"oval", L"pill", L"rectangle", L"round", L"square", L"triangle" };
     Bool shapeDefined = false;
     for (UInt i = 0; i < 11; i++) {
         String compStr = String(shapeNames[i]) + L"_";
@@ -420,7 +420,7 @@ void FifamClubBadge::SetBadgePath(String const &str) {
             break;
         }
     }
-    bool colorSet = false;
+    Bool colorSet = false;
     for (UInt i = 0; i < 28; i++) {
         FifamClubTeamColor tmpClr;
         tmpClr.SetFromInt(i);
@@ -442,7 +442,7 @@ void FifamClubBadge::SetBadgePath(String const &str) {
             return;
         UInt var = Utils::ToNumber(strVar);
         badgeName = badgeName.substr(2);
-        wchar_t pat = L'\0';
+        WideChar pat = L'\0';
         if (badgeName.length() == 1)
             pat = badgeName[0];
         if (var == 1)

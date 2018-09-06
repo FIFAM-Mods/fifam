@@ -82,6 +82,6 @@ void FifamPlayerHistoryEntry::Write(FifamWriter &writer, FifamDatabase *database
     }
 }
 
-bool operator<(FifamPlayerHistoryEntry const &lhs, FifamPlayerHistoryEntry const &rhs) {
+Bool operator<(FifamPlayerHistoryEntry const &lhs, FifamPlayerHistoryEntry const &rhs) {
     return lhs.mStartDate < rhs.mStartDate;
 }

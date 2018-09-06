@@ -36,7 +36,7 @@ ENUM_BEGIN(FifamClubTeamColor, UChar)
     ENUM_DEFAULT_READ_WRITE
 
     String GetShortName() {
-        static const wchar_t *colorNames[] = { 
+        static const WideChar *colorNames[] = {
             L"bl_sw",
             L"bl_gr",
             L"bl_ro",

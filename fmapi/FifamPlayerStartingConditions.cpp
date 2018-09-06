@@ -1,7 +1,7 @@
 #include "FifamPlayerStartingConditions.h"
 #include "FifamUtils.h"
 
-bool FifamPlayerStartingCondition::Enabled() {
+Bool FifamPlayerStartingCondition::Enabled() {
     return mEnabled;
 }
 

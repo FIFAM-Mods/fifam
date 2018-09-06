@@ -8,13 +8,13 @@ class FifamPlayer;
 class FifamPlayerLevel {
 public:
     static Array<Float, 18> GetDefaultBiasValues(FifamPlayerPosition const &position);
-    static FifamPlayerPlayingStyle GetBestStyleForPlayer(FifamPlayer *player, bool includeNewStyles = true);
-    static UChar GetPlayerLevel13(FifamPlayer *player, FifamPlayerPosition position, FifamPlayerPlayingStyle style, bool experience = true);
-    static UChar GetPlayerLevel12(FifamPlayer *player, FifamPlayerPosition position, FifamPlayerPlayingStyle style, bool experience = true);
-    static UChar GetPlayerLevel(FifamPlayer *player, FifamPlayerPosition position, FifamPlayerPlayingStyle style, bool experience = true);
-    static UChar GetPlayerLevel(FifamPlayer *player, FifamPlayerPosition position, bool experience = true);
-    static UChar GetPlayerLevel(FifamPlayer *player, FifamPlayerPlayingStyle style, bool experience = true);
-    static UChar GetPlayerLevel(FifamPlayer *player, bool experience = true);
+    static FifamPlayerPlayingStyle GetBestStyleForPlayer(FifamPlayer *player, Bool includeNewStyles = true);
+    static UChar GetPlayerLevel13(FifamPlayer *player, FifamPlayerPosition position, FifamPlayerPlayingStyle style, Bool experience = true);
+    static UChar GetPlayerLevel12(FifamPlayer *player, FifamPlayerPosition position, FifamPlayerPlayingStyle style, Bool experience = true);
+    static UChar GetPlayerLevel(FifamPlayer *player, FifamPlayerPosition position, FifamPlayerPlayingStyle style, Bool experience = true);
+    static UChar GetPlayerLevel(FifamPlayer *player, FifamPlayerPosition position, Bool experience = true);
+    static UChar GetPlayerLevel(FifamPlayer *player, FifamPlayerPlayingStyle style, Bool experience = true);
+    static UChar GetPlayerLevel(FifamPlayer *player, Bool experience = true);
     static Int GetPlayerExperienceLevelModifier(FifamPlayer *player);
     static void ValidatePlayerLevel(Int &level);
 };
