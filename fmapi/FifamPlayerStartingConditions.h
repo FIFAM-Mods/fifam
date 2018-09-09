@@ -4,8 +4,6 @@
 #include "FifamPlayerInjuryType.h"
 #include "FifamClubLink.h"
 
-class FifamDatabase;
-
 class FifamPlayerStartingCondition {
 public:
     Bool mEnabled = false;
@@ -90,7 +88,7 @@ public:
 
     static FifamPlayerInjuryType GetDefaultInjuryType(Int injuryDays);
     static FifamPlayerInjuryType TranslateInjuryTypeForGame(FifamPlayerInjuryType const &injury, UInt gameId, Int injuryDays);
-    UInt GetNumEnabledConditions();
-    void Read(FifamReader &reader, FifamDatabase *database);
-    void Write(FifamWriter &writer, FifamDatabase *database);
+    UInt GetNumEnabledConditionsForWriting();
+    void Read(FifamReader &reader);
+    void Write(FifamWriter &writer);
 };

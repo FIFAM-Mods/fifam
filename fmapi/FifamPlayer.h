@@ -160,7 +160,8 @@ public:
     // @since FM07
     FifamPlayer *mManagerFavouritePlayer = nullptr;
     // @since FM13
-    Array<FifamClubLink, 3> mTransferRumors;
+    // @size 3
+    Vector<FifamClubLink> mTransferRumors;
     // @since FM07
     // @maxsize 64 FM13
     String mComment;
@@ -193,8 +194,8 @@ public:
 
     FifamPlayer();
     String GetName() const;
-    void Read(FifamReader &reader, FifamDatabase *database);
-    void Write(FifamWriter &writer, FifamDatabase *database);
+    void Read(FifamReader &reader);
+    void Write(FifamWriter &writer);
     UChar GetLevel(FifamPlayerPosition position, FifamPlayerPlayingStyle style, Bool experience = true);
     UChar GetLevel(FifamPlayerPosition position, Bool experience = true);
     UChar GetLevel(FifamPlayerPlayingStyle style, Bool experience = true);

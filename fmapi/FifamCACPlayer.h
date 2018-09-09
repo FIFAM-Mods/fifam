@@ -10,8 +10,6 @@
 #include "FifamPlayerAbilityID.h"
 #include "FifamPlayerCharacterID.h"
 
-class FifamDatabase;
-
 // @since FM07
 class FifamCACPlayer {
 public:
@@ -49,6 +47,6 @@ public:
     // @since FM07
     FifamShoeType mShoeType;
 
-    void Read(FifamReader &reader, FifamDatabase *database);
-    void Write(FifamWriter &writer, FifamDatabase *database);
+    void Read(FifamReader &reader);
+    void Write(FifamWriter &writer);
 };

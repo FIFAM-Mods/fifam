@@ -4,8 +4,6 @@
 #include "FifamClubLink.h"
 #include "FifamReadWrite.h"
 
-class FifamDatabase;
-
 class FifamRules {
 public:
     struct ContinentalCupNames {
@@ -37,7 +35,7 @@ public:
     // @since FM07
     UInt mNumSubsInFriendlyMatches = 7;
     // @since FM08
-    Array<FifamClubLink, 3> mFairnessAwardWinners;
+    Vector<FifamClubLink> mFairnessAwardWinners;
     // @since FM09
     Array<UShort, 16> mInternationalFriendliesFirstSeason;
     // @since FM09
@@ -52,6 +50,6 @@ public:
         Bool _3 = false;
     } Unknown;
 
-    void Read(FifamReader &reader, FifamDatabase *database);
-    void Write(FifamWriter &writer, FifamDatabase *database);
+    void Read(FifamReader &reader);
+    void Write(FifamWriter &writer);
 };

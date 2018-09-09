@@ -59,7 +59,7 @@ void FifamPlayerConditionDate::Setup(FifamDate const &date) {
     mDate = date;
 }
 
-UInt FifamPlayerStartingConditions::GetNumEnabledConditions() {
+UInt FifamPlayerStartingConditions::GetNumEnabledConditionsForWriting() {
     UInt result = 0;
     if (mInjury.mEnabled)
         result++;
@@ -67,24 +67,24 @@ UInt FifamPlayerStartingConditions::GetNumEnabledConditions() {
         result++;
     if (mRetirement.mEnabled)
         result++;
-    if (mLoan.mEnabled)
+    if (mLoan.mEnabled && FifamUtils::GetWriteableID(mLoan.mLoanedClub))
         result++;
-    if (mFutureTransfer.mEnabled)
+    if (mFutureTransfer.mEnabled && FifamUtils::GetWriteableID(mFutureTransfer.mNewClub))
         result++;
-    if (mFutureLoan.mEnabled)
+    if (mFutureLoan.mEnabled && FifamUtils::GetWriteableID(mFutureLoan.mLoanedClub))
         result++;
     if (mBanUntil.mEnabled)
         result++;
     if (mFutureJoin.mEnabled)
         result++;
-    if (mFutureReLoan.mEnabled)
+    if (mFutureReLoan.mEnabled && FifamUtils::GetWriteableID(mFutureReLoan.mLoanedClub))
         result++;
     if (mFutureLeave.mEnabled)
         result++;
     return result;
 }
 
-void FifamPlayerStartingConditions::Read(FifamReader &reader, FifamDatabase *database) {
+void FifamPlayerStartingConditions::Read(FifamReader &reader) {
     if (reader.IsVersionGreaterOrEqual(0x2011, 0x03)) {
         UInt numConditions = reader.ReadLine<UInt>();
         for (UInt i = 0; i < numConditions; i++) {
@@ -160,37 +160,33 @@ void FifamPlayerStartingConditions::Read(FifamReader &reader, FifamDatabase *dat
     }
 }
 
-void FifamPlayerStartingConditions::Write(FifamWriter &writer, FifamDatabase *database) {
+void FifamPlayerStartingConditions::Write(FifamWriter &writer) {
     if (writer.IsVersionGreaterOrEqual(0x2011, 0x03)) {
-        UInt numConditions = Utils::Min(4u, GetNumEnabledConditions());
+        UInt numConditions = Utils::Min(4u, GetNumEnabledConditionsForWriting());
         writer.WriteLine(numConditions);
         UInt numWrittenConditions = 0;
-        if (numWrittenConditions < numConditions && mLoan.Enabled()) {
+        if (numWrittenConditions < numConditions && mLoan.Enabled() && FifamUtils::GetWriteableID(mLoan.mLoanedClub)) {
             writer.WriteLine(4, mLoan.mStartDate.GetDays(), mLoan.mEndDate.GetDays(),
-                FifamUtils::DBClubLinkToID(database, mLoan.mLoanedClub, writer.GetGameId()),
-                mLoan.mBuyOptionValue, 0);
+                FifamUtils::GetWriteableID(mLoan.mLoanedClub), mLoan.mBuyOptionValue, 0);
             numWrittenConditions++;
         }
-        if (numWrittenConditions < numConditions && mFutureTransfer.mEnabled) {
+        if (numWrittenConditions < numConditions && mFutureTransfer.mEnabled && FifamUtils::GetWriteableID(mFutureTransfer.mNewClub)) {
             writer.WriteLine(5, mFutureTransfer.mTransferDate.GetDays(), mFutureTransfer.mNewContractEndDate.GetDays(),
-                FifamUtils::DBClubLinkToID(database, mFutureTransfer.mNewClub, writer.GetGameId()),
-                mFutureTransfer.mTransferFee, 0);
+                FifamUtils::GetWriteableID(mFutureTransfer.mNewClub), mFutureTransfer.mTransferFee, 0);
             numWrittenConditions++;
         }
-        if (numWrittenConditions < numConditions && mFutureLoan.mEnabled) {
+        if (numWrittenConditions < numConditions && mFutureLoan.mEnabled && FifamUtils::GetWriteableID(mFutureLoan.mLoanedClub)) {
             writer.WriteLine(6, mFutureLoan.mStartDate.GetDays(), mFutureLoan.mEndDate.GetDays(),
-                FifamUtils::DBClubLinkToID(database, mFutureLoan.mLoanedClub, writer.GetGameId()),
-                mFutureLoan.mBuyOptionValue, mFutureLoan.mLoanFee);
+                FifamUtils::GetWriteableID(mFutureLoan.mLoanedClub), mFutureLoan.mBuyOptionValue, mFutureLoan.mLoanFee);
             numWrittenConditions++;
         }
         if (writer.GetGameId() >= 12 && numWrittenConditions < numConditions && mFutureJoin.mEnabled) {
             writer.WriteLine(8, mFutureJoin.mDate.GetDays(), 0, 0, 0, 0);
             numWrittenConditions++;
         }
-        if (writer.GetGameId() >= 12 && numWrittenConditions < numConditions && mFutureReLoan.mEnabled) {
+        if (writer.GetGameId() >= 12 && numWrittenConditions < numConditions && mFutureReLoan.mEnabled && FifamUtils::GetWriteableID(mFutureReLoan.mLoanedClub)) {
             writer.WriteLine(9, mFutureReLoan.mStartDate.GetDays(), mFutureReLoan.mEndDate.GetDays(),
-                FifamUtils::DBClubLinkToID(database, mFutureReLoan.mLoanedClub, writer.GetGameId()),
-                mFutureReLoan.mBuyOptionValue, mFutureReLoan.mLoanFee);
+                FifamUtils::GetWriteableID(mFutureReLoan.mLoanedClub), mFutureReLoan.mBuyOptionValue, mFutureReLoan.mLoanFee);
             numWrittenConditions++;
         }
         if (writer.GetGameId() >= 13 && numWrittenConditions < numConditions && mFutureLeave.mEnabled) {
@@ -218,9 +214,9 @@ void FifamPlayerStartingConditions::Write(FifamWriter &writer, FifamDatabase *da
         UInt numConditions = 0;
         UInt numWrittenConditions = 0;
         if (writer.GetGameId() >= 10)
-            numConditions = Utils::Min(4u, GetNumEnabledConditions());
+            numConditions = Utils::Min(4u, GetNumEnabledConditionsForWriting());
         else
-            numConditions = Utils::Min(1u, GetNumEnabledConditions());
+            numConditions = Utils::Min(1u, GetNumEnabledConditionsForWriting());
 
         UChar startConditionFlags = 0;
         FifamClubLink transferClub;
@@ -233,7 +229,7 @@ void FifamPlayerStartingConditions::Write(FifamWriter &writer, FifamDatabase *da
         UInt transferFee = 0;
         Int transferBuyOption = 0;
 
-        if (numWrittenConditions < numConditions && mLoan.Enabled()) {
+        if (numWrittenConditions < numConditions && mLoan.Enabled() && FifamUtils::GetWriteableID(mLoan.mLoanedClub)) {
             startConditionFlags |= 8;
             transferStartDate = mLoan.mStartDate;
             transferEndDate = mLoan.mEndDate;
@@ -241,7 +237,7 @@ void FifamPlayerStartingConditions::Write(FifamWriter &writer, FifamDatabase *da
             transferBuyOption = mLoan.mBuyOptionValue;
             numWrittenConditions++;
         }
-        else if (numWrittenConditions < numConditions && mFutureTransfer.mEnabled) {
+        else if (numWrittenConditions < numConditions && mFutureTransfer.mEnabled && FifamUtils::GetWriteableID(mFutureTransfer.mNewClub)) {
             startConditionFlags |= 16;
             transferStartDate = mFutureTransfer.mTransferDate;
             transferEndDate = mFutureTransfer.mNewContractEndDate;
@@ -249,7 +245,7 @@ void FifamPlayerStartingConditions::Write(FifamWriter &writer, FifamDatabase *da
             transferFee = mFutureTransfer.mTransferFee;
             numWrittenConditions++;
         }
-        else if (numWrittenConditions < numConditions && mFutureLoan.mEnabled) {
+        else if (numWrittenConditions < numConditions && mFutureLoan.mEnabled && FifamUtils::GetWriteableID(mFutureLoan.mLoanedClub)) {
             startConditionFlags |= 32;
             transferStartDate = mFutureLoan.mStartDate;
             transferEndDate = mFutureLoan.mEndDate;
@@ -282,7 +278,7 @@ void FifamPlayerStartingConditions::Write(FifamWriter &writer, FifamDatabase *da
         }
 
         writer.WriteLine(startConditionFlags);
-        UInt transferClubID = FifamUtils::DBClubLinkToID(database, transferClub, writer.GetGameId());
+        UInt transferClubID = FifamUtils::GetWriteableID(transferClub);
         writer.WriteLine(FifamUtils::GetCountryIDFromClubID(transferClubID));
         writer.WriteLine(transferClubID);
         writer.WriteLine(transferStartDate);

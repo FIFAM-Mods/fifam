@@ -4,6 +4,7 @@
 #include "FifamClubLink.h"
 #include "FifamRules.h"
 #include "FifamHistoric.h"
+#include "FifamCompetition.h"
 
 /*
     Minimum supported version: FM07 0x2007.0x0C
@@ -35,6 +36,13 @@ public:
 
     Map<FifamCompID, FifamCompetition *> mCompMap;
 
+    struct {
+        Bool mNonWriteablePlayersAreFreeAgents = false;
+        Bool mNonWriteableStaffsAreFreeAgents = false;
+        UInt mMaxClubsInCountry[8] = { 512, 512, 512, 1024, 1024, 1024, 1024, 1024 };
+        UInt mMaxPersonsInClub[8] = { 60, 96, 99, 99, 99, 99, 256, 256 };
+    } mWritingOptions;
+
     FifamDatabase();
     FifamDatabase(UInt gameId, const Path &dbPath);
     UInt GetInternalGameCountryId(UInt gameId, UChar nationId);
@@ -43,24 +51,38 @@ public:
     void Write(UInt gameId, UShort vYear, UShort vNumber, Path const &dbPath);
     void Clear();
     ~FifamDatabase();
+    FifamCountry *CreateCountry(UInt id);
     FifamClub *CreateClub(FifamCountry *country);
     void AddClubToMap(FifamClub *club);
     FifamPlayer *CreatePlayer(FifamClub *club, UInt id);
     FifamStaff *CreateStaff(FifamClub *club, UInt id);
+    FifamCompetition *CreateCompetition(FifamCompDbType dbType, FifamCompID &compID, String name = L"Competition");
 
     void ResolveLinksForClub(FifamClub *club, UInt gameId);
     void ResolveLinksForPlayer(FifamPlayer *player, UInt gameId);
     void ResolveLinksForStaff(FifamStaff *staff, UInt gameId);
+    void ResolveLinksForCompetition(FifamCompetition *comp, UInt gameId);
     FifamClubLink ClubFromID(UInt ID);
     FifamPlayer *PlayerFromID(UInt ID);
     UInt ClubToID(FifamClubLink const &clubLink);
     UInt PlayerToID(FifamPlayer const *player);
     UInt TranslateClubID(UInt ID, UInt gameFrom, UInt gameTo);
+    void ResolveClubUniqueID(FifamClubLink &clubLink, UInt gameFrom, UInt gameTo = LATEST_GAME_VERSION);
+    void ResolveClubUniqueID(UInt &uid, UInt gameFrom, UInt gameTo = LATEST_GAME_VERSION);
     void ResolveClubLink(FifamClubLink &clubLink, UInt gameFrom, UInt gameTo = LATEST_GAME_VERSION);
-    void ResolvePlayerLink(FifamPlayer *&player);
+    void ResolvePlayerPtr(FifamPlayer *&player);
+    void ResolveCompetitionPtr(FifamCompetition *&comp, UInt gameFrom, UInt gameTo = LATEST_GAME_VERSION);
+    void ResolveClubLinkList(Vector<FifamClubLink> &vec, UInt gameId, bool unique = true);
+    void ResolveCompetitionList(Vector<FifamCompetition *> &vec, UInt gameId, bool unique = true);
     FifamClub *GetClubFromUID(UInt uid);
     void GetClubFromUID(FifamClubLink &link, UInt uid);
+    FifamCompetition *GetCompetition(FifamCompID const &compID);
     UInt GetNextFreePersonID();
     void ReadNamesFile(Path const &filepath, UInt gameId, NamesMap &outNames);
     void WriteNamesFile(Path const &filepath, UInt gameId, NamesMap &names);
+    void SetupWriteableStatus(UInt gameId);
+    void ResetWriteableStatus();
+
+    UInt GetClubsInCountryLimit(UInt gameId);
+    UInt GetPersonsInClubLimit(UInt gameId);
 };

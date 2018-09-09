@@ -3,7 +3,7 @@
 #include "FifamClub.h"
 #include "FifamCountry.h"
 
-void FifamPlayerHistoryEntry::Read(FifamReader &reader, FifamDatabase *database) {
+void FifamPlayerHistoryEntry::Read(FifamReader &reader) {
     UChar flags = 0;
     UInt club = 0;
     if (reader.IsVersionGreaterOrEqual(0x2012, 0x01)) {
@@ -40,13 +40,13 @@ void FifamPlayerHistoryEntry::Read(FifamReader &reader, FifamDatabase *database)
         mStillInThisClub = true;
 }
 
-void FifamPlayerHistoryEntry::Write(FifamWriter &writer, FifamDatabase *database) {
+void FifamPlayerHistoryEntry::Write(FifamWriter &writer) {
     UChar flags = 0;
     if (mLoan)
         flags |= 1;
     if (writer.IsVersionGreaterOrEqual(0x2007, 0x0D) && mStillInThisClub)
         flags |= 2;
-    UInt club = FifamUtils::DBClubLinkToID(database, mClub, writer.GetGameId());
+    UInt club = FifamUtils::GetWriteableID(mClub);
     if (writer.IsVersionGreaterOrEqual(0x2012, 0x01)) {
         writer.WriteLine(mStartDate);
         writer.WriteLine(mEndDate);

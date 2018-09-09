@@ -1,27 +1,30 @@
 #pragma once
 #include "FifamCompetition.h"
+#include "FifamPoolSorting.h"
 
 // @since FM07
 class FifamCompPool : public FifamCompetition {
 public:
     // @since FM07
+    // number of pools
+    UInt mNumPools = 0;
+    // @since FM07
     // max teams in pool
     UInt mNumTeams = 0;
     // @since FM07
     // sorting type
-    UInt mSorting = 0;
+    FifamPoolSorting mSorting;
     // @since FM07
     // can contain reserve teams
     Bool mReserveTeamsAllowed = false;
     // @since FM07
     // teams from these competitions can't be added
-    Vector<FifamCompID> mCompConstraints;
+    Vector<FifamCompetition *> mCompConstraints;
+    // @since FM07
+    // bonuses
+    Array<UInt, 4> mBonuses = {};
 
-    void Read(FifamReader &reader, FifamDatabase *database) {
-
-    }
-
-    void Write(FifamWriter &writer, FifamDatabase *database) {
-
-    }
+    FifamCompDbType GetDbType() override;
+    void Read(FifamReader &reader) override;
+    void Write(FifamWriter &writer) override;
 };

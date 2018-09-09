@@ -2,24 +2,24 @@
 #include "FifamUtils.h"
 #include "FifamPlayer.h"
 
-void FifamStaff::Read(FifamReader &reader, FifamDatabase *database) {
+void FifamStaff::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"STAFF")) {
         if (reader.IsVersionGreaterOrEqual(0x2009, 0x05)) {
             UChar type = reader.ReadLine<UChar>();
             if (type < 4) {
                 mClubPosition.SetFromInt(type);
-                ReadManager(reader, database);
+                ReadManager(reader);
             }
             else
-                ReadWorker(reader, database);
+                ReadWorker(reader);
         }
         else
-            ReadManager(reader, database);
+            ReadManager(reader);
         reader.ReadEndIndex(L"STAFF");
     }
 }
 
-void FifamStaff::ReadWorker(FifamReader &reader, FifamDatabase *database) {
+void FifamStaff::ReadWorker(FifamReader &reader) {
     reader.ReadFullLine(mFirstName);
     reader.ReadFullLine(mLastName);
     reader.ReadFullLine(mNickname);
@@ -157,7 +157,7 @@ void FifamStaff::ReadWorker(FifamReader &reader, FifamDatabase *database) {
     mLinkedCountry = mNationality[0];
 }
 
-void FifamStaff::ReadManager(FifamReader &reader, FifamDatabase *database) {
+void FifamStaff::ReadManager(FifamReader &reader) {
     reader.ReadFullLine(mFirstName);
     reader.ReadFullLine(mLastName);
     if (!reader.IsVersionGreaterOrEqual(0x2009, 0x05))
@@ -192,9 +192,9 @@ void FifamStaff::ReadManager(FifamReader &reader, FifamDatabase *database) {
     mLinkedCountry = mNationality[0];
 }
 
-void FifamStaff::ReadFromPlayer(FifamReader &reader, FifamDatabase *database) {
+void FifamStaff::ReadFromPlayer(FifamReader &reader) {
     FifamPlayer player;
-    player.Read(reader, database);
+    player.Read(reader);
     mClubPosition.SetFromInt(player.mPersonType.ToInt());
     mFirstName = player.mFirstName;
     mLastName = player.mLastName;
@@ -217,24 +217,24 @@ void FifamStaff::ReadFromPlayer(FifamReader &reader, FifamDatabase *database) {
     mJoinedClubDate = player.mContract.mJoined;
 }
 
-void FifamStaff::Write(FifamWriter &writer, FifamDatabase *database) {
+void FifamStaff::Write(FifamWriter &writer) {
     writer.WriteStartIndex(L"STAFF");
     if (writer.IsVersionGreaterOrEqual(0x2009, 0x05)) {
         if (mClubPosition.ToInt() < 4) {
             writer.WriteLine(mClubPosition.ToInt());
-            WriteManager(writer, database);
+            WriteManager(writer);
         }
         else {
             writer.WriteLine(4);
-            WriteWorker(writer, database);
+            WriteWorker(writer);
         }
     }
     else
-        WriteManager(writer, database);
+        WriteManager(writer);
     writer.WriteEndIndex(L"STAFF");
 }
 
-void FifamStaff::WriteManager(FifamWriter &writer, FifamDatabase *database) {
+void FifamStaff::WriteManager(FifamWriter &writer) {
     writer.WriteLine(mFirstName);
     writer.WriteLine(mLastName);
     if (!writer.IsVersionGreaterOrEqual(0x2009, 0x05))
@@ -249,8 +249,8 @@ void FifamStaff::WriteManager(FifamWriter &writer, FifamDatabase *database) {
         writer.WriteLine(mNickname);
         writer.WriteLine(mPseudonym);
         writer.WriteLine(mNationality[1]);
-        writer.WriteLine(FifamUtils::DBClubLinkToID(database, mFavouriteClub, writer.GetGameId()));
-        writer.WriteLine(FifamUtils::DBClubLinkToID(database, mWouldNeverWorkForClub, writer.GetGameId()));
+        writer.WriteLine(FifamUtils::GetWriteableID(mFavouriteClub));
+        writer.WriteLine(FifamUtils::GetWriteableID(mWouldNeverWorkForClub));
     }
     writer.WriteLine(mManagerMotivationSkills);
     writer.WriteLine(mManagerCoachingSkills);
@@ -266,7 +266,7 @@ void FifamStaff::WriteManager(FifamWriter &writer, FifamDatabase *database) {
     writer.WriteLine(mChairmanStability);
 }
 
-void FifamStaff::WriteWorker(FifamWriter &writer, FifamDatabase *database) {
+void FifamStaff::WriteWorker(FifamWriter &writer) {
     writer.WriteLine(mFirstName);
     writer.WriteLine(mLastName);
     writer.WriteLine(mNickname);
@@ -275,8 +275,8 @@ void FifamStaff::WriteWorker(FifamWriter &writer, FifamDatabase *database) {
     writer.WriteLine(2);
     writer.WriteLine(mNationality[0]);
     writer.WriteLine(mNationality[1]);
-    writer.WriteLine(FifamUtils::DBClubLinkToID(database, mFavouriteClub, writer.GetGameId()));
-    writer.WriteLine(FifamUtils::DBClubLinkToID(database, mWouldNeverWorkForClub, writer.GetGameId()));
+    writer.WriteLine(FifamUtils::GetWriteableID(mFavouriteClub));
+    writer.WriteLine(FifamUtils::GetWriteableID(mWouldNeverWorkForClub));
     writer.WriteLine(3);
     writer.WriteLine(0);
     writer.WriteLine(mPersonalityAttributes.WillingnessToLearn);
@@ -395,7 +395,7 @@ void FifamStaff::WriteWorker(FifamWriter &writer, FifamDatabase *database) {
         writer.WriteLine(mJoinedClubDate.year);
 }
 
-void FifamStaff::WriteToPlayer(FifamWriter &writer, FifamDatabase *database) {
+void FifamStaff::WriteToPlayer(FifamWriter &writer) {
     FifamPlayer player;
     player.mPersonType.SetFromInt(mClubPosition.ToInt());
     player.mFirstName = mFirstName;
@@ -476,13 +476,197 @@ void FifamStaff::WriteToPlayer(FifamWriter &writer, FifamDatabase *database) {
     player.mTalent = 100;
     player.mHeight = 180;
     player.mWeight = 75;
-    player.Write(writer, database);
+    player.Write(writer);
 }
 
 UChar FifamStaff::GetLevel() {
     return 0;
 }
 
+UChar CalcStaffLevel(Vector<Pair<UChar, Float>> const &attributes) {
+    Float level = 0.0f;
+    Float totalInfluence = 0.0f;
+    for (auto const &attr : attributes) {
+        level += attr.first * attr.second;
+        totalInfluence += attr.second;
+    }
+    if (totalInfluence != 0.0f)
+        level /= totalInfluence;
+    return (UChar)level;
+}
+
 UChar FifamStaff::GetLevel(FifamClubStaffPosition position) {
-    return 0;
+    Vector<Pair<UChar, Float>> vec;
+    switch (position.ToInt()) {
+    case FifamClubStaffPosition::AssistantCoach:
+        vec = {
+            { mSkills.Tactics, 0.5f },
+            { mSkills.FieldPlayerTraining, 1.0f },
+            { mSkills.GoalkeeperTraining, 0.5f },
+            { mSkills.FitnessTraining, 0.25f },
+            { mSkills.MotivationAbility, 0.25f }
+        };
+        break;
+    case FifamClubStaffPosition::AmateurCoach:
+        vec = {
+            { mSkills.Tactics, 0.75f },
+            { mSkills.FieldPlayerTraining, 0.5f },
+            { mSkills.GoalkeeperTraining, 0.25f },
+            { mSkills.FitnessTraining, 0.25f },
+            { mSkills.MotivationAbility, 0.75f }
+        };
+        break;
+    case FifamClubStaffPosition::YouthCoach:
+        vec = {
+            { mSkills.Tactics, 0.75f },
+            { mSkills.FieldPlayerTraining, 1.0f },
+            { mSkills.GoalkeeperTraining, 1.0f },
+            { mSkills.FitnessTraining, 0.0f },
+            { mSkills.MotivationAbility, 1.0f }
+        };
+        break;
+    case FifamClubStaffPosition::FitnessCoach:
+        vec = {
+            { mSkills.Tactics, 0.0f },
+            { mSkills.FieldPlayerTraining, 0.0f },
+            { mSkills.GoalkeeperTraining, 0.0f },
+            { mSkills.FitnessTraining, 1.0f },
+            { mSkills.MotivationAbility, 0.25f }
+        };
+        break;
+    case FifamClubStaffPosition::GoalkeeperCoach:
+        vec = {
+            { mSkills.Tactics, 0.0f },
+            { mSkills.FieldPlayerTraining, 0.0f },
+            { mSkills.GoalkeeperTraining, 1.0f },
+            { mSkills.FitnessTraining, 0.0f },
+            { mSkills.MotivationAbility, 0.25f }
+        };
+        break;
+    case FifamClubStaffPosition::TeamDoctor:
+        vec = {
+            { mSkills.BoneInjury, 0.5f },
+            { mSkills.KneeInjury, 0.5f },
+            { mSkills.MuscleInjury, 0.5f },
+            { mSkills.InjuryPrevention, 0.5f },
+            { mSkills.RegenerationAbility, 0.0f },
+            { mSkills.MotivationAbility, 0.0f }
+        };
+        break;
+    case FifamClubStaffPosition::SpecialistBone:
+        vec = {
+            { mSkills.BoneInjury, 1.0f },
+            { mSkills.KneeInjury, 0.0f },
+            { mSkills.MuscleInjury, 0.0f },
+            { mSkills.InjuryPrevention, 0.25f },
+            { mSkills.RegenerationAbility, 0.0f },
+            { mSkills.MotivationAbility, 0.0f }
+        };
+        break;
+    case FifamClubStaffPosition::SpecialistKnee:
+        vec = {
+            { mSkills.BoneInjury, 0.0f },
+            { mSkills.KneeInjury, 1.0f },
+            { mSkills.MuscleInjury, 0.0f },
+            { mSkills.InjuryPrevention, 0.25f },
+            { mSkills.RegenerationAbility, 0.0f },
+            { mSkills.MotivationAbility, 0.0f }
+        };
+        break;
+    case FifamClubStaffPosition::SpecialistMuscle:
+        vec = {
+            { mSkills.BoneInjury, 0.0f },
+            { mSkills.KneeInjury, 0.0f },
+            { mSkills.MuscleInjury, 1.0f },
+            { mSkills.InjuryPrevention, 0.25f },
+            { mSkills.RegenerationAbility, 0.0f },
+            { mSkills.MotivationAbility, 0.0f }
+        };
+        break;
+    case FifamClubStaffPosition::Masseur:
+        vec = {
+            { mSkills.BoneInjury, 0.0f },
+            { mSkills.KneeInjury, 0.0f },
+            { mSkills.MuscleInjury, 0.0f },
+            { mSkills.InjuryPrevention, 0.0f },
+            { mSkills.RegenerationAbility, 1.0f },
+            { mSkills.MotivationAbility, 0.0f }
+        };
+        break;
+    case FifamClubStaffPosition::Psychologist:
+        vec = {
+            { mSkills.BoneInjury, 0.0f },
+            { mSkills.KneeInjury, 0.0f },
+            { mSkills.MuscleInjury, 0.0f },
+            { mSkills.InjuryPrevention, 0.0f },
+            { mSkills.RegenerationAbility, 0.0f },
+            { mSkills.MotivationAbility, 1.0f }
+        };
+        break;
+    case FifamClubStaffPosition::GeneralManager:
+        vec = {
+            { mSkills.Negotiation, 0.25f },
+            { mSkills.Marketing, 0.0f },
+            { mSkills.Sponsoring, 1.0f },
+            { mSkills.Construction, 0.0f }
+        };
+        break;
+    case FifamClubStaffPosition::MarketingManager:
+        vec = {
+            { mSkills.Negotiation, 0.0f },
+            { mSkills.Marketing, 1.0f },
+            { mSkills.Sponsoring, 0.0f },
+            { mSkills.Construction, 0.0f }
+        };
+        break;
+    case FifamClubStaffPosition::ConstructionManager:
+        vec = {
+            { mSkills.Negotiation, 0.0f },
+            { mSkills.Marketing, 0.0f },
+            { mSkills.Sponsoring, 0.0f },
+            { mSkills.Construction, 1.0f }
+        };
+        break;
+    case FifamClubStaffPosition::SportsDirector:
+        vec = {
+            { mSkills.Negotiation, 1.0f },
+            { mSkills.Marketing, 0.0f },
+            { mSkills.Sponsoring, 0.0f },
+            { mSkills.Construction, 0.0f }
+        };
+        break;
+    case FifamClubStaffPosition::FanRepresentative:
+        vec = {
+            { mSkills.PR, 0.25f },
+            { mSkills.Arbitrate, 0.5f },
+            { mSkills.FanContact, 1.0f }
+        };
+        break;
+    case FifamClubStaffPosition::Spokesperson:
+        vec = {
+            { mSkills.PR, 1.0f },
+            { mSkills.Arbitrate, 0.0f },
+            { mSkills.FanContact, 0.0f }
+        };
+        break;
+    case FifamClubStaffPosition::Lawyer:
+        vec = {
+            { mSkills.Negotiation, 0.0f },
+            { mSkills.SportsLaw, 1.0f },
+            { mSkills.LaborLaw, 1.0f }
+        };
+        break;
+    case FifamClubStaffPosition::GeneralScout:
+        vec = {
+            { mSkills.GeneralScouting, 1.0f },
+            { mSkills.TalentEstimation, 0.75f },
+            { mSkills.FieldSkillsEstimation, 0.5f },
+            { mSkills.GoalkeeperSkillsEstimation, 0.5f },
+            { mSkills.MentalSkillsEstimation, 0.5f },
+            { mSkills.PhysicalSkillsEstimation, 0.5f },
+            { mSkills.Networking, 0.25f }
+        };
+        break;
+    }
+    return CalcStaffLevel(vec);
 }

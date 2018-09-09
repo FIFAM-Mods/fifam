@@ -3,7 +3,7 @@
 #include "FifamClub.h"
 #include "FifamDatabase.h"
 
-void FifamHistoric::Read(Path &historicFolder, UInt gameId, FifamDatabase *database) {
+void FifamHistoric::Read(Path &historicFolder, UInt gameId) {
     Bool unicode = gameId >= 8;
 
     if (gameId >= 9) {
@@ -16,7 +16,7 @@ void FifamHistoric::Read(Path &historicFolder, UInt gameId, FifamDatabase *datab
                 UInt compIDInt = 0;
                 UInt clubUID = 0;
                 worstStartingStreakReader.ReadLine(compIDInt, Hexademical(clubUID), entry.mSeason, entry.mMatches);
-                entry.mCompID.SetFromInt(compIDInt);
+                FifamUtils::SaveCompetitionIDToPtr(entry.mCompetition, compIDInt);
                 FifamUtils::SaveClubIDToClubLink(entry.mClub, clubUID);
             }
         }
@@ -43,16 +43,15 @@ void FifamHistoric::Read(Path &historicFolder, UInt gameId, FifamDatabase *datab
     }
 }
 
-void FifamHistoric::Write(Path &historicFolder, UInt gameId, UShort vYear, UShort vNumber, FifamDatabase *database) {
+void FifamHistoric::Write(Path &historicFolder, UInt gameId, UShort vYear, UShort vNumber) {
     Bool unicode = gameId >= 8;
 
     if (gameId >= 9) {
         FifamWriter worstStartingStreakWriter(historicFolder / L"WorstStartingStreak.txt", gameId, vYear, vNumber, unicode);
         if (worstStartingStreakWriter.Available()) {
             for (auto const &entry : mWorstStartingStreaks) {
-                UInt compIDInt =
-                    FifamCompID::Translate(entry.mCompID.ToInt(), FifamDatabase::LATEST_GAME_VERSION, gameId);
-                UInt clubUID = FifamUtils::DBTranslateClubID(database, entry.mClub.mPtr->mUniqueID, gameId);
+                UInt compIDInt = FifamUtils::GetWriteableID(entry.mCompetition);
+                UInt clubUID = FifamUtils::GetWriteableUniqueID(entry.mClub);
                 worstStartingStreakWriter.WriteLine(compIDInt, Hexademical(clubUID), entry.mSeason, entry.mMatches);
             }
         }
@@ -63,12 +62,9 @@ void FifamHistoric::Write(Path &historicFolder, UInt gameId, UShort vYear, UShor
         if (fifaWorldPlayersWriter.Available()) {
             fifaWorldPlayersWriter.WriteLine(L"Saison	Nat.	Verein	Alter	ID	Name/Pseudonym	Vorname");
             for (auto const &entry : mFifaWorldPlayers) {
-                UInt clubUID = 0;
-                if (entry.mClub.IsValid())
-                    clubUID = FifamUtils::DBTranslateClubID(database, entry.mClub.mPtr->mUniqueID, gameId);
                 fifaWorldPlayersWriter.Write(entry.mSeason, L"\t");
                 fifaWorldPlayersWriter.Write(entry.mNationality, L"\t");
-                fifaWorldPlayersWriter.Write(clubUID, L"\t");
+                fifaWorldPlayersWriter.Write(FifamUtils::GetWriteableUniqueID(entry.mClub), L"\t");
                 fifaWorldPlayersWriter.Write(entry.mPlayerPic.empty() ? L"0" : entry.mPlayerPic, L"\t");
                 fifaWorldPlayersWriter.Write(entry.mLastNameOrPseudonym, L"\t");
                 fifaWorldPlayersWriter.Write(entry.mFirstName.empty() ? L"-" : entry.mFirstName);

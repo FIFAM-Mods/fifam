@@ -1,7 +1,7 @@
 #include "FifamCACPlayer.h"
 #include "FifamUtils.h"
 
-void FifamCACPlayer::Read(FifamReader &reader, FifamDatabase *database) {
+void FifamCACPlayer::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"PL_POOL")) {
         reader.ReadLine(mFirstName);
         reader.ReadLine(mLastName);
@@ -70,7 +70,7 @@ void FifamCACPlayer::Read(FifamReader &reader, FifamDatabase *database) {
     }
 }
 
-void FifamCACPlayer::Write(FifamWriter &writer, FifamDatabase *database) {
+void FifamCACPlayer::Write(FifamWriter &writer) {
     writer.WriteStartIndex(L"PL_POOL");
     writer.WriteLine(mFirstName);
     writer.WriteLine(mLastName);
@@ -80,7 +80,7 @@ void FifamCACPlayer::Write(FifamWriter &writer, FifamDatabase *database) {
     if (mPreferredCACTeam)
         writer.WriteLine(-1);
     else
-        writer.WriteLine(FifamUtils::DBClubLinkToID(database, mPreferredClub, writer.GetGameId()));
+        writer.WriteLine(FifamUtils::GetWriteableID(mPreferredClub));
     writer.WriteLine(mPositionRole);
     writer.WriteLine(mBirthdate);
     if (writer.IsVersionGreaterOrEqual(0x2009, 0x02)) {

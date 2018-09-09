@@ -9,7 +9,8 @@
    region id       comp. type      comp. level
 */
 
-struct FifamCompID {
+class FifamCompID {
+public:
     FifamCompRegion mRegion;
     FifamCompType mType;
     UShort mIndex = 0;
@@ -27,9 +28,8 @@ struct FifamCompID {
     void SetFromHexStr(String const &str);
     String ToHexStr() const;
     void SetFromStr(String const &str);
-    String ToStr() const;
+    String ToStr(bool countryName = false) const;
     Bool IsNull() const;
-    static UInt Translate(UInt id, UInt gameFrom, UInt gameTo);
 };
 
 Bool operator==(FifamCompID const &lhs, FifamCompID const &rhs);

@@ -15,7 +15,7 @@ String FifamPlayer::GetName() const {
     return mLastName;
 }
 
-void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
+void FifamPlayer::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"PLAYER")) {
         if (reader.IsVersionGreaterOrEqual(0x2012, 0x01)) {
             reader.ReadLine(mPersonType);
@@ -115,13 +115,14 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
             FifamUtils::SaveClubIDToClubLink(mFavouriteClub, reader.ReadLine<UInt>());
             FifamUtils::SaveClubIDToClubLink(mWouldnSignFor, reader.ReadLine<UInt>());
             if (reader.IsVersionGreaterOrEqual(0x2013, 0x02)) {
+                mTransferRumors.resize(3);
                 FifamUtils::SaveClubIDToClubLink(mTransferRumors[0], reader.ReadLine<UInt>());
                 FifamUtils::SaveClubIDToClubLink(mTransferRumors[1], reader.ReadLine<UInt>());
                 FifamUtils::SaveClubIDToClubLink(mTransferRumors[2], reader.ReadLine<UInt>());
             }
-            mStartingConditions.Read(reader, database);
-            mHistory.Read(reader, database);
-            mContract.Read(reader, database);
+            mStartingConditions.Read(reader);
+            mHistory.Read(reader);
+            mContract.Read(reader);
             reader.ReadLine(mManagerMotivationSkills, mManagerCoachingSkills, mManagerGoalkeepersTraining, mManagerNegotiationSkills);
             reader.ReadLine(mManagerFavouriteFormation);
             reader.ReadLine(mChairmanStability);
@@ -268,7 +269,7 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
                     FifamUtils::SaveClubIDToClubLink(mWouldnSignFor, reader.ReadLine<UInt>());
                 reader.SkipLines(2);
             }
-            FifamUtils::SavePlayerIDToPlayerPtr(mManagerFavouritePlayer, reader.ReadLine<UInt>());
+            FifamUtils::SavePlayerIDToPtr(mManagerFavouritePlayer, reader.ReadLine<UInt>());
             reader.ReadLine(mManagerFavouriteFormation);
             reader.ReadLine(mChairmanStability);
             reader.ReadLine(mTacticalEducation);
@@ -308,10 +309,10 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
                 mContract.mOptionClub = 1;
             if (mContract.mOptionPlayer == 0 && Utils::CheckFlag(contractFlags, 0x80))
                 mContract.mOptionPlayer = 1;
-            mStartingConditions.Read(reader, database);
+            mStartingConditions.Read(reader);
             reader.ReadLine(mShoeType);
             reader.ReadLine(mLongSleeves);
-            mHistory.Read(reader, database);
+            mHistory.Read(reader);
             reader.ReadLine(mComment);
             if (reader.IsVersionGreaterOrEqual(0x2011, 0x01))
                 reader.ReadLine(mPlayerAgent);
@@ -508,7 +509,7 @@ void FifamPlayer::Read(FifamReader &reader, FifamDatabase *database) {
     }
 }
 
-void FifamPlayer::Write(FifamWriter &writer, FifamDatabase *database) {
+void FifamPlayer::Write(FifamWriter &writer) {
     FifamPlayerPlayingStyle playingStyle = mPlayingStyle;
     if (writer.GetGameId() < 13 && playingStyle.ToInt() >= FifamPlayerPlayingStyle::BusyAttacker)
         playingStyle = FifamPlayerLevel::GetBestStyleForPlayer(this, false);
@@ -624,16 +625,16 @@ void FifamPlayer::Write(FifamWriter &writer, FifamDatabase *database) {
         writer.WriteLine(mSpecialFace, mEmpicsId, mHeight, mWeight, mShirtNumberFirstTeam, mShirtNumberReserveTeam);
         writer.WriteLine(mPlayerAgent);
         writer.WriteLine(mNationalTeamMatches, mNationalTeamGoals);
-        writer.WriteLine(FifamUtils::DBClubLinkToID(database, mFavouriteClub, writer.GetGameId()));
-        writer.WriteLine(FifamUtils::DBClubLinkToID(database, mWouldnSignFor, writer.GetGameId()));
+        writer.WriteLine(FifamUtils::GetWriteableID(mFavouriteClub));
+        writer.WriteLine(FifamUtils::GetWriteableID(mWouldnSignFor));
         if (writer.IsVersionGreaterOrEqual(0x2013, 0x02)) {
-            writer.WriteLine(FifamUtils::DBClubLinkToID(database, mTransferRumors[0], writer.GetGameId()));
-            writer.WriteLine(FifamUtils::DBClubLinkToID(database, mTransferRumors[1], writer.GetGameId()));
-            writer.WriteLine(FifamUtils::DBClubLinkToID(database, mTransferRumors[2], writer.GetGameId()));
+            auto transferRumors = FifamUtils::MakeWriteableIDsList(mTransferRumors);
+            for (UInt i = 0; i < 3; i++)
+                writer.WriteLine(transferRumors[i]);
         }
-        mStartingConditions.Write(writer, database);
-        mHistory.Write(writer, database);
-        mContract.Write(writer, database);
+        mStartingConditions.Write(writer);
+        mHistory.Write(writer);
+        mContract.Write(writer);
         writer.WriteLine(mManagerMotivationSkills, mManagerCoachingSkills, mManagerGoalkeepersTraining, mManagerNegotiationSkills);
         writer.WriteLine(mManagerFavouriteFormation);
         writer.WriteLine(mChairmanStability);
@@ -767,10 +768,10 @@ void FifamPlayer::Write(FifamWriter &writer, FifamDatabase *database) {
         writer.WriteLine(mSpecialFace);
         writer.WriteLine(mEmpicsId);
         if (!writer.IsVersionGreaterOrEqual(0x2007, 0x16)) {
-            auto firstClubId = FifamUtils::DBClubLinkToID(database, mFirstClub, writer.GetGameId());
+            auto firstClubId = FifamUtils::GetWriteableID(mFirstClub);
             writer.WriteLine(FifamUtils::GetCountryIDFromClubID(firstClubId));
             writer.WriteLine(firstClubId);
-            auto previousClubId = FifamUtils::DBClubLinkToID(database, mPreviousClub, writer.GetGameId());
+            auto previousClubId = FifamUtils::GetWriteableID(mPreviousClub);
             writer.WriteLine(FifamUtils::GetCountryIDFromClubID(previousClubId));
             writer.WriteLine(previousClubId);
         }
@@ -790,22 +791,21 @@ void FifamPlayer::Write(FifamWriter &writer, FifamDatabase *database) {
         writer.WriteLine(mLanguages[2]);
         writer.WriteLine(mLanguages[3]);
         if (writer.IsVersionGreaterOrEqual(0x2009, 0x0A)) {
-            writer.WriteLine(FifamUtils::DBClubLinkToID(database, mFavouriteClub, writer.GetGameId()));
-            writer.WriteLine(FifamUtils::DBClubLinkToID(database, mWouldnSignFor, writer.GetGameId()));
-            if (mManagerFavouritePlayer && mManagerFavouritePlayer->mClub)
-                writer.WriteLine(FifamUtils::DBClubLinkToID(database, FifamClubLink(mManagerFavouritePlayer->mClub), writer.GetGameId()));
+            writer.WriteLine(FifamUtils::GetWriteableID(mFavouriteClub));
+            writer.WriteLine(FifamUtils::GetWriteableID(mWouldnSignFor));
+            if (FifamUtils::GetWriteableID(mManagerFavouritePlayer))
+                writer.WriteLine(FifamUtils::GetWriteableID(mManagerFavouritePlayer->mClub));
             else
                 writer.WriteLine(0);
         }
         else {
-            auto favouriteClubId = FifamUtils::DBClubLinkToID(database, mFavouriteClub, writer.GetGameId());
+            auto favouriteClubId = FifamUtils::GetWriteableID(mFavouriteClub);
             writer.WriteLine(FifamUtils::GetCountryIDFromClubID(favouriteClubId));
             writer.WriteLine(favouriteClubId);
             if (writer.IsVersionGreaterOrEqual(0x2007, 0x0E))
-                writer.WriteLine(FifamUtils::DBClubLinkToID(database, mWouldnSignFor, writer.GetGameId()));
-            
-            if (mManagerFavouritePlayer && mManagerFavouritePlayer->mClub) {
-                auto favouritePlayerClubId = FifamUtils::DBClubLinkToID(database, FifamClubLink(mManagerFavouritePlayer->mClub), writer.GetGameId());
+                writer.WriteLine(FifamUtils::GetWriteableID(mWouldnSignFor));
+            if (FifamUtils::GetWriteableID(mManagerFavouritePlayer)) {
+                auto favouritePlayerClubId = FifamUtils::GetWriteableID(mManagerFavouritePlayer->mClub);
                 writer.WriteLine(FifamUtils::GetCountryIDFromClubID(favouritePlayerClubId));
                 writer.WriteLine(favouritePlayerClubId);
             }
@@ -814,8 +814,8 @@ void FifamPlayer::Write(FifamWriter &writer, FifamDatabase *database) {
                 writer.WriteLine(0);
             }
         }
-        if (mManagerFavouritePlayer)
-            writer.WriteLine(mManagerFavouritePlayer->mID);
+        if (FifamUtils::GetWriteableID(mManagerFavouritePlayer) && FifamUtils::GetWriteableID(mManagerFavouritePlayer->mClub))
+            writer.WriteLine(FifamUtils::GetWriteableID(mManagerFavouritePlayer));
         else
             writer.WriteLine(0);
         writer.WriteLine(mManagerFavouriteFormation);
@@ -848,10 +848,10 @@ void FifamPlayer::Write(FifamWriter &writer, FifamDatabase *database) {
             Utils::SetFlag(contractFlags, 0x80, mContract.mOptionPlayer != 0);
             writer.WriteLine(contractFlags);
         }
-        mStartingConditions.Write(writer, database);
+        mStartingConditions.Write(writer);
         writer.WriteLine(mShoeType);
         writer.WriteLine(mLongSleeves);
-        mHistory.Write(writer, database);
+        mHistory.Write(writer);
         writer.WriteLine(mComment);
         if (writer.IsVersionGreaterOrEqual(0x2011, 0x01))
             writer.WriteLine(mPlayerAgent);

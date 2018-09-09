@@ -72,10 +72,8 @@
     <ClInclude Include="FifamClubLink.h" />
     <ClInclude Include="FifamClubTeamType.h" />
     <ClInclude Include="FifamCompPool.h" />
-    <ClInclude Include="FifamCopmCup.h" />
     <ClInclude Include="FifamCompLeague.h" />
     <ClInclude Include="FifamCompRound.h" />
-    <ClInclude Include="FifamScriptInstruction.h" />
     <ClInclude Include="FifamRules.h" />
     <ClInclude Include="FifamUtils.h" />
     <ClInclude Include="FifamClubLastSeasonInfo.h" />
@@ -91,7 +89,6 @@
     <ClInclude Include="FifamPlayerStartingConditions.h" />
     <ClInclude Include="FifamPlayerInjuryType.h" />
     <ClInclude Include="FifamPlayerAttributes.h" />
-    <ClInclude Include="FifamCountryCompetitions.h" />
     <ClInclude Include="FifamFifaWorldPlayer.h" />
     <ClInclude Include="FifamHistoric.h" />
     <ClInclude Include="FifamWorstStartingStreak.h" />
@@ -101,6 +98,12 @@
     <ClInclude Include="FifamManagerFocus.h" />
     <ClInclude Include="FifamClubStaffPosition.h" />
     <ClInclude Include="FifamCoachPlayingOrientation.h" />
+    <ClInclude Include="FifamCompCup.h" />
+    <ClInclude Include="FifamScriptInstructionID.h" />
+    <ClInclude Include="FifamScriptInstruction.h" />
+    <ClInclude Include="FifamCompDbType.h" />
+    <ClInclude Include="FifamDbWriteable.h" />
+    <ClInclude Include="FifamCompRoot.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamDate.cpp" />
@@ -134,11 +137,14 @@
     <ClCompile Include="FifamPlayerLevel.cpp" />
     <ClCompile Include="FifamPlayerStartingConditions.cpp" />
     <ClCompile Include="FifamPlayerAttributes.cpp" />
-    <ClCompile Include="FifamCountryCompetitions.cpp" />
     <ClCompile Include="FifamHistoric.cpp" />
     <ClCompile Include="FifamCACPlayer.cpp" />
     <ClCompile Include="FifamStaff.cpp" />
     <ClCompile Include="FifamCompRound.cpp" />
     <ClCompile Include="FifamCompLeague.cpp" />
+    <ClCompile Include="FifamCompPool.cpp" />
+    <ClCompile Include="FifamDbWriteable.cpp" />
+    <ClCompile Include="FifamCompRoot.cpp" />
+    <ClCompile Include="FifamCompCup.cpp" />
   </ItemGroup>
 </Project>

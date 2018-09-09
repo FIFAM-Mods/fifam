@@ -10,7 +10,6 @@
 #include "FifamCoachPlayingOrientation.h"
 #include "FifamLanguage.h"
 
-class FifamDatabase;
 class FifamPlayer;
 
 // @since FM07
@@ -137,14 +136,14 @@ public:
     FifamClub *mClub = nullptr;
     FifamNation mLinkedCountry;
 
-    void Read(FifamReader &reader, FifamDatabase *database);
-    void ReadWorker(FifamReader &reader, FifamDatabase *database);
-    void ReadManager(FifamReader &reader, FifamDatabase *database);
-    void ReadFromPlayer(FifamReader &reader, FifamDatabase *database);
-    void Write(FifamWriter &writer, FifamDatabase *database);
-    void WriteManager(FifamWriter &writer, FifamDatabase *database);
-    void WriteWorker(FifamWriter &writer, FifamDatabase *database);
-    void WriteToPlayer(FifamWriter &writer, FifamDatabase *database);
+    void Read(FifamReader &reader);
+    void ReadWorker(FifamReader &reader);
+    void ReadManager(FifamReader &reader);
+    void ReadFromPlayer(FifamReader &reader);
+    void Write(FifamWriter &writer);
+    void WriteManager(FifamWriter &writer);
+    void WriteWorker(FifamWriter &writer);
+    void WriteToPlayer(FifamWriter &writer);
     UChar GetLevel();
     UChar GetLevel(FifamClubStaffPosition position);
 };

@@ -1,11 +1,10 @@
 #pragma once
-
+#include "FifamDbWriteable.h"
 #include "FifamClubLink.h"
 #include "FifamPlayer.h"
 #include "FifamStaff.h"
 #include "FifamTranslation.h"
 #include "FifamStadiumType.h"
-#include "FifamCompID.h"
 #include "FifamKit.h"
 #include "FifamClubHistory.h"
 #include "FifamNation.h"
@@ -26,6 +25,7 @@
 
 class FifamDatabase;
 class FifamCountry;
+class FifamCompetition;
 
 /* Articles
 # | English   | French  | German     | Italian  | Spanish   | Polish
@@ -41,7 +41,7 @@ class FifamCountry;
 */
 
 // @since FM07
-class FifamClub {
+class FifamClub : public FifamDbWriteable {
 public:
     // @since FM08
     UInt mUniqueID = 0;
@@ -102,7 +102,8 @@ public:
     // @since FM07
     FifamClubLink mPartnershipClub;
     // @since FM07
-    Array<FifamClubLink, 4> mRivalClubs;
+    // @size 4
+    Vector<FifamClubLink> mRivalClubs;
     // @since FM07
     UShort mYearOfFoundation = 1900;
     // @since FM07
@@ -233,7 +234,7 @@ public:
     // @since FM07
     FifamKit mKit;
     // @since FM07
-    Array<FifamCompID, 4> mLowestLeagues;
+    Vector<FifamCompetition *> mLowestLeagues;
 
     // @since FM08
     FifamClubMediaPressure mMediaPressure;

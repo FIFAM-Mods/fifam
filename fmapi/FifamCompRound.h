@@ -8,9 +8,6 @@
 class FifamCompRound : public FifamCompetition {
 public:
     // @since FM07
-    // round name
-    FifamTrArray<String> mName;
-    // @since FM07
     // num of teams in round
     UInt mNumTeams = 0;
     // @since FM07
@@ -32,6 +29,7 @@ public:
     // bonuses
     Array<UInt, 4> mBonuses = {};
 
-    void Read(FifamReader &reader, FifamDatabase *database);
-    void Write(FifamWriter &writer, FifamDatabase *database);
+    FifamCompDbType GetDbType() override;
+    void Read(FifamReader &reader) override;
+    void Write(FifamWriter &writer) override;
 };

@@ -1,7 +1,8 @@
 #include "FifamRules.h"
 #include "FifamUtils.h"
+#include "FifamDbWriteable.h"
 
-void FifamRules::Read(FifamReader &reader, FifamDatabase *database) {
+void FifamRules::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"RULES_AND_MISC")) {
         if (reader.ReadVersion()) {
             for (UInt i = 0; i < FifamContinent::NUM_CONTINENTS; i++) {
@@ -39,6 +40,7 @@ void FifamRules::Read(FifamReader &reader, FifamDatabase *database) {
             Unknown._3 = reader.ReadLine<UInt>() == 0;
             mNumSubsInFriendlyMatches = reader.ReadLine<UInt>();
             if (reader.IsVersionGreaterOrEqual(0x2007, 0x0F)) {
+                mFairnessAwardWinners.resize(3);
                 for (UInt i = 0; i < 3; i++)
                     FifamUtils::SaveClubIDToClubLink(mFairnessAwardWinners[i], reader.ReadLine<UInt>());
             }
@@ -53,7 +55,7 @@ void FifamRules::Read(FifamReader &reader, FifamDatabase *database) {
     }
 }
 
-void FifamRules::Write(FifamWriter &writer, FifamDatabase *database) {
+void FifamRules::Write(FifamWriter &writer) {
     writer.WriteStartIndex(L"RULES_AND_MISC");
     writer.WriteVersion();
     for (UInt i = 0; i < 2; i++) {
@@ -64,15 +66,15 @@ void FifamRules::Write(FifamWriter &writer, FifamDatabase *database) {
         writer.WriteLineTranslationArray(mEuropeanSuperCupName);
     }
     for (UInt i = 0; i < FifamContinent::NUM_CONTINENTS; i++) {
-        writer.WriteLine(FifamUtils::DBClubLinkToID(database, mContinentalCupChampions[i].mFirstCup, writer.GetGameId()));
-        writer.WriteLine(FifamUtils::DBClubLinkToID(database, mContinentalCupStadiums[i].mFirstCup, writer.GetGameId()));
-        writer.WriteLine(FifamUtils::DBClubLinkToID(database, mContinentalCupChampions[i].mSecondCup, writer.GetGameId()));
-        writer.WriteLine(FifamUtils::DBClubLinkToID(database, mContinentalCupStadiums[i].mSecondCup, writer.GetGameId()));
-        writer.WriteLine(FifamUtils::DBClubLinkToID(database, mContinentalCupChampions[i].mSuperCup, writer.GetGameId()));
-        writer.WriteLine(FifamUtils::DBClubLinkToID(database, mContinentalCupStadiums[i].mSuperCup, writer.GetGameId()));
+        writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupChampions[i].mFirstCup));
+        writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupStadiums[i].mFirstCup));
+        writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupChampions[i].mSecondCup));
+        writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupStadiums[i].mSecondCup));
+        writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupChampions[i].mSuperCup));
+        writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupStadiums[i].mSuperCup));
     }
-    writer.WriteLine(FifamUtils::DBClubLinkToID(database, Unknown._1, writer.GetGameId()));
-    writer.WriteLine(FifamUtils::DBClubLinkToID(database, Unknown._2, writer.GetGameId()));
+    writer.WriteLine(FifamUtils::GetWriteableID(Unknown._1));
+    writer.WriteLine(FifamUtils::GetWriteableID(Unknown._2));
     UInt pointsForHomeWin = 1;
     if (mPointsForHomeWin == 2)
         pointsForHomeWin = 0;
@@ -90,8 +92,9 @@ void FifamRules::Write(FifamWriter &writer, FifamDatabase *database) {
     writer.WriteLine(Unknown._3 == 0);
     writer.WriteLine(mNumSubsInFriendlyMatches);
     if (writer.IsVersionGreaterOrEqual(0x2007, 0x0F)) {
+        auto fairnessAwardWinners = FifamUtils::MakeWriteableIDsList(mFairnessAwardWinners);
         for (UInt i = 0; i < 3; i++)
-            writer.WriteLine(FifamUtils::DBClubLinkToID(database, mFairnessAwardWinners[i], writer.GetGameId()));
+            writer.WriteLine(fairnessAwardWinners[i]);
     }
     if (writer.IsVersionGreaterOrEqual(0x2009, 0x07)) {
         for (UInt i = 0; i < 16; i++) {

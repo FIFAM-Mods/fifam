@@ -1,7 +1,7 @@
 #include "FifamPlayerContract.h"
 #include "FifamUtils.h"
 
-void FifamPlayerContract::Read(FifamReader &reader, FifamDatabase *database) {
+void FifamPlayerContract::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"CONTRACT")) {
         UChar releaseClauseFlags = 0;
         UShort flags = 0;
@@ -61,7 +61,7 @@ void FifamPlayerContract::Read(FifamReader &reader, FifamDatabase *database) {
     }
 }
 
-void FifamPlayerContract::Write(FifamWriter &writer, FifamDatabase *database) {
+void FifamPlayerContract::Write(FifamWriter &writer) {
     writer.WriteStartIndex(L"CONTRACT");
     UChar releaseClauseFlags = 0;
     Utils::SetFlag(releaseClauseFlags, 0x01, mClauseForeignClub.mEnabled);
@@ -113,8 +113,11 @@ void FifamPlayerContract::Write(FifamWriter &writer, FifamDatabase *database) {
         mClauseNoPromotion.mPercent
     );
     if (writer.IsVersionGreaterOrEqual(0x2013, 0x09)) {
-        writer.WriteLine(mBuyBackClauseEnabled, mBuyBackClauseCost,
-            FifamUtils::DBClubLinkToID(database, mBuyBackClauseClub, writer.GetGameId()), mBuyBackClauseValidUntil);
+        UInt buyBackClauseClub = FifamUtils::GetWriteableID(mBuyBackClauseClub);
+        if (buyBackClauseClub)
+            writer.WriteLine(mBuyBackClauseEnabled, mBuyBackClauseCost, buyBackClauseClub, mBuyBackClauseValidUntil);
+        else
+            writer.WriteLine(0, 0, 0, FifamDate(0, 0, 0));
     }
     writer.WriteEndIndex(L"CONTRACT");
 }

@@ -8,26 +8,36 @@ void FifamClub::ReadClubMembers(FifamReader &reader) {
     for (UInt i = 0; i < playersCount; i++) {
         UInt id = reader.ReadLine<UInt>();
         auto player = mCountry->mDatabase->CreatePlayer(this, id);
-        player->Read(reader, mDatabase);
+        player->Read(reader);
     }
     UInt staffsCount = reader.ReadLine<UInt>();
     for (UInt i = 0; i < staffsCount; i++) {
         UInt id = reader.ReadLine<UInt>();
         auto staff = mCountry->mDatabase->CreateStaff(this, id);
-        staff->Read(reader, mDatabase);
+        staff->Read(reader);
     }
 }
 
 void FifamClub::WriteClubMembers(FifamWriter &writer) {
-    writer.WriteLine(mPlayers.size());
+    Vector<FifamPlayer *> players;
     for (auto player : mPlayers) {
-        writer.WriteLine(player->mID);
-        player->Write(writer, mDatabase);
+        if (player->GetIsWriteable())
+            players.push_back(player);
     }
-    writer.WriteLine(mStaffs.size());
+    writer.WriteLine(players.size());
+    for (auto player : players) {
+        writer.WriteLine(FifamUtils::GetWriteableID(player));
+        player->Write(writer);
+    }
+    Vector<FifamStaff *> staffs;
     for (auto staff : mStaffs) {
-        writer.WriteLine(staff->mID);
-        staff->Write(writer, mDatabase);
+        if (staff->GetIsWriteable())
+            staffs.push_back(staff);
+    }
+    writer.WriteLine(staffs.size());
+    for (auto staff : staffs) {
+        writer.WriteLine(FifamUtils::GetWriteableID(staff));
+        staff->Write(writer);
     }
 }
 
@@ -69,11 +79,10 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
             reader.ReadFullLine(mMascotName);
             mBadge.Read(reader);
             UInt partnershipClub;
-            Array<UInt, 4> rivalClubs;
+            Vector<UInt> rivalClubs(4);
             reader.ReadLine(partnershipClub, rivalClubs[0], rivalClubs[1], rivalClubs[2], rivalClubs[3]);
             FifamUtils::SaveClubIDToClubLink(mPartnershipClub, partnershipClub);
-            for (UInt i = 0; i < rivalClubs.size(); i++)
-                FifamUtils::SaveClubIDToClubLink(mRivalClubs[i], rivalClubs[i]);
+            FifamUtils::SaveIDsToClubLinkList(rivalClubs, mRivalClubs);
             reader.ReadLine(mNationalPrestige, mInternationalPrestige);
             Int latitude, longitude;
             reader.ReadLine(latitude, longitude);
@@ -112,10 +121,8 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
             reader.ReadLineArray(mTransfersCountry);
             reader.ReadLine(mYouthPlayersCountry);
             mKit.Read(reader);
-            Array<UInt, 4> lowestLeagues;
-            reader.ReadLineArray(lowestLeagues);
-            for (UInt i = 0; i < 4; i++)
-                mLowestLeagues[i].SetFromInt(lowestLeagues[i]);
+            auto lowestLeagues = reader.ReadLineArray<UInt>();
+            FifamUtils::SaveIDsToCompetitionList(lowestLeagues, mLowestLeagues);
             reader.ReadLine(mClubFacilities, mYouthCentre, mYouthBoardingSchool, mAiStrategy, mLandscape, mSettlement);
             mMedicalDepartment = mClubFacilities;
             mMerchandising = mClubFacilities;
@@ -127,7 +134,7 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
                 Array<UInt, 3> captainIDs;
                 reader.ReadLineArray(captainIDs);
                 for (UInt i = 0; i < captainIDs.size(); i++)
-                    FifamUtils::SavePlayerIDToPlayerPtr(mCaptains[i], captainIDs[i]);
+                    FifamUtils::SavePlayerIDToPtr(mCaptains[i], captainIDs[i]);
             }
         }
         else {
@@ -181,6 +188,7 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
                 }
             }
             FifamUtils::SaveClubIDToClubLink(mPartnershipClub, reader.ReadLine<UInt>());
+            mRivalClubs.resize(4);
             for (UInt i = 0; i < 4; i++)
                 FifamUtils::SaveClubIDToClubLink(mRivalClubs[i], reader.ReadLine<UInt>());
             reader.ReadLine(mYearOfFoundation);
@@ -278,8 +286,9 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
             reader.ReadLine(mFifaID);
             ReadClubMembers(reader);
             mKit.Read(reader);
+            mLowestLeagues.resize(4);
             for (UInt i = 0; i < 4; i++)
-                mLowestLeagues[i].SetFromInt(reader.ReadLine<UInt>());
+                FifamUtils::SaveCompetitionIDToPtr(mLowestLeagues[i], reader.ReadLine<UInt>());
             if (reader.IsVersionGreaterOrEqual(0x2011, 0x0D)) {
                 reader.ReadLine(mClubFacilities);
                 reader.ReadLine(mYouthCentre);
@@ -346,10 +355,6 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
         FifamCheckEnum(mLandscape);
         FifamCheckEnum(mSettlement);
         FifamCheckEnum(mMediaPressure);
-        for (UInt i = 0; i < 4; i++) {
-            FifamCheckEnum(mLowestLeagues[i].mRegion);
-            FifamCheckEnum(mLowestLeagues[i].mType);
-        }
         //FifamCheckEnum(mPenaltyType);
     }
 }
@@ -407,7 +412,7 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
     writer.WriteStartIndex(clubSectionName);
     writer.WriteVersion();
     if (writer.IsVersionGreaterOrEqual(0x2012, 0x01)) {
-        writer.WriteLine(FifamUtils::DBTranslateClubID(mDatabase, mUniqueID, writer.GetGameId()));
+        writer.WriteLine(FifamUtils::GetWriteableUniqueID(this));
         writer.WriteLine(mFifaID);
         writer.WriteLineTranslationArray(mName);
         writer.WriteLineTranslationArray(mName2);
@@ -436,11 +441,8 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         writer.WriteLine(mNewspaper);
         writer.WriteLine(mMascotName);
         mBadge.Write(writer);
-        writer.WriteLine(FifamUtils::DBClubLinkToID(mDatabase, mPartnershipClub, writer.GetGameId()),
-            FifamUtils::DBClubLinkToID(mDatabase, mRivalClubs[0], writer.GetGameId()),
-            FifamUtils::DBClubLinkToID(mDatabase, mRivalClubs[1], writer.GetGameId()),
-            FifamUtils::DBClubLinkToID(mDatabase, mRivalClubs[2], writer.GetGameId()),
-            FifamUtils::DBClubLinkToID(mDatabase, mRivalClubs[3], writer.GetGameId()));
+        auto rivalClubs = FifamUtils::MakeWriteableIDsList(mRivalClubs);
+        writer.WriteLine(FifamUtils::GetWriteableID(mPartnershipClub), rivalClubs[0], rivalClubs[1], rivalClubs[2], rivalClubs[3]);
         writer.WriteLine(mNationalPrestige, mInternationalPrestige);
         writer.WriteLine(mGeoCoords.mLatitude.ToInt(), mGeoCoords.mLongitude.ToInt());
         writer.WriteLine(mYearOfFoundation);
@@ -476,18 +478,16 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         writer.WriteLineArray(mTransfersCountry);
         writer.WriteLine(mYouthPlayersCountry);
         mKit.Write(writer);
-        Array<UInt, 4> lowestLeaguesIDs;
-        for (UInt i = 0; i < 4; i++) {
-            lowestLeaguesIDs[i] =
-                FifamCompID::Translate(mLowestLeagues[i].ToInt(), FifamDatabase::LATEST_GAME_VERSION, writer.GetGameId());
-        }
-        writer.WriteLineArray(lowestLeaguesIDs);
+        FifamDbWriteableIDsList lowestLeaguesIDs;
+        for (UInt i = 0; i < 4; i++)
+            lowestLeaguesIDs.push_back_unique(FifamUtils::GetWriteableID(mLowestLeagues[i]));
+        writer.WriteLineArray(lowestLeaguesIDs.get_array(4));
         writer.WriteLine(mClubFacilities, mYouthCentre, mYouthBoardingSchool, mAiStrategy, mLandscape, mSettlement);
         WriteClubMembers(writer);
         if (writer.IsVersionGreaterOrEqual(0x2013, 0x0A)) {
             Array<UInt, 3> captainIDs;
             for (UInt i = 0; i < 3; i++)
-                captainIDs[i] = mCaptains[i] ? mCaptains[i]->mID : 0;
+                captainIDs[i] = FifamUtils::GetWriteableID(mCaptains[i]);
             writer.WriteLineArray(captainIDs);
         }
     }
@@ -532,9 +532,10 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
                 writer.WriteLine(mFanName1[0]);
             }
         }
-        writer.WriteLine(FifamUtils::DBClubLinkToID(mDatabase, mPartnershipClub, writer.GetGameId()));
+        writer.WriteLine(FifamUtils::GetWriteableID(mPartnershipClub));
+        auto rivalClubs = FifamUtils::MakeWriteableIDsList(mRivalClubs);
         for (UInt i = 0; i < 4; i++)
-            writer.WriteLine(FifamUtils::DBClubLinkToID(mDatabase, mRivalClubs[i], writer.GetGameId()));
+            writer.WriteLine(rivalClubs[i]);
         writer.WriteLine(mYearOfFoundation);
         writer.WriteLine(mAddress);
         writer.WriteLine(mTelephone);
@@ -620,8 +621,11 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         writer.WriteLine(mFifaID);
         WriteClubMembers(writer);
         mKit.Write(writer);
+        FifamDbWriteableIDsList lowestLeaguesIDs;
         for (UInt i = 0; i < 4; i++)
-            writer.WriteLine(mLowestLeagues[i].ToInt());
+            lowestLeaguesIDs.push_back_unique(FifamUtils::GetWriteableID(mLowestLeagues[i]));
+        for (UInt i = 0; i < 4; i++)
+            writer.WriteLine(lowestLeaguesIDs[i]);
         if (writer.IsVersionGreaterOrEqual(0x2011, 0x0D)) {
             writer.WriteLine(mClubFacilities);
             writer.WriteLine(mYouthCentre);

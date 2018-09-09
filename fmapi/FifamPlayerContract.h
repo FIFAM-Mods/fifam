@@ -4,8 +4,6 @@
 #include "FifamPlayerContractSquadRole.h"
 #include "FifamClubLink.h"
 
-class FifamDatabase;
-
 struct FifamPlayerContractClauseOption {
     // @since FM10
     Bool mEnabled = false;
@@ -109,6 +107,6 @@ public:
         UChar _1 = 0;
     } Unknown;
 
-    void Read(FifamReader &reader, FifamDatabase *database);
-    void Write(FifamWriter &writer, FifamDatabase *database);
+    void Read(FifamReader &reader);
+    void Write(FifamWriter &writer);
 };

@@ -17,7 +17,6 @@
 #include "FifamAmateurRule.h"
 #include "FifamManager.h"
 #include "FifamCountryAppearanceData.h"
-#include "FifamCountryCompetitions.h"
 #include "FifamCACPlayer.h"
 
 class FifamDatabase;
@@ -180,6 +179,8 @@ public:
     // @until FM08
     // @maxsize 20
     String mReporterInTheStudioLastName;
+    // @since FM07
+    Vector<FifamTrArray<String>> mLeagueLevelNames;
 
     struct {
         // @since FM07
@@ -242,7 +243,6 @@ public:
     Vector<FifamClub *> mClubs;
     Map<UInt, FifamClub *> mClubsMap;
     FifamClub mNationalTeam;
-    FifamCountryCompetitions mCompetitions;
     Vector<FifamCACPlayer *> mCACPlayers;
 
     FifamReferee *AddReferee();

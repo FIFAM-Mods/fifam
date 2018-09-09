@@ -45,10 +45,17 @@ Bool FifamCountry::Read(FifamReader &reader) {
         if (reader.GetGameId() < 11) {
             if (reader.ReadStartIndex(L"COMPETITIONPART"))
                 reader.ReadEndIndex(L"COMPETITIONPART");
-            mCompetitions.Read(reader);
+            if (reader.ReadStartIndex(L"COMPETITION")) {
+                // TODO
+                reader.ReadEndIndex(L"COMPETITION");
+            }
         }
         else {
-            // TODO: read competition levels and names
+            UInt numLevelNames = reader.ReadLine<UChar>();
+            for (UInt i = 0; i < numLevelNames; i++) {
+                auto &levelName = mLeagueLevelNames.emplace_back();
+                reader.ReadLineTranslationArray(levelName);
+            }
         }
         if (reader.ReadStartIndex(L"CLUBS")) {
             UInt numClubs = reader.ReadLine<UInt>();
@@ -96,7 +103,7 @@ Bool FifamCountry::Read(FifamReader &reader) {
                 UInt nextFreeId = mDatabase->GetNextFreePersonID();
                 for (UInt i = 0; i < numStaffs; i++) {
                     FifamStaff *staff = mDatabase->CreateStaff(nullptr, nextFreeId++);
-                    staff->ReadWorker(reader, mDatabase);
+                    staff->ReadWorker(reader);
                     staff->mLinkedCountry.SetFromInt(mId);
                 }
                 reader.ReadEndIndex(L"STAFFS");
@@ -109,9 +116,9 @@ Bool FifamCountry::Read(FifamReader &reader) {
             for (UInt i = 0; i < numStaffs; i++) {
                 FifamStaff *staff = mDatabase->CreateStaff(nullptr, nextFreeId++);
                 if (reader.IsVersionGreaterOrEqual(0x2009, 0x05))
-                    staff->Read(reader, mDatabase);
+                    staff->Read(reader);
                 else
-                    staff->ReadFromPlayer(reader, mDatabase);
+                    staff->ReadFromPlayer(reader);
                 staff->mLinkedCountry.SetFromInt(mId);
             }
             reader.ReadEndIndex(L"ADDMANAGER");
@@ -120,7 +127,7 @@ Bool FifamCountry::Read(FifamReader &reader) {
         if (reader.ReadStartIndex(L"PLAYERPOOL")) {
             UInt numCACPlayers = reader.ReadLine<UInt>();
             for (UInt i = 0; i < numCACPlayers; i++)
-                AddCACPlayer()->Read(reader, mDatabase);
+                AddCACPlayer()->Read(reader);
             reader.ReadEndIndex(L"PLAYERPOOL");
         }
 
@@ -305,7 +312,7 @@ Bool FifamCountry::Write(FifamWriter &writer) {
         if (!mClubsMap.empty())
             writer.WriteLine(mClubsMap.rbegin()->first);
         else
-            writer.WriteLine(0);
+            writer.WriteLine((mId << 16) | 1);
     }
     if (writer.IsVersionGreaterOrEqual(0x2007, 0x17))
         writer.WriteLine(Unknown._2);
@@ -314,11 +321,17 @@ Bool FifamCountry::Write(FifamWriter &writer) {
         //writer.WriteStartIndex(L"COMPETITIONPART");
         //// TODO
         //writer.WriteEndIndex(L"COMPETITIONPART");
-        mCompetitions.Write(writer);
+        writer.WriteStartIndex(L"COMPETITION");
+        // TODO
+        writer.WriteLine(0);
+        writer.WriteLine(0);
+        writer.WriteEndIndex(L"COMPETITION");
     }
     else {
-        // TODO: Write league level names
-        writer.WriteLine(0);
+        UInt numLevelNames = Utils::Min(16, mLeagueLevelNames.size());
+        writer.WriteLine(numLevelNames);
+        for (UInt i = 0; i < numLevelNames; i++)
+            writer.WriteLineTranslationArray(mLeagueLevelNames[i]);
         if (writer.IsVersionGreaterOrEqual(0x2011, 0x08)) {
             // TODO: Write country competition names
             writer.WriteLine(1);
@@ -332,9 +345,14 @@ Bool FifamCountry::Write(FifamWriter &writer) {
         }
     }
     writer.WriteStartIndex(L"CLUBS");
-    writer.WriteLine(mClubs.size());
-    for (UInt i = 0; i < mClubs.size(); i++)
-        mClubs[i]->Write(writer, i + 1);
+    Vector<FifamClub *> clubs;
+    for (FifamClub *club : mClubs) {
+        if (club->GetIsWriteable())
+            clubs.push_back(club);
+    }
+    writer.WriteLine(clubs.size());
+    for (UInt i = 0; i < clubs.size(); i++)
+        clubs[i]->Write(writer, i + 1);
     mNationalTeam.Write(writer, 0xFFFF);
     writer.WriteEndIndex(L"CLUBS");
 
@@ -357,10 +375,12 @@ Bool FifamCountry::Write(FifamWriter &writer) {
 
     for (FifamStaff *staff : mDatabase->mStaffs) {
         if (!staff->mClub && staff->mLinkedCountry.ToInt() == mId) {
-            if (staff->mClubPosition.ToInt() < 4)
-                staffBoardAndManagers.push_back(staff);
-            else
-                staffWorkers.push_back(staff);
+            if (staff->GetIsWriteable() || mDatabase->mWritingOptions.mNonWriteableStaffsAreFreeAgents) {
+                if (staff->mClubPosition.ToInt() < 4)
+                    staffBoardAndManagers.push_back(staff);
+                else
+                    staffWorkers.push_back(staff);
+            }
         }
     }
 
@@ -376,7 +396,7 @@ Bool FifamCountry::Write(FifamWriter &writer) {
         writer.WriteStartIndex(L"STAFFS");
         writer.WriteLine(staffWorkers.size());
         for (FifamStaff *staff : staffWorkers)
-            staff->WriteWorker(writer, mDatabase);
+            staff->WriteWorker(writer);
         writer.WriteEndIndex(L"STAFFS");
     }
 
@@ -384,16 +404,16 @@ Bool FifamCountry::Write(FifamWriter &writer) {
     writer.WriteLine(staffBoardAndManagers.size());
     for (FifamStaff *staff : staffBoardAndManagers) {
         if (writer.IsVersionGreaterOrEqual(0x2009, 0x05))
-            staff->Write(writer, mDatabase);
+            staff->Write(writer);
         else
-            staff->WriteToPlayer(writer, mDatabase);
+            staff->WriteToPlayer(writer);
     }
     writer.WriteEndIndex(L"ADDMANAGER");
 
     writer.WriteStartIndex(L"PLAYERPOOL");
     writer.WriteLine(mCACPlayers.size());
     for (auto player : mCACPlayers)
-        player->Write(writer, mDatabase);
+        player->Write(writer);
     writer.WriteEndIndex(L"PLAYERPOOL");
 
     String countryMiscSectionName;

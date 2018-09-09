@@ -38,11 +38,12 @@ void FifamCompID::SetFromStr(String const &str) {
     }
 }
 
-String FifamCompID::ToStr() const {
+String FifamCompID::ToStr(bool countryName) const {
     if (IsNull())
         return L"None";
-    Int regionId = mRegion.ToInt();
-    return Utils::Format(L"{ %d, %s, %d }", regionId, mType.ToCStr(), mIndex);
+    if (countryName)
+        return Utils::Format(L"{ %s, %s, %d }", mRegion.ToCStr(), mType.ToCStr(), mIndex);
+    return Utils::Format(L"{ %d, %s, %d }", mRegion.ToInt(), mType.ToCStr(), mIndex);
 }
 
 FifamCompID::FifamCompID() {}
@@ -83,13 +84,6 @@ FifamCompID::FifamCompID(UInt id) {
 
 Bool FifamCompID::IsNull() const {
     return ToInt() == 0;
-}
-
-UInt FifamCompID::Translate(UInt id, UInt gameFrom, UInt gameTo) {
-    UChar region = (id >> 24) & 0xFF;
-    if (FifamUtils::ConvertRegion(region, gameFrom, gameTo))
-        return (id & 0xFFFFFF) | (region << 24);
-    return 0;
 }
 
 Bool operator==(FifamCompID const & lhs, FifamCompID const & rhs) {

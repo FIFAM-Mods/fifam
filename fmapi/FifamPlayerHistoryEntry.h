@@ -4,8 +4,6 @@
 #include "FifamClubLink.h"
 #include "FifamReadWrite.h"
 
-class FifamDatabase;
-
 class FifamPlayerHistoryEntry {
 public:
     // @since FM07
@@ -35,8 +33,8 @@ public:
         Bool _1 = false;
     } Unknown;
 
-    void Read(FifamReader &reader, FifamDatabase *database);
-    void Write(FifamWriter &writer, FifamDatabase *database);
+    void Read(FifamReader &reader);
+    void Write(FifamWriter &writer);
 };
 
 Bool operator<(FifamPlayerHistoryEntry const &lhs, FifamPlayerHistoryEntry const &rhs);

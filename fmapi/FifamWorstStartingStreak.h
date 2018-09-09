@@ -1,12 +1,13 @@
 #pragma once
-#include "FifamCompID.h"
 #include "FifamClubLink.h"
+
+class FifamCompetition;
 
 // @since FM09
 class FifamWorstStartingStreak {
 public:
     // @since FM09
-    FifamCompID mCompID;
+    FifamCompetition *mCompetition;
     // @since FM09
     FifamClubLink mClub;
     // @since FM09

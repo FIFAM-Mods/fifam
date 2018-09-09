@@ -15,8 +15,6 @@ public:
     class Round {
     public:
         // @since FM07
-        UChar mRound = 0;
-        // @since FM07
         // @max 10 in FM07
         UChar mNumRounds = 0;
         // @since FM07

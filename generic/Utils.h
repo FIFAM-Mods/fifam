@@ -56,16 +56,16 @@ namespace Utils {
     int Clamp(int value, int min, int max);
     int MapTo(int value, int input_start, int input_end, int output_start, int output_end);
 
-    template<typename T>
-    T Min(T const &a, T const &b) {
-        if (a < b)
+    template<typename T1, typename T2>
+    T1 Min(T1 const &a, T2 const &b) {
+        if (a < static_cast<T1>(b))
             return a;
         return b;
     }
 
-    template<typename T>
-    T Max(T const &a, T const &b) {
-        if (a > b)
+    template<typename T1, typename T2>
+    T1 Max(T1 const &a, T2 const &b) {
+        if (a > static_cast<T1>(b))
             return a;
         return b;
     }
@@ -88,5 +88,12 @@ namespace Utils {
     template<typename Container, typename ItemType>
     bool Contains(Container const &container, ItemType const &item) {
         return std::find(container.begin(), container.end(), item) != container.end();
+    }
+
+    template<typename T>
+    std::vector<T> VecToArray(std::vector<T> const &vec, size_t size) {
+        auto result = vec;
+        result.resize(size);
+        return result;
     }
 };

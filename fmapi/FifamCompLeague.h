@@ -3,14 +3,10 @@
 #include "FifamEqualPointsSorting.h"
 #include "FifamRoundID.h"
 #include "FifamClubLink.h"
-#include "FifamUtils.h"
 
 // @since FM07
 class FifamCompLeague : public FifamCompetition {
 public:
-    // @since FM07
-    // league name
-    FifamTrArray<String> mName;
     // @since FM07
     // num of teams in round
     UInt mNumTeams = 0;
@@ -24,7 +20,10 @@ public:
     // indoor relegation flag
     Bool mIndoorRelegation = false;
     // @since FM07
-    // take points from this league in next round
+    // reserve relegation flag
+    Bool mReserveRelegation = false;
+    // @since FM07
+    // take points from previous league
     Bool mTakePoints = false;
     // @since FM07
     // equal points sorting rule
@@ -62,77 +61,59 @@ public:
     Bool mForeignFreeAgentsCanBeTransferredAtAnyTime = false;
     // @since FM07
     Bool mPlayerLoansCanBeCancelledAtAnyTime = false;
+    // @since FM07
+    // @range 0-20
+    UChar mMaxNumberOfNonEUSigns = 0;
+    // @since FM07
+    // @range 18-31
+    UChar mAgeLimitForNonEUSigns = 0;
+    // @since FM07
+    // @range 0-15
+    UChar mShortTermLoansTotalLimit = 0;
+    // @since FM07
+    // @range 0-15
+    UChar mShortTermLoansSimultaneosLimit = 0;
+    // @since FM07
+    // @range 0-15
+    UChar mLongTermLoansTotalLimit = 0;
+    // @since FM07
+    // @range 0-15
+    UChar mLongTermLoansSimultaneosLimit = 0;
+    // @since FM07
+    // @range 0-15
+    UChar mOverallTotalLoansLimit = 0;
+    // @since FM07
+    // @range 0-15
+    UChar mOverallTotalSimultaneosLoansLimit = 0;
+    // @since FM07
+    // @range 0-15
+    UChar mLoanedPlayersPerSeason = 0;
+    // @since FM07
+    // @range 0-15
+    UChar mLoanPlayerPerSquad = 0;
+    // @since FM07
+    // @range 0-15
+    UChar mSimLoanOtherLeague = 0;
+    // @since FM07
+    // @range 0-15
+    UChar mSimLoanSameLeague = 0;
+    // @since FM07
+    // @range 0-15
+    UChar mLoanOtherLeagueCount = 0;
+    // @since FM07
+    // @range 0-15
+    UChar mLoanSameLeagueCount = 0;
+    // @since FM07
+    // @range 0-31
+    UChar mMinDomesticPlayerCount = 0;
+    // @since FM07
+    // @range 0-31
+    UChar mMinU21PlayerCount = 0;
+    // @since FM07
+    // @range 0-31
+    UChar mMinU24PlayerCount = 0;
 
-
-    void Read(FifamReader &reader, FifamDatabase *database) {
-        if (!reader.IsVersionGreaterOrEqual(0x2011, 0x07))
-            reader.ReadLineTranslationArray(mName);
-        reader.ReadLine(mNumTeams);
-        reader.ReadLine(mLeagueLevel);
-        auto relFlags = Utils::Split(reader.ReadFullLine(), L',');
-        for (auto const &flag : relFlags) {
-            if (flag == L"REL_RULE_0")
-                mNumRelegatedTeams = 0;
-            else if (flag == L"REL_RULE_1")
-                mNumRelegatedTeams = 1;
-            else if (flag == L"REL_RULE_2")
-                mNumRelegatedTeams = 2;
-            else if (flag == L"REL_RULE_3")
-                mNumRelegatedTeams = 3;
-            else if (flag == L"REL_RULE_4")
-                mNumRelegatedTeams = 4;
-            else if (flag == L"REL_RULE_5")
-                mNumRelegatedTeams = 5;
-            else if (flag == L"REL_RULE_INDOOR")
-                mIndoorRelegation = true;
-            else if (flag == L"REL_RULE_TAKE_POINTS")
-                mTakePoints = true;
-        }
-        reader.ReadLine(mEqualPointsSorting);
-        reader.ReadLine(mNumRounds);
-        mRoundType.SetFromStr(reader.ReadFullLine());
-        reader.ReadLine(mAttendanceMp);
-        reader.ReadLine(mTransferMarketMp);
-        if (reader.ReadStartIndex(L"TEAMS")) {
-            if (!reader.CheckLine(L"%INDEXEND%TEAMS")) {
-                auto teamIDs = reader.ReadLineArray<String>();
-                for (auto const &teamIDstr : teamIDs) {
-                    FifamClubLink &newLink = mTeams.emplace_back();
-                    FifamUtils::SaveClubIDToClubLink(newLink, Utils::SafeConvertInt<UInt>(teamIDstr, true));
-                }
-            }
-            reader.ReadEndIndex(L"TEAMS");
-        }
-        if (reader.ReadStartIndex(L"MATCHDAYS")) {
-            if (!reader.CheckLine(L"%INDEXEND%MATCHDAYS"))
-                mFirstSeasonMatchdays = reader.ReadLineArray<UShort>();
-            reader.ReadEndIndex(L"MATCHDAYS");
-        }
-        if (reader.ReadStartIndex(L"MATCHDAYS2")) {
-            if (!reader.CheckLine(L"%INDEXEND%MATCHDAYS2"))
-                mSecondSeasonMatchdays = reader.ReadLineArray<UShort>();
-            reader.ReadEndIndex(L"MATCHDAYS2");
-        }
-        if (reader.ReadStartIndex(L"FIXTURE")) {
-            while (!reader.CheckLine(L"%INDEXEND%FIXTURE")) {
-                auto &fixtures = mFixtures.emplace_back();
-                auto fixtureTeams = reader.ReadLineArray<UChar>();
-                UInt numMatches = fixtureTeams.size() / 2;
-                for (UInt i = 0; i < numMatches; i++)
-                    fixtures.emplace_back(fixtureTeams[i * 2], fixtureTeams[i * 2 + 1]);
-            }
-            reader.ReadEndIndex(L"FIXTURE");
-        }
-        for (UInt i = 0; i < mBonuses.size(); i++)
-            reader.ReadLine(mBonuses[i]);
-        UChar transferFlags = reader.ReadLine<UChar>();
-        mFreeAgentsCanBeTranferredAtAnyTime = Utils::CheckFlag(transferFlags, 0x1);
-        mForeignFreeAgentsCanBeTransferredAtAnyTime = Utils::CheckFlag(transferFlags, 0x2);
-        mPlayerLoansCanBeCancelledAtAnyTime = Utils::CheckFlag(transferFlags, 0x4);
-
-    }
-
-    void Write(FifamWriter &writer, FifamDatabase *database) {
-
-    }
+    FifamCompDbType GetDbType() override;
+    void Read(FifamReader &reader) override;
+    void Write(FifamWriter &writer) override;
 };
