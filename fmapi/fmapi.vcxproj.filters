@@ -32,9 +32,7 @@
     <ClInclude Include="FifamSuspensionRule.h" />
     <ClInclude Include="FifamRedCardRule.h" />
     <ClInclude Include="FifamEqualPointsSorting.h" />
-    <ClInclude Include="FifamLeagueSystemType.h" />
     <ClInclude Include="FifamCupSystemType.h" />
-    <ClInclude Include="FifamLeagueCupSystemType.h" />
     <ClInclude Include="FifamSuperCupType.h" />
     <ClInclude Include="FifamClimate.h" />
     <ClInclude Include="FifamAmateurRule.h" />

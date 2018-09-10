@@ -3,7 +3,7 @@
 
 class FifamCompRoot : public FifamCompetition {
 public:
-    FifamCompDbType GetDbType() override;
-    void Read(FifamReader &reader) override;
-    void Write(FifamWriter &writer) override;
+    FifamCompDbType GetDbType() const override;
+    void Read(FifamReader &reader, FifamDatabase *database) override;
+    void Write(FifamWriter &writer, FifamDatabase *database) override;
 };

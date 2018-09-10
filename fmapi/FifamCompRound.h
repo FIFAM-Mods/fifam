@@ -29,7 +29,7 @@ public:
     // bonuses
     Array<UInt, 4> mBonuses = {};
 
-    FifamCompDbType GetDbType() override;
-    void Read(FifamReader &reader) override;
-    void Write(FifamWriter &writer) override;
+    FifamCompDbType GetDbType() const override;
+    void Read(FifamReader &reader, FifamDatabase *database) override;
+    void Write(FifamWriter &writer, FifamDatabase *database) override;
 };

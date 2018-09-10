@@ -1,11 +1,11 @@
 #include "FifamCompLeague.h"
 #include "FifamUtils.h"
 
-FifamCompDbType FifamCompLeague::GetDbType() {
+FifamCompDbType FifamCompLeague::GetDbType() const {
     return FifamCompDbType::League;
 }
 
-void FifamCompLeague::Read(FifamReader &reader) {
+void FifamCompLeague::Read(FifamReader &reader, FifamDatabase *database) {
     if (!reader.IsVersionGreaterOrEqual(0x2011, 0x07))
         reader.ReadLineTranslationArray(mName);
     reader.ReadLine(mNumTeams);
@@ -51,11 +51,16 @@ void FifamCompLeague::Read(FifamReader &reader) {
             mFirstSeasonMatchdays = reader.ReadLineArray<UShort>();
         reader.ReadEndIndex(L"MATCHDAYS");
     }
+    bool readMatchdays2 = false;
     if (reader.ReadStartIndex(L"MATCHDAYS2")) {
-        if (!reader.CheckLine(L"%INDEXEND%MATCHDAYS2"))
+        if (!reader.CheckLine(L"%INDEXEND%MATCHDAYS2")) {
             mSecondSeasonMatchdays = reader.ReadLineArray<UShort>();
+            readMatchdays2 = true;
+        }
         reader.ReadEndIndex(L"MATCHDAYS2");
     }
+    if (!readMatchdays2)
+        mSecondSeasonMatchdays = mFirstSeasonMatchdays;
     if (reader.ReadStartIndex(L"FIXTURE")) {
         while (!reader.CheckLine(L"%INDEXEND%FIXTURE")) {
             auto &fixtures = mFixtures.emplace_back();
@@ -93,10 +98,10 @@ void FifamCompLeague::Read(FifamReader &reader) {
     mMinDomesticPlayerCount = (otherFlags >> 16) & 0x1F;
     mMinU21PlayerCount = (otherFlags >> 21) & 0x1F;
     mMinU24PlayerCount = (otherFlags >> 26) & 0x1F;
-    FifamCompetition::Read(reader);
+    FifamCompetition::Read(reader, database);
 }
 
-void FifamCompLeague::Write(FifamWriter &writer) {
+void FifamCompLeague::Write(FifamWriter &writer, FifamDatabase *database) {
     if (!writer.IsVersionGreaterOrEqual(0x2011, 0x07)) {
         if (!writer.IsVersionGreaterOrEqual(0, 0x01))
             writer.WriteLine(FifamTr(mName));
@@ -119,6 +124,7 @@ void FifamCompLeague::Write(FifamWriter &writer) {
     writer.WriteLine(mRoundType.ToStr());
     writer.WriteLine(mAttendanceMp);
     writer.WriteLine(mTransferMarketMp);
+    writer.WriteLine(L";");
     writer.WriteStartIndex(L"TEAMS");
     Vector<UInt> teamIDs;
     if (mID.mType == FifamCompType::League) {
@@ -136,6 +142,8 @@ void FifamCompLeague::Write(FifamWriter &writer) {
             teamIDs.push_back(i + 1);
         writer.WriteLineArray(teamIDs);
     }
+    writer.WriteEndIndex(L"TEAMS");
+    writer.WriteLine(L";");
     writer.WriteStartIndex(L"MATCHDAYS");
     writer.WriteLineArray(mFirstSeasonMatchdays);
     writer.WriteEndIndex(L"MATCHDAYS");
@@ -152,6 +160,7 @@ void FifamCompLeague::Write(FifamWriter &writer) {
         }
         writer.WriteNewLine();
     }
+    writer.WriteLine(L";");
     writer.WriteEndIndex(L"FIXTURE");
     for (UInt i = 0; i < mBonuses.size(); i++)
         writer.WriteLine(mBonuses[i]);
@@ -183,5 +192,5 @@ void FifamCompLeague::Write(FifamWriter &writer) {
         (Utils::Clamp(mMinU21PlayerCount, 0, 0x1F) << 21) |
         (Utils::Clamp(mMinU24PlayerCount, 0, 0x1F) << 26);
     writer.WriteLine(otherFlags);
-    FifamCompetition::Write(writer);
+    FifamCompetition::Write(writer, database);
 }

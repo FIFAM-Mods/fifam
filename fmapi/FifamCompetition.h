@@ -9,6 +9,7 @@ class FifamCompLeague;
 class FifamCompRound;
 class FifamCompCup;
 class FifamCompPool;
+class FifamDatabase;
 
 class FifamCompetition : public FifamDbWriteable {
 protected:
@@ -36,15 +37,18 @@ public:
     // instructions
     Vector<FifamScriptInstruction> mInstructions;
 
-    virtual FifamCompDbType GetDbType() = 0;
-    virtual void Read(FifamReader &reader);
-    virtual void Write(FifamWriter &writer);
+    virtual FifamCompDbType GetDbType() const = 0;
+    virtual void Read(FifamReader &reader, FifamDatabase *database);
+    virtual void Write(FifamWriter &writer, FifamDatabase *database);
+    virtual ~FifamCompetition() {}
 
     FifamCompLeague *AsLeague();
     FifamCompRound *AsRound();
     FifamCompCup *AsCup();
     FifamCompPool *AsPool();
 
-    String GetName();
-    String GetCompIDStr(bool countryName = false);
+    String GetName() const;
+    String GetCompIDStr(bool countryName = false) const;
+    void SetName(String const &name);
+    void SetName(FifamTrArray<String> const &names);
 };

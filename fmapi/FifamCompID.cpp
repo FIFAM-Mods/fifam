@@ -29,10 +29,7 @@ void FifamCompID::SetFromStr(String const &str) {
             comps[0] = comps[0].substr(1);
         if (Utils::EndsWith(comps[2], L"}"))
             comps[2].pop_back();
-        Int region = Utils::ToNumber(comps[0]);
-        if (region < 0)
-            region = -region;
-        mRegion.SetFromInt(region);
+        mRegion.SetFromInt((UChar)Utils::ToNumber(comps[0]));
         mType.SetFromStr(comps[1]);
         mIndex = Utils::ToNumber(comps[2]);
     }
@@ -70,6 +67,14 @@ void FifamCompID::Set(FifamCompRegion const &region, String const &type, UShort 
 
 FifamCompID::FifamCompID(UChar regionId, FifamCompType const & type, UShort index) {
     Set(regionId, type, index);
+}
+
+FifamCompID::FifamCompID(UInt regionId, FifamCompType const & type, UShort index) {
+    Set(regionId, type, index);
+}
+
+void FifamCompID::Set(UInt regionId, FifamCompType const & type, UShort index) {
+    Set((UChar)regionId, type, index);
 }
 
 void FifamCompID::Set(UChar regionId, FifamCompType const & type, UShort index) {

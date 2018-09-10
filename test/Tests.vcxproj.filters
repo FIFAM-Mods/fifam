@@ -76,6 +76,9 @@
     <ClInclude Include="tests\HistoricTest.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\CompetitionsTest.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

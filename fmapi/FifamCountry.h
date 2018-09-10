@@ -9,15 +9,15 @@
 #include "FifamSuspensionRule.h"
 #include "FifamRedCardRule.h"
 #include "FifamCountryLeagueLevelInfo.h"
-#include "FifamLeagueSystemType.h"
 #include "FifamCupSystemType.h"
-#include "FifamLeagueCupSystemType.h"
 #include "FifamSuperCupType.h"
 #include "FifamClimate.h"
 #include "FifamAmateurRule.h"
 #include "FifamManager.h"
 #include "FifamCountryAppearanceData.h"
 #include "FifamCACPlayer.h"
+#include "FifamCompID.h"
+#include "FifamCompetition.h"
 
 class FifamDatabase;
 
@@ -42,7 +42,7 @@ public:
     // @since FM07
     // @until FM11
     // ID is same as country ID
-    FifamLeagueSystemType mOriginalLeagueSystem;
+    FifamNation mOriginalLeagueSystem;
     // @since FM07
     // @maxsize 9
     String mFA_Name;
@@ -96,7 +96,7 @@ public:
     // @since FM07
     FifamSuperCupType mSuperCupType;
     // @since FM07
-    Array<FifamLeagueCupSystemType, 4> mLeagueCupSystemType;
+    Array<FifamCupSystemType, 4> mLeagueCupSystemType;
     // @since FM07
     UChar mYearsForNaturalization = 0;
     // @since FM07
@@ -251,11 +251,11 @@ public:
     FifamCACPlayer *AddCACPlayer();
     FifamCountry(UInt id, FifamDatabase *db);
     Bool Read(FifamReader &reader);
-    Bool ReadFixtures(FifamReader &reader);
     Bool ReadScript(FifamReader &reader);
     Bool Write(FifamWriter &writer);
     Bool WriteFixtures(FifamWriter &writer);
     Bool WriteScript(FifamWriter &writer);
 
     Bool IsCompetitionSystemCorrect();
+    Vector<Pair<FifamCompID, FifamCompetition *>> GetCompetitions(bool onlyWriteable = false);
 };

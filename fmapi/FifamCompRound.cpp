@@ -1,10 +1,10 @@
 #include "FifamCompRound.h"
 
-FifamCompDbType FifamCompRound::GetDbType() {
+FifamCompDbType FifamCompRound::GetDbType() const {
     return FifamCompDbType::Round;
 }
 
-void FifamCompRound::Read(FifamReader &reader) {
+void FifamCompRound::Read(FifamReader &reader, FifamDatabase *database) {
     if (!reader.IsVersionGreaterOrEqual(0x2011, 0x07))
         reader.ReadLineTranslationArray(mName);
     reader.ReadLine(mNumTeams);
@@ -27,10 +27,10 @@ void FifamCompRound::Read(FifamReader &reader) {
     }
     for (UInt i = 0; i < mBonuses.size(); i++)
         reader.ReadLine(mBonuses[i]);
-    FifamCompetition::Read(reader);
+    FifamCompetition::Read(reader, database);
 }
 
-void FifamCompRound::Write(FifamWriter &writer) {
+void FifamCompRound::Write(FifamWriter &writer, FifamDatabase *database) {
     if (!writer.IsVersionGreaterOrEqual(0x2011, 0x07)) {
         if (!writer.IsVersionGreaterOrEqual(0, 0x01))
             writer.WriteLine(FifamTr(mName));
@@ -57,5 +57,5 @@ void FifamCompRound::Write(FifamWriter &writer) {
     }
     for (UInt i = 0; i < mBonuses.size(); i++)
         writer.WriteLine(mBonuses[i]);
-    FifamCompetition::Write(writer);
+    FifamCompetition::Write(writer, database);
 }

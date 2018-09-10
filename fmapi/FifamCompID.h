@@ -22,7 +22,9 @@ public:
     FifamCompID(FifamCompRegion const &region, String const &type, UShort index);
     void Set(FifamCompRegion const &region, String const &type, UShort index);
     FifamCompID(UChar regionId, FifamCompType const &type, UShort index);
+    FifamCompID(UInt regionId, FifamCompType const &type, UShort index);
     void Set(UChar regionId, FifamCompType const &type, UShort index);
+    void Set(UInt regionId, FifamCompType const &type, UShort index);
     void SetFromInt(UInt value);
     UInt ToInt() const;
     void SetFromHexStr(String const &str);

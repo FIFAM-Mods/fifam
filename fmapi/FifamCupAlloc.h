@@ -1,11 +1,11 @@
 #pragma once
-
 #include "FifamTypes.h"
 #include "FifamReadWrite.h"
 #include "FifamFlags.h"
 #include "FifamRoundID.h"
 #include "FifamBeg.h"
 #include "FifamCupAllocType.h"
+#include "FifamScriptInstruction.h"
 
 // @since FM07
 // templates for cup system
@@ -41,6 +41,9 @@ public:
     // @since FM07
     // @max 10 rounds in FM07
     Vector<Round *> mRounds;
+    // @since FM07
+    // instructions
+    Vector<FifamScriptInstruction> mInstructions;
 
     void Read(FifamReader &reader);
     void Write(FifamWriter &writer);

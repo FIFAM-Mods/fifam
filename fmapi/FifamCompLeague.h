@@ -113,7 +113,7 @@ public:
     // @range 0-31
     UChar mMinU24PlayerCount = 0;
 
-    FifamCompDbType GetDbType() override;
-    void Read(FifamReader &reader) override;
-    void Write(FifamWriter &writer) override;
+    FifamCompDbType GetDbType() const override;
+    void Read(FifamReader &reader, FifamDatabase *database) override;
+    void Write(FifamWriter &writer, FifamDatabase *database) override;
 };

@@ -3,10 +3,14 @@
 #include "FifamRoundID.h"
 #include "FifamBeg.h"
 #include "FifamFlags.h"
+#include "FifamCupSystemType.h"
 
 // @since FM07
 class FifamCompCup : public FifamCompetition {
 public:
+    // @since FM07
+    // cup template type
+    FifamCupSystemType mCupTemplate;
     // @since FM07
     // when to draw teams
     UShort mDrawPeriodInWeeks = 0;
@@ -48,7 +52,7 @@ public:
     // rounds
     Vector<Round> mRounds;
 
-    FifamCompDbType GetDbType() override;
-    void Read(FifamReader &reader) override;
-    void Write(FifamWriter &writer) override;
+    FifamCompDbType GetDbType() const override;
+    void Read(FifamReader &reader, FifamDatabase *database) override;
+    void Write(FifamWriter &writer, FifamDatabase *database) override;
 };

@@ -1,5 +1,10 @@
 #include "FifamCountry.h"
 #include "FifamDatabase.h"
+#include "FifamUtils.h"
+#include "FifamCompLeague.h"
+#include "FifamCompRound.h"
+#include "FifamCompPool.h"
+#include "FifamCompCup.h"
 #include "Error.h"
 
 FifamCountry::FifamCountry(UInt id, FifamDatabase *db) {
@@ -46,15 +51,36 @@ Bool FifamCountry::Read(FifamReader &reader) {
             if (reader.ReadStartIndex(L"COMPETITIONPART"))
                 reader.ReadEndIndex(L"COMPETITIONPART");
             if (reader.ReadStartIndex(L"COMPETITION")) {
-                // TODO
+                UInt numComps = reader.ReadLine<UInt>();
+                Error("Num comps: %d", numComps);
+                for (UInt i = 0; i < numComps; i++) {
+                    if (reader.ReadStartIndex(Utils::Format(L"COMP%d", i))) {
+                        mDatabase->ReadCompetition(reader);
+                        reader.ReadEndIndex(Utils::Format(L"COMP%d", i));
+                    }
+                }
                 reader.ReadEndIndex(L"COMPETITION");
             }
         }
         else {
-            UInt numLevelNames = reader.ReadLine<UChar>();
+            UInt numLevelNames = reader.ReadLine<UInt>();
             for (UInt i = 0; i < numLevelNames; i++) {
                 auto &levelName = mLeagueLevelNames.emplace_back();
                 reader.ReadLineTranslationArray(levelName);
+            }
+            if (reader.IsVersionGreaterOrEqual(0x2011, 0x08)) {
+                UInt numCompNames = reader.ReadLine<UInt>();
+                for (UInt i = 0; i < numCompNames; i++) {
+                    auto compInfo = reader.ReadLineArray<String>();
+                    if (compInfo.size() >= 7) {
+                        UInt compId = Utils::SafeConvertInt<UInt>(compInfo[0], true);
+                        FifamCompetition *comp = mDatabase->GetCompetition(compId);
+                        if (comp) {
+                            for (UInt i = 0; i < FifamTranslation::NUM_TRANSLATIONS; i++)
+                                comp->mName[i] = compInfo[i + 1];
+                        }
+                    }
+                }
             }
         }
         if (reader.ReadStartIndex(L"CLUBS")) {
@@ -306,6 +332,7 @@ Bool FifamCountry::Read(FifamReader &reader) {
 }
 
 Bool FifamCountry::Write(FifamWriter &writer) {
+    UInt maxLeagueLevels = writer.IsVersionGreaterOrEqual(0x2007, 0x13) ? 16 : 5;
     writer.WriteStartIndex(L"COUNTRY");
     writer.WriteVersion();
     if (writer.IsVersionGreaterOrEqual(0x2007, 0x12)) {
@@ -322,26 +349,32 @@ Bool FifamCountry::Write(FifamWriter &writer) {
         //// TODO
         //writer.WriteEndIndex(L"COMPETITIONPART");
         writer.WriteStartIndex(L"COMPETITION");
-        // TODO
-        writer.WriteLine(0);
-        writer.WriteLine(0);
+        auto comps = GetCompetitions(true);
+        writer.WriteLine(comps.size());
+        for (UInt i = 0; i < comps.size(); i++) {
+            writer.WriteStartIndex(Utils::Format(L"COMP%d", i));
+            mDatabase->WriteCompetition(writer, comps[i].second);
+            writer.WriteEndIndex(Utils::Format(L"COMP%d", i));
+        }
+        UInt numLevelNames = Utils::Min(maxLeagueLevels, mLeagueLevelNames.size());
+        writer.WriteLine(numLevelNames);
+        for (UInt i = 0; i < numLevelNames; i++)
+            writer.WriteLineTranslationArray(mLeagueLevelNames[i]);
         writer.WriteEndIndex(L"COMPETITION");
     }
     else {
-        UInt numLevelNames = Utils::Min(16, mLeagueLevelNames.size());
+        UInt numLevelNames = Utils::Min(maxLeagueLevels, mLeagueLevelNames.size());
         writer.WriteLine(numLevelNames);
         for (UInt i = 0; i < numLevelNames; i++)
             writer.WriteLineTranslationArray(mLeagueLevelNames[i]);
         if (writer.IsVersionGreaterOrEqual(0x2011, 0x08)) {
-            // TODO: Write country competition names
-            writer.WriteLine(1);
-            FifamCompID rootCompID = { (UChar)mId, FifamCompType::Root, 0 };
-            writer.Write(rootCompID.ToHexStr());
-            writer.Write(L",");
-            Array<String, 6> rootCompName;
-            for (UInt i = 0; i < 6; i++)
-                rootCompName[i] = L"Competition";
-            writer.WriteLineTranslationArray(rootCompName);
+            auto comps = GetCompetitions();
+            writer.WriteLine(comps.size());
+            for (UInt i = 0; i < comps.size(); i++) {
+                writer.Write(comps[i].first.ToHexStr());
+                writer.Write(L",");
+                writer.WriteLineTranslationArray(comps[i].second->mName);
+            }
         }
     }
     writer.WriteStartIndex(L"CLUBS");
@@ -568,19 +601,10 @@ Bool FifamCountry::Write(FifamWriter &writer) {
     return true;
 }
 
-Bool FifamCountry::ReadFixtures(FifamReader &reader) {
-    reader.ReadVersion();
-    while (reader.ReadStartIndex(L"COMPETITION")) {
-        
-        reader.ReadEndIndex(L"COMPETITION");
-    }
-    return true;
-}
-
 Bool FifamCountry::ReadScript(FifamReader &reader) {
     reader.ReadVersion();
     while (reader.ReadStartIndex(L"COMPETITION")) {
-    
+        mDatabase->ReadCompetition(reader);
         reader.ReadEndIndex(L"COMPETITION");
     }
     return true;
@@ -588,20 +612,132 @@ Bool FifamCountry::ReadScript(FifamReader &reader) {
 
 Bool FifamCountry::WriteFixtures(FifamWriter &writer) {
     writer.WriteVersion();
-
+    auto countryComps = GetCompetitions(true);
+    for (auto &compEntry : countryComps) {
+        FifamCompetition *comp = compEntry.second;
+        writer.WriteLine(L"; -------------------------------------------------------------------");
+        writer.WriteStartIndex(L"COMPETITION");
+        writer.WriteLine(comp->GetDbType().ToStr());
+        writer.WriteLine(comp->GetCompIDStr());
+        UInt numTeams = 0;
+        UInt numRegisteredTeams = 0;
+        FifamDbWriteableIDsList teamIDs;
+        Vector<UShort> matchdaysFirstSeason;
+        Vector<UShort> matchdaysSecondSeason;
+        Vector<Vector<Pair<UChar, UChar>>> fixtures;
+        Vector<Array<UInt, 4>> bonuses;
+        if (comp->GetDbType() == FifamCompDbType::League) {
+            auto league = comp->AsLeague();
+            numTeams = league->mNumTeams;
+            teamIDs = FifamUtils::MakeWriteableIDsList(league->mTeams);
+            numRegisteredTeams = Utils::Min(numTeams, teamIDs.size());
+            matchdaysFirstSeason = league->mFirstSeasonMatchdays;
+            matchdaysSecondSeason = league->mSecondSeasonMatchdays;
+            fixtures = league->mFixtures;
+            bonuses = { league->mBonuses };
+        }
+        else if (comp->GetDbType() == FifamCompDbType::Round) {
+            auto round = comp->AsRound();
+            numTeams = round->mNumTeams;
+            matchdaysFirstSeason = { round->mFirstSeasonMatchdays[0], round->mFirstSeasonMatchdays[1] };
+            matchdaysSecondSeason = { round->mSecondSeasonMatchdays[0], round->mSecondSeasonMatchdays[1] };
+            bonuses = { round->mBonuses };
+        }
+        else if (comp->GetDbType() == FifamCompDbType::Pool) {
+            auto pool = comp->AsPool();
+            numTeams = pool->mNumTeams;
+            bonuses = { pool->mBonuses };
+        }
+        else if (comp->GetDbType() == FifamCompDbType::Cup) {
+            auto cup = comp->AsCup();
+            numTeams = cup->mNumTeams;
+            matchdaysFirstSeason = cup->mFirstSeasonMatchdays;
+            matchdaysSecondSeason = cup->mSecondSeasonMatchdays;
+            bonuses.resize(cup->mRounds.size());
+            for (UInt i = 0; i < cup->mRounds.size(); i++)
+                bonuses[i] = cup->mRounds[i].mBonuses;
+        }
+        writer.WriteLine(numTeams);
+        writer.WriteLine(numRegisteredTeams);
+        writer.WriteStartIndex(L"TEAMS");
+        if (comp->GetDbType() == FifamCompDbType::League) {
+            for (UInt i = 0; i < numRegisteredTeams; i++) {
+                if (i != 0)
+                    writer.Write(L",");
+                writer.Write(Utils::Format(L"%x", teamIDs[i]));
+            }
+        }
+        writer.WriteNewLine();
+        writer.WriteEndIndex(L"TEAMS");
+        writer.WriteStartIndex(L"MATCHDAYS");
+        writer.WriteLineArray(matchdaysFirstSeason);
+        writer.WriteLineArray(matchdaysSecondSeason);
+        writer.WriteEndIndex(L"MATCHDAYS");
+        if (comp->GetDbType() == FifamCompDbType::League) {
+            writer.WriteStartIndex(L"FIXTURES");
+            if (fixtures.size() > 0) {
+                writer.WriteLine(fixtures.size(), fixtures[0].size());
+                for (UInt i = 0; i < fixtures.size(); i++) {
+                    for (UInt f = 0; f < fixtures[i].size(); f++) {
+                        if (f != 0)
+                            writer.Write(L",");
+                        writer.Write(fixtures[i][f].first, fixtures[i][f].second);
+                    }
+                    writer.WriteNewLine();
+                }
+            }
+            else
+                writer.WriteLine(0, 0);
+            writer.WriteEndIndex(L"FIXTURES");
+        }
+        writer.WriteStartIndex(L"BONUS");
+        for (UInt i = 0; i < 4; i++) {
+            Vector<UInt> roundBonuses(bonuses.size());
+            for (UInt b = 0; b < bonuses.size(); b++)
+                roundBonuses[b] = bonuses[b][i];
+            writer.WriteLineArray(roundBonuses);
+        }
+        writer.WriteEndIndex(L"BONUS");
+        writer.WriteEndIndex(L"COMPETITION");
+    }
     return true;
 }
 
 Bool FifamCountry::WriteScript(FifamWriter &writer) {
     writer.WriteVersion();
-
+    auto countryComps = GetCompetitions(true);
+    for (auto &comp : countryComps) {
+        writer.WriteStartIndex(L"COMPETITION");
+        mDatabase->WriteCompetition(writer, comp.second);
+        writer.WriteEndIndex(L"COMPETITION");
+    }
     return true;
 }
 
 Bool FifamCountry::IsCompetitionSystemCorrect() {
-    //if (mClubs.size() < 10)
-    //    return false;
-    // check num teams in league
+    // TODO check only writeable clubs
+    if (mClubs.size() < 10)
+        return false;
+    FifamCompetition *compLeague = mDatabase->GetCompetition({ mId, FifamCompType::League, 0 });
+    if (!compLeague || compLeague->AsLeague()->mNumTeams < 8)
+        return false;
     // check competition errors
     return false;
+}
+
+Vector<Pair<FifamCompID, FifamCompetition *>> FifamCountry::GetCompetitions(bool onlyWriteable) {
+    Vector<Pair<FifamCompID, FifamCompetition *>> countryComps;
+    for (auto const &compEntry : mDatabase->mCompMap) {
+        if (compEntry.first.mRegion.ToInt() == mId) {
+            if (!onlyWriteable ||
+                compEntry.second->GetDbType() == FifamCompDbType::League ||
+                compEntry.second->GetDbType() == FifamCompDbType::Cup ||
+                compEntry.second->GetDbType() == FifamCompDbType::Round ||
+                compEntry.second->GetDbType() == FifamCompDbType::Pool)
+            {
+                countryComps.push_back(compEntry);
+            }
+        }
+    }
+    return countryComps;
 }

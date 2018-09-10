@@ -5,6 +5,7 @@
 #include "FifamCompPool.h"
 #include "FifamCompRound.h"
 #include "FifamCompCup.h"
+#include "FifamCompRoot.h"
 #include <iostream>
 
 FifamDatabase::FifamDatabase() {}
@@ -445,15 +446,37 @@ FifamStaff *FifamDatabase::CreateStaff(FifamClub *club, UInt id) {
     return staff;
 }
 
-FifamCompetition *FifamDatabase::CreateCompetition(FifamCompDbType dbType, FifamCompID & compID, String name) {
-    //FifamCompetition *comp = nullptr;
-    //switch (dbType.ToInt()) {
-    //case FifamCompDbType::Root:
-    //    comp = new FifamCompRoot();
-    //}
-    //auto it = mCompMap.find(compID);
-    //if (it )
-    return nullptr;
+FifamCompetition *FifamDatabase::CreateCompetition(FifamCompDbType dbType, FifamCompID const &compID, String const &name) {
+    FifamCompetition *comp = nullptr;
+    switch (dbType.ToInt()) {
+    case FifamCompDbType::Root:
+        comp = new FifamCompRoot();
+        break;
+    case FifamCompDbType::Pool:
+        comp = new FifamCompPool();
+        break;
+    case FifamCompDbType::League:
+        comp = new FifamCompLeague();
+        break;
+    case FifamCompDbType::Round:
+        comp = new FifamCompRound();
+        break;
+    case FifamCompDbType::Cup:
+        comp = new FifamCompCup();
+        break;
+    }
+    if (comp) {
+        auto it = mCompMap.find(compID);
+        if (it != mCompMap.end()) {
+            delete it->second;
+            it->second = comp;
+        }
+        else
+            mCompMap[compID] = comp;
+        comp->mID = compID;
+        comp->SetName(name);
+    }
+    return comp;
 }
 
 void FifamDatabase::ResolveLinksForClub(FifamClub *club, UInt gameId) {
@@ -669,4 +692,36 @@ void FifamDatabase::WriteNamesFile(Path const &filepath, UInt gameId, NamesMap &
         for (UInt i = 63; i <= 127; i++)
             WriteNamesForLanguage(writer, i, firstLine, names);
     }
+}
+
+FifamCompetition *FifamDatabase::ReadCompetition(FifamReader &reader) {
+    String compDbType = reader.ReadLine<String>();
+    FifamCompID compID;
+    compID.SetFromStr(reader.ReadFullLine());
+    FifamCompetition *newComp = nullptr;
+    if (compDbType == L"DB_LEAGUE")
+        newComp = CreateCompetition(FifamCompDbType::League, compID);
+    else if (compDbType == L"DB_POOL")
+        newComp = CreateCompetition(FifamCompDbType::Pool, compID);
+    else if (compDbType == L"DB_CUP")
+        newComp = CreateCompetition(FifamCompDbType::Cup, compID);
+    else if (compDbType == L"DB_ROUND")
+        newComp = CreateCompetition(FifamCompDbType::Round, compID);
+    if (newComp) {
+        Error(L"Comp: %s", newComp->GetDbType().ToCStr());
+        newComp->Read(reader, this);
+    }
+    return newComp;
+}
+
+void FifamDatabase::WriteCompetition(FifamWriter &writer, FifamCompetition *comp) {
+    writer.WriteLine(comp->GetDbType().ToStr());
+    writer.WriteLine(comp->GetCompIDStr());
+    comp->Write(writer, this);
+}
+
+FifamCupAlloc *FifamDatabase::GetCupTemplate(FifamCupSystemType cupSystemType) {
+    if (cupSystemType.ToInt() > 0 && cupSystemType.ToInt() <= mCupTemplates.size())
+        return mCupTemplates[cupSystemType.ToInt() - 1];
+    return nullptr;
 }

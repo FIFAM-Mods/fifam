@@ -1,11 +1,11 @@
 #include "FifamCompPool.h"
 #include "FifamUtils.h"
 
-FifamCompDbType FifamCompPool::GetDbType() {
+FifamCompDbType FifamCompPool::GetDbType() const {
     return FifamCompDbType::Pool;
 }
 
-void FifamCompPool::Read(FifamReader &reader) {
+void FifamCompPool::Read(FifamReader &reader, FifamDatabase *database) {
     reader.ReadLine(mNumPools);
     reader.ReadLine(mNumTeams);
     auto sortingFlags = reader.ReadLineArray<String>(L',', true);
@@ -23,10 +23,10 @@ void FifamCompPool::Read(FifamReader &reader) {
         FifamUtils::SaveCompetitionIDToPtr(mCompConstraints[i], FifamUtils::ExtractCompetitionID(reader.ReadFullLine()).ToInt());
     for (UInt i = 0; i < mBonuses.size(); i++)
         reader.ReadLine(mBonuses[i]);
-    FifamCompetition::Read(reader);
+    FifamCompetition::Read(reader, database);
 }
 
-void FifamCompPool::Write(FifamWriter &writer) {
+void FifamCompPool::Write(FifamWriter &writer, FifamDatabase *database) {
     writer.WriteLine(mNumPools);
     writer.WriteLine(mNumTeams);
     Vector<String> sortingFlags;
@@ -39,9 +39,12 @@ void FifamCompPool::Write(FifamWriter &writer) {
     writer.WriteLineArray(sortingFlags);
     auto compConstraints = FifamUtils::MakeWriteableIDsList(mCompConstraints);
     UShort numCompConstraints = Utils::Min(3, compConstraints.size());
+    writer.WriteLine(L"; how many comps to check");
+    writer.WriteLine(numCompConstraints);
+    writer.WriteLine(L"; which comps to check");
     for (UShort i = 0; i < compConstraints.size(); i++)
         writer.WriteLine(FifamCompID(compConstraints[i]).ToStr());
     for (UInt i = 0; i < mBonuses.size(); i++)
         writer.WriteLine(mBonuses[i]);
-    FifamCompetition::Write(writer);
+    FifamCompetition::Write(writer, database);
 }

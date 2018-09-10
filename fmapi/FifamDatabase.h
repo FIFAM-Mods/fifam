@@ -56,7 +56,7 @@ public:
     void AddClubToMap(FifamClub *club);
     FifamPlayer *CreatePlayer(FifamClub *club, UInt id);
     FifamStaff *CreateStaff(FifamClub *club, UInt id);
-    FifamCompetition *CreateCompetition(FifamCompDbType dbType, FifamCompID &compID, String name = L"Competition");
+    FifamCompetition *CreateCompetition(FifamCompDbType dbType, FifamCompID const &compID, String const &name = L"Competition");
 
     void ResolveLinksForClub(FifamClub *club, UInt gameId);
     void ResolveLinksForPlayer(FifamPlayer *player, UInt gameId);
@@ -82,7 +82,9 @@ public:
     void WriteNamesFile(Path const &filepath, UInt gameId, NamesMap &names);
     void SetupWriteableStatus(UInt gameId);
     void ResetWriteableStatus();
-
+    FifamCompetition *ReadCompetition(FifamReader &reader);
+    void WriteCompetition(FifamWriter &writer, FifamCompetition *comp);
     UInt GetClubsInCountryLimit(UInt gameId);
     UInt GetPersonsInClubLimit(UInt gameId);
+    FifamCupAlloc *GetCupTemplate(FifamCupSystemType cupSystemType);
 };

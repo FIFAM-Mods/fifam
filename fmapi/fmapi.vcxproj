@@ -131,7 +131,6 @@
     <ClInclude Include="FifamKitBadgePosition.h" />
     <ClInclude Include="FifamKitColor.h" />
     <ClInclude Include="FifamLanguage.h" />
-    <ClInclude Include="FifamLeagueSystemType.h" />
     <ClInclude Include="FifamAmateurRule.h" />
     <ClInclude Include="FifamManagerFocus.h" />
     <ClInclude Include="FifamNation.h" />
@@ -172,7 +171,6 @@
     <ClInclude Include="FifamStadium.h" />
     <ClInclude Include="FifamStadiumType.h" />
     <ClInclude Include="FifamStaff.h" />
-    <ClInclude Include="FifamLeagueCupSystemType.h" />
     <ClInclude Include="FifamSuperCupType.h" />
     <ClInclude Include="FifamSuspensionRule.h" />
     <ClInclude Include="FifamTerritory.h" />

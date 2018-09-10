@@ -39,3 +39,9 @@ T FifamTr(FifamTrArray<T> const &trAry) {
 inline WideChar const *FifamTr_c(FifamTrArray<String> const &trAry) {
     return trAry[FifamTranslation::English].c_str();
 }
+
+template<typename T>
+void FifamTrSetAll(FifamTrArray<T> &trAry, T const &value) {
+    for (T &tr : trAry)
+        tr = value;
+}

@@ -17,7 +17,7 @@ FifamCompPool *FifamCompetition::AsPool() {
     return GetDbType() == FifamCompDbType::Pool ? reinterpret_cast<FifamCompPool *>(this) : nullptr;
 }
 
-void FifamCompetition::Read(FifamReader &reader) {
+void FifamCompetition::Read(FifamReader &reader, FifamDatabase *database) {
     reader.ReadLine(mNumSubsAllowed);
     reader.ReadLine(mCompetitionLevel);
     auto predecessors = FifamUtils::ExtractCompetitionIDs(reader.ReadFullLine());
@@ -38,7 +38,7 @@ void FifamCompetition::Read(FifamReader &reader) {
     }
 }
 
-void FifamCompetition::Write(FifamWriter &writer) {
+void FifamCompetition::Write(FifamWriter &writer, FifamDatabase *database) {
     writer.WriteLine(mNumSubsAllowed);
     writer.WriteLine(mCompetitionLevel);
     if (!mPredecessors.empty()) {
@@ -59,15 +59,25 @@ void FifamCompetition::Write(FifamWriter &writer) {
     }
     else
         writer.WriteLine(0);
-    writer.WriteLine(mInstructions.size());
-    for (UInt i = 0; i < mInstructions.size(); i++)
-        mInstructions[i].Write(writer);
+    // TODO: write instructions
+    writer.WriteLine(0);
+    //writer.WriteLine(mInstructions.size());
+    //for (UInt i = 0; i < mInstructions.size(); i++)
+    //    mInstructions[i].Write(writer);
 }
 
-String FifamCompetition::GetName() {
+String FifamCompetition::GetName() const {
     return FifamTr(mName);
 }
 
-String FifamCompetition::GetCompIDStr(bool countryName) {
+String FifamCompetition::GetCompIDStr(bool countryName) const {
     return mID.ToStr(countryName);
+}
+
+void FifamCompetition::SetName(String const &name) {
+    FifamTrSetAll(mName, name);
+}
+
+void FifamCompetition::SetName(FifamTrArray<String> const &names) {
+    mName = names;
 }

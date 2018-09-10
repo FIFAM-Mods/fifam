@@ -16,7 +16,8 @@
 #include "tests\WritePlayerContractTest.h"
 #include "tests\WritePlayersTest.h"
 #include "tests\HistoricTest.h"
+#include "tests\CompetitionsTest.h"
 
 void RunTests() {
-    RunTest<WriteDbTest<FM14, FM14>>();
+    RunTest<WriteDbTest<FM14, FM14, false>>();
 }
