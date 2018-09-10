@@ -52,7 +52,6 @@ Bool FifamCountry::Read(FifamReader &reader) {
                 reader.ReadEndIndex(L"COMPETITIONPART");
             if (reader.ReadStartIndex(L"COMPETITION")) {
                 UInt numComps = reader.ReadLine<UInt>();
-                Error("Num comps: %d", numComps);
                 for (UInt i = 0; i < numComps; i++) {
                     if (reader.ReadStartIndex(Utils::Format(L"COMP%d", i))) {
                         mDatabase->ReadCompetition(reader);
@@ -617,8 +616,8 @@ Bool FifamCountry::WriteFixtures(FifamWriter &writer) {
         FifamCompetition *comp = compEntry.second;
         writer.WriteLine(L"; -------------------------------------------------------------------");
         writer.WriteStartIndex(L"COMPETITION");
-        writer.WriteLine(comp->GetDbType().ToStr());
         writer.WriteLine(comp->GetCompIDStr());
+        writer.WriteLine(comp->GetDbType().ToStr());
         UInt numTeams = 0;
         UInt numRegisteredTeams = 0;
         FifamDbWriteableIDsList teamIDs;
@@ -660,19 +659,23 @@ Bool FifamCountry::WriteFixtures(FifamWriter &writer) {
         writer.WriteLine(numTeams);
         writer.WriteLine(numRegisteredTeams);
         writer.WriteStartIndex(L"TEAMS");
-        if (comp->GetDbType() == FifamCompDbType::League) {
+        if (numRegisteredTeams > 0) {
             for (UInt i = 0; i < numRegisteredTeams; i++) {
                 if (i != 0)
                     writer.Write(L",");
-                writer.Write(Utils::Format(L"%x", teamIDs[i]));
+                writer.Write(Utils::Format(L"%08X", teamIDs[i]));
             }
+            writer.WriteNewLine();
         }
-        writer.WriteNewLine();
         writer.WriteEndIndex(L"TEAMS");
-        writer.WriteStartIndex(L"MATCHDAYS");
-        writer.WriteLineArray(matchdaysFirstSeason);
-        writer.WriteLineArray(matchdaysSecondSeason);
-        writer.WriteEndIndex(L"MATCHDAYS");
+        if (comp->GetDbType() == FifamCompDbType::League || comp->GetDbType() == FifamCompDbType::Cup || comp->GetDbType() == FifamCompDbType::Round) {
+            writer.WriteStartIndex(L"MATCHDAYS");
+            Utils::Remove(matchdaysFirstSeason, 0);
+            writer.WriteLineArray(matchdaysFirstSeason);
+            Utils::Remove(matchdaysSecondSeason, 0);
+            writer.WriteLineArray(matchdaysSecondSeason);
+            writer.WriteEndIndex(L"MATCHDAYS");
+        }
         if (comp->GetDbType() == FifamCompDbType::League) {
             writer.WriteStartIndex(L"FIXTURES");
             if (fixtures.size() > 0) {

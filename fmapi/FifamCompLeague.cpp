@@ -150,7 +150,7 @@ void FifamCompLeague::Write(FifamWriter &writer, FifamDatabase *database) {
     writer.WriteStartIndex(L"MATCHDAYS2");
     writer.WriteLineArray(mSecondSeasonMatchdays);
     writer.WriteEndIndex(L"MATCHDAYS2");
-
+    writer.WriteLine(L";");
     writer.WriteStartIndex(L"FIXTURE");
     for (UInt i = 0; i < mFixtures.size(); i++) {
         for (UInt f = 0; f < mFixtures[i].size(); f++) {
@@ -160,7 +160,6 @@ void FifamCompLeague::Write(FifamWriter &writer, FifamDatabase *database) {
         }
         writer.WriteNewLine();
     }
-    writer.WriteLine(L";");
     writer.WriteEndIndex(L"FIXTURE");
     for (UInt i = 0; i < mBonuses.size(); i++)
         writer.WriteLine(mBonuses[i]);

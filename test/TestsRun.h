@@ -19,5 +19,5 @@
 #include "tests\CompetitionsTest.h"
 
 void RunTests() {
-    RunTest<WriteDbTest<FM14, FM14, false>>();
+    RunTest<WriteDbTest<FM07, FM07, false>>();
 }

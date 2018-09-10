@@ -47,6 +47,23 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
     ReadNamesFile(dbPath / L"FemaleNames.txt", gameId, mFemaleNames);
     ReadNamesFile(dbPath / L"Surnames.txt", gameId, mSurnames);
 
+    if (!scriptPath.empty()) {
+        path cupAllocPath = scriptPath / L"cupAlloc.txt";
+        FifamReader cupAllocReader(scriptPath / L"cupAlloc.txt", 0, false);
+        if (cupAllocReader.Available()) {
+            auto numCups = cupAllocReader.ReadLine<UInt>();
+            if (numCups > 0)
+                numCups -= 1;
+            for (UInt i = 0; i < numCups; i++) {
+                if (cupAllocReader.ReadStartIndex(Utils::Format(L"CUP%d", i + 1))) {
+                    mCupTemplates.push_back(new FifamCupAlloc);
+                    mCupTemplates.back()->Read(cupAllocReader);
+                    cupAllocReader.ReadEndIndex(Utils::Format(L"CUP%d", i + 1));
+                }
+            }
+        }
+    }
+
     FifamReader countriesReader(dbPath / L"Countries.sav", gameId, unicode);
     if (countriesReader.Available()) {
         auto &reader = countriesReader;
@@ -74,7 +91,7 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
             }
         }
         else {
-            Error(L"%d", firstLine[1]);
+            Error(L"Inocrrect countries file");
         }
     }
 
@@ -125,23 +142,6 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
     if (!historicPath.empty())
         mHistoric.Read(historicPath, gameId);
 
-    if (!scriptPath.empty()) {
-        path cupAllocPath = scriptPath / L"cupAlloc.txt";
-        FifamReader cupAllocReader(scriptPath / L"cupAlloc.txt", 0, false);
-        if (cupAllocReader.Available()) {
-            auto numCups = cupAllocReader.ReadLine<UInt>();
-            if (numCups > 0)
-                numCups -= 1;
-            for (UInt i = 0; i < numCups; i++) {
-                if (cupAllocReader.ReadStartIndex(Utils::Format(L"CUP%d", i + 1))) {
-                    mCupTemplates.push_back(new FifamCupAlloc);
-                    mCupTemplates.back()->Read(cupAllocReader);
-                    cupAllocReader.ReadEndIndex(Utils::Format(L"CUP%d", i + 1));
-                }
-            }
-        }
-    }
-
     // Resolve competition, club, player links
 
     std::wcout << L"Resolving club links" << std::endl;
@@ -173,8 +173,7 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
         ResolveClubLink(mRules.mContinentalCupStadiums[i].mSecondCup, gameId);
         ResolveClubLink(mRules.mContinentalCupStadiums[i].mSuperCup, gameId);
     }
-    for (UInt i = 0; i < 3; i++)
-        ResolveClubLink(mRules.mFairnessAwardWinners[i], gameId);
+    ResolveClubLinkList(mRules.mFairnessAwardWinners, gameId);
     ResolveClubLink(mRules.Unknown._1, gameId);
     ResolveClubLink(mRules.Unknown._2, gameId);
     std::wcout << L"Resolving historic links" << std::endl;
@@ -189,6 +188,14 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
 void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const &dbPath) {
     if (!exists(dbPath))
         create_directories(dbPath);
+    if (gameId >= 11) {
+        if (!exists(dbPath / L"data"))
+            create_directories(dbPath / L"data");
+        if (!exists(dbPath / L"fixture"))
+            create_directories(dbPath / L"fixture");
+        if (!exists(dbPath / L"script"))
+            create_directories(dbPath / L"script");
+    }
     path gamePath = dbPath.parent_path();
     path scriptPath = gamePath / L"script";
     if (!exists(scriptPath))
@@ -299,22 +306,25 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
 }
 
 void FifamDatabase::SetupWriteableStatus(UInt gameId) {
+    for (auto country : mCountries) {
+        if (country) {
+            country->mNationalTeam.SetIsWriteable(true);
+            country->mNationalTeam.SetWriteableID(0xFFFF | (country->mId << 16));
+            country->mNationalTeam.SetWriteableUniqueID(TranslateClubID(country->mNationalTeam.mUniqueID, LATEST_GAME_VERSION, gameId));
+        }
+    }
     for (auto club : mClubs) {
         UInt id = 0;
         if (club->mCountry) {
-            if (club == &club->mCountry->mNationalTeam)
-                id = 0xFFFF | (club->mCountry->mId << 16);
-            else {
-                auto it = std::find(club->mCountry->mClubs.begin(), club->mCountry->mClubs.end(), club);
-                if (it != club->mCountry->mClubs.end()) {
-                    auto index = std::distance(club->mCountry->mClubs.begin(), it);
-                    id = (index + 1) | (club->mCountry->mId << 16);
-                }
+            auto it = std::find(club->mCountry->mClubs.begin(), club->mCountry->mClubs.end(), club);
+            if (it != club->mCountry->mClubs.end()) {
+                auto index = std::distance(club->mCountry->mClubs.begin(), it);
+                id = (index + 1) | (club->mCountry->mId << 16);
             }
         }
         club->SetIsWriteable(id != 0);
         club->SetWriteableID(id);
-        club->SetWriteableUniqueID(club->mUniqueID);
+        club->SetWriteableUniqueID(TranslateClubID(club->mUniqueID, LATEST_GAME_VERSION, gameId));
     }
     for (auto personEntry : mPersonsMap) {
         personEntry.second->SetIsWriteable(true);
@@ -708,7 +718,6 @@ FifamCompetition *FifamDatabase::ReadCompetition(FifamReader &reader) {
     else if (compDbType == L"DB_ROUND")
         newComp = CreateCompetition(FifamCompDbType::Round, compID);
     if (newComp) {
-        Error(L"Comp: %s", newComp->GetDbType().ToCStr());
         newComp->Read(reader, this);
     }
     return newComp;

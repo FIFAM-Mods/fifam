@@ -32,7 +32,7 @@ void FifamCompPool::Write(FifamWriter &writer, FifamDatabase *database) {
     Vector<String> sortingFlags;
     if (writer.GetGameId() <= 11 && mSorting == FifamPoolSorting::ChampionscupLast16)
         sortingFlags.push_back(L"POOL_SORT_LAST_16");
-    else
+    else if (mSorting != FifamPoolSorting::None)
         sortingFlags.push_back(mSorting.ToStr());
     if (mReserveTeamsAllowed)
         sortingFlags.push_back(L"POOL_RESERVE_TEAMS");

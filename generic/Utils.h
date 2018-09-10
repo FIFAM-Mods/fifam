@@ -90,6 +90,11 @@ namespace Utils {
         return std::find(container.begin(), container.end(), item) != container.end();
     }
 
+    template<typename Container, typename ItemType>
+    void Remove(Container &container, ItemType const &item) {
+        container.erase(std::remove(container.begin(), container.end(), item), container.end());
+    }
+
     template<typename T>
     std::vector<T> VecToArray(std::vector<T> const &vec, size_t size) {
         auto result = vec;

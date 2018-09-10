@@ -2,10 +2,10 @@
 #include "FifamEnum.h"
 
 ENUM_BEGIN(FifamBeg, UInt)
-    ENUM_MEMBER(1,         With1stLeg,            L"BEG_WITH_1_LEG")
     ENUM_MEMBER(1,         _1stLeg,               L"BEG_1ST_LEG")
-    ENUM_MEMBER(2,         With2ndLeg,            L"BEG_WITH_2_LEG")
+    ENUM_MEMBER(1,         With1stLeg,            L"BEG_WITH_1_LEG")
     ENUM_MEMBER(2,         _2ndLeg,               L"BEG_2ND_LEG")
+    ENUM_MEMBER(2,         With2ndLeg,            L"BEG_WITH_2_LEG")
     ENUM_MEMBER(4,         WithReplay,            L"BEG_WITH_REPLAY")
     ENUM_MEMBER(8,         WithExtraTime,         L"BEG_WITH_EXTRA_TIME")
     ENUM_MEMBER(16,        WithGoldenGoal,        L"BEG_WITH_GOLDEN_GOAL")
