@@ -17,7 +17,8 @@
 #include "tests\WritePlayersTest.h"
 #include "tests\HistoricTest.h"
 #include "tests\CompetitionsTest.h"
+#include "CreateFlagImages.h"
 
 void RunTests() {
-    RunTest<WriteDbTest<FM07, FM07, false>>();
+    RunTest<CreateFlagImages>();
 }

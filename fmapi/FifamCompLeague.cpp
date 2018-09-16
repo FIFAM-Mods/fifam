@@ -5,7 +5,7 @@ FifamCompDbType FifamCompLeague::GetDbType() const {
     return FifamCompDbType::League;
 }
 
-void FifamCompLeague::Read(FifamReader &reader, FifamDatabase *database) {
+void FifamCompLeague::Read(FifamReader &reader, FifamDatabase *database, FifamNation nationId) {
     if (!reader.IsVersionGreaterOrEqual(0x2011, 0x07))
         reader.ReadLineTranslationArray(mName);
     reader.ReadLine(mNumTeams);
@@ -98,10 +98,10 @@ void FifamCompLeague::Read(FifamReader &reader, FifamDatabase *database) {
     mMinDomesticPlayerCount = (otherFlags >> 16) & 0x1F;
     mMinU21PlayerCount = (otherFlags >> 21) & 0x1F;
     mMinU24PlayerCount = (otherFlags >> 26) & 0x1F;
-    FifamCompetition::Read(reader, database);
+    FifamCompetition::Read(reader, database, nationId);
 }
 
-void FifamCompLeague::Write(FifamWriter &writer, FifamDatabase *database) {
+void FifamCompLeague::Write(FifamWriter &writer, FifamDatabase *database, FifamNation nationId) {
     if (!writer.IsVersionGreaterOrEqual(0x2011, 0x07)) {
         if (!writer.IsVersionGreaterOrEqual(0, 0x01))
             writer.WriteLine(FifamTr(mName));
@@ -191,5 +191,5 @@ void FifamCompLeague::Write(FifamWriter &writer, FifamDatabase *database) {
         (Utils::Clamp(mMinU21PlayerCount, 0, 0x1F) << 21) |
         (Utils::Clamp(mMinU24PlayerCount, 0, 0x1F) << 26);
     writer.WriteLine(otherFlags);
-    FifamCompetition::Write(writer, database);
+    FifamCompetition::Write(writer, database, nationId);
 }

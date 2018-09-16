@@ -1,5 +1,8 @@
 #include "FifamCompetition.h"
 #include "FifamUtils.h"
+#include "FifamDatabase.h"
+
+FifamCompetition::~FifamCompetition() {}
 
 FifamCompLeague *FifamCompetition::AsLeague() {
     return GetDbType() == FifamCompDbType::League ? reinterpret_cast<FifamCompLeague *>(this) : nullptr;
@@ -17,28 +20,21 @@ FifamCompPool *FifamCompetition::AsPool() {
     return GetDbType() == FifamCompDbType::Pool ? reinterpret_cast<FifamCompPool *>(this) : nullptr;
 }
 
-void FifamCompetition::Read(FifamReader &reader, FifamDatabase *database) {
+void FifamCompetition::Read(FifamReader &reader, FifamDatabase *database, FifamNation nationId) {
     reader.ReadLine(mNumSubsAllowed);
     reader.ReadLine(mCompetitionLevel);
-    auto predecessors = FifamUtils::ExtractCompetitionIDs(reader.ReadFullLine());
+    auto predecessors = FifamUtils::ExtractCompetitionIDs(reader.ReadFullLine(), FifamCompRegion::MakeFromInt(nationId.ToInt()));
     mPredecessors.resize(predecessors.size());
     for (UInt i = 0; i < mPredecessors.size(); i++)
         FifamUtils::SaveCompetitionIDToPtr(mPredecessors[i], predecessors[i].ToInt());
-    auto successors = FifamUtils::ExtractCompetitionIDs(reader.ReadFullLine());
+    auto successors = FifamUtils::ExtractCompetitionIDs(reader.ReadFullLine(), FifamCompRegion::MakeFromInt(nationId.ToInt()));
     mSuccessors.resize(successors.size());
     for (UInt i = 0; i < mSuccessors.size(); i++)
         FifamUtils::SaveCompetitionIDToPtr(mSuccessors[i], successors[i].ToInt());
-    UInt numInstructions = reader.ReadLine<UInt>();
-    for (UInt i = 0; i < numInstructions; i++) {
-        FifamScriptInstruction instruction;
-        instruction.Read(reader);
-        if (instruction.mID.GetWasSetFromUnknown() || instruction.mID == FifamScriptInstructionID::ID_END_OF_ENTRY)
-            break;
-        mInstructions.push_back(instruction);
-    }
+    mInstructions.Read(reader, database, nationId);
 }
 
-void FifamCompetition::Write(FifamWriter &writer, FifamDatabase *database) {
+void FifamCompetition::Write(FifamWriter &writer, FifamDatabase *database, FifamNation nationId) {
     writer.WriteLine(mNumSubsAllowed);
     writer.WriteLine(mCompetitionLevel);
     if (!mPredecessors.empty()) {
@@ -59,11 +55,7 @@ void FifamCompetition::Write(FifamWriter &writer, FifamDatabase *database) {
     }
     else
         writer.WriteLine(0);
-    // TODO: write instructions
-    writer.WriteLine(0);
-    //writer.WriteLine(mInstructions.size());
-    //for (UInt i = 0; i < mInstructions.size(); i++)
-    //    mInstructions[i].Write(writer);
+    mInstructions.Write(writer, database, nationId);
 }
 
 String FifamCompetition::GetName() const {

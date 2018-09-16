@@ -5,7 +5,7 @@
 #include "FifamRoundID.h"
 #include "FifamBeg.h"
 #include "FifamCupAllocType.h"
-#include "FifamScriptInstruction.h"
+#include "FifamInstructionList.h"
 
 // @since FM07
 // templates for cup system
@@ -43,10 +43,10 @@ public:
     Vector<Round *> mRounds;
     // @since FM07
     // instructions
-    Vector<FifamScriptInstruction> mInstructions;
+    FifamInstructionsList mInstructions;
 
-    void Read(FifamReader &reader);
-    void Write(FifamWriter &writer);
+    void Read(FifamReader &reader, FifamDatabase *database);
+    void Write(FifamWriter &writer, FifamDatabase *database);
     void Clear();
     ~FifamCupAlloc();
 };

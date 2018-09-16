@@ -5,7 +5,7 @@ FifamCompDbType FifamCompCup::GetDbType() const {
     return FifamCompDbType::Cup;
 }
 
-void FifamCompCup::Read(FifamReader &reader, FifamDatabase *database) {
+void FifamCompCup::Read(FifamReader &reader, FifamDatabase *database, FifamNation nationId) {
     reader.ReadLineTranslationArray(mName);
     reader.ReadLine(mCupTemplate);
     if (reader.IsVersionGreaterOrEqual(0, 0x1)) {
@@ -46,10 +46,12 @@ void FifamCompCup::Read(FifamReader &reader, FifamDatabase *database) {
         mSecondSeasonMatchdays.resize(numRounds * 2);
         if (reader.ReadStartIndex(L"MATCHDAYS")) {
             reader.ReadLineArray(mFirstSeasonMatchdays);
+            Utils::Remove(mFirstSeasonMatchdays, 0);
             reader.ReadEndIndex(L"MATCHDAYS");
         }
         if (reader.ReadStartIndex(L"MATCHDAYS2")) {
             reader.ReadLineArray(mSecondSeasonMatchdays);
+            Utils::Remove(mSecondSeasonMatchdays, 0);
             reader.ReadEndIndex(L"MATCHDAYS2");
         }
         else
@@ -68,11 +70,17 @@ void FifamCompCup::Read(FifamReader &reader, FifamDatabase *database) {
             mRounds[i].mRoundID = cupTemplate->mRounds[i]->mRoundID;
         }
         mInstructions = cupTemplate->mInstructions;
+        mInstructions.ForAllCompetitionLinks([=](FifamCompetition *& competition, UInt, FifamAbstractInstruction *instruction) {
+            FifamCompID compID = (UInt)competition;
+            if (compID.mRegion == FifamCompRegion::None)
+                compID.mRegion.SetFromInt(nationId.ToInt());
+            competition = (FifamCompetition *)compID.ToInt();
+        });
     }
-    FifamCompetition::Read(reader, database);
+    FifamCompetition::Read(reader, database, nationId);
 }
 
-void FifamCompCup::Write(FifamWriter &writer, FifamDatabase *database) {
+void FifamCompCup::Write(FifamWriter &writer, FifamDatabase *database, FifamNation nationId) {
     if (!writer.IsVersionGreaterOrEqual(0, 0x01))
         writer.WriteLine(FifamTr(mName));
     else
@@ -83,7 +91,7 @@ void FifamCompCup::Write(FifamWriter &writer, FifamDatabase *database) {
         writer.WriteLine(mCupTemplate);
     if (writer.IsVersionGreaterOrEqual(0, 0x1)) {
         writer.WriteLine(mDrawPeriodInWeeks);
-        writer.WriteLine(mRounds.size());
+        writer.WriteLine(0);
     }
     if (writer.GetGameId() >= 11) {
         writer.WriteLine(mNumTeams, mRounds.size(), mFirstSeasonMatchdays.size());
@@ -113,5 +121,5 @@ void FifamCompCup::Write(FifamWriter &writer, FifamDatabase *database) {
             writer.WriteLine(mRounds[i].mBonuses[0]);
         }
     }
-    FifamCompetition::Write(writer, database);
+    FifamCompetition::Write(writer, database, nationId);
 }

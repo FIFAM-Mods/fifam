@@ -87,6 +87,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CreateFlagImages.h" />
     <ClInclude Include="environment\FifaDbEnvironment.h" />
     <ClInclude Include="environment\FifamDbEnvironment.h" />
     <ClInclude Include="environment\TestsEnvironment.h" />

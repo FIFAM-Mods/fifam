@@ -82,8 +82,8 @@ public:
     void WriteNamesFile(Path const &filepath, UInt gameId, NamesMap &names);
     void SetupWriteableStatus(UInt gameId);
     void ResetWriteableStatus();
-    FifamCompetition *ReadCompetition(FifamReader &reader);
-    void WriteCompetition(FifamWriter &writer, FifamCompetition *comp);
+    FifamCompetition *ReadCompetition(FifamReader &reader, FifamNation nationId);
+    void WriteCompetition(FifamWriter &writer, FifamCompetition *comp, FifamNation nationId);
     UInt GetClubsInCountryLimit(UInt gameId);
     UInt GetPersonsInClubLimit(UInt gameId);
     FifamCupAlloc *GetCupTemplate(FifamCupSystemType cupSystemType);

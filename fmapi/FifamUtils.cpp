@@ -70,12 +70,12 @@ String FifamUtils::GetPlayerName(FifamPlayer *player) {
     return L"";
 }
 
-Bool FifamUtils::ExtractCompetitionID(FifamCompID &outID, String const &line, UInt &linePos) {
-    UInt brace1Posn = line.find(linePos, L'{');
+Bool FifamUtils::ExtractCompetitionID(FifamCompID &outID, String const &line, UInt &linePos, FifamCompRegion const &region) {
+    UInt brace1Posn = line.find(L'{', linePos);
     if (brace1Posn != String::npos) {
-        UInt brace2Posn = line.find(brace1Posn + 1, L'}');
+        UInt brace2Posn = line.find(L'}', brace1Posn);
         if (brace2Posn != String::npos) {
-            outID.SetFromStr(line.substr(brace1Posn, brace2Posn - brace1Posn + 1));
+            outID.SetFromStr(line.substr(brace1Posn, brace2Posn - brace1Posn + 1), region);
             linePos = brace2Posn + 1;
             return true;
         }
@@ -83,29 +83,29 @@ Bool FifamUtils::ExtractCompetitionID(FifamCompID &outID, String const &line, UI
     return false;
 }
 
-Bool FifamUtils::ExtractCompetitionID(FifamCompID &outID, String const &line) {
+Bool FifamUtils::ExtractCompetitionID(FifamCompID &outID, String const &line, FifamCompRegion const &region) {
     UInt linePos = 0;
-    return ExtractCompetitionID(outID, line, linePos);
+    return ExtractCompetitionID(outID, line, linePos, region);
 }
 
-FifamCompID FifamUtils::ExtractCompetitionID(String &line) {
+FifamCompID FifamUtils::ExtractCompetitionID(String &line, FifamCompRegion const &region) {
     FifamCompID result;
-    ExtractCompetitionID(result, line);
+    ExtractCompetitionID(result, line, region);
     return result;
 }
 
-UInt FifamUtils::ExtractCompetitionIDs(Vector<FifamCompID> &outIDs, String const &line) {
+UInt FifamUtils::ExtractCompetitionIDs(Vector<FifamCompID> &outIDs, String const &line, FifamCompRegion const &region) {
     outIDs.clear();
     UInt linePos = 0;
     FifamCompID compID;
-    while (ExtractCompetitionID(compID, line, linePos))
+    while (ExtractCompetitionID(compID, line, linePos, region))
         outIDs.push_back(compID);
     return outIDs.size();
 }
 
-Vector<FifamCompID> FifamUtils::ExtractCompetitionIDs(String const &line) {
+Vector<FifamCompID> FifamUtils::ExtractCompetitionIDs(String const &line, FifamCompRegion const &region) {
     Vector<FifamCompID> result;
-    ExtractCompetitionIDs(result, line);
+    ExtractCompetitionIDs(result, line, region);
     return result;
 }
 

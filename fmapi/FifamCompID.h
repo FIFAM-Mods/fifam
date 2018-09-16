@@ -29,7 +29,7 @@ public:
     UInt ToInt() const;
     void SetFromHexStr(String const &str);
     String ToHexStr() const;
-    void SetFromStr(String const &str);
+    void SetFromStr(String const &str, FifamCompRegion const &region = FifamCompRegion::None);
     String ToStr(bool countryName = false) const;
     Bool IsNull() const;
 };

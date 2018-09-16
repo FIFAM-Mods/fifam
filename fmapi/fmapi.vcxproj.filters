@@ -97,11 +97,12 @@
     <ClInclude Include="FifamClubStaffPosition.h" />
     <ClInclude Include="FifamCoachPlayingOrientation.h" />
     <ClInclude Include="FifamCompCup.h" />
-    <ClInclude Include="FifamScriptInstructionID.h" />
-    <ClInclude Include="FifamScriptInstruction.h" />
     <ClInclude Include="FifamCompDbType.h" />
     <ClInclude Include="FifamDbWriteable.h" />
     <ClInclude Include="FifamCompRoot.h" />
+    <ClInclude Include="FifamInstructionID.h" />
+    <ClInclude Include="FifamInstruction.h" />
+    <ClInclude Include="FifamInstructionList.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamDate.cpp" />
@@ -144,5 +145,7 @@
     <ClCompile Include="FifamDbWriteable.cpp" />
     <ClCompile Include="FifamCompRoot.cpp" />
     <ClCompile Include="FifamCompCup.cpp" />
+    <ClCompile Include="FifamInstruction.cpp" />
+    <ClCompile Include="FifamInstructionList.cpp" />
   </ItemGroup>
 </Project>

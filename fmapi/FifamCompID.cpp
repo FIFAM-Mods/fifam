@@ -22,14 +22,17 @@ String FifamCompID::ToHexStr() const {
     return Utils::Format(L"%08X", ToInt());
 }
 
-void FifamCompID::SetFromStr(String const &str) {
+void FifamCompID::SetFromStr(String const &str, FifamCompRegion const &region) {
     auto comps = Utils::Split(str, L',');
     if (comps.size() == 3) {
         if (Utils::StartsWith(comps[0], L"{"))
             comps[0] = comps[0].substr(1);
         if (Utils::EndsWith(comps[2], L"}"))
             comps[2].pop_back();
-        mRegion.SetFromInt((UChar)Utils::ToNumber(comps[0]));
+        if (region != FifamCompRegion::None)
+            mRegion.SetFromInt((UChar)Utils::ToNumber(comps[0]));
+        else
+            mRegion = region;
         mType.SetFromStr(comps[1]);
         mIndex = Utils::ToNumber(comps[2]);
     }

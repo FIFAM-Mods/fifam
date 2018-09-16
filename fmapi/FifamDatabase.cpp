@@ -57,7 +57,7 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
             for (UInt i = 0; i < numCups; i++) {
                 if (cupAllocReader.ReadStartIndex(Utils::Format(L"CUP%d", i + 1))) {
                     mCupTemplates.push_back(new FifamCupAlloc);
-                    mCupTemplates.back()->Read(cupAllocReader);
+                    mCupTemplates.back()->Read(cupAllocReader, this);
                     cupAllocReader.ReadEndIndex(Utils::Format(L"CUP%d", i + 1));
                 }
             }
@@ -95,7 +95,7 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
         }
     }
 
-    for (UChar i = 0; i < NUM_COUNTRIES ; i++) {
+    for (UChar i = 0; i < NUM_COUNTRIES; i++) {
         auto &country = mCountries[i];
         if (!country)
             continue;
@@ -297,7 +297,7 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
         //    cupAllocWriter.WriteLine(mCupTemplates.size() + 1);
         //    for (UInt i = 0; i < mCupTemplates.size(); i++) {
         //        cupAllocWriter.WriteStartIndex(Utils::Format(L"CUP%d", i + 1));
-        //        mCupTemplates[i]->Write(cupAllocWriter);
+        //        mCupTemplates[i]->Write(cupAllocWriter, this);
         //        cupAllocWriter.WriteEndIndex(Utils::Format(L"CUP%d", i + 1));
         //    }
         //}
@@ -524,7 +524,9 @@ void FifamDatabase::ResolveLinksForCompetition(FifamCompetition *comp, UInt game
     FifamUtils::TranslateCompIdToLatestVersion(comp->mID, gameId);
     ResolveCompetitionList(comp->mPredecessors, gameId);
     ResolveCompetitionList(comp->mSuccessors, gameId);
-    // TODO: resolve instructions links
+    comp->mInstructions.ForAllCompetitionLinks([=](FifamCompetition *& competition, UInt, FifamAbstractInstruction *instruction) {
+        ResolveCompetitionPtr(competition, gameId);
+    });
     if (comp->GetDbType() == FifamCompDbType::League)
         ResolveClubLinkList(comp->AsLeague()->mTeams, gameId);
     else if (comp->GetDbType() == FifamCompDbType::Pool)
@@ -704,10 +706,10 @@ void FifamDatabase::WriteNamesFile(Path const &filepath, UInt gameId, NamesMap &
     }
 }
 
-FifamCompetition *FifamDatabase::ReadCompetition(FifamReader &reader) {
+FifamCompetition *FifamDatabase::ReadCompetition(FifamReader &reader, FifamNation nationId) {
     String compDbType = reader.ReadLine<String>();
     FifamCompID compID;
-    compID.SetFromStr(reader.ReadFullLine());
+    compID.SetFromStr(reader.ReadFullLine(), FifamCompRegion::MakeFromInt(nationId.ToInt()));
     FifamCompetition *newComp = nullptr;
     if (compDbType == L"DB_LEAGUE")
         newComp = CreateCompetition(FifamCompDbType::League, compID);
@@ -718,15 +720,15 @@ FifamCompetition *FifamDatabase::ReadCompetition(FifamReader &reader) {
     else if (compDbType == L"DB_ROUND")
         newComp = CreateCompetition(FifamCompDbType::Round, compID);
     if (newComp) {
-        newComp->Read(reader, this);
+        newComp->Read(reader, this, nationId);
     }
     return newComp;
 }
 
-void FifamDatabase::WriteCompetition(FifamWriter &writer, FifamCompetition *comp) {
+void FifamDatabase::WriteCompetition(FifamWriter &writer, FifamCompetition *comp, FifamNation nationId) {
     writer.WriteLine(comp->GetDbType().ToStr());
     writer.WriteLine(comp->GetCompIDStr());
-    comp->Write(writer, this);
+    comp->Write(writer, this, nationId);
 }
 
 FifamCupAlloc *FifamDatabase::GetCupTemplate(FifamCupSystemType cupSystemType) {

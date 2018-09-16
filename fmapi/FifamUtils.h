@@ -1,6 +1,7 @@
 #pragma once
 #include "FifamTypes.h"
 #include "FifamDbWriteable.h"
+#include "FifamCompRegion.h"
 
 class FifamDatabase;
 class FifamClubLink;
@@ -21,11 +22,11 @@ public:
     static UInt GetSavedCompetitionIDFromPtr(FifamCompetition *&ptr);
     static UChar GetCountryIDFromClubID(UInt clubID);
     static String GetPlayerName(FifamPlayer *player);
-    static Bool ExtractCompetitionID(FifamCompID &outID, String const &line, UInt &linePos);
-    static Bool ExtractCompetitionID(FifamCompID &outID, String const &line);
-    static FifamCompID ExtractCompetitionID(String &line);
-    static UInt ExtractCompetitionIDs(Vector<FifamCompID> &outIDs, String const &line);
-    static Vector<FifamCompID> ExtractCompetitionIDs(String const &line);
+    static Bool ExtractCompetitionID(FifamCompID &outID, String const &line, UInt &linePos, FifamCompRegion const &region = FifamCompRegion::None);
+    static Bool ExtractCompetitionID(FifamCompID &outID, String const &line, FifamCompRegion const &region = FifamCompRegion::None);
+    static FifamCompID ExtractCompetitionID(String &line, FifamCompRegion const &region = FifamCompRegion::None);
+    static UInt ExtractCompetitionIDs(Vector<FifamCompID> &outIDs, String const &line, FifamCompRegion const &region = FifamCompRegion::None);
+    static Vector<FifamCompID> ExtractCompetitionIDs(String const &line, FifamCompRegion const &region = FifamCompRegion::None);
     static String JoinCompetitionIDs(Vector<FifamCompID> const &compIDs, String const &sep = L",");
     static UInt TranslateCompId(UInt id, UInt gameFrom, UInt gameTo);
     static FifamCompID TranslateCompId(FifamCompID const &compID, UInt gameFrom, UInt gameTo);

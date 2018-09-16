@@ -55,3 +55,5 @@ using MultiSet = std::multiset<T>;
 template<UInt Bits>
 using BitSet = std::bitset<Bits>;
 using Path = path;
+template<typename FT>
+using Function = std::function<FT>;

@@ -2,7 +2,7 @@
 #include "FifamTypes.h"
 #include "FifamEnum.h"
 
-ENUM_BEGIN(FifamScriptInstructionID, UChar)
+ENUM_BEGIN(FifamInstructionID, UChar)
     ENUM_MEMBER( 0, ID_END_OF_ENTRY,                       L"END_OF_ENTRY")
     ENUM_MEMBER( 1, ID_BUILD_COUNTER,                      L"BUILD_COUNTER")
     ENUM_MEMBER( 2, ID_RESERVE_ASSESSMENT_TEAMS,           L"RESERVE_ASSESSMENT_TEAMS")
@@ -48,4 +48,4 @@ ENUM_BEGIN(FifamScriptInstructionID, UChar)
     ENUM_MEMBER(42, ID_GET_UEFA5_SURE_TAB,                 L"GET_UEFA5_SURE_TAB")
     ENUM_MEMBER(43, ID_GET_UEFA5_SURE_UIC,                 L"GET_UEFA5_SURE_UIC")
     ENUM_MEMBER(44, ID_GET_UEFA5_CHAMP_OR_FINALIST,        L"GET_UEFA5_CHAMP_OR_FINALIST")
-ENUM_END(FifamScriptInstructionID)
+ENUM_END(FifamInstructionID)

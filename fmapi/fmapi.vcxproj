@@ -127,6 +127,7 @@
     <ClInclude Include="FifamFormation.h" />
     <ClInclude Include="FifamGeoCoords.h" />
     <ClInclude Include="FifamHistoric.h" />
+    <ClInclude Include="FifamInstructionList.h" />
     <ClInclude Include="FifamKit.h" />
     <ClInclude Include="FifamKitBadgePosition.h" />
     <ClInclude Include="FifamKitColor.h" />
@@ -163,8 +164,8 @@
     <ClInclude Include="FifamRelRule.h" />
     <ClInclude Include="FifamRoundID.h" />
     <ClInclude Include="FifamRules.h" />
-    <ClInclude Include="FifamScriptInstruction.h" />
-    <ClInclude Include="FifamScriptInstructionID.h" />
+    <ClInclude Include="FifamInstruction.h" />
+    <ClInclude Include="FifamInstructionID.h" />
     <ClInclude Include="FifamShirtNumberColor.h" />
     <ClInclude Include="FifamShoeType.h" />
     <ClInclude Include="FifamSponsor.h" />
@@ -204,6 +205,8 @@
     <ClCompile Include="FifamDbWriteable.cpp" />
     <ClCompile Include="FifamGeoCoords.cpp" />
     <ClCompile Include="FifamHistoric.cpp" />
+    <ClCompile Include="FifamInstruction.cpp" />
+    <ClCompile Include="FifamInstructionList.cpp" />
     <ClCompile Include="FifamKit.cpp" />
     <ClCompile Include="FifamPlayer.cpp" />
     <ClCompile Include="FifamPlayerAppearance.cpp" />

@@ -5,7 +5,7 @@ FifamCompDbType FifamCompPool::GetDbType() const {
     return FifamCompDbType::Pool;
 }
 
-void FifamCompPool::Read(FifamReader &reader, FifamDatabase *database) {
+void FifamCompPool::Read(FifamReader &reader, FifamDatabase *database, FifamNation nationId) {
     reader.ReadLine(mNumPools);
     reader.ReadLine(mNumTeams);
     auto sortingFlags = reader.ReadLineArray<String>(L',', true);
@@ -23,17 +23,52 @@ void FifamCompPool::Read(FifamReader &reader, FifamDatabase *database) {
         FifamUtils::SaveCompetitionIDToPtr(mCompConstraints[i], FifamUtils::ExtractCompetitionID(reader.ReadFullLine()).ToInt());
     for (UInt i = 0; i < mBonuses.size(); i++)
         reader.ReadLine(mBonuses[i]);
-    FifamCompetition::Read(reader, database);
+    FifamCompetition::Read(reader, database, nationId);
 }
 
-void FifamCompPool::Write(FifamWriter &writer, FifamDatabase *database) {
+void FifamCompPool::Write(FifamWriter &writer, FifamDatabase *database, FifamNation nationId) {
     writer.WriteLine(mNumPools);
     writer.WriteLine(mNumTeams);
     Vector<String> sortingFlags;
-    if (writer.GetGameId() <= 11 && mSorting == FifamPoolSorting::ChampionscupLast16)
-        sortingFlags.push_back(L"POOL_SORT_LAST_16");
-    else if (mSorting != FifamPoolSorting::None)
-        sortingFlags.push_back(mSorting.ToStr());
+    Bool sortingCantBeUsedInThisVersion = false;
+    if (writer.IsVersionGreaterOrEqual(0, 0x1)) {
+        if (writer.GetGameId() < 13) {
+            if (mSorting == FifamPoolSorting::ChampionscupGroup ||
+                mSorting == FifamPoolSorting::PreviousPointsDiff ||
+                mSorting == FifamPoolSorting::Continent ||
+                mSorting == FifamPoolSorting::DrawWorldCup ||
+                mSorting == FifamPoolSorting::DrawEuroCup ||
+                mSorting == FifamPoolSorting::CopaAmerica)
+            {
+                sortingCantBeUsedInThisVersion = true;
+            }
+        }
+    }
+    else {
+        if (writer.GetGameId() < 11) {
+            if (mSorting == FifamPoolSorting::DrawWorldCup ||
+                mSorting == FifamPoolSorting::DrawEuroCup ||
+                mSorting == FifamPoolSorting::CopaAmerica)
+            {
+                sortingCantBeUsedInThisVersion = true;
+            }
+            else if (writer.GetGameId() < 8) {
+                if (mSorting == FifamPoolSorting::PreviousPointsDiff ||
+                    mSorting == FifamPoolSorting::Continent)
+                {
+                    sortingCantBeUsedInThisVersion = true;
+                }
+            }
+        }
+    }
+    if (sortingCantBeUsedInThisVersion)
+        writer.WriteLine(L";; !!! THE '" + mSorting.ToStr() + L"' SORTING IS NOT AVAILABLE IN THIS VERSION SO IT WAS DISABLED !!!");
+    else {
+        if (writer.GetGameId() <= 11 && mSorting == FifamPoolSorting::ChampionscupLast16)
+            sortingFlags.push_back(L"POOL_SORT_LAST_16");
+        else if (mSorting != FifamPoolSorting::None)
+            sortingFlags.push_back(mSorting.ToStr());
+    }
     if (mReserveTeamsAllowed)
         sortingFlags.push_back(L"POOL_RESERVE_TEAMS");
     writer.WriteLineArray(sortingFlags);
@@ -46,5 +81,5 @@ void FifamCompPool::Write(FifamWriter &writer, FifamDatabase *database) {
         writer.WriteLine(FifamCompID(compConstraints[i]).ToStr());
     for (UInt i = 0; i < mBonuses.size(); i++)
         writer.WriteLine(mBonuses[i]);
-    FifamCompetition::Write(writer, database);
+    FifamCompetition::Write(writer, database, nationId);
 }

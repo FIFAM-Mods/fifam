@@ -1,6 +1,6 @@
 #include "FifamCupAlloc.h"
 
-void FifamCupAlloc::Read(FifamReader &reader) {
+void FifamCupAlloc::Read(FifamReader &reader, FifamDatabase *database) {
     mRounds.clear();
 
     reader.ReadLine(mType);
@@ -30,10 +30,10 @@ void FifamCupAlloc::Read(FifamReader &reader) {
                 round->mFlags.Set(params[i], true);
         }
     }
-    // TODO: read instructions
+    mInstructions.Read(reader, database, FifamNation::None);
 }
 
-void FifamCupAlloc::Write(FifamWriter &writer) {
+void FifamCupAlloc::Write(FifamWriter &writer, FifamDatabase *database) {
     writer.WriteLine(mType);
     writer.WriteLine(mNameKey);
     writer.WriteLine(mTeamsCount);
@@ -47,6 +47,7 @@ void FifamCupAlloc::Write(FifamWriter &writer) {
         writer.WriteLine(L" }");
     }
     // TODO: write instructions
+    writer.WriteLine(0);
 }
 
 void FifamCupAlloc::Clear() {

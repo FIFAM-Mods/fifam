@@ -54,7 +54,7 @@ Bool FifamCountry::Read(FifamReader &reader) {
                 UInt numComps = reader.ReadLine<UInt>();
                 for (UInt i = 0; i < numComps; i++) {
                     if (reader.ReadStartIndex(Utils::Format(L"COMP%d", i))) {
-                        mDatabase->ReadCompetition(reader);
+                        mDatabase->ReadCompetition(reader, FifamNation::MakeFromInt(mId));
                         reader.ReadEndIndex(Utils::Format(L"COMP%d", i));
                     }
                 }
@@ -349,12 +349,37 @@ Bool FifamCountry::Write(FifamWriter &writer) {
         //writer.WriteEndIndex(L"COMPETITIONPART");
         writer.WriteStartIndex(L"COMPETITION");
         auto comps = GetCompetitions(true);
-        writer.WriteLine(comps.size());
-        for (UInt i = 0; i < comps.size(); i++) {
-            writer.WriteStartIndex(Utils::Format(L"COMP%d", i));
-            mDatabase->WriteCompetition(writer, comps[i].second);
-            writer.WriteEndIndex(Utils::Format(L"COMP%d", i));
+        Vector<Pair<FifamCompID, FifamCompetition *>> compLeagues, compRelegations, compPools, compFACups, compLECups, compSupercups;
+        for (auto const &compEntry : comps) {
+            if (compEntry.first.mType == FifamCompType::League)
+                compLeagues.push_back(compEntry);
+            else if (compEntry.first.mType == FifamCompType::Relegation)
+                compRelegations.push_back(compEntry);
+            else if (compEntry.first.mType == FifamCompType::Pool)
+                compPools.push_back(compEntry);
+            else if (compEntry.first.mType == FifamCompType::FaCup)
+                compFACups.push_back(compEntry);
+            else if (compEntry.first.mType == FifamCompType::LeagueCup)
+                compLECups.push_back(compEntry);
+            else if (compEntry.first.mType == FifamCompType::SuperCup)
+                compSupercups.push_back(compEntry);
         }
+        writer.WriteLine(compLeagues.size() + compRelegations.size() + compPools.size(), compFACups.size(),
+            compLECups.size(), compSupercups.size());
+        UInt compIndex = 0;
+        auto WriteComps = [&](Vector<Pair<FifamCompID, FifamCompetition *>> const &compPairs) {
+            for (UInt i = 0; i < compPairs.size(); i++) {
+                writer.WriteStartIndex(Utils::Format(L"COMP%d", compIndex));
+                mDatabase->WriteCompetition(writer, compPairs[i].second, FifamNation::MakeFromInt(mId));
+                writer.WriteEndIndex(Utils::Format(L"COMP%d", compIndex++));
+            }
+        };
+        WriteComps(compLeagues);
+        WriteComps(compRelegations);
+        WriteComps(compPools);
+        WriteComps(compFACups);
+        WriteComps(compLECups);
+        WriteComps(compSupercups);
         UInt numLevelNames = Utils::Min(maxLeagueLevels, mLeagueLevelNames.size());
         writer.WriteLine(numLevelNames);
         for (UInt i = 0; i < numLevelNames; i++)
@@ -603,7 +628,7 @@ Bool FifamCountry::Write(FifamWriter &writer) {
 Bool FifamCountry::ReadScript(FifamReader &reader) {
     reader.ReadVersion();
     while (reader.ReadStartIndex(L"COMPETITION")) {
-        mDatabase->ReadCompetition(reader);
+        mDatabase->ReadCompetition(reader, FifamNation::MakeFromInt(mId));
         reader.ReadEndIndex(L"COMPETITION");
     }
     return true;
@@ -711,7 +736,7 @@ Bool FifamCountry::WriteScript(FifamWriter &writer) {
     auto countryComps = GetCompetitions(true);
     for (auto &comp : countryComps) {
         writer.WriteStartIndex(L"COMPETITION");
-        mDatabase->WriteCompetition(writer, comp.second);
+        mDatabase->WriteCompetition(writer, comp.second, FifamNation::MakeFromInt(mId));
         writer.WriteEndIndex(L"COMPETITION");
     }
     return true;
@@ -731,7 +756,7 @@ Bool FifamCountry::IsCompetitionSystemCorrect() {
 Vector<Pair<FifamCompID, FifamCompetition *>> FifamCountry::GetCompetitions(bool onlyWriteable) {
     Vector<Pair<FifamCompID, FifamCompetition *>> countryComps;
     for (auto const &compEntry : mDatabase->mCompMap) {
-        if (compEntry.first.mRegion.ToInt() == mId) {
+        if (compEntry.second->GetWriteableID() && compEntry.first.mRegion.ToInt() == mId) {
             if (!onlyWriteable ||
                 compEntry.second->GetDbType() == FifamCompDbType::League ||
                 compEntry.second->GetDbType() == FifamCompDbType::Cup ||

@@ -25,6 +25,6 @@ public:
     Array<UInt, 4> mBonuses = {};
 
     FifamCompDbType GetDbType() const override;
-    void Read(FifamReader &reader, FifamDatabase *database) override;
-    void Write(FifamWriter &writer, FifamDatabase *database) override;
+    void Read(FifamReader &reader, FifamDatabase *database, FifamNation nationId) override;
+    void Write(FifamWriter &writer, FifamDatabase *database, FifamNation nationId) override;
 };

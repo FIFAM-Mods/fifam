@@ -2,7 +2,7 @@
 #include "FifamDbWriteable.h"
 #include "FifamTypes.h"
 #include "FifamCompID.h"
-#include "FifamScriptInstruction.h"
+#include "FifamInstructionList.h"
 #include "FifamCompDbType.h"
 
 class FifamCompLeague;
@@ -35,12 +35,12 @@ public:
     Vector<FifamCompetition *> mSuccessors;
     // @since FM07
     // instructions
-    Vector<FifamScriptInstruction> mInstructions;
+    FifamInstructionsList mInstructions;
 
     virtual FifamCompDbType GetDbType() const = 0;
-    virtual void Read(FifamReader &reader, FifamDatabase *database);
-    virtual void Write(FifamWriter &writer, FifamDatabase *database);
-    virtual ~FifamCompetition() {}
+    virtual void Read(FifamReader &reader, FifamDatabase *database, FifamNation nationId);
+    virtual void Write(FifamWriter &writer, FifamDatabase *database, FifamNation nationId);
+    virtual ~FifamCompetition();
 
     FifamCompLeague *AsLeague();
     FifamCompRound *AsRound();

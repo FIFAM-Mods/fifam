@@ -114,6 +114,6 @@ public:
     UChar mMinU24PlayerCount = 0;
 
     FifamCompDbType GetDbType() const override;
-    void Read(FifamReader &reader, FifamDatabase *database) override;
-    void Write(FifamWriter &writer, FifamDatabase *database) override;
+    void Read(FifamReader &reader, FifamDatabase *database, FifamNation nationId) override;
+    void Write(FifamWriter &writer, FifamDatabase *database, FifamNation nationId) override;
 };
