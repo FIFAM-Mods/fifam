@@ -308,6 +308,8 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
 void FifamDatabase::SetupWriteableStatus(UInt gameId) {
     for (auto country : mCountries) {
         if (country) {
+            // TODO: update this
+            country->mNumWriteableLeagueLevels = (gameId > 7) ? 16 : 5;
             country->mNationalTeam.SetIsWriteable(true);
             country->mNationalTeam.SetWriteableID(0xFFFF | (country->mId << 16));
             country->mNationalTeam.SetWriteableUniqueID(TranslateClubID(country->mNationalTeam.mUniqueID, LATEST_GAME_VERSION, gameId));

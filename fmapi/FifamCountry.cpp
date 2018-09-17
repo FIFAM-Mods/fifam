@@ -331,7 +331,7 @@ Bool FifamCountry::Read(FifamReader &reader) {
 }
 
 Bool FifamCountry::Write(FifamWriter &writer) {
-    UInt maxLeagueLevels = writer.IsVersionGreaterOrEqual(0x2007, 0x13) ? 16 : 5;
+    UInt maxLeagueLevels = GetNumWriteableLeagueLevels();
     writer.WriteStartIndex(L"COUNTRY");
     writer.WriteVersion();
     if (writer.IsVersionGreaterOrEqual(0x2007, 0x12)) {
@@ -768,4 +768,8 @@ Vector<Pair<FifamCompID, FifamCompetition *>> FifamCountry::GetCompetitions(bool
         }
     }
     return countryComps;
+}
+
+UInt FifamCountry::GetNumWriteableLeagueLevels() const {
+    return mNumWriteableLeagueLevels;
 }
