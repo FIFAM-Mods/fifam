@@ -349,7 +349,7 @@ Bool FifamCountry::Write(FifamWriter &writer) {
         //writer.WriteEndIndex(L"COMPETITIONPART");
         writer.WriteStartIndex(L"COMPETITION");
         auto comps = GetCompetitions(true);
-        Vector<Pair<FifamCompID, FifamCompetition *>> compLeagues, compRelegations, compPools, compFACups, compLECups, compSupercups;
+        Vector<FifamCompEntry> compLeagues, compRelegations, compPools, compFACups, compLECups, compSupercups;
         for (auto const &compEntry : comps) {
             if (compEntry.first.mType == FifamCompType::League)
                 compLeagues.push_back(compEntry);
@@ -367,7 +367,7 @@ Bool FifamCountry::Write(FifamWriter &writer) {
         writer.WriteLine(compLeagues.size() + compRelegations.size() + compPools.size(), compFACups.size(),
             compLECups.size(), compSupercups.size());
         UInt compIndex = 0;
-        auto WriteComps = [&](Vector<Pair<FifamCompID, FifamCompetition *>> const &compPairs) {
+        auto WriteComps = [&](Vector<FifamCompEntry> const &compPairs) {
             for (UInt i = 0; i < compPairs.size(); i++) {
                 writer.WriteStartIndex(Utils::Format(L"COMP%d", compIndex));
                 mDatabase->WriteCompetition(writer, compPairs[i].second, FifamNation::MakeFromInt(mId));
@@ -641,7 +641,7 @@ Bool FifamCountry::WriteFixtures(FifamWriter &writer) {
         FifamCompetition *comp = compEntry.second;
         writer.WriteLine(L"; -------------------------------------------------------------------");
         writer.WriteStartIndex(L"COMPETITION");
-        writer.WriteLine(comp->GetCompIDStr());
+        writer.WriteLine(FifamCompID(FifamUtils::GetWriteableID(comp)).ToStr());
         writer.WriteLine(comp->GetDbType().ToStr());
         UInt numTeams = 0;
         UInt numRegisteredTeams = 0;
@@ -753,8 +753,8 @@ Bool FifamCountry::IsCompetitionSystemCorrect() {
     return false;
 }
 
-Vector<Pair<FifamCompID, FifamCompetition *>> FifamCountry::GetCompetitions(bool onlyWriteable) {
-    Vector<Pair<FifamCompID, FifamCompetition *>> countryComps;
+Vector<FifamCompEntry> FifamCountry::GetCompetitions(bool onlyWriteable) {
+    Vector<FifamCompEntry> countryComps;
     for (auto const &compEntry : mDatabase->mCompMap) {
         if (compEntry.second->GetWriteableID() && compEntry.first.mRegion.ToInt() == mId) {
             if (!onlyWriteable ||

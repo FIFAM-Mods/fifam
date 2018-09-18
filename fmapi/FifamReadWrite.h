@@ -82,6 +82,18 @@ private:
         WriteArgs(sep, std::forward<Other>(other)...);
     }
 
+    template<typename One>
+    void WriteArgs(String sep, One &&arg) {
+        WriteOne(std::forward<One>(arg));
+    }
+
+    template<typename One, typename... Other>
+    void WriteArgs(String sep, One&& arg, Other&&... other) {
+        WriteArgs(sep, std::forward<One>(arg));
+        WriteOne(sep);
+        WriteArgs(sep, std::forward<Other>(other)...);
+    }
+
 public:
     template <typename... ArgTypes>
     void Write(ArgTypes&&... args) {
@@ -105,6 +117,12 @@ public:
 
     template <typename... ArgTypes>
     void WriteLineWithSeparator(Char sep, ArgTypes&&... args) {
+        WriteArgs(sep, std::forward<ArgTypes>(args)...);
+        WriteOne(L"\n");
+    }
+
+    template <typename... ArgTypes>
+    void WriteLineWithSeparator(String sep, ArgTypes&&... args) {
         WriteArgs(sep, std::forward<ArgTypes>(args)...);
         WriteOne(L"\n");
     }

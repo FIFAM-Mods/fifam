@@ -29,7 +29,7 @@ void FifamCompID::SetFromStr(String const &str, FifamCompRegion const &region) {
             comps[0] = comps[0].substr(1);
         if (Utils::EndsWith(comps[2], L"}"))
             comps[2].pop_back();
-        if (region != FifamCompRegion::None)
+        if (region == FifamCompRegion::None)
             mRegion.SetFromInt((UChar)Utils::ToNumber(comps[0]));
         else
             mRegion = region;

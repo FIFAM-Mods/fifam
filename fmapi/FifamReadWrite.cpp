@@ -256,7 +256,7 @@ WideChar *FifamReader::GetLine() {
     mLine[0] = 0;
     while (fgets(cLine, BUFFER_SIZE, mFile)) {
         if (cLine[0] != ';') {
-            cLine[strcspn(cLine, "\r\n")] = 0;
+            cLine[strcspn(cLine, ";\r\n")] = 0;
             if (mUnicode)
                 MultiByteToWideChar(CP_UTF8, 0, cLine, BUFFER_SIZE, mLine, BUFFER_SIZE);
             else
@@ -437,8 +437,18 @@ void FifamReader::RemoveQuotes(String &str) {
 }
 
 UInt FifamReader::ReadLineTranslationArray(FifamTrArray<String> &out, WideChar sep) {
-    auto result = ReadLineArray(out, sep);
-    if (!IsVersionGreaterOrEqual(0x2007, 0x1A) && out.size() >= FifamTranslation::NUM_TRANSLATIONS)
+    auto ary = ReadLineArray<String>(sep);
+    if (ary.size() == 1) {
+        for (UInt i = 1; i < 6; i++)
+            out[i] = out[0];
+    }
+    for (UInt i = 0; i < FifamTranslation::NUM_TRANSLATIONS; i++) {
+        if (ary.size() > i)
+            out[i] = ary[i];
+        else
+            out[i].clear();
+    }
+    if (!IsVersionGreaterOrEqual(0x2007, 0x1A))
         out[FifamTranslation::Polish] = out[FifamTranslation::English];
-    return result;
+    return ary.size();
 }

@@ -91,7 +91,10 @@ void FifamCompCup::Write(FifamWriter &writer, FifamDatabase *database, FifamNati
         writer.WriteLine(mCupTemplate);
     if (writer.IsVersionGreaterOrEqual(0, 0x1)) {
         writer.WriteLine(mDrawPeriodInWeeks);
-        writer.WriteLine(0);
+        if (writer.GetGameId() >= 11)
+            writer.WriteLine(mRounds.size());
+        else
+            writer.WriteLine(0);
     }
     if (writer.GetGameId() >= 11) {
         writer.WriteLine(mNumTeams, mRounds.size(), mFirstSeasonMatchdays.size());

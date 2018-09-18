@@ -19,8 +19,10 @@ void FifamCompPool::Read(FifamReader &reader, FifamDatabase *database, FifamNati
     }
     UShort numCompConstraints = reader.ReadLine<UShort>();
     mCompConstraints.resize(numCompConstraints);
-    for (UShort i = 0; i < numCompConstraints; i++)
-        FifamUtils::SaveCompetitionIDToPtr(mCompConstraints[i], FifamUtils::ExtractCompetitionID(reader.ReadFullLine()).ToInt());
+    for (UShort i = 0; i < numCompConstraints; i++) {
+        FifamUtils::SaveCompetitionIDToPtr(mCompConstraints[i],
+            FifamUtils::ExtractCompetitionID(reader.ReadFullLine(), FifamCompRegion::MakeFromInt(nationId.ToInt())).ToInt());
+    }
     for (UInt i = 0; i < mBonuses.size(); i++)
         reader.ReadLine(mBonuses[i]);
     FifamCompetition::Read(reader, database, nationId);

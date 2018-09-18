@@ -11,7 +11,7 @@ ENUM_BEGIN(FifamEqualPointsSorting, UChar)
     ENUM_READ(reader, str) {
         if (!str.empty()) {
             UChar id = Utils::SafeConvertInt<UChar>(str);
-            if (!reader.IsVersionGreaterOrEqual(0x2007, 0xF)) {
+            if (reader.IsVersionGreaterOrEqual(0, 0x01) && !reader.IsVersionGreaterOrEqual(0x2007, 0xF)) {
                 if (id == 1)
                     id = 4;
                 else if (id != 0) {
@@ -27,7 +27,7 @@ ENUM_BEGIN(FifamEqualPointsSorting, UChar)
     }
 
     ENUM_WRITE(writer) {
-        if (!writer.IsVersionGreaterOrEqual(0x2007, 0xF)) {
+        if (writer.IsVersionGreaterOrEqual(0, 0x01) && !writer.IsVersionGreaterOrEqual(0x2007, 0xF)) {
             if (ToInt() == Goals)
                 writer.WriteOne(1);
             else

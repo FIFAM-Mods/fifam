@@ -84,6 +84,8 @@ public:
     void ResetWriteableStatus();
     FifamCompetition *ReadCompetition(FifamReader &reader, FifamNation nationId);
     void WriteCompetition(FifamWriter &writer, FifamCompetition *comp, FifamNation nationId);
+    void ReadExternalScriptFile(Path const &filepath, String const &compKeyName, UInt gameId);
+    void WriteExternalScriptFile(Path const &filepath, String const &compKeyName, UInt gameId, Vector<FifamCompEntry> const &comps, UInt startIndex);
     UInt GetClubsInCountryLimit(UInt gameId);
     UInt GetPersonsInClubLimit(UInt gameId);
     FifamCupAlloc *GetCupTemplate(FifamCupSystemType cupSystemType);

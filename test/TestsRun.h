@@ -20,5 +20,5 @@
 #include "CreateFlagImages.h"
 
 void RunTests() {
-    RunTest<CreateFlagImages>();
+    RunTest<WriteDbTest<FM14, FM07, false>>();
 }

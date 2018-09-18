@@ -81,7 +81,7 @@ void FifamCompLeague::Read(FifamReader &reader, FifamDatabase *database, FifamNa
         reader.ReadLine(mMaxNumberOfNonEUSigns);
         reader.ReadLine(mAgeLimitForNonEUSigns);
     }
-    UInt loanFlags = reader.ReadLine<UInt>();
+    auto loanFlags = reader.ReadLine<Int>();
     mShortTermLoansTotalLimit = (loanFlags) & 0xF;
     mShortTermLoansSimultaneosLimit = (loanFlags >> 4) & 0xF;
     mLongTermLoansTotalLimit = (loanFlags >> 8) & 0xF;
@@ -90,7 +90,7 @@ void FifamCompLeague::Read(FifamReader &reader, FifamDatabase *database, FifamNa
     mOverallTotalSimultaneosLoansLimit = (loanFlags >> 20) & 0xF;
     mLoanedPlayersPerSeason = (loanFlags >> 24) & 0xF;
     mLoanPlayerPerSquad = (loanFlags >> 28) & 0xF;
-    UInt otherFlags = reader.ReadLine<UInt>();
+    auto otherFlags = reader.ReadLine<Int>();
     mSimLoanOtherLeague = (otherFlags) & 0xF;
     mSimLoanSameLeague = (otherFlags >> 4) & 0xF;
     mLoanOtherLeagueCount = (otherFlags >> 8) & 0xF;

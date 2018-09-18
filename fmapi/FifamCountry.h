@@ -259,6 +259,6 @@ public:
     Bool WriteScript(FifamWriter &writer);
 
     Bool IsCompetitionSystemCorrect();
-    Vector<Pair<FifamCompID, FifamCompetition *>> GetCompetitions(bool onlyWriteable = false);
+    Vector<FifamCompEntry> GetCompetitions(bool onlyWriteable = false);
     UInt GetNumWriteableLeagueLevels() const;
 };

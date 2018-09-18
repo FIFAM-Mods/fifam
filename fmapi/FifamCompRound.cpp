@@ -44,16 +44,28 @@ void FifamCompRound::Write(FifamWriter &writer, FifamDatabase *database, FifamNa
         writer.WriteLine(mFirstSeasonMatchdays[1]);
         writer.WriteLine(mSecondSeasonMatchdays[0]);
         writer.WriteLine(mSecondSeasonMatchdays[1]);
-        writer.WriteLine(m1stLegFlags.ToStr(L", "));
-        writer.WriteLine(m2ndLegFlags.ToStr(L", "));
+        if (m1stLegFlags.Any())
+            writer.WriteLine(m1stLegFlags.ToStr(L", "));
+        else
+            writer.WriteLine(0);
+        if (m2ndLegFlags.Any())
+            writer.WriteLine(m2ndLegFlags.ToStr(L", "));
+        else
+            writer.WriteLine(0);
     }
     else {
         writer.WriteLine(mFirstSeasonMatchdays[0]);
         writer.WriteLine(mSecondSeasonMatchdays[0]);
-        writer.WriteLine(m1stLegFlags.ToStr(L", "));
+        if (m1stLegFlags.Any())
+            writer.WriteLine(m1stLegFlags.ToStr(L", "));
+        else
+            writer.WriteLine(0);
         writer.WriteLine(mFirstSeasonMatchdays[1]);
         writer.WriteLine(mSecondSeasonMatchdays[1]);
-        writer.WriteLine(m2ndLegFlags.ToStr(L", "));
+        if (m2ndLegFlags.Any())
+            writer.WriteLine(m2ndLegFlags.ToStr(L", "));
+        else
+            writer.WriteLine(0);
     }
     for (UInt i = 0; i < mBonuses.size(); i++)
         writer.WriteLine(mBonuses[i]);

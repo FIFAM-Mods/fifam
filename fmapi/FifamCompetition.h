@@ -52,3 +52,5 @@ public:
     void SetName(String const &name);
     void SetName(FifamTrArray<String> const &names);
 };
+
+using FifamCompEntry = Pair<FifamCompID, FifamCompetition *>;

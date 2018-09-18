@@ -64,6 +64,37 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
         }
     }
 
+    if (!scriptPath.empty()) {
+        if (gameId >= 8) {
+            ReadExternalScriptFile(scriptPath / L"Continental - Europe.txt", L"EURO", gameId);
+            ReadExternalScriptFile(scriptPath / L"Continental - South America.txt", L"SOUTHAM", gameId);
+            ReadExternalScriptFile(scriptPath / L"Continental - Africa.txt", L"INTAFRICA", gameId);
+            ReadExternalScriptFile(scriptPath / L"Continental - Asia.txt", L"INTASIA", gameId);
+            ReadExternalScriptFile(scriptPath / L"Continental - North America.txt", L"INTAMERICA", gameId);
+            ReadExternalScriptFile(scriptPath / L"Continental - Oceania.txt", L"INTOCEANIA", gameId);
+            ReadExternalScriptFile(scriptPath / L"WorldCupQualification.txt", L"QUALI_WC", gameId);
+            ReadExternalScriptFile(scriptPath / L"WorldCup.txt", L"WORLD_CUP", gameId);
+            ReadExternalScriptFile(scriptPath / L"EuropeanChampionshipQualification.txt", L"QUALI_EC", gameId);
+            ReadExternalScriptFile(scriptPath / L"EuropeanChampionship.txt", L"EURO_CUP", gameId);
+            ReadExternalScriptFile(scriptPath / L"WorldCupU20.txt", L"U20_WORLD_CUP", gameId);
+            ReadExternalScriptFile(scriptPath / L"ConfedCup.txt", L"CONFED_CUP", gameId);
+            if (gameId >= 11)
+                ReadExternalScriptFile(scriptPath / L"CopaAmerica.txt", L"COPA_AMERICA", gameId);
+        }
+        else {
+            ReadExternalScriptFile(scriptPath / L"EuropeanCup.txt", L"EURO", gameId);
+            ReadExternalScriptFile(scriptPath / L"SouthAmCup", L"SOUTHAM", gameId);
+            ReadExternalScriptFile(scriptPath / L"IntAfrica", L"INTAFRICA", gameId);
+            ReadExternalScriptFile(scriptPath / L"IntAsia", L"INTASIA", gameId);
+            ReadExternalScriptFile(scriptPath / L"IntAmerica", L"INTAMERICA", gameId);
+            ReadExternalScriptFile(scriptPath / L"IntOceania", L"INTOCEANIA", gameId);
+            ReadExternalScriptFile(scriptPath / L"QualiWC.txt", L"QUALI_WC", gameId);
+            ReadExternalScriptFile(scriptPath / L"WC.txt", L"WORLD_CUP", gameId);
+            ReadExternalScriptFile(scriptPath / L"QualiEC.txt", L"QUALI_EC", gameId);
+            ReadExternalScriptFile(scriptPath / L"EC.txt", L"EURO_CUP", gameId);
+        }
+    }
+
     FifamReader countriesReader(dbPath / L"Countries.sav", gameId, unicode);
     if (countriesReader.Available()) {
         auto &reader = countriesReader;
@@ -197,9 +228,9 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
             create_directories(dbPath / L"script");
     }
     path gamePath = dbPath.parent_path();
-    path scriptPath = gamePath / L"script";
+    path scriptPath = gamePath / L"script_converted";
     if (!exists(scriptPath))
-        scriptPath.clear();
+        create_directories(scriptPath);
     path historicPath = gamePath / L"fmdata" / L"historic";
     if (!exists(historicPath))
         historicPath.clear();
@@ -210,6 +241,75 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
     WriteNamesFile(dbPath / L"MaleNames.txt", gameId, mMaleNames);
     WriteNamesFile(dbPath / L"FemaleNames.txt", gameId, mFemaleNames);
     WriteNamesFile(dbPath / L"Surnames.txt", gameId, mSurnames);
+
+    Vector<FifamCompEntry> compsEurope, compsSouthAmerica, compsNorthAmerica, compsAfrica, compsAsia, compsOceania,
+        compsQualiWC, compsWC, compsQualiEC, compsEC, compsU20WC, compsConfedCup, compsCopaAmerica;
+    for (auto const &compEntry : mCompMap) {
+        FifamCompetition *comp = compEntry.second;
+        if (FifamUtils::GetWriteableID(comp)) {
+            if (comp->GetDbType() == FifamCompDbType::League || comp->GetDbType() == FifamCompDbType::Cup ||
+                comp->GetDbType() == FifamCompDbType::Round || comp->GetDbType() == FifamCompDbType::Pool)
+            {
+                if (comp->mID.mRegion == FifamCompRegion::Europe)
+                    compsEurope.push_back(compEntry);
+                else if (comp->mID.mRegion == FifamCompRegion::SouthAmerica)
+                    compsSouthAmerica.push_back(compEntry);
+                else if (comp->mID.mRegion == FifamCompRegion::NorthAmerica)
+                    compsNorthAmerica.push_back(compEntry);
+                else if (comp->mID.mRegion == FifamCompRegion::Africa)
+                    compsAfrica.push_back(compEntry);
+                else if (comp->mID.mRegion == FifamCompRegion::Asia)
+                    compsAsia.push_back(compEntry);
+                else if (comp->mID.mRegion == FifamCompRegion::Oceania)
+                    compsOceania.push_back(compEntry);
+                else if (comp->mID.mRegion == FifamCompRegion::International) {
+                    if (comp->mID.mType == FifamCompType::QualiWC)
+                        compsQualiWC.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::WorldCup)
+                        compsWC.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::QualiEC)
+                        compsQualiEC.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::EuroCup)
+                        compsEC.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::U20WorldCup)
+                        compsU20WC.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::ConfedCup)
+                        compsConfedCup.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::CopaAmerica)
+                        compsCopaAmerica.push_back(compEntry);
+                }
+            }
+        }
+    }
+
+    if (gameId >= 8) {
+        WriteExternalScriptFile(scriptPath / L"Continental - Europe.txt", L"EURO", gameId, compsEurope, 1);
+        WriteExternalScriptFile(scriptPath / L"Continental - South America.txt", L"SOUTHAM", gameId, compsSouthAmerica, 0);
+        WriteExternalScriptFile(scriptPath / L"Continental - Africa.txt", L"INTAFRICA", gameId, compsAfrica, 0);
+        WriteExternalScriptFile(scriptPath / L"Continental - Asia.txt", L"INTASIA", gameId, compsAsia, 0);
+        WriteExternalScriptFile(scriptPath / L"Continental - North America.txt", L"INTAMERICA", gameId, compsNorthAmerica, 0);
+        WriteExternalScriptFile(scriptPath / L"Continental - Oceania.txt", L"INTOCEANIA", gameId, compsOceania, 0);
+        WriteExternalScriptFile(scriptPath / L"WorldCupQualification.txt", L"QUALI_WC", gameId, compsQualiWC, 0);
+        WriteExternalScriptFile(scriptPath / L"WorldCup.txt", L"WORLD_CUP", gameId, compsWC, 1);
+        WriteExternalScriptFile(scriptPath / L"EuropeanChampionshipQualification.txt", L"QUALI_EC", gameId, compsQualiEC, 1);
+        WriteExternalScriptFile(scriptPath / L"EuropeanChampionship.txt", L"EURO_CUP", gameId, compsEC, 1);
+        WriteExternalScriptFile(scriptPath / L"WorldCupU20.txt", L"U20_WORLD_CUP", gameId, compsU20WC, 1);
+        WriteExternalScriptFile(scriptPath / L"ConfedCup.txt", L"CONFED_CUP", gameId, compsConfedCup, 1);
+        if (gameId >= 11)
+            WriteExternalScriptFile(scriptPath / L"CopaAmerica.txt", L"COPA_AMERICA", gameId, compsCopaAmerica, 1);
+    }
+    else {
+        WriteExternalScriptFile(scriptPath / L"EuropeanCup.txt", L"EURO", gameId, compsEurope, 0);
+        WriteExternalScriptFile(scriptPath / L"SouthAmCup.txt", L"SOUTHAM", gameId, compsSouthAmerica, 0);
+        WriteExternalScriptFile(scriptPath / L"IntAfrica.txt", L"INTAFRICA", gameId, compsAfrica, 0);
+        WriteExternalScriptFile(scriptPath / L"IntAsia.txt", L"INTASIA", gameId, compsAsia, 0);
+        WriteExternalScriptFile(scriptPath / L"IntAmerica.txt", L"INTAMERICA", gameId, compsNorthAmerica, 0);
+        WriteExternalScriptFile(scriptPath / L"IntOceania.txt", L"INTOCEANIA", gameId, compsOceania, 0);
+        WriteExternalScriptFile(scriptPath / L"QualiWC.txt", L"QUALI_WC", gameId, compsQualiWC, 0);
+        WriteExternalScriptFile(scriptPath / L"WC.txt", L"WORLD_CUP", gameId, compsWC, 1);
+        WriteExternalScriptFile(scriptPath / L"QualiEC.txt", L"QUALI_EC", gameId, compsQualiEC, 1);
+        WriteExternalScriptFile(scriptPath / L"EC.txt", L"EURO_CUP", gameId, compsEC, 1);
+    }
 
     FifamWriter countriesWriter(dbPath / L"Countries.sav", gameId, 0, 0, unicode);
     if (countriesWriter.Available()) {
@@ -729,7 +829,7 @@ FifamCompetition *FifamDatabase::ReadCompetition(FifamReader &reader, FifamNatio
 
 void FifamDatabase::WriteCompetition(FifamWriter &writer, FifamCompetition *comp, FifamNation nationId) {
     writer.WriteLine(comp->GetDbType().ToStr());
-    writer.WriteLine(comp->GetCompIDStr());
+    writer.WriteLine(FifamCompID(FifamUtils::GetWriteableID(comp)).ToStr());
     comp->Write(writer, this, nationId);
 }
 
@@ -737,4 +837,35 @@ FifamCupAlloc *FifamDatabase::GetCupTemplate(FifamCupSystemType cupSystemType) {
     if (cupSystemType.ToInt() > 0 && cupSystemType.ToInt() <= mCupTemplates.size())
         return mCupTemplates[cupSystemType.ToInt() - 1];
     return nullptr;
+}
+
+void FifamDatabase::ReadExternalScriptFile(Path const &filepath, String const &compKeyName, UInt gameId) {
+    FifamReader reader(filepath, gameId, gameId > 7);
+    if (reader.Available()) {
+        std::wcout << L"Reading script file \"" << filepath.filename() << L"\"" << std::endl;
+        auto numComps = reader.ReadLine<UInt>();
+        for (UInt i = 0; i < numComps; i++) {
+            if (reader.ReadStartIndex(Utils::Format(L"%s%d", compKeyName.c_str(), i))) {
+                ReadCompetition(reader, FifamNation::None);
+                reader.ReadEndIndex(Utils::Format(L"%s%d", compKeyName.c_str(), i));
+            }
+        }
+    }
+}
+
+void FifamDatabase::WriteExternalScriptFile(Path const &filepath, String const &compKeyName, UInt gameId,
+    Vector<FifamCompEntry> const &comps, UInt startIndex)
+{
+    FifamWriter writer(filepath, gameId, 0, 0, gameId > 7);
+    if (writer.Available()) {
+        std::wcout << L"Writing script file \"" << filepath.filename() << L"\"" << std::endl;
+        writer.WriteLine(comps.size() + startIndex);
+        for (UInt i = 0; i < comps.size(); i++) {
+            writer.WriteStartIndex(Utils::Format(L"%s%d", compKeyName.c_str(), startIndex + i));
+            WriteCompetition(writer, comps[i].second, FifamNation::None);
+            writer.WriteEndIndex(Utils::Format(L"%s%d", compKeyName.c_str(), startIndex + i));
+            if (i != (comps.size() - 1))
+                writer.WriteLine(L"; -----------------------------------------------------------------------------");
+        }
+    }
 }
