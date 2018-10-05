@@ -1,0 +1,27 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClInclude Include="foom_db.h" />
+    <ClInclude Include="foom_club.h" />
+    <ClInclude Include="foom_comp.h" />
+    <ClInclude Include="foom_city.h" />
+    <ClInclude Include="foom_derby.h" />
+    <ClInclude Include="foom_injury.h" />
+    <ClInclude Include="foom_language.h" />
+    <ClInclude Include="foom_nation.h" />
+    <ClInclude Include="foom_kit.h" />
+    <ClInclude Include="foom_official.h" />
+    <ClInclude Include="foom_region.h" />
+    <ClInclude Include="foom_stage_name.h" />
+    <ClInclude Include="foom_stadium.h" />
+    <ClInclude Include="foom_non_player.h" />
+    <ClInclude Include="foom_person.h" />
+    <ClInclude Include="foom_player.h" />
+    <ClInclude Include="db_map.h" />
+    <ClInclude Include="foom_basic.h" />
+    <ClInclude Include="foom_team.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="foom_db.cpp" />
+  </ItemGroup>
+</Project>

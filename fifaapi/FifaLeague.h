@@ -19,6 +19,8 @@ public:
         int iscompetitioncrowdcardsenabled;
         int leaguetimeslice;
         int iswithintransferwindow;
+        // @since FIFA19
+        int leaguetype;
 
         void Read(FifaDataFile::Line &line);
     } internal;

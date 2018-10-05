@@ -79,7 +79,19 @@
     <ClInclude Include="tests\CompetitionsTest.h">
       <Filter>tests</Filter>
     </ClInclude>
-    <ClInclude Include="CreateFlagImages.h">
+    <ClInclude Include="tests\ClubIDsMap.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\CreateFlagImages.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\FifaConverter.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="environment\FoomDbEnvironment.h">
+      <Filter>testenv</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\FoomBasicTest.h">
       <Filter>tests</Filter>
     </ClInclude>
   </ItemGroup>

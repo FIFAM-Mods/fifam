@@ -3,7 +3,7 @@
 #include "FifamEnum.h"
 
 ENUM_BEGIN(FifamPoolSorting, UChar)
-    ENUM_MEMBER( 0, None,               L"None")
+    ENUM_MEMBER( 0, None,               L"NONE")
     ENUM_MEMBER( 1, Indoor,             L"POOL_SORT_INDOOR")
     ENUM_MEMBER( 2, NatUefa5,           L"POOL_SORT_NAT_UEFA5")
     ENUM_MEMBER( 3, MapNorthSouth,      L"POOL_SORT_MAP_NORTH_SOUTH")

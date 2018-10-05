@@ -46,7 +46,7 @@ template<typename KeyType, typename ValueType>
 using Map = std::map<KeyType, ValueType>;
 template<typename KeyType, typename ValueType>
 using MultiMap = std::multimap<KeyType, ValueType>;
-template<typename T>
+template<typename T, typename Pred = std::less<T>>
 using Set = std::set<T>;
 template<typename T>
 using UnorderedSet = std::unordered_set<T>;

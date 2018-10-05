@@ -36,12 +36,24 @@ public:
 
     Map<FifamCompID, FifamCompetition *> mCompMap;
 
+    static struct ReadingOptions {
+        Bool mReadCountriesData = true;
+        Bool mReadCountryCompetitions = true;
+        Bool mReadInternationalCompetitions = true;
+        Bool mReadClubs = true;
+        Bool mReadPlayers = true;
+        Bool mReadStaff = true;
+    } mReadingOptions;
+
     struct {
         Bool mNonWriteablePlayersAreFreeAgents = false;
         Bool mNonWriteableStaffsAreFreeAgents = false;
         UInt mMaxClubsInCountry[8] = { 512, 512, 512, 1024, 1024, 1024, 1024, 1024 };
         UInt mMaxPersonsInClub[8] = { 60, 96, 99, 99, 99, 99, 256, 256 };
     } mWritingOptions;
+
+    static FifamVersion GetGameDbVersion(UInt gameId);
+    static Bool IsUnicodeUsedInGameVersion(UInt gameId);
 
     FifamDatabase();
     FifamDatabase(UInt gameId, const Path &dbPath);

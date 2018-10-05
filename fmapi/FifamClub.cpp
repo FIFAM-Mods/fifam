@@ -7,14 +7,26 @@ void FifamClub::ReadClubMembers(FifamReader &reader) {
     UInt playersCount = reader.ReadLine<UInt>();
     for (UInt i = 0; i < playersCount; i++) {
         UInt id = reader.ReadLine<UInt>();
-        auto player = mCountry->mDatabase->CreatePlayer(this, id);
-        player->Read(reader);
+        if (FifamDatabase::mReadingOptions.mReadPlayers) {
+            auto player = mCountry->mDatabase->CreatePlayer(this, id);
+            player->Read(reader);
+        }
+        else {
+            FifamPlayer dummyPlayer;
+            dummyPlayer.Read(reader);
+        }
     }
     UInt staffsCount = reader.ReadLine<UInt>();
     for (UInt i = 0; i < staffsCount; i++) {
         UInt id = reader.ReadLine<UInt>();
-        auto staff = mCountry->mDatabase->CreateStaff(this, id);
-        staff->Read(reader);
+        if (FifamDatabase::mReadingOptions.mReadStaff) {
+            auto staff = mCountry->mDatabase->CreateStaff(this, id);
+            staff->Read(reader);
+        }
+        else {
+            FifamStaff dummyStaff;
+            dummyStaff.Read(reader);
+        }
     }
 }
 

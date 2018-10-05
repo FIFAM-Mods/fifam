@@ -103,6 +103,7 @@
     <ClInclude Include="FifamInstructionID.h" />
     <ClInclude Include="FifamInstruction.h" />
     <ClInclude Include="FifamInstructionList.h" />
+    <ClInclude Include="FifamPlayerGenerator.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamDate.cpp" />
@@ -147,5 +148,6 @@
     <ClCompile Include="FifamCompCup.cpp" />
     <ClCompile Include="FifamInstruction.cpp" />
     <ClCompile Include="FifamInstructionList.cpp" />
+    <ClCompile Include="FifamPlayerGenerator.cpp" />
   </ItemGroup>
 </Project>

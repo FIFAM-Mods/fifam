@@ -8,6 +8,8 @@
 #include "FifamCompRoot.h"
 #include <iostream>
 
+FifamDatabase::ReadingOptions FifamDatabase::mReadingOptions;
+
 FifamDatabase::FifamDatabase() {}
 
 FifamDatabase::FifamDatabase(UInt gameId, const Path &dbPath) {
@@ -41,7 +43,6 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
     path historicPath = gamePath / L"fmdata" / L"historic";
     if (!exists(historicPath))
         historicPath.clear();
-    Bool unicode = gameId >= 8;
 
     ReadNamesFile(dbPath / L"MaleNames.txt", gameId, mMaleNames);
     ReadNamesFile(dbPath / L"FemaleNames.txt", gameId, mFemaleNames);
@@ -49,7 +50,7 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
 
     if (!scriptPath.empty()) {
         path cupAllocPath = scriptPath / L"cupAlloc.txt";
-        FifamReader cupAllocReader(scriptPath / L"cupAlloc.txt", 0, false);
+        FifamReader cupAllocReader(scriptPath / L"cupAlloc.txt", 0);
         if (cupAllocReader.Available()) {
             auto numCups = cupAllocReader.ReadLine<UInt>();
             if (numCups > 0)
@@ -64,7 +65,7 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
         }
     }
 
-    if (!scriptPath.empty()) {
+    if (!scriptPath.empty() && mReadingOptions.mReadCountryCompetitions) {
         if (gameId >= 8) {
             ReadExternalScriptFile(scriptPath / L"Continental - Europe.txt", L"EURO", gameId);
             ReadExternalScriptFile(scriptPath / L"Continental - South America.txt", L"SOUTHAM", gameId);
@@ -95,7 +96,7 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
         }
     }
 
-    FifamReader countriesReader(dbPath / L"Countries.sav", gameId, unicode);
+    FifamReader countriesReader(dbPath / L"Countries.sav", gameId);
     if (countriesReader.Available()) {
         auto &reader = countriesReader;
         auto firstLine = reader.ReadFullLine();
@@ -126,47 +127,53 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
         }
     }
 
-    for (UChar i = 0; i < NUM_COUNTRIES; i++) {
-        auto &country = mCountries[i];
-        if (!country)
-            continue;
-        std::wcout << L"Reading country " << country->mId << L" (" << FifamTr(country->mName) << L")" << std::endl;
-        UChar countryFileId = GetInternalGameCountryId(gameId, i + 1);
-        if (countryFileId != 0) {
-            Path countryDataPath;
-            if (gameId < 11)
-                countryDataPath = dbPath / Utils::Format(L"Country%d.sav", countryFileId);
-            else {
-                FifamReader scriptReader(dbPath / L"script" / Utils::Format(L"CountryScript%d.sav", countryFileId), gameId, unicode);
-                if (scriptReader.Available()) {
-                    country->ReadScript(scriptReader);
-                    scriptReader.Close();
+    if (mReadingOptions.mReadCountriesData) {
+        for (UChar i = 0; i < NUM_COUNTRIES; i++) {
+            auto &country = mCountries[i];
+            if (!country)
+                continue;
+            std::wcout << L"Reading country " << country->mId << L" (" << FifamTr(country->mName) << L")" << std::endl;
+            UChar countryFileId = GetInternalGameCountryId(gameId, i + 1);
+            if (countryFileId != 0) {
+                Path countryDataPath;
+                if (gameId < 11)
+                    countryDataPath = dbPath / Utils::Format(L"Country%d.sav", countryFileId);
+                else {
+                    if (mReadingOptions.mReadCountryCompetitions) {
+                        FifamReader scriptReader(dbPath / L"script" / Utils::Format(L"CountryScript%d.sav", countryFileId), gameId);
+                        if (scriptReader.Available()) {
+                            country->ReadScript(scriptReader);
+                            scriptReader.Close();
+                        }
+                    }
+                    countryDataPath = dbPath / L"data" / Utils::Format(L"CountryData%d.sav", countryFileId);
                 }
-                countryDataPath = dbPath / L"data" / Utils::Format(L"CountryData%d.sav", countryFileId);
-            }
-            FifamReader reader(countryDataPath, gameId, unicode);
-            if (reader.Available()) {
-                country->mHasCountryData = true;
-                country->Read(reader);
-                reader.Close(); 
+                FifamReader reader(countryDataPath, gameId);
+                if (reader.Available()) {
+                    country->mHasCountryData = true;
+                    country->Read(reader);
+                    reader.Close();
+                }
             }
         }
     }
 
-    FifamReader withoutReader(dbPath / L"Without.sav", gameId, unicode);
-    if (withoutReader.Available()) {
-        if (withoutReader.GetGameId() >= 11)
-            withoutReader.ReadVersion();
-        if (withoutReader.ReadStartIndex(L"WITHOUT")) {
-            UInt numPlayers = withoutReader.ReadLine<UInt>();
-            UInt nextFreeId = GetNextFreePersonID();
-            for (UInt i = 0; i < numPlayers; i++)
-                CreatePlayer(nullptr, nextFreeId++)->Read(withoutReader);
-            withoutReader.ReadEndIndex(L"WITHOUT");
+    if (mReadingOptions.mReadPlayers) {
+        FifamReader withoutReader(dbPath / L"Without.sav", gameId);
+        if (withoutReader.Available()) {
+            if (withoutReader.GetGameId() >= 11)
+                withoutReader.ReadVersion();
+            if (withoutReader.ReadStartIndex(L"WITHOUT")) {
+                UInt numPlayers = withoutReader.ReadLine<UInt>();
+                UInt nextFreeId = GetNextFreePersonID();
+                for (UInt i = 0; i < numPlayers; i++)
+                    CreatePlayer(nullptr, nextFreeId++)->Read(withoutReader);
+                withoutReader.ReadEndIndex(L"WITHOUT");
+            }
         }
     }
 
-    FifamReader rulesReader(dbPath / L"Rules.sav", gameId, unicode);
+    FifamReader rulesReader(dbPath / L"Rules.sav", gameId);
     if (rulesReader.Available())
         mRules.Read(rulesReader);
 
@@ -761,8 +768,7 @@ UInt FifamDatabase::GetNextFreePersonID() {
 
 void FifamDatabase::ReadNamesFile(Path const &filepath, UInt gameId, NamesMap &outNames) {
     outNames.clear();
-    Bool unicode = gameId >= 8;
-    FifamReader reader(filepath, gameId, unicode);
+    FifamReader reader(filepath, gameId);
     if (reader.Available()) {
         FifamLanguage currLanguage = FifamLanguage::None;
         while (!reader.IsEof()) {
@@ -840,7 +846,7 @@ FifamCupAlloc *FifamDatabase::GetCupTemplate(FifamCupSystemType cupSystemType) {
 }
 
 void FifamDatabase::ReadExternalScriptFile(Path const &filepath, String const &compKeyName, UInt gameId) {
-    FifamReader reader(filepath, gameId, gameId > 7);
+    FifamReader reader(filepath, gameId);
     if (reader.Available()) {
         std::wcout << L"Reading script file \"" << filepath.filename() << L"\"" << std::endl;
         auto numComps = reader.ReadLine<UInt>();
@@ -868,4 +874,29 @@ void FifamDatabase::WriteExternalScriptFile(Path const &filepath, String const &
                 writer.WriteLine(L"; -----------------------------------------------------------------------------");
         }
     }
+}
+
+FifamVersion FifamDatabase::GetGameDbVersion(UInt gameId) {
+    FifamVersion version;
+    if (gameId == 7)
+        version.Set(0x2007, 0x0C);
+    else if (gameId == 8)
+        version.Set(0x2007, 0x1E);
+    else if (gameId == 9)
+        version.Set(0x2009, 0x05);
+    else if (gameId == 10)
+        version.Set(0x2009, 0x0A);
+    else if (gameId == 11)
+        version.Set(0x2011, 0x0A);
+    else if (gameId == 12)
+        version.Set(0x2012, 0x04);
+    else if (gameId == 13)
+        version.Set(0x2013, 0x0A);
+    else if (gameId == 14)
+        version.Set(0x2013, 0x0A);
+    return version;
+}
+
+Bool FifamDatabase::IsUnicodeUsedInGameVersion(UInt gameId) {
+    return gameId != 7;
 }

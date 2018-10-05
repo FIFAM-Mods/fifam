@@ -1,4 +1,5 @@
 #include "FifaReferee.h"
+#include "FifaDatabase.h"
 #include <sstream>
 #include <string>
 #include "Utils.h"
@@ -8,7 +9,14 @@ unsigned int FifaReferee::GetId() {
 }
 
 void FifaReferee::Internal::Read(FifaDataFile::Line &line) {
-    line >> firstname >> surname >> haircolorcode >> facialhairtypecode >> hairtypecode >> cardstrictness >> shoecolorcode2 >> headtypecode >> foulstrictness >> height >> leagueid >> shoetypecode >> birthdate >> sockheightcode >> socklengthcode >> weight >> gender >> eyebrowcode >> eyecolorcode >> jerseysleevelengthcode >> headclasscode >> sideburnscode >> skintypecode >> isreal >> headvariation >> skintonecode >> shortstyle >> refereeid >> nationalitycode >> shoedesigncode >> shoecolorcode1 >> hairstylecode >> bodytypecode >> facialhaircolorcode;
+    switch (FifaDatabase::m_currentGameVersion) {
+    case 18:
+        line >> firstname >> surname >> haircolorcode >> facialhairtypecode >> hairtypecode >> cardstrictness >> shoecolorcode2 >> headtypecode >> foulstrictness >> height >> leagueid >> shoetypecode >> birthdate >> sockheightcode >> socklengthcode >> weight >> gender >> eyebrowcode >> eyecolorcode >> jerseysleevelengthcode >> headclasscode >> sideburnscode >> skintypecode >> isreal >> headvariation >> skintonecode >> shortstyle >> refereeid >> nationalitycode >> shoedesigncode >> shoecolorcode1 >> hairstylecode >> bodytypecode >> facialhaircolorcode;
+        break;
+    case 19:
+        line >> firstname >> surname >> haircolorcode >> facialhairtypecode >> hairtypecode >> cardstrictness >> shoecolorcode2 >> headtypecode >> foulstrictness >> height >> leagueid >> shoetypecode >> birthdate >> socklengthcode >> weight >> gender >> headassetid >> faceposerpreset >> eyebrowcode >> eyecolorcode >> jerseysleevelengthcode >> headclasscode >> sideburnscode >> skintypecode >> isreal >> headvariation >> skintonecode >> shortstyle >> refereeid >> nationalitycode >> shoedesigncode >> shoecolorcode1 >> hairstylecode >> bodytypecode >> facialhaircolorcode;
+        break;
+    }
 }
 
 FifaReferee::FifaReferee(FifaDataFile::Line &line) {

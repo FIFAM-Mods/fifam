@@ -12,7 +12,12 @@ public: \
     using underlyingtype_t = underlyingType; \
 private: \
     using _MemberType = Pair<underlyingtype_t, WideChar const *>; \
-    using _MembersContainer = Vector<_MemberType>; \
+    struct _SetComparator { \
+        bool operator()(_MemberType const& lhs, _MemberType const& rhs) { \
+            return lhs.first < rhs.first; \
+        } \
+    }; \
+    using _MembersContainer = Set<_MemberType, _SetComparator>; \
     underlyingtype_t _value = 0; \
     Bool _wasSetFromUnkown = false; \
     underlyingtype_t _unknownValue = 0; \
@@ -43,16 +48,15 @@ private: \
         return m; \
     } \
     static underlyingtype_t _InitEnumMember(underlyingtype_t id, WideChar const *name) { \
-        _members().emplace_back(id, name); \
+        _members().insert(std::make_pair(id, name)); \
         return id; \
     } \
     static Bool _InitEnum() { \
-        _hasGaps() = true; \
-        if (!_members().empty()) { \
-            std::sort(_members().begin(), _members().end(), [](_MemberType const &a, _MemberType const &b) { \
-                return a.first < b.first; \
-            }); \
-            underlyingtype_t it = _members().front().first; \
+        if (_members().empty()) \
+             _hasGaps() = false; \
+        else { \
+            _hasGaps() = true; \
+            underlyingtype_t it = (*(_members().begin())).first; \
             for (auto const &m : _members()) { \
                 if (m.first == it || (m.first - it) == 1) \
                     it = m.first; \
@@ -60,8 +64,8 @@ private: \
                     return true; \
             } \
             _hasGaps() = false; \
-            _first() = _members().front().first; \
-            _last() = _members().back().first; \
+            _first() = (*(_members().begin())).first; \
+            _last() = (*(_members().rbegin())).first; \
             return false; \
         } \
         return true; \
@@ -103,6 +107,10 @@ public: \
                 return true; \
         } \
         return false; \
+    } \
+    static void ForAllValues(Function<void(typeName const &value)> callback) { \
+        for (auto const &m : _members()) \
+            callback(MakeFromInt(m.first)); \
     } \
     underlyingtype_t ToInt() const { return _value; } \
     String ToStr() const { \

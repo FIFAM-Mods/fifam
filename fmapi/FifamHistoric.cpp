@@ -4,10 +4,8 @@
 #include "FifamDatabase.h"
 
 void FifamHistoric::Read(Path &historicFolder, UInt gameId) {
-    Bool unicode = gameId >= 8;
-
     if (gameId >= 9) {
-        FifamReader worstStartingStreakReader(historicFolder / L"WorstStartingStreak.txt", gameId, unicode);
+        FifamReader worstStartingStreakReader(historicFolder / L"WorstStartingStreak.txt", gameId);
         if (worstStartingStreakReader.Available()) {
             while (!worstStartingStreakReader.IsEof()) {
                 if (worstStartingStreakReader.CheckLine(L"", true))
@@ -23,7 +21,7 @@ void FifamHistoric::Read(Path &historicFolder, UInt gameId) {
     }
 
     if (gameId >= 13) {
-        FifamReader fifaWorldPlayersReader(historicFolder / L"FifaWorldPlayers.txt", gameId, unicode);
+        FifamReader fifaWorldPlayersReader(historicFolder / L"FifaWorldPlayers.txt", gameId);
         if (fifaWorldPlayersReader.Available()) {
             fifaWorldPlayersReader.SkipLine();
             while (!fifaWorldPlayersReader.IsEof()) {

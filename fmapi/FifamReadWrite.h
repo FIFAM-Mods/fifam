@@ -5,34 +5,32 @@
 #include "Utils.h"
 #include "Hexademical.h"
 #include "Quoted.h"
+#include "IntPtr.h"
 #include "FifamTranslation.h"
+#include <iostream>
 
 class FifamEnum;
 class FifamBaseFlags;
 
 class FifamFileWorker {
 protected:
-    FILE *mFile = nullptr;
     UInt mGameId = 0;
     FifamVersion mVersion;
-    Bool mUnicode = true;
-
 public:
     Bool IsVersionGreaterOrEqual(UShort year, UShort number);
-    FifamFileWorker(Bool unicode, UInt gameId);
+    FifamFileWorker(UInt gameId);
     ~FifamFileWorker();
-    void Close();
     UInt GetGameId();
     FifamVersion GetVersion();
-    Bool Available();
-    Long GetPosition();
-    void SetPosition(Long pos);
-    Long GetSize();
 };
 
 class FifamWriter : public FifamFileWorker {
+    FILE *mFile = nullptr;
+    Bool mUnicode = true;
 public:
     FifamWriter(Path const &filename, UInt gameId, UShort vYear, UShort vNumber, Bool unicode = true);
+    void Close();
+    Bool Available();
     void WriteOne(Char value);
     void WriteOne(WideChar value);
     void WriteOne(Short value);
@@ -178,19 +176,27 @@ public:
 };
 
 class FifamReader : public FifamFileWorker {
-    static const UInt BUFFER_SIZE = 4096;
-    WideChar mLine[BUFFER_SIZE];
+    UInt mCurrentLine = 0;
+    Vector<String> mLines;
 public:
+    void Close();
+    Bool Available();
     Bool IsEof();
-    FifamReader(Path const &filename, UInt gameId, Bool unicode = true);
+    UInt GetPosition();
+    void SetPosition(UInt pos);
+    UInt GetSize();
+    FifamReader(Path const &filename, UInt gameId);
     FifamReader(Path const &filename, UInt gameId, UShort vYear, UShort vNumber);
+    ~FifamReader();
 private:
-    WideChar *GetLine();
+    WideChar const *GetLine();
+    bool GetLine(String &out);
 public:
     Bool CheckLine(String const &str, Bool skipIfTrue = false);
     Bool FindLine(String const &str, Bool skipIfFound = false, Bool moveToEofIfNotFound = false);
     void SkipLines(UInt count);
     void SkipLine();
+    bool EmptyLine();
     Bool ReadStartIndex(String const &name, Bool moveToEofIfNotFound = false);
     Bool ReadEndIndex(String const &name, Bool moveToEofIfNotFound = true);
     void ReadLine(FifamDate &date);
@@ -211,6 +217,11 @@ private:
     void StrToArg(String const &str, FifamDate &arg);
     void StrToArg(String const &str, Hexademical arg);
     void StrToArg(String const &str, Quoted arg);
+    void StrToArg(String const &str, Date &arg);
+    template<typename T>
+    void StrToArg(String const &str, IntPtr<T> const &arg) {
+        arg = str.empty() ? 0 : Utils::SafeConvertInt<UInt>(str);
+    }
 
     template<typename T, typename = std::enable_if_t<std::is_enum_v<T>>>
     void StrToArg(String const &str, T &arg) {
@@ -247,8 +258,9 @@ private:
 public:
     template<typename... ArgTypes>
     void ReadLine(ArgTypes&&... args) {
-        GetLine();
-        auto strArgs = Utils::Split(mLine, L',');
+        String line;
+        GetLine(line);
+        auto strArgs = Utils::Split(line, L',');
         UInt currArg = 0;
         ReadOneArg(strArgs, currArg, std::forward<ArgTypes>(args)...);
     }
@@ -256,8 +268,8 @@ public:
     // reads { arg, arg, ... } line
     template<typename... ArgTypes>
     void ReadPackedLine(ArgTypes&&... args) {
-        GetLine();
-        String line = mLine;
+        String line;
+        GetLine(line);
         auto startPos = line.find_first_of(L'{');
         if (startPos != String::npos)
             line = substr(startPos + 1);
@@ -271,16 +283,18 @@ public:
 
     template<typename... ArgTypes>
     void ReadLineWithSeparator(WideChar sep, ArgTypes&&... args) {
-        GetLine();
-        auto strArgs = Utils::Split(mLine, sep);
+        String line;
+        GetLine(line);
+        auto strArgs = Utils::Split(line, sep);
         UInt currArg = 0;
         ReadOneArg(strArgs, currArg, std::forward<ArgTypes>(args)...);
     }
 
     template<typename Container>
     UInt ReadLineArray(Container &out, WideChar sep = L',') {
-        GetLine();
-        Vector<String> strArgs = Utils::Split(mLine, sep);
+        String line;
+        GetLine(line);
+        Vector<String> strArgs = Utils::Split(line, sep);
         UInt count = Utils::Min(out.size(), strArgs.size());
         for (UInt i = 0; i < count; i++)
             StrToArg(strArgs[i], out[i]);
@@ -300,9 +314,10 @@ public:
 
     template<typename T>
     Vector<T> ReadLineArray(WideChar sep = L',', Bool skipEmpty = false) {
-        GetLine();
+        String line;
+        GetLine(line);
         Vector<T> ary;
-        Vector<String> strArgs = Utils::Split(mLine, sep, true, skipEmpty);
+        Vector<String> strArgs = Utils::Split(line, sep, true, skipEmpty);
         ary.resize(strArgs.size());
         for (UInt i = 0; i < strArgs.size(); i++)
             StrToArg(strArgs[i], ary[i]);
@@ -311,8 +326,8 @@ public:
 
     template<typename T>
     Vector<T> ReadPackedLineArray(WideChar sep = L',') {
-        GetLine();
-        String line = mLine;
+        String line;
+        GetLine(line);
         auto startPos = line.find_first_of(L'{');
         if (startPos != String::npos)
             line = line.substr(startPos + 1);

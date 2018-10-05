@@ -9,6 +9,9 @@
 #include "FifaDataFile.h"
 #include <map>
 #include <functional>
+#include <filesystem>
+
+#define FIFA_DATABASE_LATEST_GAME_VERSION 19
 
 class FifaDatabase {
 public:
@@ -20,9 +23,13 @@ public:
     std::map<unsigned int, FifaReferee *> m_referees;
     std::map<unsigned int, FifaStadium *> m_stadiums;
 
-    std::wstring m_path;
+    std::filesystem::path m_path;
 
-    FifaDatabase(std::wstring path);
+    static unsigned int m_currentGameVersion;
+    static const unsigned int m_firstSupportedGameVersion = 18;
+    static const unsigned int m_lastSupportedGameVersion = FIFA_DATABASE_LATEST_GAME_VERSION;
+
+    FifaDatabase(std::filesystem::path const &path);
     ~FifaDatabase();
 
     template <typename T>

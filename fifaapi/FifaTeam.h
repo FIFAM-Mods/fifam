@@ -94,6 +94,21 @@ public:
         int cccrossing;
         int trait1vstrong;
         int matchdayattackrating;
+        // @since FIFA19
+        int defensivestyle;
+        int flamethrowercannon;
+        int defensivedepth;
+        int hasvikingclap;
+        int hastifo;
+        int defensivewidth;
+        int playersinboxcorner;
+        int uefa_cl_wins;
+        int uefa_el_wins;
+        int playersinboxfk;
+        int offensivestyle;
+        int playersinboxcross;
+        int prev_el_champ;
+        int offensivewidth;
 
         void Read(FifaDataFile::Line &line);
     } internal;

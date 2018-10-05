@@ -75,6 +75,12 @@ public:
         int stadiumgoalnetwidth;
         int stadiumgoalnetlength;
         int goalnetads;
+        // @since FIFA19
+        int hasunofficialname;
+        int hasmexicanwave;
+        int hascenteradboard;
+        int playsurfacetype;
+        int tifo;
 
         void Read(FifaDataFile::Line &line);
     } internal;

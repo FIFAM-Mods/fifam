@@ -23,6 +23,8 @@ public:
         int headclasscode;
         int skintonecode;
         int bodytypecode;
+        // @since FIFA19
+        int faceposerpreset;
 
         void Read(FifaDataFile::Line &line);
     } internal;

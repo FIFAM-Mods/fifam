@@ -1,4 +1,5 @@
 #include "FifaManager.h"
+#include "FifaDatabase.h"
 #include <sstream>
 #include <string>
 #include "Utils.h"
@@ -12,7 +13,14 @@ FifaManager *FifaManager::RawPtr() {
 }
 
 void FifaManager::Internal::Read(FifaDataFile::Line &line) {
-    line >> firstname >> surname >> managerid >> headid >> height >> hashighqualityhead >> gender >> suitvariationid >> teamid >> suittypeid >> eyecolorcode >> headclasscode >> skintonecode >> bodytypecode;
+    switch (FifaDatabase::m_currentGameVersion) {
+    case 18:
+        line >> firstname >> surname >> managerid >> headid >> height >> hashighqualityhead >> gender >> suitvariationid >> teamid >> suittypeid >> eyecolorcode >> headclasscode >> skintonecode >> bodytypecode;
+        break;
+    case 19:
+        line >> firstname >> surname >> managerid >> headid >> height >> hashighqualityhead >> gender >> suitvariationid >> faceposerpreset >> teamid >> suittypeid >> eyecolorcode >> headclasscode >> skintonecode >> bodytypecode;
+        break;
+    }
 }
 
 bool FifaManager::HasRealName() {

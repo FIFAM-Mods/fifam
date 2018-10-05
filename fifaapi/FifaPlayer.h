@@ -157,6 +157,10 @@ public:
         int volleys;
         int accessorycolourcode2;
         int facialhaircolorcode;
+        // @since FIFA19
+        int headassetid;
+        int faceposerpreset;
+        int skillmoveslikelihood;
 
         void Read(FifaDataFile::Line &line);
     } internal;
@@ -177,6 +181,7 @@ public:
     std::wstring m_commonName;
     std::wstring m_playerJerseyName;
     std::wstring m_quickName;
+    unsigned int m_gameId;
 
     FifaPlayer(FifaDataFile::Line &line);
     unsigned int GetId();

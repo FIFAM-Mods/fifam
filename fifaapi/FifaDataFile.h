@@ -1,10 +1,10 @@
 #pragma once
 #include <string>
 #include <vector>
-#include <fstream>
+#include <filesystem>
 
 class FifaDataFile {
-    std::wifstream stream;
+    FILE *file = nullptr;
 public:
     class Line {
     public:
@@ -19,7 +19,7 @@ public:
     std::vector<std::wstring> columns;
 
     ~FifaDataFile();
-    bool Open(std::wstring filepath);
+    bool Open(std::filesystem::path const &filepath);
     bool NextLine(Line &outLine);
     void Close();
 };

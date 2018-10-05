@@ -1,6 +1,7 @@
 #include "FifaVersion.h"
 #include <sstream>
 #include <iomanip>
+#include "Error.h"
 
 void FifaVersion::Internal::Read(FifaDataFile::Line &line) {
     line >> minor >> major >> schema >> isonline >> exportdate >> artificialkey;

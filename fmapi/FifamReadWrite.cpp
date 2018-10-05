@@ -11,20 +11,12 @@ Bool FifamFileWorker::IsVersionGreaterOrEqual(UShort year, UShort number) {
     return mVersion.IsGreaterOrEqual(year, number);
 }
 
-FifamFileWorker::FifamFileWorker(Bool unicode, UInt gameId) {
-    mUnicode = unicode;
+FifamFileWorker::FifamFileWorker(UInt gameId) {
     mGameId = gameId;
 }
 
 FifamFileWorker::~FifamFileWorker() {
-    Close();
-}
 
-void FifamFileWorker::Close() {
-    if (mFile) {
-        fclose(mFile);
-        mFile = nullptr;
-    }
 }
 
 UInt FifamFileWorker::GetGameId() {
@@ -35,29 +27,9 @@ FifamVersion FifamFileWorker::GetVersion() {
     return mVersion;
 }
 
-Bool FifamFileWorker::Available() {
-    return mFile != nullptr;
-}
-
-Long FifamFileWorker::GetPosition() {
-    return ftell(mFile);
-}
-
-void FifamFileWorker::SetPosition(Long pos) {
-    fseek(mFile, pos, SEEK_SET);
-}
-
-Long FifamFileWorker::GetSize() {
-    auto currPos = GetPosition();
-    fseek(mFile, 0, SEEK_END);
-    auto result = GetPosition();
-    SetPosition(currPos);
-    return result;
-}
-
 
 FifamWriter::FifamWriter(Path const &filename, UInt gameId, UShort vYear, UShort vNumber, Bool unicode) :
-    FifamFileWorker(unicode, gameId)
+    FifamFileWorker(gameId)
 {
     mFile = _wfopen(filename.c_str(), unicode ? L"wb" : L"wt");
     if (mFile && unicode) {
@@ -69,6 +41,17 @@ FifamWriter::FifamWriter(Path const &filename, UInt gameId, UShort vYear, UShort
         _setmode(_fileno(mFile), _O_U8TEXT);
     }
     mVersion.Set(vYear, vNumber);
+}
+
+Bool FifamWriter::Available() {
+    return mFile != nullptr;
+}
+
+void FifamWriter::Close() {
+    if (mFile) {
+        fclose(mFile);
+        mFile = nullptr;
+    }
 }
 
 void FifamWriter::WriteOne(Char value) {
@@ -225,18 +208,116 @@ void FifamWriter::WriteNewLine() {
     WriteOne(L"\n");
 }
 
+FifamReader::FifamReader(Path const &filename, UInt gameId) : FifamFileWorker(gameId) {
+    FILE *file = _wfopen(filename.c_str(), L"rb");
+    if (file) {
+        fseek(file, 0, SEEK_END);
+        Long fileSizeWithBom = ftell(file);
+        fseek(file, 0, SEEK_SET);
 
-FifamReader::FifamReader(Path const &filename, UInt gameId, Bool unicode) :
-    FifamFileWorker(unicode, gameId)
-{
-    mFile = _wfopen(filename.c_str(), L"rt");
-    if (mFile) {
-        if (GetSize() >= 3) {
-            UChar sign[3];
-            fread(sign, 1, 3, mFile);
-            if (sign[0] != 0xEF || sign[1] != 0xBB || sign[2] != 0xBF)
-                SetPosition(0);
+        enum class encoding { ascii, utf8, utf16le, utf16be } enc = encoding::ascii;
+
+        Long numBytesToSkip = 0;
+        if (fileSizeWithBom >= 2) {
+            unsigned char bom[3];
+            bom[0] = 0;
+            fread(&bom, 1, 2, file);
+            fseek(file, 0, SEEK_SET);
+            if (bom[0] == 0xFE && bom[1] == 0xFF) {
+                enc = encoding::utf16be;
+                numBytesToSkip = 2;
+            }
+            else if (bom[0] == 0xFF && bom[1] == 0xFE) {
+                enc = encoding::utf16le;
+                numBytesToSkip = 2;
+            }
+            else if (fileSizeWithBom >= 3) {
+                bom[0] = 0;
+                fread(&bom, 1, 3, file);
+                fseek(file, 0, SEEK_SET);
+                if (bom[0] == 0xEF && bom[1] == 0xBB && bom[2] == 0xBF) {
+                    enc = encoding::utf8;
+                    numBytesToSkip = 3;
+                }
+            }
         }
+        Long totalSize = fileSizeWithBom - numBytesToSkip;
+        Char *fileData = new Char[totalSize];
+        fseek(file, numBytesToSkip, SEEK_SET);
+        fread(fileData, 1, totalSize, file);
+        fclose(file);
+        Long numWideChars = 0;
+        switch (enc) {
+        case encoding::ascii:
+            numWideChars = totalSize;
+            break;
+        case encoding::utf8:
+            numWideChars = MultiByteToWideChar(CP_UTF8, 0, fileData, totalSize, 0, 0);
+            break;
+        case encoding::utf16le:
+        case encoding::utf16be:
+            numWideChars = totalSize / 2;
+            break;
+        }
+
+        WideChar *data = new WideChar[numWideChars];
+        memset(data, 0, numWideChars * sizeof(WideChar));
+
+        switch (enc) {
+        case encoding::ascii:
+            MultiByteToWideChar(0, 0, fileData, totalSize, data, numWideChars);
+            break;
+        case encoding::utf8:
+            MultiByteToWideChar(CP_UTF8, 0, fileData, totalSize, data, numWideChars);
+            break;
+        case encoding::utf16le:
+        case encoding::utf16be:
+            memcpy(data, fileData, totalSize);
+            break;
+        }
+        delete[] fileData;
+
+        if (enc == encoding::utf16be) {
+            for (Long i = 0; i < numWideChars; i++)
+                data[i] = (data[i] >> 8) | (data[i] << 8);
+        }
+
+        String currentLine;
+        Bool inComment = false;
+        for (Long i = 0; i < numWideChars; i++) {
+            if (data[i] == L'\n') {
+                if (inComment)
+                    inComment = false;
+                else {
+                    mLines.push_back(currentLine);
+                    currentLine.clear();
+                }
+            }
+            else if (data[i] == L'\r') {
+                if ((i + 1) < numWideChars && data[i + 1] == L'\n')
+                    i++;
+                if (inComment)
+                    inComment = false;
+                else {
+                    mLines.push_back(currentLine);
+                    currentLine.clear();
+                }
+            }
+            else if (!inComment) {
+                if (data[i] == L';') {
+                    if (!currentLine.empty()) {
+                        mLines.push_back(currentLine);
+                        currentLine.clear();
+                    }
+                    inComment = true;
+                }
+                else
+                    currentLine += data[i];
+            }
+        }
+        if (!inComment)
+            mLines.push_back(currentLine);
+        delete[] data;
     }
 }
 
@@ -246,26 +327,55 @@ FifamReader::FifamReader(Path const &filename, UInt gameId, UShort vYear, UShort
     mVersion.Set(vYear, vNumber);
 }
 
+FifamReader::~FifamReader() {
+    Close();
+}
+
+void FifamReader::Close() {
+    mLines.clear();
+    mCurrentLine = 0;
+}
+
+Bool FifamReader::Available() {
+    return !mLines.empty();
+}
+
 Bool FifamReader::IsEof() {
     return GetPosition() == GetSize();
 }
 
-WideChar *FifamReader::GetLine() {
-    static Char cLine[BUFFER_SIZE];
-    cLine[0] = 0;
-    mLine[0] = 0;
-    while (fgets(cLine, BUFFER_SIZE, mFile)) {
-        if (cLine[0] != ';') {
-            cLine[strcspn(cLine, ";\r\n")] = 0;
-            if (mUnicode)
-                MultiByteToWideChar(CP_UTF8, 0, cLine, BUFFER_SIZE, mLine, BUFFER_SIZE);
-            else
-                MultiByteToWideChar(1250, 0, cLine, BUFFER_SIZE, mLine, BUFFER_SIZE);
-            return mLine;
-        }
-    }
-    mLine[0] = 0;
+UInt FifamReader::GetPosition() {
+    return mCurrentLine;
+}
+
+void FifamReader::SetPosition(UInt pos) {
+    mCurrentLine = pos;
+}
+
+UInt FifamReader::GetSize() {
+    return mLines.size();
+}
+
+WideChar const *FifamReader::GetLine() {
+    if (mCurrentLine < mLines.size())
+        return mLines[mCurrentLine++].c_str();
     return nullptr;
+}
+
+bool FifamReader::GetLine(String &out) {
+    auto line = GetLine();
+    if (line) {
+        out = line;
+        return true;
+    }
+    out.clear();
+    return false;
+}
+
+bool FifamReader::EmptyLine() {
+    if (mCurrentLine < mLines.size())
+        return mLines[mCurrentLine].empty();
+    return true;
 }
 
 Bool FifamReader::CheckLine(String const &str, Bool skipIfTrue) {
@@ -392,6 +502,17 @@ void FifamReader::StrToArg(String const &str, FifamDate &arg) {
     arg.MakeEmpty();
 }
 
+void FifamReader::StrToArg(String const &str, Date &arg) {
+    auto dateInfo = Utils::Split(str, L'.');
+    if (dateInfo.size() == 3) {
+        arg.year = Utils::SafeConvertInt<Short>(dateInfo[2]);
+        arg.month = Utils::SafeConvertInt<Char>(dateInfo[1]);
+        arg.day = Utils::SafeConvertInt<Char>(dateInfo[0]);
+        return;
+    }
+    arg.MakeEmpty();
+}
+
 void FifamReader::StrToArg(String const &str, Hexademical arg) {
     arg = str.empty() ? 0 : Utils::SafeConvertInt<UInt>(str, true);
 }
@@ -439,16 +560,18 @@ void FifamReader::RemoveQuotes(String &str) {
 UInt FifamReader::ReadLineTranslationArray(FifamTrArray<String> &out, WideChar sep) {
     auto ary = ReadLineArray<String>(sep);
     if (ary.size() == 1) {
-        for (UInt i = 1; i < 6; i++)
-            out[i] = out[0];
+        for (UInt i = 0; i < FifamTranslation::NUM_TRANSLATIONS; i++)
+            out[i] = ary[0];
     }
-    for (UInt i = 0; i < FifamTranslation::NUM_TRANSLATIONS; i++) {
-        if (ary.size() > i)
-            out[i] = ary[i];
-        else
-            out[i].clear();
+    else {
+        for (UInt i = 0; i < FifamTranslation::NUM_TRANSLATIONS; i++) {
+            if (ary.size() > i)
+                out[i] = ary[i];
+            else
+                out[i].clear();
+        }
+        if (!IsVersionGreaterOrEqual(0x2007, 0x1A))
+            out[FifamTranslation::Polish] = out[FifamTranslation::English];
     }
-    if (!IsVersionGreaterOrEqual(0x2007, 0x1A))
-        out[FifamTranslation::Polish] = out[FifamTranslation::English];
     return ary.size();
 }

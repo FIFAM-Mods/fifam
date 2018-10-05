@@ -43,6 +43,9 @@ public:
         int hairstylecode;
         int bodytypecode;
         int facialhaircolorcode;
+        // @since FIFA19
+        int headassetid;
+        int faceposerpreset;
 
         void Read(FifaDataFile::Line &line);
     } internal;

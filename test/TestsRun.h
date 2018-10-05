@@ -3,7 +3,6 @@
 #include "tests\ShowPlayers.h"
 #include "tests\ReadWriteTest.h"
 #include "tests\FlagsTest.h"
-#include "tests\WriteCountries.h"
 #include "tests\WriteDbCountriesTest.h"
 #include "tests\WriteDbClubsTest.h"
 #include "tests\ColorsTest.h"
@@ -17,8 +16,10 @@
 #include "tests\WritePlayersTest.h"
 #include "tests\HistoricTest.h"
 #include "tests\CompetitionsTest.h"
-#include "CreateFlagImages.h"
+#include "tests\CreateFlagImages.h"
+#include "tests\FifaConverter.h"
+#include "tests\FoomBasicTest.h"
 
 void RunTests() {
-    RunTest<WriteDbTest<FM14, FM07, false>>();
+    RunTest<FoomBasicTest>();
 }

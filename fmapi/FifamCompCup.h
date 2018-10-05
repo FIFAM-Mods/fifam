@@ -15,9 +15,6 @@ public:
     // when to draw teams
     UShort mDrawPeriodInWeeks = 0;
     // @since FM07
-    // total number of teams in cup
-    UInt mNumTeams = 0;
-    // @since FM07
     // first season calendar
     Vector<UShort> mFirstSeasonMatchdays;
     // @since FM07

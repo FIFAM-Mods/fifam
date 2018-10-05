@@ -9,9 +9,6 @@ public:
     // number of pools
     UInt mNumPools = 0;
     // @since FM07
-    // max teams in pool
-    UInt mNumTeams = 0;
-    // @since FM07
     // sorting type
     FifamPoolSorting mSorting;
     // @since FM07

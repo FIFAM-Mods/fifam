@@ -1,7 +1,8 @@
+#include "Error.h"
 #include "FifaDataFile.h"
 #include <codecvt>
 #include <sstream>
-#include "Error.h"
+#include <stdio.h>
 
 void FifaDataFile::Line::FromString(std::wstring const &str) {
     currentParam = 0;
@@ -15,7 +16,13 @@ void FifaDataFile::Line::FromString(std::wstring const &str) {
 FifaDataFile::Line &FifaDataFile::Line::operator>>(int &out) {
     if (currentParam >= parameters.size())
         Error("s: reached eop (total parameters: %d)", __FUNCTION__, parameters.size());
-    out = stoi(parameters[currentParam++]);
+    try {
+        out = stoi(parameters[currentParam++]);
+    }
+    catch (std::exception &e) {
+        Error(e.what());
+        out = 0;
+    }
     return *this;
 }
 
@@ -30,12 +37,11 @@ FifaDataFile::~FifaDataFile() {
     Close();
 }
 
-bool FifaDataFile::Open(std::wstring filepath) {
-    columns.clear();
-    stream.open(filepath, std::ios::binary);
-    if (!stream.is_open())
+bool FifaDataFile::Open(std::filesystem::path const &filepath) {
+    Close();
+    _wfopen_s(&file, filepath.c_str(), L"r,ccs=UNICODE");
+    if (!file)
         return false;
-    stream.imbue(std::locale(stream.getloc(), new std::codecvt_utf16<wchar_t, 0xffff, std::consume_header>));
     Line header;
     if (NextLine(header)) {
         columns.resize(header.parameters.size());
@@ -45,12 +51,16 @@ bool FifaDataFile::Open(std::wstring filepath) {
 }
 
 bool FifaDataFile::NextLine(Line &outLine) {
-    std::wstring line;
+    if (!file)
+        return false;
+    static wchar_t line[4096];
+    line[0] = L'\0';
     while (true) {
-        if (!getline(stream, line))
+        if (!fgetws(line, 4096, file))
             break;
-        if (line.size() > 0) {
-            outLine.FromString(line);
+        std::wstring wstr = line;
+        if (wstr.size() > 0) {
+            outLine.FromString(wstr);
             return true;
         }
     }
@@ -59,5 +69,8 @@ bool FifaDataFile::NextLine(Line &outLine) {
 
 void FifaDataFile::Close() {
     columns.clear();
-    stream.close();
+    if (file) {
+        fclose(file);
+        file = nullptr;
+    }
 }

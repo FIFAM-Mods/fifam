@@ -22,6 +22,9 @@ public:
     // competition id
     FifamCompID mID;
     // @since FM07
+    // num of teams
+    UInt mNumTeams = 0;
+    // @since FM07
     // max substitutions allowed in competition
     UChar mNumSubsAllowed = 0;
     // @since FM07

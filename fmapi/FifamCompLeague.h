@@ -8,9 +8,6 @@
 class FifamCompLeague : public FifamCompetition {
 public:
     // @since FM07
-    // num of teams in round
-    UInt mNumTeams = 0;
-    // @since FM07
     // league level
     UChar mLeagueLevel = 0;
     // @since FM07

@@ -1,4 +1,5 @@
 #include "FifaLeague.h"
+#include "FifaDatabase.h"
 #include <sstream>
 #include <string>
 
@@ -32,7 +33,14 @@ bool FifaLeague::IsNationalLeague() {
 }
 
 void FifaLeague::Internal::Read(FifaDataFile::Line &line) {
-    line >> countryid >> leaguename >> level >> iscompetitionscarfenabled >> isbannerenabled >> leagueid >> iscompetitionpoleflagenabled >> iscompetitioncrowdcardsenabled >> leaguetimeslice >> iswithintransferwindow;
+    switch (FifaDatabase::m_currentGameVersion) {
+    case 18:
+        line >> countryid >> leaguename >> level >> iscompetitionscarfenabled >> isbannerenabled >> leagueid >> iscompetitionpoleflagenabled >> iscompetitioncrowdcardsenabled >> leaguetimeslice >> iswithintransferwindow;
+        break;
+    case 19:
+        line >> countryid >> leaguename >> leaguetype >> level >> iscompetitionscarfenabled >> isbannerenabled >> leagueid >> iscompetitionpoleflagenabled >> iscompetitioncrowdcardsenabled >> leaguetimeslice >> iswithintransferwindow;
+        break;
+    }
 }
 
 FifaLeague::FifaLeague(FifaDataFile::Line &line) {
