@@ -2,6 +2,8 @@
 #include "FifamDatabase.h"
 #include "foom_db.h"
 
+const UShort CURRENT_YEAR = 2018;
+
 class Converter {
 public:
     FifamDatabase *mReferenceDatabase = nullptr;
@@ -9,9 +11,10 @@ public:
     foom::db *mFoomDatabase = nullptr;
 
     struct DivisionInfo {
-        Int mCountry = -1;
-        Short mName;
-        Short mShortName;
+        String mNationName;
+        Int mNationID = -1;
+        String mName;
+        String mShortName;
         Int mID = -1;
         Bool mIsLvl = 0;
         Int mLevel = 0;
@@ -30,4 +33,7 @@ public:
     ~Converter();
 
     void ConvertNationInfo(FifamCountry *dst, foom::nation *nation);
+    void ConvertClub(FifamClub *dst, foom::club *team, FifamCountry *country);
+    void ConvertReferee(FifamReferee *dst, foom::official *official);
+    void ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &kits);
 };

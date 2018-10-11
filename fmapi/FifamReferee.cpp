@@ -1,4 +1,5 @@
 #include "FifamReferee.h"
+#include "FifamNames.h"
 
 FifamReferee::FifamReferee() {}
 

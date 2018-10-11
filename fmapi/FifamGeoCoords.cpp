@@ -10,6 +10,18 @@ void FifamGeoCoord::SetFromInt(Int value) {
     Set(mDirection, (value >> 16) & 0x7FFF, value & 0xFFFF);
 }
 
+void FifamGeoCoord::SetFromFloat(Float value) {
+    if (value < 0) {
+        mDirection = 1;
+        value = -value;
+    }
+    else
+        mDirection = 0;
+    Float i = 0;
+    Float f = modf(value, &i);
+    Set(mDirection, (UShort)i, (UShort)(f * 59));
+}
+
 Int FifamGeoCoord::ToInt() {
     Int value =  mMinutes | (mDegrees << 16);
     if (mDirection)
@@ -79,4 +91,9 @@ FifamGeoCoords::FifamGeoCoords(FifamLatitude const &latitude, FifamLongitude con
 void FifamGeoCoords::Set(Int latitudeValue, Int longitudeValue) {
     mLatitude.SetFromInt(latitudeValue);
     mLongitude.SetFromInt(longitudeValue);
+}
+
+void FifamGeoCoords::SetFromFloat(Float latitudeFloatValue, Float longitudeFloatValue) {
+    mLatitude.SetFromFloat(latitudeFloatValue);
+    mLongitude.SetFromFloat(longitudeFloatValue);
 }

@@ -49,6 +49,18 @@ struct db {
     template<> non_player *get<non_player>(Int id) { return map_find_ptr(mNonPlayers, id); }
     template<> official *get<official>(Int id) { return map_find_ptr(mOfficials, id); }
 
+    static Int convert_money(Int value) {
+        Int result = (Int)((Double)value * 1.121729973571226);
+        Int lastDigit = result % 10;
+        if (lastDigit != 0) {
+            if (lastDigit <= 2)
+                result -= lastDigit;
+            else
+                result += 10 - lastDigit;
+        }
+        return result;
+    }
+
     template<> team *get<team>(Int id) {
         team *result = map_find_ptr(mNations, id);
         if (!result)
@@ -137,6 +149,19 @@ struct db {
             reader.ReadLine(c.mID, c.mName, c.mShortName, c.mSixLetterName, c.mNickname, c.mHashtag, c.mExtinct, IntPtr(c.mNation), IntPtr(c.mBasedNation), IntPtr(c.mContinentalCupNation), IntPtr(c.mCity), c.mYearFounded, c.mStatus, c.mReputation, c.mLatitude, c.mLongitude, c.mChairmanTitle, c.mOwnershipType, IntPtr(c.mStadium), c.mAttendance, c.mMinimumAttendance, c.mMaximumAttendance, c.mTraining, c.mYouthCoaching, c.mYouthFacilities, c.mYouthRecruitment, c.mYouthImportance, c.mCorporateFacilities, c.mBalance, c.mTransferBudget, c.mSugarDaddy, c.mNumberOfSeasonTicketHolders, IntPtr(c.mDivision), IntPtr(c.mLastDivision), c.mLastPosition, IntPtr(c.mNextDivision), c.mLastPositionForNextDivision, IntPtr(c.mSecondaryDivision), c.mEuroCoeff1, c.mEuroCoeff2, c.mEuroCoeff3, c.mEuroCoeff4, c.mEuroCoeff5, c.mPreferredFormation, c.mSecondPreferredFormation, IntPtr(c.mRecordWinOpposition), c.mRecordWinTG, c.mRecordWinOG, c.mRecordWinYear, IntPtr(c.mRecordDefeatOpposition), c.mRecordDefeatTG, c.mRecordDefeatOG, c.mRecordDefeatYear, IntPtr(c.mRecordAttendanceOpposition), c.mRecordAttendance, c.mRecordAttendanceYear, IntPtr(c.mCaptain), IntPtr(c.mViceCaptain));
             mClubs[c.mID] = c;
         });
+        ReaderCallback(L"fm_club_kits", [&](FifamReader &reader) {
+            Int clubID = -1;
+            kit k;
+            reader.ReadLine(clubID, k.mKit, k.mType, k.mKitStyle, k.mBackOfShirtStyle, k.mForeground.r, k.mForeground.g, k.mForeground.b, k.mBackground.r, k.mBackground.g, k.mBackground.b, k.mOutline.r, k.mOutline.g, k.mOutline.b, k.mNumberColour.r, k.mNumberColour.g, k.mNumberColour.b, k.mNumberOutlineColour.r, k.mNumberOutlineColour.g, k.mNumberOutlineColour.b, IntPtr(k.mCompetition), k.mYear, k.mAlternativeKitNumber);
+            map_find(mClubs, clubID).mVecKits.push_back(k);
+        });
+        ReaderCallback(L"fm_club_incomes", [&](FifamReader &reader) {
+            Int clubID = -1;
+            club::income i;
+            reader.ReadLine(clubID, i.mAmount, i.mIncomeType, i.mStartDate, i.mEndDate, i.mRenewIncome, i.mFixedValue);
+            map_find(mClubs, clubID).mVecIncomes.push_back(i);
+        });
+
         // TODO
 
         // read players
@@ -236,6 +261,8 @@ struct db {
             resolve(c.mCaptain);
             resolve(c.mViceCaptain);
 
+            for (auto &k : c.mVecKits)
+                resolve(k.mCompetition);
         }
         for (auto &entry : mOfficials) {
             official &o = entry.second;

@@ -13,6 +13,7 @@ struct FifamGeoCoord {
     UChar mDirection = 0;
 
     void SetFromInt(Int value);
+    void SetFromFloat(Float value);
     Int ToInt();
     void Set(UChar direction, UShort degrees, UShort minutes);
     FifamGeoCoord();
@@ -47,4 +48,5 @@ struct FifamGeoCoords {
     FifamGeoCoords(Int latitudeValue, Int longitudeValue);
     FifamGeoCoords(FifamLatitude const &latitude, FifamLongitude const &longitude);
     void Set(Int latitudeValue, Int longitudeValue);
+    void SetFromFloat(Float latitudeFloatValue, Float longitudeFloatValue);
 };

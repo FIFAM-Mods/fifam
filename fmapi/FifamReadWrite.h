@@ -29,6 +29,7 @@ class FifamWriter : public FifamFileWorker {
     Bool mUnicode = true;
 public:
     FifamWriter(Path const &filename, UInt gameId, UShort vYear, UShort vNumber, Bool unicode = true);
+    ~FifamWriter();
     void Close();
     Bool Available();
     void WriteOne(Char value);

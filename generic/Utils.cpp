@@ -208,3 +208,29 @@ std::wstring Utils::GetStringWithoutUnicodeChars(std::wstring const &src) {
     delete[] wc;
     return str;
 }
+
+bool Utils::IsVowel(wchar_t wideChar) {
+    return wideChar == L'A' || wideChar == L'a' ||
+        wideChar == L'E' || wideChar == L'e' ||
+        wideChar == L'I' || wideChar == L'i' ||
+        wideChar == L'O' || wideChar == L'o' ||
+        wideChar == L'U' || wideChar == L'u' ||
+        wideChar == L'Ä' || wideChar == L'ä' ||
+        wideChar == L'Ö' || wideChar == L'ö' ||
+        wideChar == L'Ü' || wideChar == L'ü' ||
+        wideChar == L'Y' || wideChar == L'y';
+}
+
+bool Utils::IsPunctuationMark(wchar_t wideChar) {
+    return wideChar == L'.' ||
+        wideChar == L',' ||
+        wideChar == L':' ||
+        wideChar == L';' ||
+        wideChar == L'-' ||
+        wideChar == L'(' ||
+        wideChar == L')' ||
+        wideChar == L'\'' ||
+        wideChar == L'\\' ||
+        wideChar == L'/';
+
+}

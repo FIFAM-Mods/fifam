@@ -101,4 +101,21 @@ namespace Utils {
         result.resize(size);
         return result;
     }
+
+    bool IsVowel(wchar_t wideChar);
+
+    bool IsPunctuationMark(wchar_t wideChar);
+
+    template<typename ValueType, typename IdType>
+    std::pair<ValueType, IdType> GetMaxElement(std::vector<std::pair<ValueType, IdType>> const &elements) {
+        std::pair<ValueType, IdType> result;
+        if (!elements.empty()) {
+            result = elements[0];
+            for (size_t i = 1; i < elements.size(); i++) {
+                if (elements[i].first > result.first)
+                    result = elements[i];
+            }
+        }
+        return result;
+    }
 };

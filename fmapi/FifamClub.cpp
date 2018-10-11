@@ -2,12 +2,13 @@
 #include "FifamCountry.h"
 #include "FifamDatabase.h"
 #include "FifamUtils.h"
+#include "FifamNames.h"
 
 void FifamClub::ReadClubMembers(FifamReader &reader) {
     UInt playersCount = reader.ReadLine<UInt>();
     for (UInt i = 0; i < playersCount; i++) {
         UInt id = reader.ReadLine<UInt>();
-        if (FifamDatabase::mReadingOptions.mReadPlayers) {
+        if (FifamDatabase::mReadingOptions.mReadPersons) {
             auto player = mCountry->mDatabase->CreatePlayer(this, id);
             player->Read(reader);
         }
@@ -19,7 +20,7 @@ void FifamClub::ReadClubMembers(FifamReader &reader) {
     UInt staffsCount = reader.ReadLine<UInt>();
     for (UInt i = 0; i < staffsCount; i++) {
         UInt id = reader.ReadLine<UInt>();
-        if (FifamDatabase::mReadingOptions.mReadStaff) {
+        if (FifamDatabase::mReadingOptions.mReadPersons) {
             auto staff = mCountry->mDatabase->CreateStaff(this, id);
             staff->Read(reader);
         }
@@ -56,6 +57,10 @@ void FifamClub::WriteClubMembers(FifamWriter &writer) {
 void FifamClub::Read(FifamReader &reader, UInt id) {
     String clubSectionName = Utils::Format(L"CLUB%u", id);
     if (reader.ReadStartIndex(clubSectionName)) {
+        if (!FifamDatabase::mReadingOptions.mReadClubs && id != 0xFFFF) {
+            reader.ReadEndIndex(clubSectionName);
+            return;
+        }
         reader.ReadVersion();
         UChar clubFlags = 0;
         UShort lastSeasonFlags = 0;
@@ -426,18 +431,18 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
     if (writer.IsVersionGreaterOrEqual(0x2012, 0x01)) {
         writer.WriteLine(FifamUtils::GetWriteableUniqueID(this));
         writer.WriteLine(mFifaID);
-        writer.WriteLineTranslationArray(mName);
-        writer.WriteLineTranslationArray(mName2);
-        writer.WriteLineTranslationArray(mShortName);
-        writer.WriteLineTranslationArray(mShortName2);
-        writer.WriteLineTranslationArray(mAbbreviation);
-        writer.WriteLineTranslationArray(mCityName);
+        writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mName, FifamNames::LimitName, 29));
+        writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mName2, FifamNames::LimitName, 29));
+        writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mShortName, FifamNames::LimitName, 10));
+        writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mShortName2, FifamNames::LimitName, 10));
+        writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mAbbreviation, FifamNames::LimitName, 4));
+        writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mCityName, FifamNames::LimitName, 29));
         writer.WriteLineTranslationArray(mPlayerInText);
         writer.WriteLineTranslationArray(mTermForTeam1);
         writer.WriteLineTranslationArray(mTermForTeam2);
         writer.WriteLineTranslationArray(mFanName1);
         writer.WriteLineTranslationArray(mFanName2);
-        writer.WriteLineTranslationArray(mStadiumName);
+        writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mStadiumName, FifamNames::LimitName, 29));
         writer.WriteLineTranslationArray(mAbbreviationArticle);
         writer.WriteLineTranslationArray(mPlayerInTextArticle);
         writer.WriteLineTranslationArray(mTermForTeam1Article);
@@ -491,7 +496,8 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         writer.WriteLine(mYouthPlayersCountry);
         mKit.Write(writer);
         FifamDbWriteableIDsList lowestLeaguesIDs;
-        for (UInt i = 0; i < 4; i++)
+        // TODO: check this one
+        for (UInt i = 0; i < mLowestLeagues.size(); i++)
             lowestLeaguesIDs.push_back_unique(FifamUtils::GetWriteableID(mLowestLeagues[i]));
         writer.WriteLineArray(lowestLeaguesIDs.get_array(4));
         writer.WriteLine(mClubFacilities, mYouthCentre, mYouthBoardingSchool, mAiStrategy, mLandscape, mSettlement);

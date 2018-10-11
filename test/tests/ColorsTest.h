@@ -31,5 +31,7 @@ public:
         teamColor2.SetFromInt(clrPair2.FindIndexInTable(FifamClub::mTeamColorsTable));
 
         std::wcout << L"teamColor2: " << teamColor2.ToStr() << std::endl;
+
+        std::wcout << L"Distance between red and pink: " << Color::Distance(Color(255, 0, 0), Color(255, 192, 203)) << std::endl;
     }
 };

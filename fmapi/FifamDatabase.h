@@ -41,8 +41,7 @@ public:
         Bool mReadCountryCompetitions = true;
         Bool mReadInternationalCompetitions = true;
         Bool mReadClubs = true;
-        Bool mReadPlayers = true;
-        Bool mReadStaff = true;
+        Bool mReadPersons = true;
     } mReadingOptions;
 
     struct {
@@ -101,4 +100,5 @@ public:
     UInt GetClubsInCountryLimit(UInt gameId);
     UInt GetPersonsInClubLimit(UInt gameId);
     FifamCupAlloc *GetCupTemplate(FifamCupSystemType cupSystemType);
+    FifamCountry *GetCountry(Int countryId);
 };

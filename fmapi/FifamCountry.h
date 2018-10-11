@@ -181,6 +181,8 @@ public:
     String mReporterInTheStudioLastName;
     // @since FM07
     Vector<FifamTrArray<String>> mLeagueLevelNames;
+    // @since FM07
+    Array<Float, 6> mAssessmentData = {};
 
     struct {
         // @since FM07

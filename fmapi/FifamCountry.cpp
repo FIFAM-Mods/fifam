@@ -5,6 +5,7 @@
 #include "FifamCompRound.h"
 #include "FifamCompPool.h"
 #include "FifamCompCup.h"
+#include "FifamNames.h"
 #include "Error.h"
 
 FifamCountry::FifamCountry(UInt id, FifamDatabase *db) {
@@ -86,28 +87,34 @@ Bool FifamCountry::Read(FifamReader &reader) {
             }
         }
 
-        if (FifamDatabase::mReadingOptions.mReadClubs) {
-            if (reader.ReadStartIndex(L"CLUBS")) {
-                UInt numClubs = reader.ReadLine<UInt>();
-                for (UInt i = 0; i < numClubs; i++) {
+        if (reader.ReadStartIndex(L"CLUBS")) {
+            UInt numClubs = reader.ReadLine<UInt>();
+            for (UInt i = 0; i < numClubs; i++) {
+                if (FifamDatabase::mReadingOptions.mReadClubs) {
                     auto club = mDatabase->CreateClub(this);
                     club->Read(reader, i + 1);
                     mDatabase->AddClubToMap(club);
                     mClubsMap[club->mUniqueID] = club;
                 }
-                mNationalTeam.mCountry = this;
-                mNationalTeam.mDatabase = mDatabase;
-                mNationalTeam.mIsNationalTeam = true;
-                mNationalTeam.Read(reader, 0xFFFF);
-                reader.ReadEndIndex(L"CLUBS");
+                else {
+                    FifamClub dummy;
+                    dummy.Read(reader, i + 1);
+                }
             }
+            mNationalTeam.mCountry = this;
+            mNationalTeam.mDatabase = mDatabase;
+            mNationalTeam.mIsNationalTeam = true;
+            mNationalTeam.Read(reader, 0xFFFF);
+            reader.ReadEndIndex(L"CLUBS");
         }
 
-        if (reader.ReadStartIndex(L"REFEREES")) {
-            auto numReferees = reader.ReadLine<UInt>();
-            for (UInt i = 0; i < numReferees; i++)
-                AddReferee()->Read(reader);
-            reader.ReadEndIndex(L"REFEREES");
+        if (FifamDatabase::mReadingOptions.mReadPersons) {
+            if (reader.ReadStartIndex(L"REFEREES")) {
+                auto numReferees = reader.ReadLine<UInt>();
+                for (UInt i = 0; i < numReferees; i++)
+                    AddReferee()->Read(reader);
+                reader.ReadEndIndex(L"REFEREES");
+            }
         }
 
         if (reader.GetGameId() < 11) {
@@ -128,7 +135,7 @@ Bool FifamCountry::Read(FifamReader &reader) {
             }
         }
 
-        if (FifamDatabase::mReadingOptions.mReadStaff) {
+        if (FifamDatabase::mReadingOptions.mReadPersons) {
             if (reader.IsVersionGreaterOrEqual(0x2009, 0x05)) {
                 if (reader.ReadStartIndex(L"STAFFS")) {
                     UInt numStaffs = reader.ReadLine<UInt>();
@@ -143,7 +150,7 @@ Bool FifamCountry::Read(FifamReader &reader) {
             }
         }
 
-        if (FifamDatabase::mReadingOptions.mReadStaff) {
+        if (FifamDatabase::mReadingOptions.mReadPersons) {
             if (reader.ReadStartIndex(L"ADDMANAGER")) {
                 UInt numStaffs = reader.ReadLine<UInt>();
                 UInt nextFreeId = mDatabase->GetNextFreePersonID();
@@ -159,7 +166,7 @@ Bool FifamCountry::Read(FifamReader &reader) {
             }
         }
 
-        if (FifamDatabase::mReadingOptions.mReadPlayers) {
+        if (FifamDatabase::mReadingOptions.mReadPersons) {
             if (reader.ReadStartIndex(L"PLAYERPOOL")) {
                 UInt numCACPlayers = reader.ReadLine<UInt>();
                 for (UInt i = 0; i < numCACPlayers; i++)
@@ -726,8 +733,9 @@ Bool FifamCountry::WriteFixtures(FifamWriter &writer) {
                     writer.WriteNewLine();
                 }
             }
-            else
+            else {
                 writer.WriteLine(0, 0);
+            }
             writer.WriteEndIndex(L"FIXTURES");
         }
         writer.WriteStartIndex(L"BONUS");

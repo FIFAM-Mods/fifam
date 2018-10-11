@@ -158,7 +158,7 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
         }
     }
 
-    if (mReadingOptions.mReadPlayers) {
+    if (mReadingOptions.mReadPersons) {
         FifamReader withoutReader(dbPath / L"Without.sav", gameId);
         if (withoutReader.Available()) {
             if (withoutReader.GetGameId() >= 11)
@@ -170,6 +170,30 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
                     CreatePlayer(nullptr, nextFreeId++)->Read(withoutReader);
                 withoutReader.ReadEndIndex(L"WITHOUT");
             }
+        }
+    }
+
+    FifamReader assessmentReader(dbPath / L"Assessment.sav", gameId);
+    if (assessmentReader.Available()) {
+        assessmentReader.SkipLine();
+        while (!assessmentReader.IsEof()) {
+            if (!assessmentReader.EmptyLine()) {
+                Array<Float, 6> data;
+                UChar countryId = 0;
+                String dummy;
+                if (gameId > 7) {
+                    assessmentReader.ReadLineWithSeparator(L'\t', countryId, dummy, dummy, dummy, dummy, dummy, dummy,
+                        data[0], data[1], data[2], data[3], data[4], data[5]);
+                }
+                else {
+                    assessmentReader.ReadLineWithSeparator(L'\t', countryId, dummy, dummy, dummy, dummy, dummy,
+                        data[0], data[1], data[2], data[3], data[4], data[5]);
+                }
+                if (countryId > 0 && countryId <= 208 && mCountries[countryId - 1])
+                    mCountries[countryId - 1]->mAssessmentData = data;
+            }
+            else
+                assessmentReader.SkipLine();
         }
     }
 
@@ -335,6 +359,7 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
                 writer.WriteLine(country->mTerritory);
             }
         }
+        countriesWriter.Close();
     }
 
     for (UChar i = 0; i < NUM_COUNTRIES; i++) {
@@ -369,6 +394,32 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
         }
     }
 
+    FifamWriter assessmentWriter(dbPath / L"Assessment.sav", gameId, vYear, vNumber, unicode);
+    if (assessmentWriter.Available()) {
+        if (gameId > 7)
+            assessmentWriter.WriteLine(L"Index\t[English]\t[French]\t[German]\t[Italian]\t[Spanish]\t[Polish]\tYear -6\tYear -5\tYear -4\tYear -3\tYear -2\tYear -1");
+        else
+            assessmentWriter.WriteLine(L"Index\t[English]\t[French]\t[German]\t[Italian]\t[Spanish]\tYear -6\tYear -5\tYear -4\tYear -3\tYear -2\tYear -1");
+        for (UInt i = 0; i < NUM_COUNTRIES; i++) {
+            if (mCountries[i] && mCountries[i]->mContinent == FifamContinent::Europe && IsCountryPresent(gameId, i + 1)) {
+                FifamNation nationId;
+                nationId.SetFromInt(i + 1);
+                FifamCountry *c = mCountries[i];
+                if (gameId > 7) {
+                    assessmentWriter.WriteLineWithSeparator(L'\t', nationId,
+                        c->mName[1], c->mName[0], c->mName[2], c->mName[3], c->mName[4], c->mName[5],
+                        c->mAssessmentData[0], c->mAssessmentData[1], c->mAssessmentData[2], c->mAssessmentData[3], c->mAssessmentData[4], c->mAssessmentData[5]);
+                }
+                else {
+                    assessmentWriter.WriteLineWithSeparator(L'\t', nationId,
+                        c->mName[1], c->mName[0], c->mName[2], c->mName[3], c->mName[4],
+                        c->mAssessmentData[0], c->mAssessmentData[1], c->mAssessmentData[2], c->mAssessmentData[3], c->mAssessmentData[4], c->mAssessmentData[5]);
+                }
+            }
+        }
+        assessmentWriter.Close();
+    }
+
     FifamWriter withoutWriter(dbPath / L"Without.sav", gameId, vYear, vNumber, unicode);
     if (withoutWriter.Available()) {
         if (withoutWriter.GetGameId() >= 11)
@@ -388,11 +439,14 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
                 player->Write(withoutWriter);
         }
         withoutWriter.WriteEndIndex(L"WITHOUT");
+        withoutWriter.Close();
     }
 
     FifamWriter rulesWriter(dbPath / L"Rules.sav", gameId, vYear, vNumber, unicode);
-    if (rulesWriter.Available())
+    if (rulesWriter.Available()) {
         mRules.Write(rulesWriter);
+        rulesWriter.Close();
+    }
 
     //if (!historicPath.empty())
     //    mHistoric.Write(historicPath, gameId, vYear, vNumber, this);
@@ -842,6 +896,12 @@ void FifamDatabase::WriteCompetition(FifamWriter &writer, FifamCompetition *comp
 FifamCupAlloc *FifamDatabase::GetCupTemplate(FifamCupSystemType cupSystemType) {
     if (cupSystemType.ToInt() > 0 && cupSystemType.ToInt() <= mCupTemplates.size())
         return mCupTemplates[cupSystemType.ToInt() - 1];
+    return nullptr;
+}
+
+FifamCountry *FifamDatabase::GetCountry(Int countryId) {
+    if (countryId > 0 && countryId < NUM_COUNTRIES)
+        return mCountries[countryId - 1];
     return nullptr;
 }
 

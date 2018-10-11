@@ -43,6 +43,10 @@ FifamWriter::FifamWriter(Path const &filename, UInt gameId, UShort vYear, UShort
     mVersion.Set(vYear, vNumber);
 }
 
+FifamWriter::~FifamWriter() {
+    Close();
+}
+
 Bool FifamWriter::Available() {
     return mFile != nullptr;
 }

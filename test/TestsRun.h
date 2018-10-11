@@ -21,5 +21,5 @@
 #include "tests\FoomBasicTest.h"
 
 void RunTests() {
-    RunTest<FoomBasicTest>();
+    RunTest<ColorsTest>();
 }
