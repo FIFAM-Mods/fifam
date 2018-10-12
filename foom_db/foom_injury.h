@@ -28,7 +28,7 @@ struct injury {
     Bool mAllowToPlayWithProtectiveEquipment = 0;
 
     struct converter_data {
-        Int mFIFAManagerID = -1;
+        UInt mFIFAManagerID = 0;
     } mConverterData;
 };
 

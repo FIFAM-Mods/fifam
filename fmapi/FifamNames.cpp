@@ -96,3 +96,33 @@ String FifamNames::FindCommonPrefix(Vector<String> const & strings, bool trim) {
         Utils::Trim(commonPrefix);
     return commonPrefix;
 }
+
+String FifamNames::GetLeagueLevelName(Vector<String> const & leagueNames, UInt level) {
+    String levelName = FindCommonPrefix(leagueNames, true);
+    if (!levelName.empty()) {
+        UInt l = levelName.find_last_not_of(L" .-");
+        if (l != String::npos)
+            levelName = levelName.substr(0, l + 1);
+        if (!levelName.empty()) {
+            auto words = Utils::Split(levelName, L' ', true, true);
+            if (!words.empty()) {
+                if (words.back() == L"Group")
+                    words.pop_back();
+                else
+                    return levelName;
+                levelName = Utils::Join(words, L' ');
+                l = levelName.find_last_not_of(L" .-");
+                if (l != String::npos)
+                    levelName = levelName.substr(0, l + 1);
+                if (!levelName.empty()) {
+                    UInt l = levelName.find_last_not_of(L" .-");
+                    if (l != String::npos)
+                        levelName = levelName.substr(0, l + 1);
+                    if (!levelName.empty())
+                        return levelName;
+                }
+            }
+        }
+    }
+    return Utils::Format(L"League Level %d", level);
+}

@@ -126,6 +126,7 @@
     <ClInclude Include="FifamFlags.h" />
     <ClInclude Include="FifamFormation.h" />
     <ClInclude Include="FifamGeoCoords.h" />
+    <ClInclude Include="FifamGraphics.h" />
     <ClInclude Include="FifamHistoric.h" />
     <ClInclude Include="FifamInstructionList.h" />
     <ClInclude Include="FifamKit.h" />
@@ -206,6 +207,7 @@
     <ClCompile Include="FifamDate.cpp" />
     <ClCompile Include="FifamDbWriteable.cpp" />
     <ClCompile Include="FifamGeoCoords.cpp" />
+    <ClCompile Include="FifamGraphics.cpp" />
     <ClCompile Include="FifamHistoric.cpp" />
     <ClCompile Include="FifamInstruction.cpp" />
     <ClCompile Include="FifamInstructionList.cpp" />

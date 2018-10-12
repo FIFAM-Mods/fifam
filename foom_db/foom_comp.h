@@ -34,6 +34,10 @@ struct comp {
     Vector<history> mVecHistory;
 
     Vector<team *> mVecTeams;
+
+    struct converter_data {
+        void *mDivInfo = nullptr;
+    } mConverterData;
 };
 
 }

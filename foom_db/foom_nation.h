@@ -40,9 +40,9 @@ struct nation : public team {
     Vector<region_transfer_preference> mVecRegionTransferPreferences;
 
     struct converter_data {
-        Int mFIFAManagerID = -1;
-        Int mFIFAManagerReplacementID = -1;
-        Int mFIFAID = -1;
+        UInt mFIFAManagerID = 0;
+        UInt mFIFAManagerReplacementID = 0;
+        UInt mFIFAID = 0;
     } mConverterData;
 
     nation() {

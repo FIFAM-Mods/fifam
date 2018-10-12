@@ -10,4 +10,5 @@ public:
     static String GetClubAbbr(String const &name);
     static FifamTrArray<String> TransformTrArray(FifamTrArray<String> const &ary, Function<String(String const &, UInt)> callback, UInt maxSize);
     static String FindCommonPrefix(Vector<String> const &strings, bool trim = true);
+    static String GetLeagueLevelName(Vector<String> const &leagueNames, UInt level);
 };

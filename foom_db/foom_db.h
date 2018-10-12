@@ -161,7 +161,12 @@ struct db {
             reader.ReadLine(clubID, i.mAmount, i.mIncomeType, i.mStartDate, i.mEndDate, i.mRenewIncome, i.mFixedValue);
             map_find(mClubs, clubID).mVecIncomes.push_back(i);
         });
-
+        ReaderCallback(L"fm_club_team_league_history", [&](FifamReader &reader) {
+            Int clubID = -1;
+            club::team_league_history h;
+            reader.ReadLine(clubID, h.mYear, h.mOrder, IntPtr(h.mDivision), h.mPosition, h.mMaxTeams, h.mPoints, h.mGamesPlayed, h.mGamesWon, h.mGamesDrawn, h.mGamesLost, h.mGoalsFor, h.mGoalsAgainst);
+            map_find(mClubs, clubID).mVecTeamLeagueHistory.push_back(h);
+        });
         // TODO
 
         // read players
@@ -263,6 +268,8 @@ struct db {
 
             for (auto &k : c.mVecKits)
                 resolve(k.mCompetition);
+            for (auto &h : c.mVecTeamLeagueHistory)
+                resolve(h.mDivision);
         }
         for (auto &entry : mOfficials) {
             official &o = entry.second;

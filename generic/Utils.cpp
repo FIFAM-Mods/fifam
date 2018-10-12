@@ -234,3 +234,29 @@ bool Utils::IsPunctuationMark(wchar_t wideChar) {
         wideChar == L'/';
 
 }
+
+std::wstring Utils::Join(std::vector<std::wstring> const &strList, wchar_t delim) {
+    std::wstring result;
+    bool first = true;
+    for (std::wstring const &str : strList) {
+        if (first)
+            first = false;
+        else
+            result += delim;
+        result += str;
+    }
+    return result;
+}
+
+std::wstring Utils::Join(std::vector<std::wstring> const &strList, std::wstring const &delim) {
+    std::wstring result;
+    bool first = true;
+    for (std::wstring const &str : strList) {
+        if (first)
+            first = false;
+        else
+            result += delim;
+        result += str;
+    }
+    return result;
+}

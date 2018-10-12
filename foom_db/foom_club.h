@@ -118,12 +118,36 @@ struct club : public team {
     Vector<team_league_history> mVecTeamLeagueHistory;
 
     struct converter_data {
-        Int mFIFAManagerID = -1;
-        Int mFIFAID = -1;
+        UInt mFIFAManagerID = 0;
+        UInt mFIFAID = 0;
     } mConverterData;
 
     club () {
         mIsNation = false;
+    }
+
+    bool is_basque() {
+        return mID == 1664 ||
+            mID == 1742 ||
+            mID == 1688 ||
+            mID == 102029 ||
+            mID == 1753 ||
+            mID == 1667 ||
+            mID == 670636 ||
+            mID == 1761 ||
+            mID == 1746 ||
+            mID == 102014 ||
+            mID == 811339 ||
+            mID == 4200552 ||
+            mID == 4200555 ||
+            mID == 109009 ||
+            mID == 4212148 ||
+            mID == 4212658 ||
+            mID == 6706354 ||
+            mID == 6706369 ||
+            mID == 4212213 ||
+            mID == 4212262 ||
+            mID == 4212637;
     }
 };
 

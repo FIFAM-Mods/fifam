@@ -26,32 +26,40 @@ bool Color::operator== (Color const &rhs) {
     return r == rhs.r && g == rhs.g && b == rhs.b;
 }
 
-unsigned int Color::FindIndexInTable(std::vector<Color> const &table, unsigned int tableMin, unsigned int tableMax) {
-    if (tableMax == 0 || tableMax >= table.size())
-        tableMax = table.size() - 1;
-    for (unsigned int i = tableMin; i <= tableMax; i++) {
-        if (*this == table[i])
-            return i;
+unsigned int Color::FindIndexInTable(std::vector<std::pair<unsigned int, Color>> const &table, unsigned int tableMin, unsigned int tableMax) {
+    if (tableMax == 0)
+        tableMax = 9999;
+    for (auto &clr : table) {
+        if (clr.first >= tableMin && clr.first <= tableMax) {
+            if (*this == clr.second)
+                return clr.first;
+        }
     }
     unsigned int result = 0;
-    double dist = 1000.0;
-    for (unsigned int i = tableMin; i <= tableMax; i++) {
-        auto newDist = Distance(*this, table[i]);
-        if (newDist < dist) {
-            dist = newDist;
-            result = i;
+    double dist = 9999.0;
+    for (auto &clr : table) {
+        if (clr.first >= tableMin && clr.first <= tableMax) {
+            auto newDist = Distance(*this, clr.second);
+            if (newDist < dist) {
+                dist = newDist;
+                result = clr.first;
+            }
         }
     }
     return result;
 }
 
-void Color::SetFromTable(std::vector<Color> const &table, unsigned int index, unsigned int tableMin, unsigned int tableMax) {
+void Color::SetFromTable(std::vector<std::pair<unsigned int, Color>> const &table, unsigned int index, unsigned int tableMin, unsigned int tableMax) {
     if (!table.empty()) {
-        if (tableMax == 0 || tableMax >= table.size())
-            tableMax = table.size() - 1;
+        if (tableMax == 0)
+            tableMax = 9999;
         if (index >= tableMin && index <= tableMax) {
-            *this = table[index];
-            return;
+            for (auto &clr : table) {
+                if (clr.first == index) {
+                    *this = clr.second;
+                    return;
+                }
+            }
         }
     }
     Set(255, 255, 255);
@@ -86,32 +94,40 @@ bool ColorPair::operator== (ColorPair const &rhs) {
     return (first == rhs.first && second == rhs.second) || (first == rhs.second && second == rhs.first);
 }
 
-unsigned int ColorPair::FindIndexInTable(std::vector<ColorPair> const &table, unsigned int tableMin, unsigned int tableMax) {
-    if (tableMax == 0 || tableMax >= table.size())
-        tableMax = table.size() - 1;
-    for (unsigned int i = tableMin; i <= tableMax; i++) {
-        if (*this == table[i])
-            return i;
+unsigned int ColorPair::FindIndexInTable(std::vector<std::pair<unsigned int, ColorPair>> const &table, unsigned int tableMin, unsigned int tableMax) {
+    if (tableMax == 0)
+        tableMax = 9999;
+    for (auto &clr : table) {
+        if (clr.first >= tableMin && clr.first <= tableMax) {
+            if (*this == clr.second)
+                return clr.first;
+        }
     }
     unsigned int result = 0;
-    double dist = 1000.0;
-    for (unsigned int i = tableMin; i <= tableMax; i++) {
-        auto newDist = Distance(*this, table[i]);
-        if (newDist < dist) {
-            dist = newDist;
-            result = i;
+    double dist = 9999.0;
+    for (auto &clr : table) {
+        if (clr.first >= tableMin && clr.first <= tableMax) {
+            auto newDist = Distance(*this, clr.second);
+            if (newDist < dist) {
+                dist = newDist;
+                result = clr.first;
+            }
         }
     }
     return result;
 }
 
-void ColorPair::SetFromTable(std::vector<ColorPair> const &table, unsigned int index, unsigned int tableMin, unsigned int tableMax) {
+void ColorPair::SetFromTable(std::vector<std::pair<unsigned int, ColorPair>> const &table, unsigned int index, unsigned int tableMin, unsigned int tableMax) {
     if (!table.empty()) {
-        if (tableMax == 0 || tableMax >= table.size())
-            tableMax = table.size() - 1;
+        if (tableMax == 0)
+            tableMax = 9999;
         if (index >= tableMin && index <= tableMax) {
-            *this = table[index];
-            return;
+            for (auto &clr : table) {
+                if (clr.first == index) {
+                    *this = clr.second;
+                    return;
+                }
+            }
         }
     }
     Set(Color(), Color());

@@ -8,8 +8,8 @@ struct region {
     String mName;
 
     struct converter_data {
-        Int mFIFAManagerID = -1;
-        Int mFIFAManagerReplacementID = -1;
+        UInt mFIFAManagerID = 0;
+        UInt mFIFAManagerReplacementID = 0;
     } mConverterData;
 };
 

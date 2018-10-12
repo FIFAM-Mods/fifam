@@ -1,6 +1,7 @@
 #include "Converter.h"
 #include "FifamCompLeague.h"
 #include "FifamNames.h"
+#include "FifamUtils.h"
 #include "Random.h"
 
 Converter::~Converter() {
@@ -11,15 +12,16 @@ Converter::~Converter() {
 
 void Converter::ReadAdditionalInfo(Path const &infoPath) {
     {
-        std::wcout << L"Reading fifam-uids.csv..." << std::endl;
-        FifamReader reader(infoPath / L"fifam-uids.csv", 0);
+        std::wcout << L"Reading fifam-uids.txt..." << std::endl;
+        FifamReader reader(infoPath / L"fifam-uids.txt", 0);
         if (reader.Available()) {
+            reader.SkipLine();
             while (!reader.IsEof()) {
                 if (!reader.EmptyLine()) {
                     String dummy;
                     foom::club::converter_data info;
                     Int FootballManagerID;
-                    reader.ReadLine(dummy, dummy, dummy, dummy, dummy, FootballManagerID, info.mFIFAManagerID, info.mFIFAID);
+                    reader.ReadLineWithSeparator(L'\t', dummy, dummy, dummy, dummy, dummy, FootballManagerID, Hexademical(info.mFIFAManagerID), info.mFIFAID);
                     map_find(mFoomDatabase->mClubs, FootballManagerID).mConverterData = info;
                 }
                 else
@@ -31,6 +33,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath) {
         std::wcout << L"Reading fifam_countries.csv..." << std::endl;
         FifamReader reader(infoPath / L"fifam_countries.csv", 0);
         if (reader.Available()) {
+            reader.SkipLine();
             while (!reader.IsEof()) {
                 if (!reader.EmptyLine()) {
                     String dummy;
@@ -48,6 +51,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath) {
         std::wcout << L"Reading fifam_languages.csv..." << std::endl;
         FifamReader reader(infoPath / L"fifam_languages.csv", 0);
         if (reader.Available()) {
+            reader.SkipLine();
             while (!reader.IsEof()) {
                 if (!reader.EmptyLine()) {
                     String dummy;
@@ -65,6 +69,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath) {
         std::wcout << L"Reading fifam_regions.csv..." << std::endl;
         FifamReader reader(infoPath / L"fifam_regions.csv", 0);
         if (reader.Available()) {
+            reader.SkipLine();
             while (!reader.IsEof()) {
                 if (!reader.EmptyLine()) {
                     String dummy;
@@ -82,6 +87,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath) {
         std::wcout << L"Reading fifam_injuries.csv..." << std::endl;
         FifamReader reader(infoPath / L"fifam_injuries.csv", 0);
         if (reader.Available()) {
+            reader.SkipLine();
             while (!reader.IsEof()) {
                 if (!reader.EmptyLine()) {
                     foom::injury::converter_data info;
@@ -98,6 +104,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath) {
         std::wcout << L"Reading fifam_divisions.txt..." << std::endl;
         FifamReader reader(infoPath / L"fifam_divisions.txt", 0);
         if (reader.Available()) {
+            reader.SkipLine();
             while (!reader.IsEof()) {
                 if (!reader.EmptyLine()) {
                     DivisionInfo d;
@@ -128,6 +135,8 @@ void Converter::Convert(UInt gameId, Path const &originalDb, Path const &referen
     mFifamDatabase = new FifamDatabase(gameId, originalDb);
     mFoomDatabase = new foom::db(L"D:\\Projects\\fifam\\db\\foom");
     ReadAdditionalInfo(L"D:\\Projects\\fifam\\db");
+
+    Array<Set<UInt>, FifamDatabase::NUM_COUNTRIES> clubUIDsList;
 
     // convert nations, national teams, leagues
     for (auto &entry : mFoomDatabase->mNations) {
@@ -179,7 +188,7 @@ void Converter::Convert(UInt gameId, Path const &originalDb, Path const &referen
                         }
                     }
                     if (!divsOnLevelNames.empty())
-                        levelName = FifamNames::FindCommonPrefix(divsOnLevelNames, true);
+                        levelName = FifamNames::GetLeagueLevelName(divsOnLevelNames, i + 1);
                 }
                 if (level) {
                     auto &levelNames = country->mLeagueLevelNames.emplace_back();
@@ -198,7 +207,7 @@ void Converter::Convert(UInt gameId, Path const &originalDb, Path const &referen
                     country->mAveragePlayerRating = country->mLeagueLevels[i].mRating;
             }
             // add leagues
-            UInt clubCounter = 1;
+            UInt newUIdCounter = 0x3001;
             for (UShort i = 0; i < comps.size(); i++) {
                 auto div = comps[i];
                 FifamCompID compID = { (UChar)country->mId, FifamCompType::League, i };
@@ -223,23 +232,41 @@ void Converter::Convert(UInt gameId, Path const &originalDb, Path const &referen
                 if (!comp)
                     continue;
                 UInt leagueClubCounter = 0;
+                
                 for (auto entry : comp->mVecTeams) {
                     foom::club *team = (foom::club *)entry;
                     auto club = mFifamDatabase->CreateClub(country);
                     // uid
-                    club->mUniqueID = (country->mId << 16) | clubCounter;
+                    club->mUniqueID = team->mConverterData.mFIFAManagerID;
+                    if (club->mUniqueID != 0) {
+                        UChar countryId = FifamUtils::GetCountryIDFromClubID(club->mUniqueID);
+                        if (countryId >= 1 && countryId <= FifamDatabase::NUM_COUNTRIES) {
+                            if (countryId != country->mId) {
+                                Error(L"Incorrect Club Country in UniqueID\nClub: '%s'\nUniqueID: %08X\nCountryId: %d\nIncorrectCountryId: %d",
+                                    team->mName.c_str(), club->mUniqueID, country->mId, countryId);
+                            }
+                        }
+                        else {
+                            Error(L"Incorrect Club UniqueID\nClub: '%s'\nUniqueID: %08X\nIncorrectCountryId: %d",
+                                team->mName.c_str(), club->mUniqueID, countryId);
+                        }
+                    }
+                    if (club->mUniqueID == 0)
+                        club->mUniqueID = (country->mId << 16) | newUIdCounter++;
+                    club->mFifaID = team->mConverterData.mFIFAID;
                     
                     ConvertClub(club, team, country);
 
                     mFifamDatabase->AddClubToMap(club);
                     country->mClubsMap[club->mUniqueID] = club;
-                    clubCounter++;
 
                     // put team to league
                     //if (team->mLastPosition > 0 && team->mLastPosition <
                     league->mTeams[leagueClubCounter].mPtr = club;
                     leagueClubCounter++;
                 }
+
+
 
                 league->GenerateFixtures();
             }
@@ -381,6 +408,77 @@ void Converter::ConvertClub(FifamClub *dst, foom::club *team, FifamCountry *coun
             dst->mIndividualTvMoney = foom::db::convert_money(bestIndividualTvMoneyIncome->mAmount / duration);
     }
     // Fan Base 1st League
+    if (team->mAttendance > 0)
+        dst->mAverageAttendanceLastSeason = team->mAttendance;
+    if (team->mNumberOfSeasonTicketHolders > 0)
+        dst->mCountOfSoldSeasonTickets = team->mNumberOfSeasonTicketHolders;
+
+    // Stadium
+    if (team->mStadium) {
+        FifamTrSetAll(dst->mStadiumName, FifamNames::LimitName(team->mStadium->mName, 29));
+        if (team->mStadium->mCapacity > 0) {
+            Int seatingCapacity = team->mStadium->mSeatingCapacity;
+            if (seatingCapacity == 0 || seatingCapacity > team->mStadium->mCapacity)
+                seatingCapacity = team->mStadium->mCapacity;
+            dst->mStadiumSeatsCapacity = seatingCapacity;
+            dst->mStadiumStandingsCapacity = team->mStadium->mCapacity - seatingCapacity;
+        }
+    }
+    
+    if (FifamTr(dst->mStadiumName).empty())
+        FifamTrSetAll(dst->mStadiumName, FifamNames::LimitName(FifamTr(dst->mCityName), 21) + L" Stadium");
+    if ((dst->mStadiumSeatsCapacity + dst->mStadiumStandingsCapacity) == 0) {
+        // TODO
+    }
+    // Club facilities
+    dst->mClubFacilities = Utils::MapTo((team->mTraining + team->mCorporateFacilities) / 2, 0, 20, 0, 6);
+    dst->mYouthCentre = Utils::MapTo(team->mYouthFacilities, 0, 20, 1, 10);
+    dst->mYouthBoardingSchool = Utils::MapTo(team->mYouthCoaching, 0, 20, 0, 10);
+    // TODO: other facilities
+    // TODO: AI strategy
+
+    // Youth players come from
+    if (team->mBasedNation)
+        dst->mYouthPlayersCountry.SetFromInt(team->mBasedNation->mConverterData.mFIFAManagerReplacementID);
+    else
+        dst->mYouthPlayersCountry.SetFromInt(country->mId);
+    // Youth players are basques
+    dst->mYouthPlayersAreBasques = team->is_basque();
+
+    // League history
+    for (auto &h : team->mVecTeamLeagueHistory) {
+        if (h.mDivision && h.mDivision->mCompetitionLevel >= 1 && h.mDivision->mCompetitionLevel <= 3) {
+            UInt level = h.mDivision->mCompetitionLevel - 1;
+            dst->mLeagueTotalPoints[level] += h.mPoints;
+            dst->mLeagueTotalWins[level] += h.mGamesWon;
+            dst->mLeagueTotalDraws[level] += h.mGamesDrawn;
+            dst->mLeagueTotalLoses[level] += h.mGamesLost;
+            dst->mLeagueTotalGoals[level] += h.mGoalsFor;
+            dst->mLeagueTotalGoalsAgainst[level] += h.mGoalsAgainst;
+        }
+    }
+    for (UInt i = 0; i < 3; i++) {
+        if (dst->mLeagueTotalPoints[i] < 0)
+            dst->mLeagueTotalPoints[i] = 0;
+    }
+    // Records
+    if (team->mRecordAttendance > 0 && team->mRecordAttendanceOpposition && team->mRecordAttendanceYear > 0) {
+        dst->mHistory.mRecordAttendance.mAttendance = team->mRecordAttendance;
+        dst->mHistory.mRecordAttendance.mOpponentName = FifamNames::LimitName(team->mRecordAttendanceOpposition->mName, 21);
+        dst->mHistory.mRecordAttendance.mYear = team->mRecordAttendanceYear;
+    }
+    if (team->mRecordWinYear > 0 && team->mRecordWinOpposition) {
+        dst->mHistory.mRecordHomeWin.mScore1 = team->mRecordWinTG;
+        dst->mHistory.mRecordHomeWin.mScore2 = team->mRecordWinOG;
+        dst->mHistory.mRecordHomeWin.mOpponentName = FifamNames::LimitName(team->mRecordWinOpposition->mName, 21);
+        dst->mHistory.mRecordHomeWin.mYear = team->mRecordWinYear;
+    }
+    if (team->mRecordDefeatYear > 0 && team->mRecordDefeatOpposition) {
+        dst->mHistory.mRecordAwayDefeat.mScore1 = team->mRecordDefeatTG;
+        dst->mHistory.mRecordAwayDefeat.mScore2 = team->mRecordDefeatOG;
+        dst->mHistory.mRecordAwayDefeat.mOpponentName = FifamNames::LimitName(team->mRecordDefeatOpposition->mName, 21);
+        dst->mHistory.mRecordAwayDefeat.mYear = team->mRecordDefeatYear;
+    }
 
     ConvertKitsAndColors(dst, team->mVecKits);
 }
@@ -393,7 +491,7 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &ki
 
     for (auto &k : kits) {
         if (k.mKit == 0 || k.mKit == 1) {
-            if (k.mType >= 1 && k.mType <= 5 && k.mAlternativeKitNumber == 0) {
+            if (k.mType >= 1 && k.mType <= 5 && k.mAlternativeKitNumber == 0 && (k.mYear == 0 || k.mYear == CURRENT_YEAR)) {
                 if (k.mCompetition) {
                     if (!tmpCompKitSets[k.mType - 1][k.mKit])
                         tmpCompKitSets[k.mType - 1][k.mKit] = &k;
@@ -429,8 +527,8 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &ki
         foregroundClr = Color(clubClrs->mForeground.r, clubClrs->mForeground.g, clubClrs->mForeground.b);
         Color outlineClr = Color(clubClrs->mOutline.r, clubClrs->mOutline.g, clubClrs->mOutline.b);
         Color secondColor = foregroundClr;
-        if (Color::Distance(backgroundClr, foregroundClr) < 100) {
-            if (Color::Distance(backgroundClr, outlineClr) < 100) {
+        if (Color::Distance(backgroundClr, foregroundClr) < 200) {
+            if (Color::Distance(backgroundClr, outlineClr) < 200) {
                 auto white = Color::Distance(backgroundClr, { 255, 255, 255 });
                 auto black = Color::Distance(backgroundClr, { 0, 0, 0 });
                 if (black < white)
@@ -446,9 +544,15 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &ki
     else {
         UInt numTeamColors = FifamClub::mTeamColorsTable.size();
         if (numTeamColors > 0) {
-            dst->mClubColour = FifamClub::mTeamColorsTable[Random::Get(0, numTeamColors - 1)];
-            backgroundClr = dst->mClubColour.first;
-            foregroundClr = dst->mClubColour.second;
+            dst->mClubColour.SetFromTable(FifamClub::mTeamColorsTable, Random::Get(0, 27));
+            if (Random::Get(1, 100) > 50) {
+                backgroundClr = dst->mClubColour.second;
+                foregroundClr = dst->mClubColour.first;
+            }
+            else {
+                backgroundClr = dst->mClubColour.first;
+                foregroundClr = dst->mClubColour.second;
+            }
         }
     }
     dst->mClubColour2 = dst->mClubColour;
@@ -463,13 +567,20 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &ki
         // kit - number
         if (kitSets[KitPart::Shirt][i])
             kit.mShirtNumberColor = kitSets[KitPart::Shirt][i]->mNumberColour;
-        else
-            kit.mShirtNumberColor = { 0, 0, 0 };
+        else {
+            if (i == 0)
+                kit.mShirtNumberColor = foregroundClr;
+            else
+                kit.mShirtNumberColor = backgroundClr;
+        }
         // kit - armband
         kit.mCaptainArmbandColor = kit.mShirtNumberColor;
         // kit - socks
         kit.mSocks = 1;
-        kit.mSocksColors = { backgroundClr, backgroundClr };
+        if (i == 0)
+            kit.mSocksColors = { backgroundClr, backgroundClr };
+        else
+            kit.mSocksColors = { foregroundClr, foregroundClr };
         if (kitSets[KitPart::Socks][i]) {
             auto &set = kitSets[KitPart::Socks][i];
             switch (set->mKitStyle) {
@@ -507,7 +618,10 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &ki
         }
         // kit - shorts
         kit.mShorts = 1;
-        kit.mShortsColors = { foregroundClr, backgroundClr, backgroundClr };
+        if (i == 0)
+            kit.mShortsColors = { backgroundClr, foregroundClr, foregroundClr };
+        else
+            kit.mShortsColors = { foregroundClr, backgroundClr, backgroundClr };
         if (kitSets[KitPart::Shorts][i]) {
             auto &set = kitSets[KitPart::Shorts][i];
             switch (set->mKitStyle) {
@@ -539,7 +653,10 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &ki
         }
         // kit - shirts
         kit.mShirt = 4;
-        kit.mShirtColors = { foregroundClr, backgroundClr, backgroundClr };
+        if (i == 0)
+            kit.mShirtColors = { backgroundClr, foregroundClr, foregroundClr };
+        else
+            kit.mShirtColors = { foregroundClr, backgroundClr, backgroundClr };
         if (kitSets[KitPart::Shirt][i]) {
             auto &set = kitSets[KitPart::Shirt][i];
             switch (set->mKitStyle) {
@@ -552,6 +669,7 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &ki
                 kit.mShirtColors = { set->mBackground, set->mOutline, set->mForeground };
                 break;
             case 3:
+            case 48:
                 if (set->mBackOfShirtStyle == 2) // Plain
                     kit.mShirt = 14;
                 else
@@ -559,6 +677,8 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &ki
                 kit.mShirtColors = { set->mForeground, set->mOutline, set->mBackground };
                 break;
             case 4:
+            case 49:
+            case 51:
                 kit.mShirt = 48;
                 kit.mShirtColors = { set->mForeground, set->mBackground, set->mBackground };
                 break;
@@ -575,6 +695,7 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &ki
                 kit.mShirtColors = { set->mForeground, set->mBackground, set->mBackground };
                 break;
             case 8:
+            case 38:
                 kit.mShirt = 38;
                 kit.mShirtColors = { set->mBackground, set->mOutline, set->mForeground };
                 break;
@@ -587,10 +708,12 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &ki
                 kit.mShirtColors = { set->mBackground, set->mOutline, set->mForeground };
                 break;
             case 11:
+            case 37:
                 kit.mShirt = 19;
                 kit.mShirtColors = { set->mForeground, set->mOutline, set->mBackground };
                 break;
             case 12:
+            case 55:
                 kit.mShirt = 57;
                 kit.mShirtColors = { set->mBackground, set->mBackground, set->mForeground };
                 break;
@@ -623,6 +746,7 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &ki
                 kit.mShirtColors = { set->mBackground, set->mForeground, set->mOutline };
                 break;
             case 20:
+            case 39:
                 kit.mShirt = 39;
                 kit.mShirtColors = { set->mBackground, set->mOutline, set->mForeground };
                 break;
@@ -675,9 +799,54 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &ki
                 kit.mShirt = 26;
                 kit.mShirtColors = { set->mBackground, set->mForeground, set->mBackground };
                 break;
-            case 37:
+            case 40:
+                kit.mShirt = 58;
+                kit.mShirtColors = { set->mBackground, set->mForeground, set->mOutline };
+                break;
+            case 41:
+                kit.mShirt = 63;
+                kit.mShirtColors = { set->mForeground, set->mBackground, set->mOutline };
+                break;
+            case 42:
                 kit.mShirt = 26;
-                kit.mShirtColors = { set->mBackground, set->mForeground, set->mBackground };
+                kit.mShirtColors = { set->mBackground, set->mForeground, set->mOutline };
+                break;
+            case 43:
+                kit.mShirt = 13;
+                kit.mShirtColors = { set->mForeground, set->mOutline, set->mBackground };
+                break;
+            case 44:
+                kit.mShirt = 65;
+                kit.mShirtColors = { set->mBackground, set->mOutline, set->mForeground };
+                break;
+            case 45:
+                kit.mShirt = 15;
+                kit.mShirtColors = { set->mBackground, set->mForeground, set->mOutline };
+                break;
+            case 46:
+            case 47:
+                kit.mShirt = 54;
+                kit.mShirtColors = { set->mBackground, set->mForeground, set->mForeground };
+                break;
+            case 50:
+                kit.mShirt = 62;
+                kit.mShirtColors = { set->mBackground, set->mForeground, set->mOutline };
+                break;
+            case 52:
+                kit.mShirt = 58;
+                kit.mShirtColors = { set->mBackground, set->mForeground, set->mOutline };
+                break;
+            case 53:
+                kit.mShirt = 17;
+                kit.mShirtColors = { set->mBackground, set->mForeground, set->mOutline };
+                break;
+            case 54:
+                kit.mShirt = 53;
+                kit.mShirtColors = { set->mBackground, set->mForeground, set->mOutline };
+                break;
+            case 56:
+                kit.mShirt = 12;
+                kit.mShirtColors = { set->mBackground, set->mForeground, set->mOutline };
                 break;
             }
         }
