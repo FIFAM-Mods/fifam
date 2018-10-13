@@ -54,6 +54,13 @@ struct club : public team {
     Int mRecordAttendance = 0;
     Int mRecordAttendanceYear = 0;
 
+    struct reserve_team {
+        club *mReserveClub = 0;
+        Int mReserveTeamType = 0;
+    };
+
+    Vector<reserve_team> mVecReserveTeams;
+
     struct affiliation {
         club *mAffiliatedClub = 0;
         Bool mIsMainClub = 0;
@@ -89,7 +96,7 @@ struct club : public team {
         Int mYear = 0;
     };
 
-    Vector<kit> mVecRegionalDivisions;
+    Vector<regional_division> mVecRegionalDivisions;
 
     struct rival_club {
         club *mRivalClub = 0;
@@ -120,6 +127,34 @@ struct club : public team {
     struct converter_data {
         UInt mFIFAManagerID = 0;
         UInt mFIFAID = 0;
+        void *mFifamClub = nullptr;
+        Set<UShort> mLeagueWins;
+        Set<UShort> mCupWins;
+        Set<UShort> mSuperCupWins;
+        Set<UShort> mLeagueCupWins;
+        Set<UShort> mChampionsLeagueWins;
+        Set<UShort> mEuropaLeagueWins;
+        Set<UShort> mToyotaCupWins;
+        Set<UShort> mClubWorldCupWins;
+        club *mParentClub = nullptr;
+        club *mMainChildClubInDB = nullptr;
+        club *mParentClubInDB = nullptr;
+        enum child_type {
+            second,
+            third,
+            u23,
+            u21,
+            u20,
+            u19,
+            u18,
+            other
+        } mChildType = other;
+        struct child_club {
+            club *mClub = 0;
+            bool mIsAffiliated = false;
+            Int mType = other;
+        };
+        Vector<child_club> mChildClubs;
     } mConverterData;
 
     club () {

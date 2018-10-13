@@ -43,6 +43,10 @@ struct nation : public team {
         UInt mFIFAManagerID = 0;
         UInt mFIFAManagerReplacementID = 0;
         UInt mFIFAID = 0;
+        Set<UShort> mWorldCupWins;
+        Set<UShort> mEuroCupWins;
+        Set<UShort> mWorldCupFinals;
+        Set<UShort> mEuroCupFinals;
     } mConverterData;
 
     nation() {

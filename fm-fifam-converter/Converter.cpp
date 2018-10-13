@@ -136,7 +136,163 @@ void Converter::Convert(UInt gameId, Path const &originalDb, Path const &referen
     mFoomDatabase = new foom::db(L"D:\\Projects\\fifam\\db\\foom");
     ReadAdditionalInfo(L"D:\\Projects\\fifam\\db");
 
-    Array<Set<UInt>, FifamDatabase::NUM_COUNTRIES> clubUIDsList;
+    for (auto &entry : mFoomDatabase->mClubs) {
+        auto &c = entry.second;
+        // for all affiliated clubs
+        for (auto &a : c.mVecAffiliations) {
+            if (a.mAffiliatedClub && a.mIsMainClub) {
+                if (a.mStartDate < Date(2, 7, CURRENT_YEAR) && (a.mEndDate == Date(1, 1, 1900) || a.mEndDate > Date(1, 7, CURRENT_YEAR))) {
+                    foom::club *child = nullptr;
+                    foom::club::converter_data::child_type childType;
+                    if (a.mAffiliationType == 4 || a.mAffiliationType == 6 || a.mAffiliationType == 8) {
+                        child = a.mAffiliatedClub;
+                        childType = foom::club::converter_data::child_type::second;
+                    }
+                    else if (a.mAffiliationType == 5 || a.mAffiliationType == 7) {
+                        child = a.mAffiliatedClub;
+                        childType = foom::club::converter_data::child_type::third;
+                    }
+                    if (child) {
+                        if (child->mConverterData.mParentClub) {
+                            Error(L"Affiliated B/C club has more than 1 parent club\nClub: '%s'\nClubParent1: '%s'\nClubParent2: '%s'",
+                                child->mName.c_str(), child->mConverterData.mParentClub->mName.c_str(), c.mName.c_str());
+                        }
+                        else {
+                            foom::club::converter_data::child_club childInfo;
+                            childInfo.mClub = child;
+                            childInfo.mIsAffiliated = true;
+                            childInfo.mType = childType;
+                            c.mConverterData.mChildClubs.push_back(childInfo);
+                            child->mConverterData.mParentClub = &c;
+                            child->mConverterData.mChildType = childType;
+                        }
+                    }
+                }
+            }
+        }
+        // for all reserve clubs
+        for (auto &r : c.mVecReserveTeams) {
+            if (r.mReserveClub) {
+                foom::club *child = nullptr;
+                foom::club::converter_data::child_type childType;
+                if (r.mReserveTeamType == 1 || r.mReserveTeamType == 3 || r.mReserveTeamType == 14 || r.mReserveTeamType == 15 || r.mReserveTeamType == 16) {
+                    child = r.mReserveClub;
+                    childType = foom::club::converter_data::child_type::second;
+                }
+                else if (r.mReserveTeamType == 13 || r.mReserveTeamType == 17) {
+                    child = r.mReserveClub;
+                    childType = foom::club::converter_data::child_type::third;
+                }
+                else if (r.mReserveTeamType == 9) {
+                    child = r.mReserveClub;
+                    childType = foom::club::converter_data::child_type::u23;
+                }
+                else if (r.mReserveTeamType == 10 || r.mReserveTeamType == 30) {
+                    child = r.mReserveClub;
+                    childType = foom::club::converter_data::child_type::u21;
+                }
+                else if (r.mReserveTeamType == 18) {
+                    child = r.mReserveClub;
+                    childType = foom::club::converter_data::child_type::u20;
+                }
+                else if (r.mReserveTeamType == 11) {
+                    child = r.mReserveClub;
+                    childType = foom::club::converter_data::child_type::u19;
+                }
+                else if (r.mReserveTeamType == 12) {
+                    child = r.mReserveClub;
+                    childType = foom::club::converter_data::child_type::u18;
+                }
+                if (child) {
+                    if (child->mConverterData.mParentClub) {
+                        Error(L"Reserve club has more than 1 parent club\nClub: '%s'\nClubParent1: '%s'\nClubParent2: '%s'",
+                            child->mName.c_str(), child->mConverterData.mParentClub->mName.c_str(), c.mName.c_str());
+                    }
+                    else {
+                        foom::club::converter_data::child_club childInfo;
+                        childInfo.mClub = child;
+                        childInfo.mIsAffiliated = false;
+                        childInfo.mType = childType;
+                        c.mConverterData.mChildClubs.push_back(childInfo);
+                        child->mConverterData.mParentClub = &c;
+                        child->mConverterData.mChildType = childType;
+                    }
+                }
+            }
+        }
+        // sort reserve clubs - by team types (affiliated clubs have bigger priority)
+        if (c.mConverterData.mChildClubs.size() > 1) {
+            std::sort(c.mConverterData.mChildClubs.begin(), c.mConverterData.mChildClubs.end(),
+                [](foom::club::converter_data::child_club const &a, foom::club::converter_data::child_club const &b) {
+                if (a.mType < b.mType) return true;
+                if (b.mType < a.mType) return false;
+                if (a.mIsAffiliated) return true;
+                if (b.mIsAffiliated) return false;
+                return false;
+            }
+            );
+
+            // DEBUG
+            ///String message = Utils::Format(L"Club '%s' reserve teams:", c.mName.c_str());
+            ///for (UInt i = 0; i < c.mConverterData.mChildClubs.size(); i++)
+            ///    message += Utils::Format(L"\n%d. '%s'", i + 1, c.mConverterData.mChildClubs[i].mClub->mName.c_str());
+            ///Message(message);
+        }
+    }
+    for (auto &entry : mFoomDatabase->mClubs) {
+        auto &c = entry.second;
+        // child club has child clubs
+        if (c.mConverterData.mParentClub && !c.mConverterData.mChildClubs.empty())
+            Error(L"Reserve club has reserve teams\nClub: '%s'", c.mName.c_str());
+    }
+
+    for (auto &entry : mFoomDatabase->mComps) {
+        auto &c = entry.second;
+        // get champion
+        for (auto &h : c.mVecHistory) {
+            if (h.mYear > 0 && h.mFirstPlaced) {
+                if (!h.mFirstPlaced->mIsNation) {
+                    foom::club *club = (foom::club *)h.mFirstPlaced;
+                    if (c.mID == 1301394 || c.mID == 102415 || c.mID == 127286 || c.mID == 127299 || c.mID == 51002641 || c.mID == 1301417 || c.mID == 127285) // Champions League
+                        club->mConverterData.mChampionsLeagueWins.insert(h.mYear);
+                    else if (c.mID == 1301396 || c.mID == 317567 || c.mID == 1001959 || c.mID == 12017574 || c.mID == 5623042) // Europa League
+                        club->mConverterData.mEuropaLeagueWins.insert(h.mYear);
+                    else if (c.mID == 121092) // Club World Cup
+                        club->mConverterData.mClubWorldCupWins.insert(h.mYear);
+                    else if (c.mID == 1301393) // TOYOTA Cup
+                        club->mConverterData.mToyotaCupWins.insert(h.mYear);
+                    else if (!c.mIsExtinct && c.mNation && club->mNation == c.mNation) { // domestic competitions
+                        // league
+                        if (c.mType == 0)
+                            club->mConverterData.mLeagueWins.insert(h.mYear);
+                        // cup
+                        if (c.mType == 2)
+                            club->mConverterData.mCupWins.insert(h.mYear);
+                        // league cup
+                        if (c.mType == 3)
+                            club->mConverterData.mLeagueCupWins.insert(h.mYear);
+                        // supercup
+                        if (c.mType == 5)
+                            club->mConverterData.mSuperCupWins.insert(h.mYear);
+                    }
+                }
+                else {
+                    foom::nation *nation = (foom::nation *)h.mFirstPlaced;
+                    foom::nation *nationRunnerUp = (foom::nation *)h.mSecondPlaced;
+                    if (c.mID == 1301385) { // World Cup
+                        nation->mConverterData.mWorldCupWins.insert(h.mYear);
+                        if (nationRunnerUp)
+                            nationRunnerUp->mConverterData.mWorldCupFinals.insert(h.mYear);
+                    }
+                    else if (c.mID == 1301388) { // Euro Cup
+                        nation->mConverterData.mEuroCupWins.insert(h.mYear);
+                        if (nationRunnerUp)
+                            nationRunnerUp->mConverterData.mEuroCupFinals.insert(h.mYear);
+                    }
+                }
+            }
+        }
+    }
 
     // convert nations, national teams, leagues
     for (auto &entry : mFoomDatabase->mNations) {
@@ -207,7 +363,8 @@ void Converter::Convert(UInt gameId, Path const &originalDb, Path const &referen
                     country->mAveragePlayerRating = country->mLeagueLevels[i].mRating;
             }
             // add leagues
-            UInt newUIdCounter = 0x3001;
+            mNextFreeUID[country->mId - 1] = 0x3001;
+            mNumTeamsInLeagueSystem[country->mId - 1] = 0;
             for (UShort i = 0; i < comps.size(); i++) {
                 auto div = comps[i];
                 FifamCompID compID = { (UChar)country->mId, FifamCompType::League, i };
@@ -232,46 +389,123 @@ void Converter::Convert(UInt gameId, Path const &originalDb, Path const &referen
                 if (!comp)
                     continue;
                 UInt leagueClubCounter = 0;
-                
+
                 for (auto entry : comp->mVecTeams) {
                     foom::club *team = (foom::club *)entry;
-                    auto club = mFifamDatabase->CreateClub(country);
-                    // uid
-                    club->mUniqueID = team->mConverterData.mFIFAManagerID;
-                    if (club->mUniqueID != 0) {
-                        UChar countryId = FifamUtils::GetCountryIDFromClubID(club->mUniqueID);
-                        if (countryId >= 1 && countryId <= FifamDatabase::NUM_COUNTRIES) {
-                            if (countryId != country->mId) {
-                                Error(L"Incorrect Club Country in UniqueID\nClub: '%s'\nUniqueID: %08X\nCountryId: %d\nIncorrectCountryId: %d",
-                                    team->mName.c_str(), club->mUniqueID, country->mId, countryId);
-                            }
+                    FifamClub *club = nullptr;
+                    foom::club *mainTeam = nullptr; // for reserve teams
+                    FifamClubTeamType teamType = FifamClubTeamType::First;
+                    bool createNewClub = false;
+                    bool isExtinct = team->mExtinct;
+                    if (team->mConverterData.mParentClub)
+                        isExtinct = team->mConverterData.mParentClub->mExtinct;
+                    if (isExtinct) {
+                        Error(L"Extinct club in the league\nClub: '%s'\nLeague: '%s'",
+                            team->mName.c_str(), div->mName.c_str());
+                    }
+                    else if (team->mConverterData.mFifamClub) {
+                        Message(Utils::Format(L"Team already present in other league\nClub: '%s'\nLeague: '%s'",
+                            team->mName.c_str(), div->mName.c_str()));
+                        club = (FifamClub *)team->mConverterData.mFifamClub;
+                        if (team->mConverterData.mParentClub)
+                            teamType = FifamClubTeamType::Reserve;
+                    }
+                    else if (team->mConverterData.mParentClub) {
+                        if (!team->mConverterData.mParentClub->mConverterData.mFifamClub) {
+                            Error(L"Reserve club appears before the first team in the league\nMainClub: '%s'\nReserveClub: '%s'\nLeague: '%s'",
+                                team->mConverterData.mParentClub->mName.c_str(), team->mName.c_str(), div->mName.c_str());
                         }
                         else {
-                            Error(L"Incorrect Club UniqueID\nClub: '%s'\nUniqueID: %08X\nIncorrectCountryId: %d",
-                                team->mName.c_str(), club->mUniqueID, countryId);
+                            if (!team->mConverterData.mParentClub->mConverterData.mMainChildClubInDB) {
+                                club = (FifamClub *)team->mConverterData.mParentClub->mConverterData.mFifamClub;
+                                teamType = FifamClubTeamType::Reserve;
+                                team->mConverterData.mParentClub->mConverterData.mMainChildClubInDB = team;
+                                team->mConverterData.mParentClubInDB = team->mConverterData.mParentClub;
+                            }
+                            else {
+                                team->mConverterData.mParentClub->mConverterData.mChildClubs.erase(std::remove_if(
+                                    team->mConverterData.mParentClub->mConverterData.mChildClubs.begin(),
+                                    team->mConverterData.mParentClub->mConverterData.mChildClubs.end(),
+                                    [=](foom::club::converter_data::child_club const &a) {
+                                    return a.mClub == team;
+                                }), team->mConverterData.mParentClub->mConverterData.mChildClubs.end());
+                                mainTeam = team->mConverterData.mParentClub;
+                                team->mConverterData.mParentClub = nullptr;
+                                createNewClub = true;
+                                //Error(L"Reserve club already present for team in the league\nMainClub: '%s'\nReserveClub: '%s'\nLeague: '%s'",
+                                //    team->mConverterData.mParentClub->mName.c_str(), team->mName.c_str(), div->mName.c_str());
+                            }
                         }
                     }
-                    if (club->mUniqueID == 0)
-                        club->mUniqueID = (country->mId << 16) | newUIdCounter++;
-                    club->mFifaID = team->mConverterData.mFIFAID;
-                    
-                    ConvertClub(club, team, country);
-
-                    mFifamDatabase->AddClubToMap(club);
-                    country->mClubsMap[club->mUniqueID] = club;
-
+                    else
+                        createNewClub = true;
+                    if (createNewClub)
+                        club = CreateAndConvertClub(team, mainTeam, country);
                     // put team to league
-                    //if (team->mLastPosition > 0 && team->mLastPosition <
-                    league->mTeams[leagueClubCounter].mPtr = club;
-                    leagueClubCounter++;
+                    if (club) {
+                        league->mTeams[leagueClubCounter].mPtr = club;
+                        league->mTeams[leagueClubCounter].mTeamType = teamType;
+                        leagueClubCounter++;
+                    }
                 }
 
-
-
                 league->GenerateFixtures();
+
+                mNumTeamsInLeagueSystem[country->mId - 1] += div->mTeams;
             }
         }
     }
+
+    // create spare teams (non-league teams)
+    Array<Vector<foom::club *>, FifamDatabase::NUM_COUNTRIES> spareClubs;
+    for (auto &entry : mFoomDatabase->mClubs) {
+        auto &c = entry.second;
+        // team is not already added, is active, has associated nation, not a reserve team
+        if (!c.mConverterData.mFifamClub && !c.mExtinct && c.mNation && !c.mConverterData.mParentClub) {
+            // if proper country ID
+            auto country = mFifamDatabase->GetCountry(c.mNation->mConverterData.mFIFAManagerID);
+            if (country)
+                spareClubs[country->mId - 1].push_back(&c);
+        }
+    }
+    for (auto &country : mFifamDatabase->mCountries) {
+        if (country) {
+            if (!spareClubs[country->mId - 1].empty()) {
+                std::sort(spareClubs[country->mId - 1].begin(), spareClubs[country->mId - 1].end(), [](foom::club *a, foom::club *b) {
+                    UInt teamALeagueLevel = a->mDivision ? a->mDivision->mCompetitionLevel : 0;
+                    UInt teamBLeagueLevel = b->mDivision ? b->mDivision->mCompetitionLevel : 0;
+                    if (teamALeagueLevel == 0)
+                        teamALeagueLevel = 9999;
+                    if (teamBLeagueLevel == 0)
+                        teamBLeagueLevel = 9999;
+                    if (teamALeagueLevel < teamBLeagueLevel) return true;
+                    if (teamBLeagueLevel < teamALeagueLevel) return false;
+                    if (a->mReputation < b->mReputation) return true;
+                    if (b->mReputation < a->mReputation) return false;
+                    return false;
+                });
+                UInt numSpareClubsToAdd = mNumTeamsInLeagueSystem[country->mId - 1];
+                if (numSpareClubsToAdd == 0)
+                    numSpareClubsToAdd = 8;
+                else {
+                    if (numSpareClubsToAdd >= 1000)
+                        numSpareClubsToAdd = 0;
+                    else {
+                        numSpareClubsToAdd = numSpareClubsToAdd; // set num of spare teams here
+                        if (numSpareClubsToAdd >= 1000)
+                            numSpareClubsToAdd = 0;
+                    }
+                }
+                if (numSpareClubsToAdd > spareClubs[country->mId - 1].size())
+                    numSpareClubsToAdd = spareClubs[country->mId - 1].size();
+                for (UInt i = 0; i < numSpareClubsToAdd; i++) {
+                    foom::club *team = spareClubs[country->mId - 1][i];
+                    CreateAndConvertClub(team, team, country);
+                }
+            }
+        }
+    }
+
     // convert referees
     for (auto &entry : mFoomDatabase->mOfficials) {
         auto &official = entry.second;
@@ -295,7 +529,38 @@ void Converter::Convert(UInt gameId, Path const &originalDb, Path const &referen
     delete mFoomDatabase;
 }
 
+FifamClub *Converter::CreateAndConvertClub(foom::club *team, foom::club *mainTeam, FifamCountry *country) {
+    if (!mainTeam)
+        mainTeam = team;
+    FifamClub *club = mFifamDatabase->CreateClub(country);
+    // uid
+    club->mUniqueID = team->mConverterData.mFIFAManagerID;
+    if (club->mUniqueID != 0) {
+        UChar countryId = FifamUtils::GetCountryIDFromClubID(club->mUniqueID);
+        if (countryId >= 1 && countryId <= FifamDatabase::NUM_COUNTRIES) {
+            if (countryId != country->mId) {
+                Error(L"Incorrect Club Country in UniqueID\nClub: '%s'\nUniqueID: %08X\nCountryId: %d\nIncorrectCountryId: %d",
+                    team->mName.c_str(), club->mUniqueID, country->mId, countryId);
+            }
+        }
+        else {
+            Error(L"Incorrect Club UniqueID\nClub: '%s'\nUniqueID: %08X\nIncorrectCountryId: %d",
+                team->mName.c_str(), club->mUniqueID, countryId);
+        }
+    }
+    if (club->mUniqueID == 0)
+        club->mUniqueID = (country->mId << 16) | mNextFreeUID[country->mId - 1]++;
+    club->mFifaID = team->mConverterData.mFIFAID;
 
+    ConvertClub(club, team, mainTeam, country);
+
+    mFifamDatabase->AddClubToMap(club);
+    country->mClubsMap[club->mUniqueID] = club;
+
+    team->mConverterData.mFifamClub = club;
+
+    return club;
+}
 
 void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation) {
     dst->mAssessmentData[5] = nation->mEuroCoeff1;
@@ -313,10 +578,16 @@ void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation) {
     dst->mNationalTeam.mInternationalPrestige = prestige;
     dst->mNationalTeam.mNationalPrestige = prestige;
 
+    // wins
+    dst->mNumWorldCups = (UShort)nation->mConverterData.mWorldCupWins.size();
+    dst->mNumWorldCupRunnersUp = (UShort)nation->mConverterData.mWorldCupFinals.size();
+    dst->mNumContinentalChampions = (UShort)nation->mConverterData.mEuroCupWins.size();
+    dst->mNumContinentalRunnersUp = (UShort)nation->mConverterData.mEuroCupFinals.size();
+
     ConvertKitsAndColors(&dst->mNationalTeam, nation->mVecKits);
 }
 
-void Converter::ConvertClub(FifamClub *dst, foom::club *team, FifamCountry *country) {
+void Converter::ConvertClub(FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country) {
     // name
     if (team->mName.length() < 30)
         FifamTrSetAll(dst->mName, team->mName);
@@ -479,8 +750,49 @@ void Converter::ConvertClub(FifamClub *dst, foom::club *team, FifamCountry *coun
         dst->mHistory.mRecordAwayDefeat.mOpponentName = FifamNames::LimitName(team->mRecordDefeatOpposition->mName, 21);
         dst->mHistory.mRecordAwayDefeat.mYear = team->mRecordDefeatYear;
     }
+    // Win years
+    std::copy(team->mConverterData.mLeagueWins.begin(), team->mConverterData.mLeagueWins.end(), std::back_inserter(dst->mHistory.mLeagueWinYears));
+    if (dst->mHistory.mLeagueWinYears.size() > 64) {
+        dst->mHistory.mLeagueWinYears.resize(64);
+        Error("Reached league win years limit\nClub: '%s'\nCount: %d", team->mName.c_str(), dst->mHistory.mLeagueWinYears.size());
+    }
+    std::copy(team->mConverterData.mCupWins.begin(), team->mConverterData.mCupWins.end(), std::back_inserter(dst->mHistory.mCupWinYears));
+    if (dst->mHistory.mCupWinYears.size() > 64) {
+        dst->mHistory.mCupWinYears.resize(64);
+        Error("Reached cup win years limit\nClub: '%s'\nCount: %d", team->mName.c_str(), dst->mHistory.mCupWinYears.size());
+    }
+    std::copy(team->mConverterData.mLeagueCupWins.begin(), team->mConverterData.mLeagueCupWins.end(), std::back_inserter(dst->mHistory.mLeagueCupWinYears));
+    if (dst->mHistory.mLeagueCupWinYears.size() > 64) {
+        dst->mHistory.mLeagueCupWinYears.resize(64);
+        Error("Reached league cup win years limit\nClub: '%s'\nCount: %d", team->mName.c_str(), dst->mHistory.mLeagueCupWinYears.size());
+    }
+    std::copy(team->mConverterData.mSuperCupWins.begin(), team->mConverterData.mSuperCupWins.end(), std::back_inserter(dst->mHistory.mSuperCupsWinYears));
+    if (dst->mHistory.mSuperCupsWinYears.size() > 64) {
+        dst->mHistory.mSuperCupsWinYears.resize(64);
+        Error("Reached supercup win years limit\nClub: '%s'\nCount: %d", team->mName.c_str(), dst->mHistory.mSuperCupsWinYears.size());
+    }
+    std::copy(team->mConverterData.mChampionsLeagueWins.begin(), team->mConverterData.mChampionsLeagueWins.end(), std::back_inserter(dst->mHistory.mChampionsCupWinYears));
+    if (dst->mHistory.mChampionsCupWinYears.size() > 64) {
+        dst->mHistory.mChampionsCupWinYears.resize(64);
+        Error("Reached championsleague win years limit\nClub: '%s'\nCount: %d", team->mName.c_str(), dst->mHistory.mChampionsCupWinYears.size());
+    }
+    std::copy(team->mConverterData.mEuropaLeagueWins.begin(), team->mConverterData.mEuropaLeagueWins.end(), std::back_inserter(dst->mHistory.mEuroTrophyWinYears));
+    if (dst->mHistory.mEuroTrophyWinYears.size() > 64) {
+        dst->mHistory.mEuroTrophyWinYears.resize(64);
+        Error("Reached europaleague win years limit\nClub: '%s'\nCount: %d", team->mName.c_str(), dst->mHistory.mEuroTrophyWinYears.size());
+    }
+    std::copy(team->mConverterData.mToyotaCupWins.begin(), team->mConverterData.mToyotaCupWins.end(), std::back_inserter(dst->mHistory.mWorldChampionshipWinYears));
+    if (dst->mHistory.mWorldChampionshipWinYears.size() > 64) {
+        dst->mHistory.mWorldChampionshipWinYears.resize(64);
+        Error("Reached toyotacup win years limit\nClub: '%s'\nCount: %d", team->mName.c_str(), dst->mHistory.mWorldChampionshipWinYears.size());
+    }
+    std::copy(team->mConverterData.mClubWorldCupWins.begin(), team->mConverterData.mClubWorldCupWins.end(), std::back_inserter(dst->mHistory.mWorldClubChampionshipWinYears));
+    if (dst->mHistory.mWorldClubChampionshipWinYears.size() > 64) {
+        dst->mHistory.mWorldClubChampionshipWinYears.resize(64);
+        Error("Reached worldclubcup win years limit\nClub: '%s'\nCount: %d", team->mName.c_str(), dst->mHistory.mWorldClubChampionshipWinYears.size());
+    }
 
-    ConvertKitsAndColors(dst, team->mVecKits);
+    ConvertKitsAndColors(dst, mainTeam->mVecKits);
 }
 
 void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &kits) {

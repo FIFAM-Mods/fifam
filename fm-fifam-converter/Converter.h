@@ -26,6 +26,8 @@ public:
     };
 
     Vector<DivisionInfo> mDivisions;
+    Array<UInt, FifamDatabase::NUM_COUNTRIES> mNextFreeUID;
+    Array<UInt, FifamDatabase::NUM_COUNTRIES> mNumTeamsInLeagueSystem;
 
     void ReadAdditionalInfo(Path const &infoPath);
     void Convert(UInt gameId, Bool writeToGameFolder);
@@ -33,7 +35,8 @@ public:
     ~Converter();
 
     void ConvertNationInfo(FifamCountry *dst, foom::nation *nation);
-    void ConvertClub(FifamClub *dst, foom::club *team, FifamCountry *country);
+    void ConvertClub(FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country);
+    FifamClub *CreateAndConvertClub(foom::club *team, foom::club *mainTeam, FifamCountry *country);
     void ConvertReferee(FifamReferee *dst, foom::official *official);
     void ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &kits);
 };

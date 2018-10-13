@@ -167,8 +167,37 @@ struct db {
             reader.ReadLine(clubID, h.mYear, h.mOrder, IntPtr(h.mDivision), h.mPosition, h.mMaxTeams, h.mPoints, h.mGamesPlayed, h.mGamesWon, h.mGamesDrawn, h.mGamesLost, h.mGoalsFor, h.mGoalsAgainst);
             map_find(mClubs, clubID).mVecTeamLeagueHistory.push_back(h);
         });
+        ReaderCallback(L"fm_club_reserve_teams", [&](FifamReader &reader) {
+            Int clubID = -1;
+            club::reserve_team r;
+            reader.ReadLine(clubID, IntPtr(r.mReserveClub), r.mReserveTeamType);
+            map_find(mClubs, clubID).mVecReserveTeams.push_back(r);
+        });
+        ReaderCallback(L"fm_club_affiliations", [&](FifamReader &reader) {
+            Int clubID = -1;
+            club::affiliation a;
+            reader.ReadLine(clubID, IntPtr(a.mAffiliatedClub), a.mIsMainClub, a.mStartDate, a.mEndDate, a.mAffiliationType);
+            map_find(mClubs, clubID).mVecAffiliations.push_back(a);
+        });
+        ReaderCallback(L"fm_club_rival_clubs", [&](FifamReader &reader) {
+            Int clubID = -1;
+            club::rival_club r;
+            reader.ReadLine(clubID, IntPtr(r.mRivalClub), r.mLevel, r.mReason, r.mClubDontTransferPlayers);
+            map_find(mClubs, clubID).mVecRivalClubs.push_back(r);
+        });
+        ReaderCallback(L"fm_club_regional_divisions", [&](FifamReader &reader) {
+            Int clubID = -1;
+            club::regional_division r;
+            reader.ReadLine(clubID, r.mLevel, IntPtr(r.mDivision), r.mYear);
+            map_find(mClubs, clubID).mVecRegionalDivisions.push_back(r);
+        });
+        ReaderCallback(L"fm_club_buy_back_clauses", [&](FifamReader &reader) {
+            Int clubID = -1;
+            club::buy_back_clause b;
+            reader.ReadLine(clubID, IntPtr(b.mPlayer), IntPtr(b.mFromClub), b.mBuyBackFee);
+            map_find(mClubs, clubID).mVecBuyBackClauses.push_back(b);
+        });
         // TODO
-
         // read players
         // read non players
         // read officials
@@ -270,6 +299,18 @@ struct db {
                 resolve(k.mCompetition);
             for (auto &h : c.mVecTeamLeagueHistory)
                 resolve(h.mDivision);
+            for (auto &r : c.mVecReserveTeams)
+                resolve(r.mReserveClub);
+            for (auto &a : c.mVecAffiliations)
+                resolve(a.mAffiliatedClub);
+            for (auto &r : c.mVecRivalClubs)
+                resolve(r.mRivalClub);
+            for (auto &r : c.mVecRegionalDivisions)
+                resolve(r.mDivision);
+            for (auto &b : c.mVecBuyBackClauses) {
+                resolve(b.mPlayer);
+                resolve(b.mFromClub);
+            }
         }
         for (auto &entry : mOfficials) {
             official &o = entry.second;
