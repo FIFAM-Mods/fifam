@@ -4,6 +4,10 @@
 
 namespace foom {
 
+struct nation;
+struct language;
+struct club;
+
 struct person {
     Int mID = 0;
     String mFirstName;
@@ -12,8 +16,8 @@ struct person {
     String mFullName;
     Bool mFemale = 0;
     Date mDateOfBirth;
-    Int mNation = 0;
-    Int mLanguage = 0;
+    nation *mNation = 0;
+    language *mLanguage = 0;
     Int mAdaptability = 0;
     Int mAmbition = 0;
     Int mControversy = 0;
@@ -24,17 +28,17 @@ struct person {
     Int mTemperament = 0;
 
     struct language {
-        Int mLanguage = 0;
+        foom::language *mLanguage = 0;
         Int mProficiency = 0;
         Bool mCannotSpeakLanguage = 0;
     };
 
     Vector<language> mVecLanguages;
 
-    Vector<Int> mVecSecondNations;
+    Vector<nation *> mVecSecondNations;
 
     struct favourite_club {
-        Int mClub = 0;
+        club *mClub = 0;
         Int mReason = 0;
         Int mLevel = 0;
     };
@@ -42,7 +46,7 @@ struct person {
     Vector<favourite_club> mVecFavouriteClubs;
 
     struct disliked_club {
-        Int mClub = 0;
+        club *mClub = 0;
         Int mLevel = 0;
     };
 

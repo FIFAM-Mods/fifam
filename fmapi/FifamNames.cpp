@@ -57,11 +57,17 @@ String FifamNames::LimitName(String const &name, UInt maxSize) {
 }
 
 String FifamNames::GetClubAbbr(String const &name) {
-    String abbr = Utils::ToUpper(name);
-    if (abbr.length() <= 4)
-        return abbr;
-    abbr = abbr.substr(0, 4);
-    Utils::Trim(abbr);
+    String nameUpper = Utils::ToUpper(name);
+    String abbr;
+    UInt abbrSize = 0;
+    for (auto &c : nameUpper) {
+        if (c != L' ' && !Utils::IsPunctuationMark(c)) {
+            abbr += c;
+            abbrSize++;
+            if (abbrSize == 4)
+                break;
+        }
+    }
     return abbr;
 }
 

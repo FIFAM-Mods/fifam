@@ -121,6 +121,10 @@ public:
     // 0 or negative
     Char mPenaltyPoints = 0;
     // @since FM07
+    // @until FM09
+    UInt mMaxAttendance = 0;
+    // @since FM09
+    // @range 0-250'000
     UInt mPotentialFansCount = 0;
     // @since FM07
     UInt mAverageAttendanceLastSeason = 0;

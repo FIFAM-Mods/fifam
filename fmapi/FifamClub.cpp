@@ -226,7 +226,10 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
                 reader.ReadLine(mSpecialSponsor);
             }
             reader.ReadLine(mPenaltyPoints);
-            reader.ReadLine(mPotentialFansCount);
+            if (reader.GetGameId() >= 9)
+                reader.ReadLine(mPotentialFansCount);
+            else
+                reader.ReadLine(mMaxAttendance);
             reader.ReadLine(mAverageAttendanceLastSeason);
             reader.ReadLine(mCountOfSoldSeasonTickets);
             UInt numLeagues = 1;
@@ -366,6 +369,20 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
             mReserveTeamLastSeasonInfo.mCup = FifamClubLastSeasonCup::RunnerUp;
         if (lastSeasonFlags & 256)
             mDoesNotTakePartInITCup = true;
+
+        if (reader.GetGameId() >= 9) {
+            mMaxAttendance = mAverageAttendanceLastSeason * 2;
+            UInt stadiumCapacity = mStadiumSeatsCapacity + mStadiumStandingsCapacity + mStadiumVipCapacity;
+            if (mMaxAttendance > stadiumCapacity)
+                mMaxAttendance = stadiumCapacity;
+        }
+        else {
+            mPotentialFansCount = mAverageAttendanceLastSeason * 2;
+            if (mInternationalPrestige >= 15)
+                mPotentialFansCount += (mInternationalPrestige - 14) * 25'000;
+            if (mPotentialFansCount > 250'000)
+                mPotentialFansCount = 250'000;
+        }
 
         //FifamCheckEnum(mStadiumType);
         FifamCheckEnum(mAiStrategy);
@@ -572,7 +589,10 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
             writer.WriteLine(mSpecialSponsor);
         }
         writer.WriteLine(mPenaltyPoints);
-        writer.WriteLine(mPotentialFansCount);
+        if (writer.GetGameId() >= 9)
+            writer.WriteLine(mPotentialFansCount);
+        else
+            writer.WriteLine(mMaxAttendance);
         writer.WriteLine(mAverageAttendanceLastSeason);
         writer.WriteLine(mCountOfSoldSeasonTickets);
         UInt numLeagues = 1;

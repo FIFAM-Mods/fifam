@@ -18,6 +18,7 @@ protected:
     FifamVersion mVersion;
 public:
     Bool IsVersionGreaterOrEqual(UShort year, UShort number);
+    FifamFileWorker();
     FifamFileWorker(UInt gameId);
     ~FifamFileWorker();
     UInt GetGameId();
@@ -188,6 +189,8 @@ public:
     UInt GetSize();
     FifamReader(Path const &filename, UInt gameId);
     FifamReader(Path const &filename, UInt gameId, UShort vYear, UShort vNumber);
+    void Open(Path const &filename, UInt gameId);
+    void Open(Path const &filename, UInt gameId, UShort vYear, UShort vNumber);
     ~FifamReader();
 private:
     WideChar const *GetLine();

@@ -11,6 +11,10 @@ Bool FifamFileWorker::IsVersionGreaterOrEqual(UShort year, UShort number) {
     return mVersion.IsGreaterOrEqual(year, number);
 }
 
+FifamFileWorker::FifamFileWorker() {
+    mGameId = 0;
+}
+
 FifamFileWorker::FifamFileWorker(UInt gameId) {
     mGameId = gameId;
 }
@@ -212,7 +216,8 @@ void FifamWriter::WriteNewLine() {
     WriteOne(L"\n");
 }
 
-FifamReader::FifamReader(Path const &filename, UInt gameId) : FifamFileWorker(gameId) {
+void FifamReader::Open(Path const &filename, UInt gameId) {
+    mGameId = gameId;
     FILE *file = _wfopen(filename.c_str(), L"rb");
     if (file) {
         fseek(file, 0, SEEK_END);
@@ -325,10 +330,17 @@ FifamReader::FifamReader(Path const &filename, UInt gameId) : FifamFileWorker(ga
     }
 }
 
-FifamReader::FifamReader(Path const &filename, UInt gameId, UShort vYear, UShort vNumber) :
-    FifamReader(filename, gameId)
-{
+void FifamReader::Open(Path const &filename, UInt gameId, UShort vYear, UShort vNumber) {
+    Open(filename, gameId);
     mVersion.Set(vYear, vNumber);
+}
+
+FifamReader::FifamReader(Path const &filename, UInt gameId) {
+    Open(filename, gameId);
+}
+
+FifamReader::FifamReader(Path const &filename, UInt gameId, UShort vYear, UShort vNumber) {
+    Open(filename, gameId, vYear, vNumber);
 }
 
 FifamReader::~FifamReader() {

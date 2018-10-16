@@ -34,9 +34,10 @@ public:
     void Convert(UInt gameId, Path const &originalDb, Path const &referenceDb, Bool writeToGameFolder);
     ~Converter();
 
+    Int ConvertPlayerAttribute(Int attr);
     void ConvertNationInfo(FifamCountry *dst, foom::nation *nation);
-    void ConvertClub(FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country);
-    FifamClub *CreateAndConvertClub(foom::club *team, foom::club *mainTeam, FifamCountry *country);
+    void ConvertClub(FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);
+    FifamClub *CreateAndConvertClub(foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);
     void ConvertReferee(FifamReferee *dst, foom::official *official);
     void ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &kits);
 };

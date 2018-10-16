@@ -87,6 +87,8 @@ struct db {
     void ReaderCallback(String const &filename, Function<void(FifamReader &)> callback) {
         std::wcout << L"Reading " << filename << L"..." << std::endl;
         FifamReader reader(mDbPath / (filename + L".csv"), 0);
+        if (!reader.Available())
+            reader.Open(mDbPath / (filename + L".txt"), 0);
         if (reader.Available()) {
             reader.SkipLine();
             while (!reader.IsEof()) {
@@ -98,7 +100,9 @@ struct db {
         }
     }
 
-    db(Path const &dbpath) {
+    enum class db_size { Full, Average, Small, Tiny };
+
+    db(Path const &dbpath, db_size size = db_size::Full) {
         mDbPath = dbpath;
         std::wcout << L"Reading foom database..." << std::endl;
         // read nations
@@ -199,6 +203,30 @@ struct db {
         });
         // TODO
         // read players
+        String playersFile;
+        if (size == db_size::Tiny)
+            playersFile = L"fm_players_tiny";
+        else if (size == db_size::Small)
+            playersFile = L"fm_players_small";
+        else if (size == db_size::Average)
+            playersFile = L"fm_players_average";
+        else
+            playersFile = L"fm_players";
+        ReaderCallback(playersFile, [&](FifamReader &reader) {
+            player p;
+            if (size == db_size::Full)
+                reader.ReadLine(p.mID, p.mFirstName, p.mSecondName, p.mCommonName, p.mFullName, p.mEthnicity, p.mHairColour, p.mHairLength, p.mSkinTone, p.mDateOfBirth, IntPtr(p.mNation), IntPtr(p.mLanguage), p.mAgent, p.mDeclaredForNation, p.mInternationalRetirement, p.mInternationalRetirementDate, p.mInternationalApps, p.mInternationalGoals, p.mAdaptability, p.mAmbition, p.mControversy, p.mLoyalty, p.mPressure, p.mProfessionalism, p.mSportsmanship, p.mTemperament, p.mShirtName, p.mCurrentAbility, p.mRecommendedCurrentAbility, p.mPotentialAbility, p.mPotentialAbilityRange, p.mCurrentReputation, p.mHomeReputation, p.mWorldReputation, p.mHeight, p.mWeight, p.mLeftFoot, p.mRightFoot, p.mPosition, p.mBestRoles, p.mRoleUsedToFillEmptyAttributes, p.mGoalkeeper, p.mSweeper, p.mDefenderLeft, p.mDefenderCentral, p.mDefenderRight, p.mDefensiveMidfielder, p.mWingBackLeft, p.mWingBackRight, p.mMidfielderLeft, p.mMidfielderCentral, p.mMidfielderRight, p.mAttackingMidfielderLeft, p.mAttackingMidfielderCentral, p.mAttackingMidfielderRight, p.mStriker, p.mPreferredCentralPosition, p.mAggression, p.mAnticipation, p.mBravery, p.mComposure, p.mConcentration, p.mConsistency, p.mVision, p.mDecisions, p.mDetermination, p.mDirtiness, p.mFlair, p.mImportantMatches, p.mLeadership, p.mMovement, p.mPositioning, p.mTeamWork, p.mWorkRate, p.mAcceleration, p.mAgility, p.mBalance, p.mInjuryProneness, p.mJumpingReach, p.mNaturalFitness, p.mPace, p.mStamina, p.mStrength, p.mCorners, p.mCrossing, p.mDribbling, p.mFinishing, p.mFirstTouch, p.mFreeKicks, p.mHeading, p.mLongShots, p.mLongThrows, p.mMarking, p.mPassing, p.mPenaltyTaking, p.mTackling, p.mTechnique, p.mVersatility, p.mAerialAbility, p.mCommandOfArea, p.mCommunication, p.mEccentricity, p.mHandling, p.mKicking, p.mOneOnOnes, p.mReflexes, p.mRushingOut, p.mTendencyToPunch, p.mThrowing, p.mRunsWithBallDownLeft, p.mRunsWithBallDownRight, p.mRunsWithBallThroughTheCentre, p.mGetsIntoOppositionArea, p.mMovesIntoChannels, p.mGetsForwardWheneverPossible, p.mPlaysShortSimplePasses, p.mTriesKillerBallsOften, p.mShootsFromDistance, p.mShootsWithPower, p.mPlacesShots, p.mCurlsBall, p.mLikesToRoundKeeper, p.mLikesToTryToBreakOffsideTrap, p.mArguesWithOfficials, p.mLikesToLobKeeper, p.mPlaysNoThroughBalls, p.mDwellsOnBall, p.mArrivesLateInOppositionArea, p.mTriesToPlayWayOutOfTrouble, p.mStaysBackAtAllTimes, p.mDivesIntoTackles, p.mDoesNotDiveIntoTackles, p.mHitsFreekicksWithPower, p.mRunsWithBallOften, p.mRunsWithBallRarely, p.mAvoidsUsingWeakerFoot, p.mTriesLongRangeFreeKicks, p.mCutsInsideFromBothWings, p.mPlaysOneTwos, p.mDictatesTempo, p.mAttemptsOverheadKicks, p.mKnocksBallPastOpponent, p.mTriesLongRangePasses, p.mLikesToSwitchBallToOtherFlank, p.mComesDeepToGetBall, p.mHugsLine, p.mLooksForPassRatherThanAttemptingToScore, p.mMarksOpponentTightly, p.mPlaysWithBackToGoal, p.mPossessesLongFlatThrow, p.mStopsPlay, p.mTriesFirstTimeShots, p.mUsesLongThrowToStartCounterAttacks, p.mRefrainsFromTakingLongShots, p.mPenaltyBoxPlayer, p.mCutsInsideFromLeftWing, p.mCutsInsideFromRightWing, p.mCrossesEarly, p.mBringBallOutofDefence, p.mIsBasque);
+            else
+                reader.ReadLineWithSeparator(L'\t', p.mID, p.mFirstName, p.mSecondName, p.mCommonName, p.mFullName, p.mEthnicity, p.mHairColour, p.mHairLength, p.mSkinTone, p.mDateOfBirth, IntPtr(p.mNation), IntPtr(p.mLanguage), p.mAgent, p.mDeclaredForNation, p.mInternationalRetirement, p.mInternationalRetirementDate, p.mInternationalApps, p.mInternationalGoals, p.mAdaptability, p.mAmbition, p.mControversy, p.mLoyalty, p.mPressure, p.mProfessionalism, p.mSportsmanship, p.mTemperament, p.mShirtName, p.mCurrentAbility, p.mRecommendedCurrentAbility, p.mPotentialAbility, p.mPotentialAbilityRange, p.mCurrentReputation, p.mHomeReputation, p.mWorldReputation, p.mHeight, p.mWeight, p.mLeftFoot, p.mRightFoot, p.mPosition, p.mBestRoles, p.mRoleUsedToFillEmptyAttributes, p.mGoalkeeper, p.mSweeper, p.mDefenderLeft, p.mDefenderCentral, p.mDefenderRight, p.mDefensiveMidfielder, p.mWingBackLeft, p.mWingBackRight, p.mMidfielderLeft, p.mMidfielderCentral, p.mMidfielderRight, p.mAttackingMidfielderLeft, p.mAttackingMidfielderCentral, p.mAttackingMidfielderRight, p.mStriker, p.mPreferredCentralPosition, p.mAggression, p.mAnticipation, p.mBravery, p.mComposure, p.mConcentration, p.mConsistency, p.mVision, p.mDecisions, p.mDetermination, p.mDirtiness, p.mFlair, p.mImportantMatches, p.mLeadership, p.mMovement, p.mPositioning, p.mTeamWork, p.mWorkRate, p.mAcceleration, p.mAgility, p.mBalance, p.mInjuryProneness, p.mJumpingReach, p.mNaturalFitness, p.mPace, p.mStamina, p.mStrength, p.mCorners, p.mCrossing, p.mDribbling, p.mFinishing, p.mFirstTouch, p.mFreeKicks, p.mHeading, p.mLongShots, p.mLongThrows, p.mMarking, p.mPassing, p.mPenaltyTaking, p.mTackling, p.mTechnique, p.mVersatility, p.mAerialAbility, p.mCommandOfArea, p.mCommunication, p.mEccentricity, p.mHandling, p.mKicking, p.mOneOnOnes, p.mReflexes, p.mRushingOut, p.mTendencyToPunch, p.mThrowing, p.mRunsWithBallDownLeft, p.mRunsWithBallDownRight, p.mRunsWithBallThroughTheCentre, p.mGetsIntoOppositionArea, p.mMovesIntoChannels, p.mGetsForwardWheneverPossible, p.mPlaysShortSimplePasses, p.mTriesKillerBallsOften, p.mShootsFromDistance, p.mShootsWithPower, p.mPlacesShots, p.mCurlsBall, p.mLikesToRoundKeeper, p.mLikesToTryToBreakOffsideTrap, p.mArguesWithOfficials, p.mLikesToLobKeeper, p.mPlaysNoThroughBalls, p.mDwellsOnBall, p.mArrivesLateInOppositionArea, p.mTriesToPlayWayOutOfTrouble, p.mStaysBackAtAllTimes, p.mDivesIntoTackles, p.mDoesNotDiveIntoTackles, p.mHitsFreekicksWithPower, p.mRunsWithBallOften, p.mRunsWithBallRarely, p.mAvoidsUsingWeakerFoot, p.mTriesLongRangeFreeKicks, p.mCutsInsideFromBothWings, p.mPlaysOneTwos, p.mDictatesTempo, p.mAttemptsOverheadKicks, p.mKnocksBallPastOpponent, p.mTriesLongRangePasses, p.mLikesToSwitchBallToOtherFlank, p.mComesDeepToGetBall, p.mHugsLine, p.mLooksForPassRatherThanAttemptingToScore, p.mMarksOpponentTightly, p.mPlaysWithBackToGoal, p.mPossessesLongFlatThrow, p.mStopsPlay, p.mTriesFirstTimeShots, p.mUsesLongThrowToStartCounterAttacks, p.mRefrainsFromTakingLongShots, p.mPenaltyBoxPlayer, p.mCutsInsideFromLeftWing, p.mCutsInsideFromRightWing, p.mCrossesEarly, p.mBringBallOutofDefence, p.mIsBasque);
+            mPlayers[p.mID] = p;
+        });
+        ReaderCallback(L"fm_player_club_contracts", [&](FifamReader &reader) {
+            Int playerID = -1;
+            player::contract c;
+            reader.ReadLine(playerID, IntPtr(c.mClub), c.mJob, c.mSecondaryJob, c.mDateJoined, c.mContractExpires, c.mContractType, c.mWage, c.mOnRollingContract, c.mSquadNumber, c.mPreferredSquadNumber, c.mAppearanceFee, c.mGoalBonus, c.mCleanSheetBonus, c.mInternationalCapBonus, c.mYearlyWageRise, c.mPromotionWageRise, c.mRelegationWageDrop, c.mOneYearExtensionAfterLeagueGamesFinalSeason, c.mOptionalContractExtensionByClub, c.mMatchHighestEarnerClause, c.mWillLeaveAtEndOfContract, c.mMinimumFeeReleaseClause, c.mMinimumFeeReleaseClauseExpiryDate, c.mSellOnFeePercentage);
+            if (playerID != -1)
+                map_find(mPlayers, playerID).mContract = c;
+        });
         // read non players
         // read officials
         ReaderCallback(L"fm_officials", [&](FifamReader &reader) {
@@ -311,6 +339,24 @@ struct db {
                 resolve(b.mPlayer);
                 resolve(b.mFromClub);
             }
+        }
+        for (auto &entry : mPlayers) {
+            player &p = entry.second;
+            resolve(p.mNation);
+            resolve(p.mLanguage);
+            resolve(p.mContract.mClub);
+            if (p.mContract.mClub)
+                p.mContract.mClub->mVecContractedPlayers.push_back(&p);
+            for (auto &l : p.mVecLanguages)
+                resolve(l.mLanguage);
+            for (auto &n : p.mVecSecondNations)
+                resolve(n);
+            for (auto &f : p.mVecFavouriteClubs)
+                resolve(f.mClub);
+            for (auto &d : p.mVecDislikedClubs)
+                resolve(d.mClub);
+
+            // TODO
         }
         for (auto &entry : mOfficials) {
             official &o = entry.second;

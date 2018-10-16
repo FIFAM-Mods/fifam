@@ -124,6 +124,8 @@ struct club : public team {
 
     Vector<team_league_history> mVecTeamLeagueHistory;
 
+    Vector<player *> mVecContractedPlayers;
+
     struct converter_data {
         UInt mFIFAManagerID = 0;
         UInt mFIFAID = 0;

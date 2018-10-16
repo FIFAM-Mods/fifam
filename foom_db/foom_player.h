@@ -148,8 +148,41 @@ struct player : public person {
     Bool mCutsInsideFromRightWing = 0;
     Bool mCrossesEarly = 0;
     Bool mBringBallOutofDefence = 0;
+    Bool mIsBasque = 0;
+
+    struct contract {
+        club *mClub = 0;
+        Int mJob = 0;
+        Int mSecondaryJob = 0;
+        Date mDateJoined;
+        Date mContractExpires;
+        Int mContractType = 0;
+        Int mWage = 0;
+        Bool mOnRollingContract = 0;
+        Int mSquadNumber = 0;
+        Int mPreferredSquadNumber = 0;
+        Int mAppearanceFee = 0;
+        Int mGoalBonus = 0;
+        Int mCleanSheetBonus = 0;
+        Int mInternationalCapBonus = 0;
+        Int mYearlyWageRise = 0;
+        Int mPromotionWageRise = 0;
+        Int mRelegationWageDrop = 0;
+        Int mOneYearExtensionAfterLeagueGamesFinalSeason = 0;
+        Int mOptionalContractExtensionByClub = 0;
+        Bool mMatchHighestEarnerClause = 0;
+        Bool mWillLeaveAtEndOfContract = 0;
+        Int mMinimumFeeReleaseClause = 0;
+        Int mMinimumFeeReleaseClauseExpiryDate = 0;
+        Int mSellOnFeePercentage = 0;
+    } mContract;
 
     // TODO
+
+    struct converter_data {
+        void *mFifamPlayer = nullptr;
+        void *mContractedFifamClub = nullptr;
+    } mConverterData;
 };
 
 }
