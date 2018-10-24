@@ -104,6 +104,7 @@
     <ClInclude Include="tests\FlagsTest.h" />
     <ClInclude Include="tests\ColorsTest.h" />
     <ClInclude Include="tests\GeoCoordsTest.h" />
+    <ClInclude Include="tests\PlayerRelationsTest.h" />
     <ClInclude Include="tests\ReadWriteTest.h" />
     <ClInclude Include="tests\RulesTest.h" />
     <ClInclude Include="tests\ShowDbVersion.h" />

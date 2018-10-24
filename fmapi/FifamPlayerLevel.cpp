@@ -50,34 +50,7 @@ FifamPlayerPlayingStyle FifamPlayerLevel::GetBestStyleForPlayer(FifamPlayer *pla
     if (player->mMainPosition == FifamPlayerPosition::None || player->mMainPosition == FifamPlayerPosition::GK)
         return FifamPlayerPlayingStyle::None;
     FifamPlayerPlayingStyle result = FifamPlayerPlayingStyle::None;
-    Vector<FifamPlayerPlayingStyle> possibleStyles = {
-        FifamPlayerPlayingStyle::None,
-        FifamPlayerPlayingStyle::AttackingFB,
-        FifamPlayerPlayingStyle::DefenceFB,
-        FifamPlayerPlayingStyle::Libero,
-        FifamPlayerPlayingStyle::SimplePasser,
-        FifamPlayerPlayingStyle::BallWinner,
-        FifamPlayerPlayingStyle::HardMan,
-        FifamPlayerPlayingStyle::Holding,
-        FifamPlayerPlayingStyle::BallWinnerMidfield,
-        FifamPlayerPlayingStyle::BoxToBox,
-        FifamPlayerPlayingStyle::Busy,
-        FifamPlayerPlayingStyle::PlayMaker,
-        FifamPlayerPlayingStyle::Dribbler,
-        FifamPlayerPlayingStyle::Winger,
-        FifamPlayerPlayingStyle::TargetMan,
-        FifamPlayerPlayingStyle::PenaltyBox,
-        FifamPlayerPlayingStyle::RunsChannels,
-        FifamPlayerPlayingStyle::PullsWideLeft,
-        FifamPlayerPlayingStyle::PullsWideRight,
-        FifamPlayerPlayingStyle::DribblerAttack,
-        FifamPlayerPlayingStyle::HoldsUp
-    };
-    if (includeNewStyles) {
-        possibleStyles.push_back(FifamPlayerPlayingStyle::BusyAttacker);
-        possibleStyles.push_back(FifamPlayerPlayingStyle::TowerStrength);
-        possibleStyles.push_back(FifamPlayerPlayingStyle::DistanceShooter);
-    }
+    Vector<FifamPlayerPlayingStyle> possibleStyles = GetPlayingStylesForPosition(player->mMainPosition);
     float bestLevel = 0.0f;
     for (auto const &style : possibleStyles) {
         float level = player->GetLevel(player->mMainPosition, style);
@@ -682,4 +655,132 @@ void FifamPlayerLevel::ValidatePlayerLevel(Int &level) {
     }
     else
         level = 1;
+}
+
+Vector<FifamPlayerPlayingStyle> FifamPlayerLevel::GetPlayingStylesForPosition(FifamPlayerPosition position, Bool includeNewStyles) {
+    Vector<FifamPlayerPlayingStyle> result;
+    switch (position.ToInt()) {
+    case FifamPlayerPosition::None:
+    case FifamPlayerPosition::GK:
+        result = { FifamPlayerPlayingStyle::None };
+        break;
+    case FifamPlayerPosition::RB:
+    case FifamPlayerPosition::RWB:
+    case FifamPlayerPosition::LB:
+    case FifamPlayerPosition::LWB:
+        result = {
+            FifamPlayerPlayingStyle::AttackingFB,
+            FifamPlayerPlayingStyle::DefenceFB,
+            FifamPlayerPlayingStyle::Libero,
+            FifamPlayerPlayingStyle::SimplePasser,
+            FifamPlayerPlayingStyle::BallWinner,
+            FifamPlayerPlayingStyle::HardMan,
+            FifamPlayerPlayingStyle::BoxToBox,
+            FifamPlayerPlayingStyle::Busy,
+            FifamPlayerPlayingStyle::Dribbler,
+            FifamPlayerPlayingStyle::Winger
+        };
+        break;
+    case FifamPlayerPosition::CB:
+    case FifamPlayerPosition::SW:
+        result = {
+            FifamPlayerPlayingStyle::AttackingFB,
+            FifamPlayerPlayingStyle::DefenceFB,
+            FifamPlayerPlayingStyle::Libero,
+            FifamPlayerPlayingStyle::SimplePasser,
+            FifamPlayerPlayingStyle::BallWinner,
+            FifamPlayerPlayingStyle::HardMan
+        };
+        break;
+    case FifamPlayerPosition::ANC:
+    case FifamPlayerPosition::DM:
+        result = {
+            FifamPlayerPlayingStyle::Libero,
+            FifamPlayerPlayingStyle::SimplePasser,
+            FifamPlayerPlayingStyle::BallWinner,
+            FifamPlayerPlayingStyle::HardMan,
+            FifamPlayerPlayingStyle::Holding,
+            FifamPlayerPlayingStyle::BallWinnerMidfield,
+            FifamPlayerPlayingStyle::BoxToBox,
+            FifamPlayerPlayingStyle::Busy,
+            FifamPlayerPlayingStyle::PlayMaker,
+            FifamPlayerPlayingStyle::HoldsUp
+        };
+        break;
+    case FifamPlayerPosition::RM:
+    case FifamPlayerPosition::LM:
+        result = {
+            FifamPlayerPlayingStyle::SimplePasser,
+            FifamPlayerPlayingStyle::HardMan,
+            FifamPlayerPlayingStyle::Holding,
+            FifamPlayerPlayingStyle::BallWinnerMidfield,
+            FifamPlayerPlayingStyle::BoxToBox,
+            FifamPlayerPlayingStyle::Busy,
+            FifamPlayerPlayingStyle::PlayMaker,
+            FifamPlayerPlayingStyle::Dribbler,
+            FifamPlayerPlayingStyle::Winger,
+            FifamPlayerPlayingStyle::RunsChannels,
+            FifamPlayerPlayingStyle::HoldsUp
+        };
+        break;
+    case FifamPlayerPosition::CM:
+        result = {
+            FifamPlayerPlayingStyle::SimplePasser,
+            FifamPlayerPlayingStyle::HardMan,
+            FifamPlayerPlayingStyle::Holding,
+            FifamPlayerPlayingStyle::BallWinnerMidfield,
+            FifamPlayerPlayingStyle::BoxToBox,
+            FifamPlayerPlayingStyle::Busy,
+            FifamPlayerPlayingStyle::PlayMaker,
+            FifamPlayerPlayingStyle::Dribbler,
+            FifamPlayerPlayingStyle::HoldsUp
+        };
+        break;
+    case FifamPlayerPosition::RW:
+    case FifamPlayerPosition::LW:
+        result = {
+            FifamPlayerPlayingStyle::Winger,
+            FifamPlayerPlayingStyle::RunsChannels,
+            FifamPlayerPlayingStyle::DribblerAttack
+        };
+        break;
+    case FifamPlayerPosition::AM:
+        result = {
+            FifamPlayerPlayingStyle::Holding,
+            FifamPlayerPlayingStyle::BoxToBox,
+            FifamPlayerPlayingStyle::Busy,
+            FifamPlayerPlayingStyle::PlayMaker,
+            FifamPlayerPlayingStyle::Dribbler,
+            FifamPlayerPlayingStyle::HoldsUp
+        };
+        break;
+    case FifamPlayerPosition::CF:
+        result = {
+            FifamPlayerPlayingStyle::PenaltyBox,
+            FifamPlayerPlayingStyle::RunsChannels,
+            FifamPlayerPlayingStyle::DribblerAttack,
+            FifamPlayerPlayingStyle::HoldsUp
+        };
+    case FifamPlayerPosition::ST:
+        result = {
+            FifamPlayerPlayingStyle::TargetMan,
+            FifamPlayerPlayingStyle::PenaltyBox,
+            FifamPlayerPlayingStyle::RunsChannels,
+            FifamPlayerPlayingStyle::DribblerAttack,
+            FifamPlayerPlayingStyle::HoldsUp
+        };
+    }
+    if (position == FifamPlayerPosition::LB || position == FifamPlayerPosition::LWB || position == FifamPlayerPosition::LM || position == FifamPlayerPosition::LW)
+        result.push_back(FifamPlayerPlayingStyle::PullsWideLeft);
+    else if (position == FifamPlayerPosition::RB || position == FifamPlayerPosition::RWB || position == FifamPlayerPosition::RM || position == FifamPlayerPosition::RW)
+        result.push_back(FifamPlayerPlayingStyle::PullsWideRight);
+    if (includeNewStyles) {
+        if (position == FifamPlayerPosition::RW || position == FifamPlayerPosition::LW || position == FifamPlayerPosition::CF || position == FifamPlayerPosition::ST)
+            result.push_back(FifamPlayerPlayingStyle::BusyAttacker);
+        if (position == FifamPlayerPosition::CB || position == FifamPlayerPosition::SW || position == FifamPlayerPosition::ANC || position == FifamPlayerPosition::DM)
+            result.push_back(FifamPlayerPlayingStyle::TowerStrength);
+        if (position != FifamPlayerPosition::None && position != FifamPlayerPosition::GK)
+            result.push_back(FifamPlayerPlayingStyle::DistanceShooter);
+    }
+    return result;
 }

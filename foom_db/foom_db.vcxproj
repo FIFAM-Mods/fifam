@@ -76,6 +76,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="binary_read_write.h" />
     <ClInclude Include="foom_basic.h" />
     <ClInclude Include="foom_city.h" />
     <ClInclude Include="foom_club.h" />

@@ -114,4 +114,5 @@ public:
     void Read(FifamReader &reader, FifamDatabase *database, FifamNation nationId) override;
     void Write(FifamWriter &writer, FifamDatabase *database, FifamNation nationId) override;
     void GenerateFixtures();
+    void GenerateCalendar(UInt startDay, UInt endDay, UInt winterBreakStartDay, UInt winterBreakEndDay);
 };

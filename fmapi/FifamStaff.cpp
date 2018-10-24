@@ -1,6 +1,7 @@
 #include "FifamStaff.h"
 #include "FifamUtils.h"
 #include "FifamPlayer.h"
+#include "FifamNames.h"
 
 void FifamStaff::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"STAFF")) {
@@ -24,7 +25,7 @@ void FifamStaff::ReadWorker(FifamReader &reader) {
     reader.ReadFullLine(mLastName);
     reader.ReadFullLine(mNickname);
     reader.ReadFullLine(mPseudonym);
-    reader.ReadLine(mBirthdate);
+    reader.ReadLine(mBirthday);
     UChar numNationalities = reader.ReadLine<UChar>();
     for (UInt i = 0; i < numNationalities; i++) {
         if (i < 2)
@@ -33,7 +34,7 @@ void FifamStaff::ReadWorker(FifamReader &reader) {
             reader.SkipLine();
     }
     FifamUtils::SaveClubIDToClubLink(mFavouriteClub, reader.ReadLine<UInt>());
-    FifamUtils::SaveClubIDToClubLink(mWouldNeverWorkForClub, reader.ReadLine<UInt>());
+    FifamUtils::SaveClubIDToClubLink(mWouldnSignFor, reader.ReadLine<UInt>());
     UChar numPersonalityAttributes = reader.ReadLine<UChar>();
     for (UInt i = 0; i < numPersonalityAttributes; i++) {
         UChar attrId = reader.ReadLine<UChar>();
@@ -125,7 +126,7 @@ void FifamStaff::ReadWorker(FifamReader &reader) {
             mHasNoneJobData = true;
         else if (jobType == 1) {
             mHasCoachJobData = true;
-            reader.ReadLine(mFavouriteFormation);
+            reader.ReadLine(mManagerFavouriteFormation);
             reader.ReadLine(mCoachPlayingOrientation);
         }
         else if (jobType == 2)
@@ -162,7 +163,7 @@ void FifamStaff::ReadManager(FifamReader &reader) {
     reader.ReadFullLine(mLastName);
     if (!reader.IsVersionGreaterOrEqual(0x2009, 0x05))
         reader.ReadLine(mClubPosition);
-    reader.ReadLine(mBirthdate);
+    reader.ReadLine(mBirthday);
     reader.ReadLine(mNationality[0]);
     reader.ReadLine(Unknown._1);
     reader.ReadLine(mExperience);
@@ -175,18 +176,18 @@ void FifamStaff::ReadManager(FifamReader &reader) {
         reader.ReadFullLine(mPseudonym);
         reader.ReadLine(mNationality[1]);
         FifamUtils::SaveClubIDToClubLink(mFavouriteClub, reader.ReadLine<UInt>());
-        FifamUtils::SaveClubIDToClubLink(mWouldNeverWorkForClub, reader.ReadLine<UInt>());
+        FifamUtils::SaveClubIDToClubLink(mWouldnSignFor, reader.ReadLine<UInt>());
     }
     reader.ReadLine(mManagerMotivationSkills);
     reader.ReadLine(mManagerCoachingSkills);
     reader.ReadLine(mManagerGoalkeepersTraining);
     reader.ReadLine(mManagerNegotiationSkills);
     reader.ReadLine(mManagerFocus);
-    reader.ReadLine(mLanguage[0]);
-    reader.ReadLine(mLanguage[1]);
-    reader.ReadLine(mLanguage[2]);
-    reader.ReadLine(mLanguage[3]);
-    reader.ReadLine(mFavouriteFormation);
+    reader.ReadLine(mLanguages[0]);
+    reader.ReadLine(mLanguages[1]);
+    reader.ReadLine(mLanguages[2]);
+    reader.ReadLine(mLanguages[3]);
+    reader.ReadLine(mManagerFavouriteFormation);
     reader.ReadLine(Unknown._2);
     reader.ReadLine(mChairmanStability);
     mLinkedCountry = mNationality[0];
@@ -200,19 +201,19 @@ void FifamStaff::ReadFromPlayer(FifamReader &reader) {
     mLastName = player.mLastName;
     mPseudonym = player.mPseudonym;
     mNickname = player.mNickname;
-    mBirthdate = player.mBirthday;
+    mBirthday = player.mBirthday;
     mNationality = player.mNationality;
     mFavouriteClub = player.mFavouriteClub;
-    mWouldNeverWorkForClub = player.mWouldnSignFor;
-    mFavouritePlayer = player.mManagerFavouritePlayer;
-    mFavouriteFormation = player.mManagerFavouriteFormation;
+    mWouldnSignFor = player.mWouldnSignFor;
+    mManagerFavouritePlayer = player.mManagerFavouritePlayer;
+    mManagerFavouriteFormation = player.mManagerFavouriteFormation;
     mChairmanStability = player.mChairmanStability;
     mManagerFocus.SetFromInt((Char)player.mCharacter.ToInt());
     mManagerMotivationSkills = player.mManagerMotivationSkills;
     mManagerCoachingSkills = player.mManagerCoachingSkills;
     mManagerGoalkeepersTraining = player.mManagerGoalkeepersTraining;
     mManagerNegotiationSkills = player.mManagerNegotiationSkills;
-    mLanguage = player.mLanguages;
+    mLanguages = player.mLanguages;
     mTalent = player.mTalent;
     mJoinedClubDate = player.mContract.mJoined;
 }
@@ -239,7 +240,7 @@ void FifamStaff::WriteManager(FifamWriter &writer) {
     writer.WriteLine(mLastName);
     if (!writer.IsVersionGreaterOrEqual(0x2009, 0x05))
         writer.WriteLine(mClubPosition);
-    writer.WriteLine(mBirthdate);
+    writer.WriteLine(mBirthday);
     writer.WriteLine(mNationality[0]);
     writer.WriteLine(Unknown._1);
     writer.WriteLine(mExperience);
@@ -250,18 +251,18 @@ void FifamStaff::WriteManager(FifamWriter &writer) {
         writer.WriteLine(mPseudonym);
         writer.WriteLine(mNationality[1]);
         writer.WriteLine(FifamUtils::GetWriteableID(mFavouriteClub));
-        writer.WriteLine(FifamUtils::GetWriteableID(mWouldNeverWorkForClub));
+        writer.WriteLine(FifamUtils::GetWriteableID(mWouldnSignFor));
     }
     writer.WriteLine(mManagerMotivationSkills);
     writer.WriteLine(mManagerCoachingSkills);
     writer.WriteLine(mManagerGoalkeepersTraining);
     writer.WriteLine(mManagerNegotiationSkills);
     writer.WriteLine(mManagerFocus);
-    writer.WriteLine(mLanguage[0]);
-    writer.WriteLine(mLanguage[1]);
-    writer.WriteLine(mLanguage[2]);
-    writer.WriteLine(mLanguage[3]);
-    writer.WriteLine(mFavouriteFormation);
+    writer.WriteLine(mLanguages[0]);
+    writer.WriteLine(mLanguages[1]);
+    writer.WriteLine(mLanguages[2]);
+    writer.WriteLine(mLanguages[3]);
+    writer.WriteLine(mManagerFavouriteFormation);
     writer.WriteLine(Unknown._2);
     writer.WriteLine(mChairmanStability);
 }
@@ -271,12 +272,12 @@ void FifamStaff::WriteWorker(FifamWriter &writer) {
     writer.WriteLine(mLastName);
     writer.WriteLine(mNickname);
     writer.WriteLine(mPseudonym);
-    writer.WriteLine(mBirthdate);
+    writer.WriteLine(mBirthday);
     writer.WriteLine(2);
     writer.WriteLine(mNationality[0]);
     writer.WriteLine(mNationality[1]);
     writer.WriteLine(FifamUtils::GetWriteableID(mFavouriteClub));
-    writer.WriteLine(FifamUtils::GetWriteableID(mWouldNeverWorkForClub));
+    writer.WriteLine(FifamUtils::GetWriteableID(mWouldnSignFor));
     writer.WriteLine(3);
     writer.WriteLine(0);
     writer.WriteLine(mPersonalityAttributes.WillingnessToLearn);
@@ -358,7 +359,7 @@ void FifamStaff::WriteWorker(FifamWriter &writer) {
     if (mHasCoachJobData) {
         writer.WriteLine(1);
         writer.WriteLine(0);
-        writer.WriteLine(mFavouriteFormation);
+        writer.WriteLine(mManagerFavouriteFormation);
         writer.WriteLine(mCoachPlayingOrientation);
     }
     if (mHasNoneJobData) {
@@ -402,19 +403,19 @@ void FifamStaff::WriteToPlayer(FifamWriter &writer) {
     player.mLastName = mLastName;
     player.mPseudonym = mPseudonym;
     player.mNickname = mNickname;
-    player.mBirthday = mBirthdate;
+    player.mBirthday = mBirthday;
     player.mNationality = mNationality;
     player.mFavouriteClub = mFavouriteClub;
-    player.mWouldnSignFor = mWouldNeverWorkForClub;
-    player.mManagerFavouritePlayer = mFavouritePlayer;
-    player.mManagerFavouriteFormation = mFavouriteFormation;
+    player.mWouldnSignFor = mWouldnSignFor;
+    player.mManagerFavouritePlayer = mManagerFavouritePlayer;
+    player.mManagerFavouriteFormation = mManagerFavouriteFormation;
     player.mChairmanStability = mChairmanStability;
     player.mCharacter.SetFromInt(mManagerFocus.ToInt());
     player.mManagerMotivationSkills = mManagerMotivationSkills;
     player.mManagerCoachingSkills = mManagerCoachingSkills;
     player.mManagerGoalkeepersTraining = mManagerGoalkeepersTraining;
     player.mManagerNegotiationSkills = mManagerNegotiationSkills;
-    player.mLanguages = mLanguage;
+    player.mLanguages = mLanguages;
     player.mTalent = mTalent;
     player.mContract.mJoined = mJoinedClubDate;
     player.mMainPosition = FifamPlayerPosition::GK;
@@ -669,4 +670,8 @@ UChar FifamStaff::GetLevel(FifamClubStaffPosition position) {
         break;
     }
     return CalcStaffLevel(vec);
+}
+
+String FifamStaff::GetStringUniqueId(UInt gameId) {
+    return FifamNames::GetPersonStringId(gameId, mFirstName, mLastName, mPseudonym, mBirthday, 0);
 }

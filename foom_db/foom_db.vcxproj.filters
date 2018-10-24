@@ -20,6 +20,7 @@
     <ClInclude Include="db_map.h" />
     <ClInclude Include="foom_basic.h" />
     <ClInclude Include="foom_team.h" />
+    <ClInclude Include="binary_read_write.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="foom_db.cpp" />

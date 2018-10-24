@@ -19,7 +19,8 @@
 #include "tests\CreateFlagImages.h"
 #include "tests\FifaConverter.h"
 #include "tests\FoomBasicTest.h"
+#include "tests\PlayerRelationsTest.h"
 
 void RunTests() {
-    RunTest<ColorsTest>();
+    RunTest<WriteDbTest<FM14, FM14>>();
 }

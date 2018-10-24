@@ -94,6 +94,9 @@
     <ClInclude Include="tests\FoomBasicTest.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\PlayerRelationsTest.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

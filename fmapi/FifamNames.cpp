@@ -132,3 +132,59 @@ String FifamNames::GetLeagueLevelName(Vector<String> const & leagueNames, UInt l
     }
     return Utils::Format(L"League Level %d", level);
 }
+
+String FifamNames::GetPersonStringId(UInt gameId, String const &firstName, String const &lastName, String const &pseudonym, FifamDate const &birthday, UInt empicsId) {
+    String nameId;
+    if (!pseudonym.empty())
+        nameId = FifamNames::LimitPersonName(pseudonym, gameId > 7 ? 29 : 19);
+    else
+        nameId = FifamNames::LimitPersonName(lastName, 19) + firstName.substr(0, 2);
+    String finalName;
+    for (WideChar c : nameId) {
+        if (c != L' ' && c != L'.' && c != '_' && c != 0xA0) {
+            switch (c) {
+            case 0xD8:
+                c = L'O';
+                break;
+            case 0xDE:
+            case 0xFE:
+                c = L'P';
+                break;
+            case 0xDF:
+                c = L's';
+                break;
+            case 0xE6:
+                c = L'a';
+                break;
+            case 0xF0:
+            case 0xF8:
+                c = L'o';
+                break;
+            case 0x110:
+                c = L'D';
+                break;
+            case 0x111:
+                c = L'd';
+                break;
+            case 0x131:
+                c = L'i';
+                break;
+            case 0x141:
+                c = L'L';
+                break;
+            case 0x142:
+                c = L'l';
+                break;
+            case 0x153:
+                c = L'c';
+                break;
+            }
+            finalName += c;
+        }
+    }
+    if (!birthday.IsEmpty())
+        finalName += Utils::Format(L"%02d%02d%04d", birthday.day, birthday.month, birthday.year);
+    if (empicsId != 0)
+        finalName += Utils::Format(L"-%d", empicsId);
+    return finalName;
+}

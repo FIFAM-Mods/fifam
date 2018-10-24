@@ -10,6 +10,10 @@ FifamDate::FifamDate(UInt Days) {
 
 FifamDate::FifamDate(UInt Day, UInt Month, UInt Year) : Date(Day, Month, Year) {}
 
+FifamDate::FifamDate(Date const &rhs) {
+    Set(rhs.day, rhs.month, rhs.year);
+}
+
 void FifamDate::SetDays(UInt Days) {
     UInt j = Days - 1721119;
     year = (j * 4 - 1) / 146097;
@@ -66,6 +70,10 @@ Bool FifamDate::operator==(FifamDate const &rhs) const {
 }
 
 void FifamDate::operator=(FifamDate const &rhs) {
+    Date::operator=(rhs);
+}
+
+void FifamDate::operator=(Date const &rhs) {
     Date::operator=(rhs);
 }
 

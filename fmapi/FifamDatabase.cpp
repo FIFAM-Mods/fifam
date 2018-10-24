@@ -170,6 +170,13 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
                     CreatePlayer(nullptr, nextFreeId++)->Read(withoutReader);
                 withoutReader.ReadEndIndex(L"WITHOUT");
             }
+            withoutReader.Close();
+        }
+        if (gameId >= 13) {
+            Map<String, Vector<FifamPlayer *>> playerStrIDsMap;
+            for (FifamPlayer *player : mPlayers)
+                playerStrIDsMap[player->GetStringUniqueId(gameId, false)].push_back(player);
+            ReadPlayerRelations(dbPath / L"PlayerRelations.sav", gameId, playerStrIDsMap);
         }
     }
 
@@ -442,6 +449,9 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
         withoutWriter.Close();
     }
 
+    if (gameId >= 13)
+        WritePlayerRelations(dbPath / L"PlayerRelations.sav", gameId);
+
     FifamWriter rulesWriter(dbPath / L"Rules.sav", gameId, vYear, vNumber, unicode);
     if (rulesWriter.Available()) {
         mRules.Write(rulesWriter);
@@ -489,10 +499,25 @@ void FifamDatabase::SetupWriteableStatus(UInt gameId) {
         club->SetWriteableID(id);
         club->SetWriteableUniqueID(TranslateClubID(club->mUniqueID, LATEST_GAME_VERSION, gameId));
     }
+
+    UInt lastEmpicsId = 0;
+    Map<String, Vector<FifamPlayer *>> playerStrIDsCollisionsMap;
+    
     for (auto personEntry : mPersonsMap) {
-        personEntry.second->SetIsWriteable(true);
-        personEntry.second->SetWriteableID(personEntry.second->mID);
-        personEntry.second->SetWriteableUniqueID(personEntry.second->mID);
+        auto person = personEntry.second;
+        person->SetIsWriteable(true);
+        person->SetWriteableID(personEntry.second->mID);
+        person->SetWriteableUniqueID(personEntry.second->mID);
+        if (person->mPersonType == FifamPersonType::Player) {
+            FifamPlayer *player = person->AsPlayer();
+            if (player->mEmpicsId > lastEmpicsId)
+                lastEmpicsId = player->mEmpicsId;
+            playerStrIDsCollisionsMap[player->GetStringUniqueId(gameId, false)].push_back(player);
+        }
+        else {
+            FifamStaff *staff = person->AsStaff();
+            person->mWriteableStringID = staff->GetStringUniqueId(gameId);
+        }
     }
     for (auto compEntry : mCompMap) {
         compEntry.second->SetIsWriteable(true);
@@ -500,6 +525,24 @@ void FifamDatabase::SetupWriteableStatus(UInt gameId) {
         compEntry.second->SetIsWriteable(compID != 0);
         compEntry.second->SetWriteableID(compID);
         compEntry.second->SetWriteableUniqueID(compID);
+    }
+
+    for (auto &entry : playerStrIDsCollisionsMap) {
+        auto &players = entry.second;
+        if (players.size() == 1) {
+            players[0]->mWriteableStringID = entry.first;
+            // TODO: uncomment this
+            //players[0]->mEmpicsId = 0;
+        }
+        else {
+            for (auto player : players) {
+                if (player->mEmpicsId == 0) {
+                    // TODO: maybe replace it with 'local' IDs (1,2,3,...)
+                    player->mEmpicsId = ++lastEmpicsId;
+                }
+                player->mWriteableStringID = entry.first + Utils::Format(L"-%d", player->mEmpicsId);
+            }
+        }
     }
 }
 
@@ -679,8 +722,8 @@ void FifamDatabase::ResolveLinksForPlayer(FifamPlayer *player, UInt gameId) {
 
 void FifamDatabase::ResolveLinksForStaff(FifamStaff *staff, UInt gameId) {
     ResolveClubLink(staff->mFavouriteClub, gameId);
-    ResolveClubLink(staff->mWouldNeverWorkForClub, gameId);
-    ResolvePlayerPtr(staff->mFavouritePlayer);
+    ResolveClubLink(staff->mWouldnSignFor, gameId);
+    ResolvePlayerPtr(staff->mManagerFavouritePlayer);
 }
 
 void FifamDatabase::ResolveLinksForCompetition(FifamCompetition *comp, UInt gameId) {
@@ -903,6 +946,139 @@ FifamCountry *FifamDatabase::GetCountry(Int countryId) {
     if (countryId > 0 && countryId < NUM_COUNTRIES)
         return mCountries[countryId - 1];
     return nullptr;
+}
+
+void FifamDatabase::ReadPlayerRelations(Path const &filepath, UInt gameId, Map<String, Vector<FifamPlayer *>> const &playerStrIDsMap) {
+    FifamReader reader(filepath, gameId);
+    if (reader.Available()) {
+        std::wcout << L"Reading player relations" << std::endl;
+        while (!reader.IsEof()) {
+            auto line = reader.ReadFullLine();
+            if (!line.empty() && line[0] != L'#') {
+                auto lineParts = Utils::Split(line, L',', true, false);
+                if (lineParts.size() > 2) {
+                    UInt relationType = 0;
+                    if (lineParts[0] == L"BROTHER")
+                        relationType = 1;
+                    else if (lineParts[0] == L"COUSIN")
+                        relationType = 2;
+                    if (relationType != 0) {
+                        Set<FifamPlayer *> players;
+                        for (UInt i = 1; i < lineParts.size(); i++) {
+                            if (!lineParts[i].empty()) {
+                                UInt empicsId = 0;
+                                String nameWithoutEmpicsId;
+                                auto lastHyph = lineParts[i].find_last_of(L'-');
+                                if (lastHyph != String::npos && Utils::IsNumber(lineParts[i].substr(lastHyph + 1))) {
+                                    nameWithoutEmpicsId = lineParts[i].substr(0, lastHyph);
+                                    empicsId = Utils::SafeConvertInt<UInt>(lineParts[i].substr(lastHyph + 1));
+                                }
+                                else
+                                    nameWithoutEmpicsId = lineParts[i];
+                                auto it = playerStrIDsMap.find(nameWithoutEmpicsId);
+                                if (it != playerStrIDsMap.end()) {
+                                    FifamPlayer *player = nullptr;
+                                    if ((*it).second.size() == 1)
+                                        player = (*it).second[0];
+                                    else {
+                                        if (empicsId != 0) {
+                                            for (auto p : ((*it).second)) {
+                                                if (p->mEmpicsId == empicsId) {
+                                                    player = p;
+                                                    break;
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (player)
+                                        players.insert(player);
+                                }
+                            }
+                        }
+                        if (players.size() > 1) {
+                            for (auto player : players) {
+                                for (auto relatedPlayer : players) {
+                                    if (player != relatedPlayer) {
+                                        if (relationType == 1)
+                                            player->mBrothers.insert(relatedPlayer);
+                                        else
+                                            player->mCousins.insert(relatedPlayer);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+void WriteRelationsLists(FifamWriter &writer, Vector<Set<FifamPlayer *>> &lists, String const &relationName) {
+    if (!lists.empty()) {
+        std::sort(lists.begin(), lists.end(), [](Set<FifamPlayer *> const &a, Set<FifamPlayer *> const &b) {
+            return (*a.begin())->mNationality[0].ToInt() < (*b.begin())->mNationality[0].ToInt();
+        });
+        UInt lastNation = (*lists[0].begin())->mNationality[0].ToInt();
+        for (auto &list : lists) {
+            UInt currentNation = (*list.begin())->mNationality[0].ToInt();
+            if (list.size() > 1) {
+                if (lastNation != currentNation)
+                    writer.WriteNewLine();
+                writer.Write(relationName);
+                for (auto p : list)
+                    writer.Write(L",\t" + p->mWriteableStringID + L"\t");
+                writer.WriteNewLine();
+            }
+            lastNation = currentNation;
+        }
+    }
+}
+
+void FifamDatabase::WritePlayerRelations(Path const &filepath, UInt gameId) {
+    FifamWriter writer(filepath, gameId, 0, 0, gameId > 7);
+    if (writer.Available()) {
+        std::wcout << L"Writing player relations" << std::endl;
+        writer.WriteLine(L"#Relation, Player1, Player2");
+        writer.WriteNewLine();
+
+        Vector<Set<FifamPlayer *>> brothersLists;
+        Vector<Set<FifamPlayer *>> cousinsLists;
+
+        for (FifamPlayer *player : mPlayers) {
+            if (player->GetWriteableID() != 0) {
+                if (!player->mBrothers.empty()) {
+                    bool wasAlreadyAdded = false;
+                    for (auto b : player->mBrothers) {
+                        if (b->GetWriteableID() != 0 && b < player) {
+                            wasAlreadyAdded = true;
+                            break;
+                        }
+                    }
+                    if (!wasAlreadyAdded) {
+                        Set<FifamPlayer *> brothers;
+                        brothers.insert(player);
+                        for (auto b : player->mBrothers) {
+                            if (b->GetWriteableID() != 0)
+                                brothers.insert(b);
+                        }
+                        if (brothers.size() > 1)
+                            brothersLists.push_back(brothers);
+                    }
+                }
+                if (!player->mCousins.empty()) {
+                    for (auto b : player->mCousins) {
+                        if (player->GetWriteableID() != 0 && b > player)
+                            cousinsLists.push_back({ player, b });
+                    }
+                }
+            }
+        }
+        WriteRelationsLists(writer, brothersLists, L"BROTHER");
+        for (UInt i = 0; i < 3; i++)
+            writer.WriteNewLine();
+        WriteRelationsLists(writer, cousinsLists, L"COUSIN");
+    }
 }
 
 void FifamDatabase::ReadExternalScriptFile(Path const &filepath, String const &compKeyName, UInt gameId) {

@@ -660,7 +660,8 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         WriteClubMembers(writer);
         mKit.Write(writer);
         FifamDbWriteableIDsList lowestLeaguesIDs;
-        for (UInt i = 0; i < 4; i++)
+        // TODO: check this one
+        for (UInt i = 0; i < mLowestLeagues.size(); i++)
             lowestLeaguesIDs.push_back_unique(FifamUtils::GetWriteableID(mLowestLeagues[i]));
         for (UInt i = 0; i < 4; i++)
             writer.WriteLine(lowestLeaguesIDs[i]);

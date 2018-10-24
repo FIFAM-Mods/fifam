@@ -17,4 +17,5 @@ public:
     static UChar GetPlayerLevel(FifamPlayer *player, Bool experience = true);
     static Int GetPlayerExperienceLevelModifier(FifamPlayer *player);
     static void ValidatePlayerLevel(Int &level);
+    static Vector<FifamPlayerPlayingStyle> GetPlayingStylesForPosition(FifamPlayerPosition position, Bool includeNewStyles = true);
 };

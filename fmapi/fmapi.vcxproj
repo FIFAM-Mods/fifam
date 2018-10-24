@@ -213,6 +213,7 @@
     <ClCompile Include="FifamInstructionList.cpp" />
     <ClCompile Include="FifamKit.cpp" />
     <ClCompile Include="FifamNames.cpp" />
+    <ClCompile Include="FifamPerson.cpp" />
     <ClCompile Include="FifamPlayer.cpp" />
     <ClCompile Include="FifamPlayerAppearance.cpp" />
     <ClCompile Include="FifamPlayerAttributes.cpp" />

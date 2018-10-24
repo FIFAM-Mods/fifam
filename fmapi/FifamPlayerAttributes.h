@@ -1,6 +1,7 @@
 #pragma once
 #include "FifamTypes.h"
 #include "FifamReadWrite.h"
+#include "FifamPlayerAbilityID.h"
 
 // @since FM07
 class FifamPlayerAttributes {
@@ -75,4 +76,7 @@ public:
 
     void Read(FifamReader &reader);
     void Write(FifamWriter &writer);
+
+    static bool IsSetPiecesAttribute(FifamPlayerAbilityID const &attrId);
+    static bool IsGoalkeeperAttribute(FifamPlayerAbilityID const &attrId);
 };

@@ -1,8 +1,11 @@
 #pragma once
 #include "FifamTypes.h"
 #include "foom_person.h"
+#include "binary_read_write.h"
 
 namespace foom {
+
+struct injury;
 
 struct player : public person {
     Int mEthnicity = 0;
@@ -177,12 +180,374 @@ struct player : public person {
         Int mSellOnFeePercentage = 0;
     } mContract;
 
+    struct loan {
+        club *mClub = 0;
+        Date mStartDate;
+        Date mEndDate;
+        Int mSquadNumber = 0;
+        Int mMonthlyFee = 0;
+        Int mFeeToBuy = 0;
+    } mLoan;
+
+    struct future_transfer {
+        club *mClub = 0;
+        Date mTransferDate;
+        Date mContractEndDate;
+        Int mTransferFee = 0;
+        Int mNewJob = 0;
+    } mFutureTransfer;
+
+    struct playing_history {
+        Int mYear = 0;
+        Int mOrder = 0;
+        club *mClub = 0;
+        comp *mDivision = 0;
+        Bool mOnLoan = 0;
+        Bool mYouthTeam = 0;
+        Int mApps = 0;
+        Int mGoals = 0;
+        Int mTransferFee = 0;
+    };
+
+    Vector<playing_history> mVecPlayingHistory;
+
+    struct favourite_people {
+        person *mPerson = 0;
+        Int mLevel = 0;
+        Int mReason = 0;
+        Bool mPermanent = 0;
+    };
+
+    Vector<favourite_people> mVecFavouritePeople;
+
+    struct ban {
+        Int mBanType = 0;
+        Date mStartDate;
+        Date mEndDate;
+        Int mNumberMatches = 0;
+    };
+
+    Vector<ban> mVecBans;
+
+    struct retirement {
+        Int mType = 0;
+        Date mDate;
+    };
+
+    Vector<retirement> mVecRetirements;
+
+    struct injury {
+        foom::injury *mInjury = 0;
+        Date mStartDate;
+        Date mEndDate;
+        Bool mFuture = 0;
+        Bool mPermanent = 0;
+        Int mSeverity = 0;
+    };
+
+    Vector<injury> mVecInjuries;
+
     // TODO
 
-    struct converter_data {
-        void *mFifamPlayer = nullptr;
-        void *mContractedFifamClub = nullptr;
-    } mConverterData;
+    player() {
+        mIsPlayer = true;
+    }
+
+    void read_binary(binary_file &file) {
+        person::read_binary(file);
+        file.read(mEthnicity);
+        file.read(mHairColour);
+        file.read(mHairLength);
+        file.read(mSkinTone);
+        file.read(mAgent);
+        file.read(mDeclaredForNation);
+        file.read(mInternationalRetirement);
+        file.read(mInternationalRetirementDate);
+        file.read(mInternationalApps);
+        file.read(mInternationalGoals);
+        file.read(mShirtName);
+        file.read(mCurrentAbility);
+        file.read(mRecommendedCurrentAbility);
+        file.read(mPotentialAbility);
+        file.read(mPotentialAbilityRange);
+        file.read(mCurrentReputation);
+        file.read(mHomeReputation);
+        file.read(mWorldReputation);
+        file.read(mHeight);
+        file.read(mWeight);
+        file.read(mLeftFoot);
+        file.read(mRightFoot);
+        file.read(mPosition);
+        file.read(mBestRoles);
+        file.read(mRoleUsedToFillEmptyAttributes);
+        file.read(mGoalkeeper);
+        file.read(mSweeper);
+        file.read(mDefenderLeft);
+        file.read(mDefenderCentral);
+        file.read(mDefenderRight);
+        file.read(mDefensiveMidfielder);
+        file.read(mWingBackLeft);
+        file.read(mWingBackRight);
+        file.read(mMidfielderLeft);
+        file.read(mMidfielderCentral);
+        file.read(mMidfielderRight);
+        file.read(mAttackingMidfielderLeft);
+        file.read(mAttackingMidfielderCentral);
+        file.read(mAttackingMidfielderRight);
+        file.read(mStriker);
+        file.read(mPreferredCentralPosition);
+        file.read(mAggression);
+        file.read(mAnticipation);
+        file.read(mBravery);
+        file.read(mComposure);
+        file.read(mConcentration);
+        file.read(mConsistency);
+        file.read(mVision);
+        file.read(mDecisions);
+        file.read(mDetermination);
+        file.read(mDirtiness);
+        file.read(mFlair);
+        file.read(mImportantMatches);
+        file.read(mLeadership);
+        file.read(mMovement);
+        file.read(mPositioning);
+        file.read(mTeamWork);
+        file.read(mWorkRate);
+        file.read(mAcceleration);
+        file.read(mAgility);
+        file.read(mBalance);
+        file.read(mInjuryProneness);
+        file.read(mJumpingReach);
+        file.read(mNaturalFitness);
+        file.read(mPace);
+        file.read(mStamina);
+        file.read(mStrength);
+        file.read(mCorners);
+        file.read(mCrossing);
+        file.read(mDribbling);
+        file.read(mFinishing);
+        file.read(mFirstTouch);
+        file.read(mFreeKicks);
+        file.read(mHeading);
+        file.read(mLongShots);
+        file.read(mLongThrows);
+        file.read(mMarking);
+        file.read(mPassing);
+        file.read(mPenaltyTaking);
+        file.read(mTackling);
+        file.read(mTechnique);
+        file.read(mVersatility);
+        file.read(mAerialAbility);
+        file.read(mCommandOfArea);
+        file.read(mCommunication);
+        file.read(mEccentricity);
+        file.read(mHandling);
+        file.read(mKicking);
+        file.read(mOneOnOnes);
+        file.read(mReflexes);
+        file.read(mRushingOut);
+        file.read(mTendencyToPunch);
+        file.read(mThrowing);
+        file.read(mRunsWithBallDownLeft);
+        file.read(mRunsWithBallDownRight);
+        file.read(mRunsWithBallThroughTheCentre);
+        file.read(mGetsIntoOppositionArea);
+        file.read(mMovesIntoChannels);
+        file.read(mGetsForwardWheneverPossible);
+        file.read(mPlaysShortSimplePasses);
+        file.read(mTriesKillerBallsOften);
+        file.read(mShootsFromDistance);
+        file.read(mShootsWithPower);
+        file.read(mPlacesShots);
+        file.read(mCurlsBall);
+        file.read(mLikesToRoundKeeper);
+        file.read(mLikesToTryToBreakOffsideTrap);
+        file.read(mArguesWithOfficials);
+        file.read(mLikesToLobKeeper);
+        file.read(mPlaysNoThroughBalls);
+        file.read(mDwellsOnBall);
+        file.read(mArrivesLateInOppositionArea);
+        file.read(mTriesToPlayWayOutOfTrouble);
+        file.read(mStaysBackAtAllTimes);
+        file.read(mDivesIntoTackles);
+        file.read(mDoesNotDiveIntoTackles);
+        file.read(mHitsFreekicksWithPower);
+        file.read(mRunsWithBallOften);
+        file.read(mRunsWithBallRarely);
+        file.read(mAvoidsUsingWeakerFoot);
+        file.read(mTriesLongRangeFreeKicks);
+        file.read(mCutsInsideFromBothWings);
+        file.read(mPlaysOneTwos);
+        file.read(mDictatesTempo);
+        file.read(mAttemptsOverheadKicks);
+        file.read(mKnocksBallPastOpponent);
+        file.read(mTriesLongRangePasses);
+        file.read(mLikesToSwitchBallToOtherFlank);
+        file.read(mComesDeepToGetBall);
+        file.read(mHugsLine);
+        file.read(mLooksForPassRatherThanAttemptingToScore);
+        file.read(mMarksOpponentTightly);
+        file.read(mPlaysWithBackToGoal);
+        file.read(mPossessesLongFlatThrow);
+        file.read(mStopsPlay);
+        file.read(mTriesFirstTimeShots);
+        file.read(mUsesLongThrowToStartCounterAttacks);
+        file.read(mRefrainsFromTakingLongShots);
+        file.read(mPenaltyBoxPlayer);
+        file.read(mCutsInsideFromLeftWing);
+        file.read(mCutsInsideFromRightWing);
+        file.read(mCrossesEarly);
+        file.read(mBringBallOutofDefence);
+        file.read(mIsBasque);
+    }
+
+    void write_binary(binary_file &file) {
+        person::write_binary(file);
+        file.write(mEthnicity);
+        file.write(mHairColour);
+        file.write(mHairLength);
+        file.write(mSkinTone);
+        file.write(mAgent);
+        file.write(mDeclaredForNation);
+        file.write(mInternationalRetirement);
+        file.write(mInternationalRetirementDate);
+        file.write(mInternationalApps);
+        file.write(mInternationalGoals);
+        file.write(mShirtName);
+        file.write(mCurrentAbility);
+        file.write(mRecommendedCurrentAbility);
+        file.write(mPotentialAbility);
+        file.write(mPotentialAbilityRange);
+        file.write(mCurrentReputation);
+        file.write(mHomeReputation);
+        file.write(mWorldReputation);
+        file.write(mHeight);
+        file.write(mWeight);
+        file.write(mLeftFoot);
+        file.write(mRightFoot);
+        file.write(mPosition);
+        file.write(mBestRoles);
+        file.write(mRoleUsedToFillEmptyAttributes);
+        file.write(mGoalkeeper);
+        file.write(mSweeper);
+        file.write(mDefenderLeft);
+        file.write(mDefenderCentral);
+        file.write(mDefenderRight);
+        file.write(mDefensiveMidfielder);
+        file.write(mWingBackLeft);
+        file.write(mWingBackRight);
+        file.write(mMidfielderLeft);
+        file.write(mMidfielderCentral);
+        file.write(mMidfielderRight);
+        file.write(mAttackingMidfielderLeft);
+        file.write(mAttackingMidfielderCentral);
+        file.write(mAttackingMidfielderRight);
+        file.write(mStriker);
+        file.write(mPreferredCentralPosition);
+        file.write(mAggression);
+        file.write(mAnticipation);
+        file.write(mBravery);
+        file.write(mComposure);
+        file.write(mConcentration);
+        file.write(mConsistency);
+        file.write(mVision);
+        file.write(mDecisions);
+        file.write(mDetermination);
+        file.write(mDirtiness);
+        file.write(mFlair);
+        file.write(mImportantMatches);
+        file.write(mLeadership);
+        file.write(mMovement);
+        file.write(mPositioning);
+        file.write(mTeamWork);
+        file.write(mWorkRate);
+        file.write(mAcceleration);
+        file.write(mAgility);
+        file.write(mBalance);
+        file.write(mInjuryProneness);
+        file.write(mJumpingReach);
+        file.write(mNaturalFitness);
+        file.write(mPace);
+        file.write(mStamina);
+        file.write(mStrength);
+        file.write(mCorners);
+        file.write(mCrossing);
+        file.write(mDribbling);
+        file.write(mFinishing);
+        file.write(mFirstTouch);
+        file.write(mFreeKicks);
+        file.write(mHeading);
+        file.write(mLongShots);
+        file.write(mLongThrows);
+        file.write(mMarking);
+        file.write(mPassing);
+        file.write(mPenaltyTaking);
+        file.write(mTackling);
+        file.write(mTechnique);
+        file.write(mVersatility);
+        file.write(mAerialAbility);
+        file.write(mCommandOfArea);
+        file.write(mCommunication);
+        file.write(mEccentricity);
+        file.write(mHandling);
+        file.write(mKicking);
+        file.write(mOneOnOnes);
+        file.write(mReflexes);
+        file.write(mRushingOut);
+        file.write(mTendencyToPunch);
+        file.write(mThrowing);
+        file.write(mRunsWithBallDownLeft);
+        file.write(mRunsWithBallDownRight);
+        file.write(mRunsWithBallThroughTheCentre);
+        file.write(mGetsIntoOppositionArea);
+        file.write(mMovesIntoChannels);
+        file.write(mGetsForwardWheneverPossible);
+        file.write(mPlaysShortSimplePasses);
+        file.write(mTriesKillerBallsOften);
+        file.write(mShootsFromDistance);
+        file.write(mShootsWithPower);
+        file.write(mPlacesShots);
+        file.write(mCurlsBall);
+        file.write(mLikesToRoundKeeper);
+        file.write(mLikesToTryToBreakOffsideTrap);
+        file.write(mArguesWithOfficials);
+        file.write(mLikesToLobKeeper);
+        file.write(mPlaysNoThroughBalls);
+        file.write(mDwellsOnBall);
+        file.write(mArrivesLateInOppositionArea);
+        file.write(mTriesToPlayWayOutOfTrouble);
+        file.write(mStaysBackAtAllTimes);
+        file.write(mDivesIntoTackles);
+        file.write(mDoesNotDiveIntoTackles);
+        file.write(mHitsFreekicksWithPower);
+        file.write(mRunsWithBallOften);
+        file.write(mRunsWithBallRarely);
+        file.write(mAvoidsUsingWeakerFoot);
+        file.write(mTriesLongRangeFreeKicks);
+        file.write(mCutsInsideFromBothWings);
+        file.write(mPlaysOneTwos);
+        file.write(mDictatesTempo);
+        file.write(mAttemptsOverheadKicks);
+        file.write(mKnocksBallPastOpponent);
+        file.write(mTriesLongRangePasses);
+        file.write(mLikesToSwitchBallToOtherFlank);
+        file.write(mComesDeepToGetBall);
+        file.write(mHugsLine);
+        file.write(mLooksForPassRatherThanAttemptingToScore);
+        file.write(mMarksOpponentTightly);
+        file.write(mPlaysWithBackToGoal);
+        file.write(mPossessesLongFlatThrow);
+        file.write(mStopsPlay);
+        file.write(mTriesFirstTimeShots);
+        file.write(mUsesLongThrowToStartCounterAttacks);
+        file.write(mRefrainsFromTakingLongShots);
+        file.write(mPenaltyBoxPlayer);
+        file.write(mCutsInsideFromLeftWing);
+        file.write(mCutsInsideFromRightWing);
+        file.write(mCrossesEarly);
+        file.write(mBringBallOutofDefence);
+        file.write(mIsBasque);
+    }
 };
 
 }

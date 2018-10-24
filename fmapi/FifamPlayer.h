@@ -1,25 +1,18 @@
 #pragma once
 #include "FifamPerson.h"
-#include "FifamTypes.h"
-#include "FifamDate.h"
-#include "FifamLanguage.h"
 #include "FifamReadWrite.h"
 #include "FifamPlayerAppearance.h"
-#include "FifamNation.h"
-#include "FifamPersonType.h"
 #include "FifamPlayerAttributes.h"
 #include "FifamPlayerHistory.h"
 #include "FifamPlayerContract.h"
 #include "FifamPlayerStartingConditions.h"
-#include "FifamClubLink.h"
 #include "FifamPlayerPosition.h"
 #include "FifamPlayerPlayingStyle.h"
 #include "FifamShoeType.h"
 #include "FifamPlayerAgent.h"
-#include "FifamFormation.h"
-#include "FifamChairmanStability.h"
 #include "FifamPlayerCharacter.h"
 #include "FifamFlags.h"
+#include "FifamPlayerAbilityID.h"
 
 class FifamClub;
 
@@ -28,25 +21,6 @@ class FifamPlayer : public FifamPerson {
 public:
     // @since FM07
     UInt mEmpicsId = 0;
-    // @since FM07
-    // @maxsize 19
-    String mLastName;
-    // @since FM07
-    // @maxsize 15
-    String mFirstName;
-    // @since FM07
-    // @maxsize 19 FM07
-    // @maxsize 29 FM13
-    String mPseudonym;
-    // @since FM07
-    // @maxsize 19
-    String mNickname;
-    // @since FM07
-    Array<FifamNation, 2> mNationality;
-    // @since FM07
-    Array<FifamLanguage, 4> mLanguages;
-    // @since FM07
-    FifamDate mBirthday;
     // @since FM07
     // there are two boolean flags, `IsReserve` and `IsYouth`
     // if none of them enabled then player is in the first team
@@ -61,9 +35,6 @@ public:
     Bool mIsBasque = false; 
     // @since FM07
     Bool mIsRealPlayer = false;
-    // @since FM07
-    // @range [0;9]
-    UChar mTalent = 0;
     // @since FM07
     // @range 0-7
     UChar mTacticalEducation = 0;
@@ -153,47 +124,23 @@ public:
     UInt mCurrentEstimatedMarketValue = 0;
     // @since FM11
     FifamPlayerAgent mPlayerAgent;
-    // @since FM07
-    FifamClubLink mFavouriteClub;
-    // @since FM07
-    FifamClubLink mWouldnSignFor;
-    // @since FM07
-    FifamPlayer *mManagerFavouritePlayer = nullptr;
     // @since FM13
     // @size 3
     Vector<FifamClubLink> mTransferRumors;
     // @since FM07
     // @maxsize 64 FM13
     String mComment;
-
-    // Employee data
-
-    // @since FM07
-    // @range 0-15
-    UChar mManagerMotivationSkills = 0;
-    // @since FM07
-    // @range 0-15
-    UChar mManagerCoachingSkills = 0;
-    // @since FM07
-    // @range 0-15
-    UChar mManagerGoalkeepersTraining = 0;
-    // @since FM07
-    // @range 0-15
-    UChar mManagerNegotiationSkills = 0;
-    // @since FM07
-    FifamFormation mManagerFavouriteFormation;
-    // @since FM07
-    FifamChairmanStability mChairmanStability;
+    // @since FM13
+    Set<FifamPlayer *> mBrothers;
+    // @since FM13
+    Set<FifamPlayer *> mCousins;
 
     // Unknown data
     struct {
         UChar _1 = 0;
     } Unknown;
 
-    FifamClub *mClub = nullptr;
-
     FifamPlayer();
-    String GetName() const;
     void Read(FifamReader &reader);
     void Write(FifamWriter &writer);
     UChar GetLevel(FifamPlayerPosition position, FifamPlayerPlayingStyle style, Bool experience = true);
@@ -201,4 +148,6 @@ public:
     UChar GetLevel(FifamPlayerPlayingStyle style, Bool experience = true);
     UChar GetLevel(Bool experience = true);
     static Bool SortPlayersByLevel(FifamPlayer *player1, FifamPlayer *player2);
+    void ForAllAttributes(Function<void(UChar &, FifamPlayerAbilityID const &)> callback);
+    String GetStringUniqueId(UInt gameId, Bool includeEmpicsId = true);
 };

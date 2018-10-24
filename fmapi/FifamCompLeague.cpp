@@ -273,3 +273,18 @@ void FifamCompLeague::GenerateFixtures() {
         }
     }
 }
+
+void FifamCompLeague::GenerateCalendar(UInt startDay, UInt endDay, UInt winterBreakStartDay, UInt winterBreakEndDay) {
+    UInt numRounds = mNumRounds;
+    if (mNumRounds < 1 || mTeams.size() < 2 || mTeams.size() > 24)
+        return;
+    UInt numMatchdaysInRound = mTeams.size() - 1 + (mTeams.size() % 2);
+    UInt numMatchdays = numMatchdaysInRound * mNumRounds;
+    mFirstSeasonMatchdays.resize(numMatchdays);
+    UInt matchday = startDay;
+    for (UInt i = 0; i < numMatchdays; i++) {
+        mFirstSeasonMatchdays[i] = matchday;
+        matchday += 7;
+    }
+    mSecondSeasonMatchdays = mFirstSeasonMatchdays;
+}

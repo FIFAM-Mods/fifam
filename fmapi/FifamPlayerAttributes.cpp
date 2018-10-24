@@ -271,3 +271,22 @@ void FifamPlayerAttributes::Write(FifamWriter &writer) {
         writer.WriteLine(Throwing);
     }
 }
+
+bool FifamPlayerAttributes::IsSetPiecesAttribute(FifamPlayerAbilityID const & attrId) {
+    return attrId == FifamPlayerAbilityID::FreeKicks ||
+        attrId == FifamPlayerAbilityID::Corners ||
+        attrId == FifamPlayerAbilityID::PenaltyShot;
+}
+
+bool FifamPlayerAttributes::IsGoalkeeperAttribute(FifamPlayerAbilityID const & attrId) {
+    return attrId == FifamPlayerAbilityID::Diving ||
+        attrId == FifamPlayerAbilityID::Reflexes ||
+        attrId == FifamPlayerAbilityID::Handling ||
+        attrId == FifamPlayerAbilityID::Positioning ||
+        attrId == FifamPlayerAbilityID::OneOnOne ||
+        attrId == FifamPlayerAbilityID::GoalKicks ||
+        attrId == FifamPlayerAbilityID::Punching ||
+        attrId == FifamPlayerAbilityID::ShotStopping ||
+        attrId == FifamPlayerAbilityID::Throwing ||
+        attrId == FifamPlayerAbilityID::GkCrosses;
+}

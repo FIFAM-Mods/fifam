@@ -102,6 +102,11 @@ struct db {
 
     enum class db_size { Full, Average, Small, Tiny };
 
+    struct cache_entry {
+        String filename;
+
+    };
+
     db(Path const &dbpath, db_size size = db_size::Full) {
         mDbPath = dbpath;
         std::wcout << L"Reading foom database..." << std::endl;
@@ -212,6 +217,7 @@ struct db {
             playersFile = L"fm_players_average";
         else
             playersFile = L"fm_players";
+        UInt playerCounter = 0;
         ReaderCallback(playersFile, [&](FifamReader &reader) {
             player p;
             if (size == db_size::Full)
@@ -219,7 +225,12 @@ struct db {
             else
                 reader.ReadLineWithSeparator(L'\t', p.mID, p.mFirstName, p.mSecondName, p.mCommonName, p.mFullName, p.mEthnicity, p.mHairColour, p.mHairLength, p.mSkinTone, p.mDateOfBirth, IntPtr(p.mNation), IntPtr(p.mLanguage), p.mAgent, p.mDeclaredForNation, p.mInternationalRetirement, p.mInternationalRetirementDate, p.mInternationalApps, p.mInternationalGoals, p.mAdaptability, p.mAmbition, p.mControversy, p.mLoyalty, p.mPressure, p.mProfessionalism, p.mSportsmanship, p.mTemperament, p.mShirtName, p.mCurrentAbility, p.mRecommendedCurrentAbility, p.mPotentialAbility, p.mPotentialAbilityRange, p.mCurrentReputation, p.mHomeReputation, p.mWorldReputation, p.mHeight, p.mWeight, p.mLeftFoot, p.mRightFoot, p.mPosition, p.mBestRoles, p.mRoleUsedToFillEmptyAttributes, p.mGoalkeeper, p.mSweeper, p.mDefenderLeft, p.mDefenderCentral, p.mDefenderRight, p.mDefensiveMidfielder, p.mWingBackLeft, p.mWingBackRight, p.mMidfielderLeft, p.mMidfielderCentral, p.mMidfielderRight, p.mAttackingMidfielderLeft, p.mAttackingMidfielderCentral, p.mAttackingMidfielderRight, p.mStriker, p.mPreferredCentralPosition, p.mAggression, p.mAnticipation, p.mBravery, p.mComposure, p.mConcentration, p.mConsistency, p.mVision, p.mDecisions, p.mDetermination, p.mDirtiness, p.mFlair, p.mImportantMatches, p.mLeadership, p.mMovement, p.mPositioning, p.mTeamWork, p.mWorkRate, p.mAcceleration, p.mAgility, p.mBalance, p.mInjuryProneness, p.mJumpingReach, p.mNaturalFitness, p.mPace, p.mStamina, p.mStrength, p.mCorners, p.mCrossing, p.mDribbling, p.mFinishing, p.mFirstTouch, p.mFreeKicks, p.mHeading, p.mLongShots, p.mLongThrows, p.mMarking, p.mPassing, p.mPenaltyTaking, p.mTackling, p.mTechnique, p.mVersatility, p.mAerialAbility, p.mCommandOfArea, p.mCommunication, p.mEccentricity, p.mHandling, p.mKicking, p.mOneOnOnes, p.mReflexes, p.mRushingOut, p.mTendencyToPunch, p.mThrowing, p.mRunsWithBallDownLeft, p.mRunsWithBallDownRight, p.mRunsWithBallThroughTheCentre, p.mGetsIntoOppositionArea, p.mMovesIntoChannels, p.mGetsForwardWheneverPossible, p.mPlaysShortSimplePasses, p.mTriesKillerBallsOften, p.mShootsFromDistance, p.mShootsWithPower, p.mPlacesShots, p.mCurlsBall, p.mLikesToRoundKeeper, p.mLikesToTryToBreakOffsideTrap, p.mArguesWithOfficials, p.mLikesToLobKeeper, p.mPlaysNoThroughBalls, p.mDwellsOnBall, p.mArrivesLateInOppositionArea, p.mTriesToPlayWayOutOfTrouble, p.mStaysBackAtAllTimes, p.mDivesIntoTackles, p.mDoesNotDiveIntoTackles, p.mHitsFreekicksWithPower, p.mRunsWithBallOften, p.mRunsWithBallRarely, p.mAvoidsUsingWeakerFoot, p.mTriesLongRangeFreeKicks, p.mCutsInsideFromBothWings, p.mPlaysOneTwos, p.mDictatesTempo, p.mAttemptsOverheadKicks, p.mKnocksBallPastOpponent, p.mTriesLongRangePasses, p.mLikesToSwitchBallToOtherFlank, p.mComesDeepToGetBall, p.mHugsLine, p.mLooksForPassRatherThanAttemptingToScore, p.mMarksOpponentTightly, p.mPlaysWithBackToGoal, p.mPossessesLongFlatThrow, p.mStopsPlay, p.mTriesFirstTimeShots, p.mUsesLongThrowToStartCounterAttacks, p.mRefrainsFromTakingLongShots, p.mPenaltyBoxPlayer, p.mCutsInsideFromLeftWing, p.mCutsInsideFromRightWing, p.mCrossesEarly, p.mBringBallOutofDefence, p.mIsBasque);
             mPlayers[p.mID] = p;
+            playerCounter++;
+            if ((playerCounter % 1000) == 0)
+                std::wcout << playerCounter << L"...";
         });
+        if (playerCounter >= 1000)
+            std::wcout << std::endl;
         ReaderCallback(L"fm_player_club_contracts", [&](FifamReader &reader) {
             Int playerID = -1;
             player::contract c;
@@ -227,6 +238,61 @@ struct db {
             if (playerID != -1)
                 map_find(mPlayers, playerID).mContract = c;
         });
+        ReaderCallback(L"fm_player_playing_history", [&](FifamReader &reader) {
+            Int playerID = -1;
+            player::playing_history h;
+            reader.ReadLine(playerID, h.mYear, h.mOrder, IntPtr(h.mClub), IntPtr(h.mDivision), h.mOnLoan, h.mYouthTeam, h.mApps, h.mGoals, h.mTransferFee);
+            map_find(mPlayers, playerID).mVecPlayingHistory.push_back(h);
+        });
+        ReaderCallback(L"fm_player_languages", [&](FifamReader &reader) {
+            Int playerID = -1;
+            player::language l;
+            reader.ReadLine(playerID, IntPtr(l.mLanguage), l.mProficiency, l.mCannotSpeakLanguage);
+            map_find(mPlayers, playerID).mVecLanguages.push_back(l);
+        });
+        ReaderCallback(L"fm_player_second_nations", [&](FifamReader &reader) {
+            Int playerID = -1;
+            nation *nation = nullptr;
+            reader.ReadLine(playerID, IntPtr(nation));
+            map_find(mPlayers, playerID).mVecSecondNations.push_back(nation);
+        });
+        ReaderCallback(L"fm_player_favourite_clubs", [&](FifamReader &reader) {
+            Int playerID = -1;
+            player::favourite_club f;
+            reader.ReadLine(playerID, IntPtr(f.mClub), f.mReason, f.mLevel);
+            map_find(mPlayers, playerID).mVecFavouriteClubs.push_back(f);
+        });
+        ReaderCallback(L"fm_player_disliked_clubs", [&](FifamReader &reader) {
+            Int playerID = -1;
+            player::disliked_club d;
+            reader.ReadLine(playerID, IntPtr(d.mClub), d.mLevel);
+            map_find(mPlayers, playerID).mVecDislikedClubs.push_back(d);
+        });
+        ReaderCallback(L"fm_player_favourite_people", [&](FifamReader &reader) {
+            Int playerID = -1;
+            player::favourite_people f;
+            reader.ReadLine(playerID, IntPtr(f.mPerson), f.mLevel, f.mReason, f.mPermanent);
+            map_find(mPlayers, playerID).mVecFavouritePeople.push_back(f);
+        });
+        ReaderCallback(L"fm_player_bans", [&](FifamReader &reader) {
+            Int playerID = -1;
+            player::ban b;
+            reader.ReadLine(playerID, b.mBanType, b.mStartDate, b.mEndDate, b.mNumberMatches);
+            map_find(mPlayers, playerID).mVecBans.push_back(b);
+        });
+        ReaderCallback(L"fm_player_retirements", [&](FifamReader &reader) {
+            Int playerID = -1;
+            player::retirement r;
+            reader.ReadLine(playerID, r.mType, r.mDate);
+            map_find(mPlayers, playerID).mVecRetirements.push_back(r);
+        });
+        ReaderCallback(L"fm_player_injuries", [&](FifamReader &reader) {
+            Int playerID = -1;
+            player::injury i;
+            reader.ReadLine(playerID, IntPtr(i.mInjury), i.mStartDate, i.mEndDate, i.mFuture, i.mPermanent, i.mSeverity);
+            map_find(mPlayers, playerID).mVecInjuries.push_back(i);
+        });
+
         // read non players
         // read officials
         ReaderCallback(L"fm_officials", [&](FifamReader &reader) {
@@ -355,7 +421,14 @@ struct db {
                 resolve(f.mClub);
             for (auto &d : p.mVecDislikedClubs)
                 resolve(d.mClub);
-
+            for (auto &h : p.mVecPlayingHistory) {
+                resolve(h.mClub);
+                resolve(h.mDivision);
+            }
+            for (auto &f : p.mVecFavouritePeople)
+                resolve(f.mPerson);
+            for (auto &i : p.mVecInjuries)
+                resolve(i.mInjury);
             // TODO
         }
         for (auto &entry : mOfficials) {

@@ -1,18 +1,11 @@
 #include "FifamPlayer.h"
 #include "FifamPlayerLevel.h"
 #include "FifamUtils.h"
+#include "FifamNames.h"
 #include "Random.h"
 
 FifamPlayer::FifamPlayer() {
     mPersonType = FifamPersonType::Player;
-}
-
-String FifamPlayer::GetName() const {
-    if (!mPseudonym.empty())
-        return mPseudonym;
-    if (!mFirstName.empty())
-        return mFirstName + L" " + mLastName;
-    return mLastName;
 }
 
 void FifamPlayer::Read(FifamReader &reader) {
@@ -879,4 +872,66 @@ UChar FifamPlayer::GetLevel(Bool experience) {
 
 Bool FifamPlayer::SortPlayersByLevel(FifamPlayer *player1, FifamPlayer *player2) {
     return player1->GetLevel() > player2->GetLevel();
+}
+
+void FifamPlayer::ForAllAttributes(Function<void(UChar &, FifamPlayerAbilityID const &)> callback) {
+    callback(mAttributes.BallControl, FifamPlayerAbilityID::BallControl);
+    callback(mAttributes.Volleys, FifamPlayerAbilityID::Volleys);
+    callback(mAttributes.Dribbling, FifamPlayerAbilityID::Dribbling);
+    callback(mAttributes.Finishing, FifamPlayerAbilityID::Finishing);
+    callback(mAttributes.ShotPower, FifamPlayerAbilityID::ShotPower);
+    callback(mAttributes.LongShots, FifamPlayerAbilityID::LongShots);
+    callback(mAttributes.Crossing, FifamPlayerAbilityID::Crossing);
+    callback(mAttributes.Passing, FifamPlayerAbilityID::Passing);
+    callback(mAttributes.LongPassing, FifamPlayerAbilityID::LongPassing);
+    callback(mAttributes.Header, FifamPlayerAbilityID::Header);
+    callback(mAttributes.TacklingGeneral, FifamPlayerAbilityID::Tackling);
+    callback(mAttributes.TackleStanding, FifamPlayerAbilityID::TackleStanding);
+    callback(mAttributes.TackleSliding, FifamPlayerAbilityID::TackleSliding);
+    callback(mAttributes.ManMarking, FifamPlayerAbilityID::ManMarking);
+    callback(mAttributes.Technique, FifamPlayerAbilityID::Technique);
+    callback(mAttributes.Creativity, FifamPlayerAbilityID::Creativity);
+    callback(mAttributes.Flair, FifamPlayerAbilityID::Flair);
+    callback(mAttributes.Touch, FifamPlayerAbilityID::Touch);
+    callback(mAttributes.Balance, FifamPlayerAbilityID::Balance);
+    callback(mAttributes.Acceleration, FifamPlayerAbilityID::Acceleration);
+    callback(mAttributes.Pace, FifamPlayerAbilityID::Pace);
+    callback(mAttributes.Agility, FifamPlayerAbilityID::Agility);
+    callback(mAttributes.Jumping, FifamPlayerAbilityID::Jumping);
+    callback(mAttributes.Strength, FifamPlayerAbilityID::Strength);
+    callback(mAttributes.Stamina, FifamPlayerAbilityID::Stamina);
+    callback(mAttributes.WorkRate, FifamPlayerAbilityID::WorkRate);
+    callback(mAttributes.ForwardRuns, FifamPlayerAbilityID::ForwardRuns);
+    callback(mAttributes.PosOffensive, FifamPlayerAbilityID::PosOffensive);
+    callback(mAttributes.PosDefensive, FifamPlayerAbilityID::PosDefensive);
+    callback(mAttributes.Vision, FifamPlayerAbilityID::Vision);
+    callback(mAttributes.Reactions, FifamPlayerAbilityID::Reactions);
+    callback(mAttributes.TacticAwareness, FifamPlayerAbilityID::TacticAwareness);
+    callback(mAttributes.Aggression, FifamPlayerAbilityID::Aggression);
+    callback(mAttributes.Composure, FifamPlayerAbilityID::Composure);
+    callback(mAttributes.Consistency, FifamPlayerAbilityID::Consistency);
+    callback(mAttributes.Leadership, FifamPlayerAbilityID::Leadership);
+    callback(mAttributes.Anticipation, FifamPlayerAbilityID::Anticipation);
+    callback(mAttributes.Concentration, FifamPlayerAbilityID::Concentration);
+    callback(mAttributes.Decision, FifamPlayerAbilityID::Decision);
+    callback(mAttributes.Determination, FifamPlayerAbilityID::Determination);
+    callback(mAttributes.TeamWork, FifamPlayerAbilityID::TeamWork);
+    callback(mAttributes.Intimidation, FifamPlayerAbilityID::Intimidation);
+    callback(mAttributes.FreeKicks, FifamPlayerAbilityID::FreeKicks);
+    callback(mAttributes.Corners, FifamPlayerAbilityID::Corners);
+    callback(mAttributes.PenaltyShot, FifamPlayerAbilityID::PenaltyShot);
+    callback(mAttributes.Diving, FifamPlayerAbilityID::Diving);
+    callback(mAttributes.Reflexes, FifamPlayerAbilityID::Reflexes);
+    callback(mAttributes.Handling, FifamPlayerAbilityID::Handling);
+    callback(mAttributes.Positioning, FifamPlayerAbilityID::Positioning);
+    callback(mAttributes.OneOnOne, FifamPlayerAbilityID::OneOnOne);
+    callback(mAttributes.Kicking, FifamPlayerAbilityID::GoalKicks);
+    callback(mAttributes.Punching, FifamPlayerAbilityID::Punching);
+    callback(mAttributes.ShotStopping, FifamPlayerAbilityID::ShotStopping);
+    callback(mAttributes.Throwing, FifamPlayerAbilityID::Throwing);
+    callback(mAttributes.GkCrosses, FifamPlayerAbilityID::GkCrosses);
+}
+
+String FifamPlayer::GetStringUniqueId(UInt gameId, Bool includeEmpicsId) {
+    return FifamNames::GetPersonStringId(gameId, mFirstName, mLastName, mPseudonym, mBirthday, includeEmpicsId ? mEmpicsId : 0);
 }

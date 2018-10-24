@@ -1,14 +1,8 @@
 #pragma once
 #include "FifamPerson.h"
-#include "FifamTypes.h"
-#include "FifamNation.h"
-#include "FifamFormation.h"
-#include "FifamClubLink.h"
-#include "FifamChairmanStability.h"
 #include "FifamManagerFocus.h"
 #include "FifamClubStaffPosition.h"
 #include "FifamCoachPlayingOrientation.h"
-#include "FifamLanguage.h"
 
 class FifamPlayer;
 
@@ -16,53 +10,12 @@ class FifamPlayer;
 class FifamStaff : public FifamPerson {
 public:
     // @since FM07
-    // @maxsize 15
-    String mFirstName;
-    // @since FM07
-    // @maxsize 19
-    String mLastName;
-    // @since FM09
-    // @maxsize 19
-    String mPseudonym;
-    // @since FM09
-    // @maxsize 19
-    String mNickname;
-    // @since FM07
     FifamClubStaffPosition mClubPosition;
-    // @since FM07
-    FifamDate mBirthdate;
-    // [1] since FM07
-    // [2] since FM09
-    Array<FifamNation, 2> mNationality;
     // @since FM07
     // @range 0-4
     UChar mExperience = 0;
     // @since FM07
-    // @range 0-15
-    UChar mManagerMotivationSkills = 0;
-    // @since FM07
-    // @range 0-15
-    UChar mManagerCoachingSkills = 0;
-    // @since FM07
-    // @range 0-15
-    UChar mManagerGoalkeepersTraining = 0;
-    // @since FM07
-    // @range 0-15
-    UChar mManagerNegotiationSkills = 0;
-    // @since FM07
     FifamManagerFocus mManagerFocus;
-    // @since FM07
-    Array<FifamLanguage, 4> mLanguage;
-    // @since FM07
-    FifamFormation mFavouriteFormation;
-    // @since FM07
-    FifamChairmanStability mChairmanStability;
-    // @since FM09
-    FifamClubLink mFavouriteClub;
-    // @since FM09
-    FifamClubLink mWouldNeverWorkForClub;
-    // @since FM07
-    FifamPlayer *mFavouritePlayer = nullptr;
     // @since FM09
     struct PersonalityAttributes {
         // @since FM09
@@ -104,8 +57,6 @@ public:
         UChar Networking = 0;
     } mSkills;
     // @since FM09
-    UChar mTalent = 0;
-    // @since FM09
     FifamCoachPlayingOrientation mCoachPlayingOrientation;
     // @since FM09
     Vector<FifamNation> mScoutPreferredCountries;
@@ -133,7 +84,6 @@ public:
         Char _2 = 0; // 0-7, default 0
     } Unknown;
 
-    FifamClub *mClub = nullptr;
     FifamNation mLinkedCountry;
 
     void Read(FifamReader &reader);
@@ -146,4 +96,5 @@ public:
     void WriteToPlayer(FifamWriter &writer);
     UChar GetLevel();
     UChar GetLevel(FifamClubStaffPosition position);
+    String GetStringUniqueId(UInt gameId);
 };

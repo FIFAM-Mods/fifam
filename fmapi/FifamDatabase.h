@@ -101,4 +101,6 @@ public:
     UInt GetPersonsInClubLimit(UInt gameId);
     FifamCupAlloc *GetCupTemplate(FifamCupSystemType cupSystemType);
     FifamCountry *GetCountry(Int countryId);
+    void ReadPlayerRelations(Path const &filepath, UInt gameId, Map<String, Vector<FifamPlayer *>> const &playerStrIDsMap);
+    void WritePlayerRelations(Path const &filepath, UInt gameId);
 };
