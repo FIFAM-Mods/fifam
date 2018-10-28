@@ -45,7 +45,7 @@ public:
     void ConvertClub(FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);
     FifamClub *CreateAndConvertClub(foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);
     void ConvertReferee(FifamReferee *dst, foom::official *official);
-    void ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &kits);
+    void ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &kits, Int badgeType);
     FifamPlayer *CreateAndConvertPlayer(foom::player *p, FifamClub *club);
     FifamStaff *CreateAndConvertStaff(foom::non_player *p, FifamClub *club);
     

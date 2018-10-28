@@ -764,7 +764,7 @@ void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation) {
     dst->mNumContinentalChampions = (UShort)nation->mConverterData.mEuroCupWins.size();
     dst->mNumContinentalRunnersUp = (UShort)nation->mConverterData.mEuroCupFinals.size();
 
-    ConvertKitsAndColors(&dst->mNationalTeam, nation->mVecKits);
+    ConvertKitsAndColors(&dst->mNationalTeam, nation->mVecKits, -1);
 }
 
 void Converter::ConvertClub(FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div) {
@@ -1025,12 +1025,10 @@ void Converter::ConvertClub(FifamClub *dst, foom::club *team, foom::club *mainTe
             dst->mNationalPrestige = 1;
     }
 
-    
-
-    ConvertKitsAndColors(dst, mainTeam->mVecKits);
+    ConvertKitsAndColors(dst, mainTeam->mVecKits, team->mBadge);
 }
 
-void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &kits) {
+void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &kits, Int badgeType) {
     enum KitPart { Shirt, Icon, Text, Shorts, Socks };
 
     const foom::kit *tmpKitSets[5][2] = {};
@@ -1057,25 +1055,34 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &ki
             kitSets[t][k] = tmpKitSets[t][k] ? tmpKitSets[t][k] : tmpCompKitSets[t][k];
     }
 
+    bool textColorsUsed = false;
+
     const foom::kit *clubClrs = nullptr;
-    for (UInt i = 0; i < 5; i++) {
-        if (kitSets[i][0]) {
-            clubClrs = kitSets[i][0];
-            break;
+    if (badgeType != 11 && kitSets[2][0]) {
+        clubClrs = kitSets[2][0];
+        textColorsUsed = true;
+    }
+    else {
+        for (UInt i = 0; i < 5; i++) {
+            if (kitSets[i][0]) {
+                clubClrs = kitSets[i][0];
+                break;
+            }
         }
     }
 
-    Color backgroundClr;
-    Color foregroundClr;
+    Color backgroundClr, foregroundClr;
 
     // badge and colors
     if (clubClrs) {
         backgroundClr = Color(clubClrs->mBackground.r, clubClrs->mBackground.g, clubClrs->mBackground.b);
         foregroundClr = Color(clubClrs->mForeground.r, clubClrs->mForeground.g, clubClrs->mForeground.b);
         Color outlineClr = Color(clubClrs->mOutline.r, clubClrs->mOutline.g, clubClrs->mOutline.b);
+        if (textColorsUsed)
+            std::swap(foregroundClr, outlineClr);
         Color secondColor = foregroundClr;
-        if (Color::Distance(backgroundClr, foregroundClr) < 200) {
-            if (Color::Distance(backgroundClr, outlineClr) < 200) {
+        if (Color::Distance(backgroundClr, foregroundClr) < 100) {
+            if (Color::Distance(backgroundClr, outlineClr) < 100) {
                 auto white = Color::Distance(backgroundClr, { 255, 255, 255 });
                 auto black = Color::Distance(backgroundClr, { 0, 0, 0 });
                 if (black < white)
@@ -1104,9 +1111,61 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &ki
     }
     dst->mClubColour2 = dst->mClubColour;
     dst->mMerchandiseColour = backgroundClr;
-    dst->mBackgroundColour = backgroundClr;
-    dst->mHeaderColour = foregroundClr;
+    if (Color::Distance(backgroundClr, Color(255, 255, 255)) < 100) {
+        dst->mBackgroundColour = foregroundClr;
+        dst->mHeaderColour = backgroundClr;
+    }
+    else {
+        dst->mBackgroundColour = backgroundClr;
+        dst->mHeaderColour = foregroundClr;
+    }
     dst->mBadge.SetColorDefault(dst->mClubColour);
+
+    if (badgeType != -1) {
+        bool inverted = Random::Get(0, 1);
+        switch (badgeType) {
+        case 0:
+            dst->mBadge.SetColor(FifamClubBadgeShape::Ball, 1, 1, inverted);
+            break;
+        case 1:
+        case 13:
+            dst->mBadge.SetColor(FifamClubBadgeShape::Round, 1, 7, inverted);
+            break;
+        case 2:
+            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 5, Random::Get(1, 4), inverted);
+            break;
+        case 3:
+            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 2, 1, inverted);
+            break;
+        case 4:
+            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 6, 1, inverted);
+            break;
+        case 5:
+            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 17, 1, inverted);
+            break;
+        case 6:
+            dst->mBadge.SetColor(FifamClubBadgeShape::Round, 1, Random::Get(1, 2), false);
+            break;
+        case 7:
+            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 4, 2, inverted);
+            break;
+        case 8:
+            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 8, 1, inverted);
+            break;
+        case 9:
+            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 4, 4, inverted);
+            break;
+        case 10:
+            dst->mBadge.SetColor(FifamClubBadgeShape::Oval, 1, 1, false);
+            break;
+        case 11:
+            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 10, 1, inverted);
+            break;
+        case 12:
+            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 9, 1, inverted);
+            break;
+        }
+    }
 
     // home & away kits
     for (UInt i = 0; i < 2; i++) {
@@ -1397,6 +1456,14 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &ki
                 break;
             }
         }
+
+        Color shirtBackColor = FifamKit::GetShirtBackColor(kit.mShirt, kit.mShirtColors[0], kit.mShirtColors[1], kit.mShirtColors[2]);
+        if (Color::Distance(kit.mShirtNumberColor, shirtBackColor) < 100) {
+            if (Color::Distance(kit.mShirtNumberColor, foregroundClr) < 100)
+                kit.mShirtNumberColor = backgroundClr;
+            else
+                kit.mShirtNumberColor = foregroundClr;
+        }
     }
 }
 
@@ -1508,8 +1575,19 @@ FifamPlayer *Converter::CreateAndConvertPlayer(foom::player *p, FifamClub *club)
         player->mRightFoot = 4;
 
     // appearance
+
     player->mHeight = p->mHeight;
     player->mWeight = p->mWeight;
+
+    UInt randomShoeType = Random::Get(1, 99);
+    if (randomShoeType > 66)
+        player->mShoeType = FifamShoeType::Blue;
+    else if (randomShoeType > 33)
+        player->mShoeType = FifamShoeType::White;
+    else
+        player->mShoeType = FifamShoeType::Black;
+
+
 
     // potential
     UInt maxTalent = 9;
@@ -1864,6 +1942,21 @@ FifamPlayer *Converter::CreateAndConvertPlayer(foom::player *p, FifamClub *club)
         player->mContract.mJoined.Set(1, 7, CURRENT_YEAR);
         player->mContract.mValidUntil.Set(30, 6, CURRENT_YEAR + 1);
     }
+
+    // player agent
+    if (p->mCurrentAbility >= 100) {
+        Int randVal = Random::Get(0, 100);
+        if (randVal >= 65) {
+            if (randVal >= 90)
+                player->mPlayerAgent = FifamPlayerAgent::Lawyer;
+            else
+                player->mPlayerAgent = FifamPlayerAgent::Agent;
+        }
+        else
+            player->mPlayerAgent = FifamPlayerAgent::Agency;
+    }
+    else
+        player->mPlayerAgent = FifamPlayerAgent::None;
 
     // national team
     if (p->mInternationalRetirement && p->mInternationalRetirementDate <= GetCurrentDate())

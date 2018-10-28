@@ -112,7 +112,8 @@ public:
         { FifamKitColor::Red2, { 232, 48, 56 }}, // CSKA
         { FifamKitColor::Blue6, { 32, 64, 152 }}, // Everton
         { FifamKitColor::Red7, { 120, 32, 56 }}, // West Ham
-        { FifamKitColor::Field2, { 72, 112, 96 }} // Saint-Etienne
+        { FifamKitColor::Field2, { 72, 112, 96 }}, // Saint-Etienne
+        { FifamKitColor::Violet1, { 232, 160, 184 }} // Palermo
     };
     inline static Vector<Pair<UInt, Color>> mShirtNumberColorTable = {
         { 1, { 255, 255, 255 }},
@@ -124,6 +125,8 @@ public:
         // added for better color detection
         { FifamShirtNumberColor::Blue, { 0, 144, 144 }}
     };
+
+    static Color GetShirtBackColor(UInt shirtId, Color const &firstColor, Color const &secondColor, Color const &thirdColor);
 
     void Read(FifamReader &reader);
     void Write(FifamWriter &writer);

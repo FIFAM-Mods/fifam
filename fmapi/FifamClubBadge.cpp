@@ -83,6 +83,8 @@ void FifamClubBadge::Validate() {
                 mPattern = 1;
             if (mShapeVariation == 2 && mPattern != 1)
                 mPattern = 1;
+            if (mPattern == 1 && mInverted)
+                mInverted = false;
         }
         else if (mShape == FifamClubBadgeShape::Diamond) {
             if (mShapeVariation != 1 && mShapeVariation != 2)
@@ -105,6 +107,8 @@ void FifamClubBadge::Validate() {
                 mShapeVariation = 1;
             if (mPattern < 1 || mPattern == 6 || mPattern > 7)
                 mPattern = 1;
+            if (mInverted && (mPattern == 1 || mPattern == 2))
+                mInverted = false;
         }
         else if (mShape == FifamClubBadgeShape::Crest) {
             if (mShapeVariation < 1 || mShapeVariation > 18)

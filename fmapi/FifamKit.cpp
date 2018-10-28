@@ -1,5 +1,11 @@
 #include "FifamKit.h"
 
+Color FifamKit::GetShirtBackColor(UInt shirtId, Color const & firstColor, Color const & secondColor, Color const & thirdColor) {
+    if (shirtId == 64)
+        return thirdColor;
+    return firstColor;
+}
+
 void FifamKit::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"KIT")) {
         UChar shirtColors[2][3];

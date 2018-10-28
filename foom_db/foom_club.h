@@ -53,6 +53,7 @@ struct club : public team {
     club *mRecordAttendanceOpposition = 0;
     Int mRecordAttendance = 0;
     Int mRecordAttendanceYear = 0;
+    Int mBadge = 0;
 
     struct reserve_team {
         club *mReserveClub = 0;
@@ -128,7 +129,7 @@ struct club : public team {
     Vector<player *> mVecLoanedPlayers;
     Vector<player *> mVecLoanedOutPlayers;
     Vector<player *> mVecFuturePlayers;
-    //Vector<player *> mVec 
+    Vector<player *> mVecFutureSales;
 
     struct converter_data {
         UInt mFIFAManagerID = 0;

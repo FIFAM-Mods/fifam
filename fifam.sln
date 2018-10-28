@@ -35,6 +35,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fm-fifam-converter", "fm-fi
 		{18A4A0AE-B8F4-4020-BC0A-A1284E2D5FFD} = {18A4A0AE-B8F4-4020-BC0A-A1284E2D5FFD}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fifa-kit-converter", "fifa-kit-converter\fifa-kit-converter.vcxproj", "{03228046-E546-47EB-B48C-340EF2F662C3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -65,6 +67,10 @@ Global
 		{A178B2A0-8B11-41B0-8725-517AF11536D6}.Debug|x86.Build.0 = Debug|Win32
 		{A178B2A0-8B11-41B0-8725-517AF11536D6}.Release|x86.ActiveCfg = Release|Win32
 		{A178B2A0-8B11-41B0-8725-517AF11536D6}.Release|x86.Build.0 = Release|Win32
+		{03228046-E546-47EB-B48C-340EF2F662C3}.Debug|x86.ActiveCfg = Debug|Win32
+		{03228046-E546-47EB-B48C-340EF2F662C3}.Debug|x86.Build.0 = Debug|Win32
+		{03228046-E546-47EB-B48C-340EF2F662C3}.Release|x86.ActiveCfg = Release|Win32
+		{03228046-E546-47EB-B48C-340EF2F662C3}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -72,6 +78,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{C0A884D2-95C0-42C2-81F1-A877DC800C87} = {2BF74687-F4CF-4A87-8EF8-DF998E5CB8B1}
 		{A178B2A0-8B11-41B0-8725-517AF11536D6} = {52D2BA09-A8EB-414D-A583-95725F4275B7}
+		{03228046-E546-47EB-B48C-340EF2F662C3} = {52D2BA09-A8EB-414D-A583-95725F4275B7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {C28418E1-E01F-4EB0-ADAA-6DE4C9FB5729}
