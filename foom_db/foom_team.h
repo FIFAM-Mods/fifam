@@ -5,6 +5,7 @@
 namespace foom {
 
 struct player;
+struct non_player;
 
 struct team {
     Int mID = 0;
@@ -29,6 +30,8 @@ struct team {
     Bool mIsNation;
 
     Vector<kit> mVecKits;
+
+    Vector<non_player *> mVecContractedNonPlayers;
 };
 
 }

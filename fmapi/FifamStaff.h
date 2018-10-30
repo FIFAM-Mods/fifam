@@ -86,6 +86,7 @@ public:
 
     FifamNation mLinkedCountry;
 
+    FifamStaff();
     void Read(FifamReader &reader);
     void ReadWorker(FifamReader &reader);
     void ReadManager(FifamReader &reader);

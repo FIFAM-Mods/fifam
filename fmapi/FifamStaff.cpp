@@ -3,6 +3,10 @@
 #include "FifamPlayer.h"
 #include "FifamNames.h"
 
+FifamStaff::FifamStaff() {
+    mPersonType = FifamPersonType::Staff;
+}
+
 void FifamStaff::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"STAFF")) {
         if (reader.IsVersionGreaterOrEqual(0x2009, 0x05)) {

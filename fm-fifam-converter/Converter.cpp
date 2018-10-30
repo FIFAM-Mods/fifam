@@ -574,7 +574,6 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     dst->mRivalClubs.push_back((FifamClub *)(rivalClubs[i]->mRivalClub->mConverterData.mFifamClub));
             }
 
-            // TODO: extract isBasque flag from FooM
             // TODO: reduce unused parameters in fm_players
             // TODO: (not sure) export "days at club" information for players
             // TODO: fix hero calculation
@@ -606,6 +605,74 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     }
                 }
             }
+            // create staff members
+            std::sort(team.mVecContractedNonPlayers.begin(), team.mVecContractedNonPlayers.end(),
+                [](foom::non_player *a, foom::non_player *b) {
+                return a->mCurrentAbility > b->mCurrentAbility;
+            });
+            struct StaffStorage {
+                Vector<foom::non_player *> vec;
+                UChar maxSize = 1;
+            };
+            StaffStorage staffManagers;
+            StaffStorage staffChiefExecs;
+            StaffStorage staffPresidents;
+            StaffStorage staffAssistantCoaches;
+            StaffStorage staffReserveCoaches;
+            StaffStorage staffYouthCoaches;
+            StaffStorage staffGoalkeeperCoaches;
+            StaffStorage staffFitnessCoaches;
+            StaffStorage staffTeamDoctors;
+            StaffStorage staffPhysios;
+            StaffStorage staffGeneralDirectors;
+            StaffStorage staffSportDirectors;
+            StaffStorage staffScouts;
+
+            if (gameId >= 9) {
+                staffAssistentCoaches.maxSize = 6;
+                staffReserveCoaches.maxSize = 6;
+                staffYouthCoaches.maxSize = 6;
+                staffGoalkeeperCoaches.maxSize = 6;
+                staffFitnessCoaches.maxSize = 6;
+                staffTeamDoctors.maxSize = 6;
+                staffPhysios.maxSize = 6;
+                staffGeneralDirectors.maxSize = 6;
+                staffSportDirectors.maxSize = 6;
+                staffScouts.maxSize = 6;
+            }
+
+            for (auto &p : team.mVecContractedNonPlayers) {
+                Int jobType = p->mClubContract.mJob;
+                if (jobType == 5) {
+                    FifamStaff *staff = CreateAndConvertStaff(p, dst, FifamClubStaffPosition::Manager);
+                }
+            }
+            for (foom::non_player *p : staffManagers.vec)
+                CreateAndConvertStaff(p, dst, FifamClubStaffPosition::Manager);
+            for (foom::non_player *p : staffChiefExecs.vec)
+                CreateAndConvertStaff(p, dst, FifamClubStaffPosition::ChiefExec);
+            for (foom::non_player *p : staffPresidents.vec)
+                CreateAndConvertStaff(p, dst, FifamClubStaffPosition::President);
+            for (foom::non_player *p : staffAssistantCoaches.vec)
+                CreateAndConvertStaff(p, dst, FifamClubStaffPosition::AssistantCoach);
+            for (foom::non_player *p : staffReserveCoaches.vec)
+                CreateAndConvertStaff(p, dst, FifamClubStaffPosition::AmateurCoach);
+            for (foom::non_player *p : staffYouthCoaches.vec)
+                CreateAndConvertStaff(p, dst, FifamClubStaffPosition::YouthCoach);
+            for (foom::non_player *p : staffGoalkeeperCoaches.vec)
+                CreateAndConvertStaff(p, dst, FifamClubStaffPosition::GoalkeeperCoach);
+            for (foom::non_player *p : staffFitnessCoaches.vec)
+                CreateAndConvertStaff(p, dst, FifamClubStaffPosition::FitnessCoach);
+            for (foom::non_player *p : staffTeamDoctors.vec)
+                CreateAndConvertStaff(p, dst, FifamClubStaffPosition::TeamDoctor);
+            for (foom::non_player *p : staffPhysios.vec)
+                CreateAndConvertStaff(p, dst, FifamClubStaffPosition::Masseur);
+            for (foom::non_player *p : staffGeneralDirectors.vec)
+                CreateAndConvertStaff(p, dst, FifamClubStaffPosition::GeneralManager);
+            for (foom::non_player *p : staffSportDirectors.vec)
+                CreateAndConvertStaff(p, dst, FifamClubStaffPosition::SportsDirector);
+            for (foom::non_player *p : staffScouts.vec)
+                CreateAndConvertStaff(p, dst, FifamClubStaffPosition::GeneralScout);
         }
     }
 
@@ -1467,6 +1534,58 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &ki
     }
 }
 
+void Converter::ConvertPersonAttributes(FifamPerson *person, foom::person *p) {
+    p->mConverterData.mFifamPerson = person;
+    FifamCountry *personCountry = mFifamDatabase->GetCountry(p->mNation->mConverterData.mFIFAManagerReplacementID);
+    // names
+    person->mFirstName = FifamNames::LimitPersonName(p->mFirstName, 15);
+    person->mLastName = FifamNames::LimitPersonName(p->mSecondName, 19);
+    if (!p->mCommonName.empty())
+        person->mPseudonym = FifamNames::LimitPersonName(p->mCommonName, (mCurrentGameId > 7) ? 29 : 19);
+    // nationality
+    Vector<UInt> playerNations;
+    if (p->mNation)
+        playerNations.push_back(p->mNation->mConverterData.mFIFAManagerReplacementID);
+    for (auto &n : p->mVecSecondNations) {
+        if (n->mConverterData.mFIFAManagerID != 0 && !Utils::Contains(playerNations, n->mConverterData.mFIFAManagerID))
+            playerNations.push_back(n->mConverterData.mFIFAManagerID);
+    }
+    if (playerNations.empty())
+        person->mNationality[0] = FifamNation::England;
+    else {
+        person->mNationality[0].SetFromInt(playerNations[0]);
+        if (playerNations.size() > 1)
+            person->mNationality[1].SetFromInt(playerNations[1]);
+    }
+    // languages
+    Vector<Pair<UInt, UInt>> playerLanguages;
+    if (p->mLanguage && p->mLanguage->mConverterData.mFIFAManagerID != 0)
+        playerLanguages.emplace_back(p->mLanguage->mConverterData.mFIFAManagerID, 99);
+    else
+        playerLanguages.emplace_back(personCountry->mLanguages[0].ToInt(), 99);
+    for (auto &l : p->mVecLanguages) {
+        if (l.mProficiency >= 5 && !l.mCannotSpeakLanguage && l.mLanguage->mConverterData.mFIFAManagerID != 0) {
+            if (std::count_if(playerLanguages.begin(), playerLanguages.end(), [&](Pair<UInt, UInt> const &a) {
+                return a.first == l.mLanguage->mConverterData.mFIFAManagerID;
+            }) == 0)
+            {
+                playerLanguages.emplace_back(l.mLanguage->mConverterData.mFIFAManagerID, l.mProficiency);
+            }
+        }
+    }
+    std::sort(playerLanguages.begin(), playerLanguages.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
+        return a.second > b.second;
+    });
+    UInt numLanguages = Utils::Min(4, playerLanguages.size());
+    for (UInt i = 0; i < numLanguages; i++)
+        person->mLanguages[i].SetFromInt(playerLanguages[i].first);
+    // birthdate
+    if (p->mDateOfBirth > FmEmptyDate())
+        person->mBirthday = p->mDateOfBirth;
+    else
+        person->mBirthday = FifamPlayerGenerator::GetRandomPlayerBirthday(CURRENT_YEAR);
+}
+
 Int OriginalAttrValue(Int attr) {
     return (Int)ceilf((Float)attr / 5.0f);
 }
@@ -1514,58 +1633,11 @@ FifamPlayer *Converter::CreateAndConvertPlayer(foom::player *p, FifamClub *club)
         Error(L"Player without associated country\nPlayerId: %d\nPlayerName: %s", p->mID, p->mFullName.c_str());
         return nullptr;
     }
-    FifamCountry *playerOriginalCountry = mFifamDatabase->GetCountry(p->mNation->mConverterData.mFIFAManagerID);
     FifamPlayer *player = mFifamDatabase->CreatePlayer(club, mPersonIdCounter++);
+    ConvertPersonAttributes(player, p);
     player->mIsRealPlayer = true;
     player->mIsBasque = p->mIsBasque;
-    // names
-    player->mFirstName = FifamNames::LimitPersonName(p->mFirstName, 15);
-    player->mLastName = FifamNames::LimitPersonName(p->mSecondName, 19);
-    if (!p->mCommonName.empty())
-        player->mPseudonym = FifamNames::LimitPersonName(p->mCommonName, (mCurrentGameId > 7) ? 29 : 19);
-    // nationality
-    Vector<UInt> playerNations;
-    if (p->mNation)
-        playerNations.push_back(p->mNation->mConverterData.mFIFAManagerReplacementID);
-    for (auto &n : p->mVecSecondNations) {
-        if (n->mConverterData.mFIFAManagerID != 0 && !Utils::Contains(playerNations, n->mConverterData.mFIFAManagerID))
-            playerNations.push_back(n->mConverterData.mFIFAManagerID);
-    }
-    if (playerNations.empty())
-        player->mNationality[0] = FifamNation::England;
-    else {
-        player->mNationality[0].SetFromInt(playerNations[0]);
-        if (playerNations.size() > 1)
-            player->mNationality[1].SetFromInt(playerNations[1]);
-    }
-    // languages
-    Vector<Pair<UInt, UInt>> playerLanguages;
-    if (p->mLanguage && p->mLanguage->mConverterData.mFIFAManagerID != 0)
-        playerLanguages.emplace_back(p->mLanguage->mConverterData.mFIFAManagerID, 99);
-    else
-        playerLanguages.emplace_back(playerCountry->mLanguages[0].ToInt(), 99);
-    for (auto &l : p->mVecLanguages) {
-        if (l.mProficiency >= 5 && !l.mCannotSpeakLanguage && l.mLanguage->mConverterData.mFIFAManagerID != 0) {
-            if (std::count_if(playerLanguages.begin(), playerLanguages.end(), [&](Pair<UInt, UInt> const &a) {
-                return a.first == l.mLanguage->mConverterData.mFIFAManagerID;
-            }) == 0)
-            {
-                playerLanguages.emplace_back(l.mLanguage->mConverterData.mFIFAManagerID, l.mProficiency);
-            }
-        }
-    }
-    std::sort(playerLanguages.begin(), playerLanguages.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
-        return a.second > b.second;
-    });
-    UInt numLanguages = Utils::Min(4, playerLanguages.size());
-    for (UInt i = 0; i < numLanguages; i++)
-        player->mLanguages[i].SetFromInt(playerLanguages[i].first);
-    // birthdate
-    if (p->mDateOfBirth > FmEmptyDate())
-        player->mBirthday = p->mDateOfBirth;
-    else
-        player->mBirthday = FifamPlayerGenerator::GetRandomPlayerBirthday(CURRENT_YEAR);
-
+    
     UInt age = player->GetAge(GetCurrentDate());
 
     // foot
@@ -1575,7 +1647,6 @@ FifamPlayer *Converter::CreateAndConvertPlayer(foom::player *p, FifamClub *club)
         player->mRightFoot = 4;
 
     // appearance
-
     player->mHeight = p->mHeight;
     player->mWeight = p->mWeight;
 
@@ -1586,8 +1657,6 @@ FifamPlayer *Converter::CreateAndConvertPlayer(foom::player *p, FifamClub *club)
         player->mShoeType = FifamShoeType::White;
     else
         player->mShoeType = FifamShoeType::Black;
-
-
 
     // potential
     UInt maxTalent = 9;
@@ -1959,6 +2028,7 @@ FifamPlayer *Converter::CreateAndConvertPlayer(foom::player *p, FifamClub *club)
         player->mPlayerAgent = FifamPlayerAgent::None;
 
     // national team
+    FifamCountry *playerOriginalCountry = mFifamDatabase->GetCountry(p->mNation->mConverterData.mFIFAManagerID);
     if (p->mInternationalRetirement && p->mInternationalRetirementDate <= GetCurrentDate())
         player->mRetiredFromNationalTeam = true;
     if (!player->mRetiredFromNationalTeam && playerOriginalCountry && p->mDeclaredForNation)
@@ -2153,12 +2223,10 @@ FifamPlayer *Converter::CreateAndConvertPlayer(foom::player *p, FifamClub *club)
     // debug
     player->mEmpicsId = p->mID;
 
-    p->mConverterData.mFifamPerson = player;
-
     return player;
 }
 
-FifamStaff *Converter::CreateAndConvertStaff(foom::non_player *p, FifamClub *club) {
+FifamStaff *Converter::CreateAndConvertStaff(foom::non_player *p, FifamClub *club, FifamClubStaffPosition position) {
     if (!p->mNation) {
         Error(L"Staff without nation\nSaffId: %d\nStaffName: %s", p->mID, p->mFullName.c_str());
         return nullptr;
@@ -2168,38 +2236,44 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player *p, FifamClub *clu
         Error(L"Staff without associated country\nSaffId: %d\nStaffName: %s", p->mID, p->mFullName.c_str());
         return nullptr;
     }
-    FifamCountry *staffOriginalCountry = mFifamDatabase->GetCountry(p->mNation->mConverterData.mFIFAManagerID);
     FifamStaff *staff = mFifamDatabase->CreateStaff(club, mPersonIdCounter++);
-    staff->mFirstName = FifamNames::LimitPersonName(p->mFirstName, 15);
-    staff->mLastName = FifamNames::LimitPersonName(p->mSecondName, 19);
-    if (!p->mCommonName.empty())
-        staff->mPseudonym = FifamNames::LimitPersonName(p->mCommonName, (mCurrentGameId > 7) ? 29 : 19);
-    if (p->mNation)
-        staff->mNationality[0].SetFromInt(p->mNation->mConverterData.mFIFAManagerReplacementID);
-    else
-        staff->mNationality[0] = FifamNation::England;
-    if (p->mLanguage && p->mLanguage->mConverterData.mFIFAManagerID != 0)
-        staff->mLanguages[0].SetFromInt(p->mLanguage->mConverterData.mFIFAManagerID);
-    else
-        staff->mLanguages[0] = staffCountry->mLanguages[0];
-    if (p->mDateOfBirth > FmEmptyDate())
-        staff->mBirthday = p->mDateOfBirth;
-    else
-        staff->mBirthday = FifamPlayerGenerator::GetRandomPlayerBirthday(CURRENT_YEAR);
+    
+    ConvertPersonAttributes(staff, p);
 
     // contract
-    if (club->mIsNationalTeam) {
-        if (p->mNationContract.mDateJoined > FmEmptyDate())
-            staff->mJoinedClubDate = p->mNationContract.mDateJoined;
-        else
-            staff->mJoinedClubDate.Set(1, 7, CURRENT_YEAR);
+    if (club) {
+        if (club->mIsNationalTeam) {
+            if (p->mNationContract.mDateJoined > FmEmptyDate())
+                staff->mJoinedClubDate = p->mNationContract.mDateJoined;
+            else
+                staff->mJoinedClubDate.Set(1, 7, CURRENT_YEAR);
+        }
+        else {
+            if (p->mClubContract.mDateJoined > FmEmptyDate())
+                staff->mJoinedClubDate = p->mClubContract.mDateJoined;
+            else
+                staff->mJoinedClubDate.Set(1, 7, CURRENT_YEAR);
+        }
+        staff->mClubPosition = position;
     }
     else {
-        if (p->mClubContract.mDateJoined > FmEmptyDate())
-            staff->mJoinedClubDate = p->mClubContract.mDateJoined;
-        else
-            staff->mJoinedClubDate.Set(1, 7, CURRENT_YEAR);
+        // find best pos
+        //TODO
+
+        staff->mJoinedClubDate.Set(1, 7, CURRENT_YEAR);
     }
+    if (staff->mClubPosition == FifamClubStaffPosition::Manager)
+        staff->mPersonType = FifamPersonType::Manager;
+    else if (staff->mClubPosition == FifamClubStaffPosition::ChiefExec)
+        staff->mPersonType = FifamPersonType::Chairman;
+    else if (staff->mClubPosition == FifamClubStaffPosition::President)
+        staff->mPersonType = FifamPersonType::President;
+    else
+        staff->mPersonType = FifamPersonType::Staff;
+
+
+
+    return staff;
 }
 
 bool Converter::IsIconicPlayer(Int playerId) {

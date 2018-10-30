@@ -47,7 +47,8 @@ public:
     void ConvertReferee(FifamReferee *dst, foom::official *official);
     void ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &kits, Int badgeType);
     FifamPlayer *CreateAndConvertPlayer(foom::player *p, FifamClub *club);
-    FifamStaff *CreateAndConvertStaff(foom::non_player *p, FifamClub *club);
+    FifamStaff *CreateAndConvertStaff(foom::non_player *p, FifamClub *club, FifamClubStaffPosition position);
+    void ConvertPersonAttributes(FifamPerson *person, foom::person *p);
     
     bool IsIconicPlayer(Int playerId);
     bool IsIntrovertPlayer(Int playerId);

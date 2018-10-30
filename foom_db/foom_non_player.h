@@ -4,6 +4,9 @@
 
 namespace foom {
 
+struct club;
+struct nation;
+
 struct non_player : public person {
     Int mJobManager = 0;
     Int mJobAssistantManager = 0;
@@ -79,7 +82,7 @@ struct non_player : public person {
     Bool mExpectYoungSigningsForTheFirstTeam = 0;
 
     struct club_contract {
-        Int mClub = 0;
+        club *mClub = 0;
         Int mJob = 0;
         Int mSecondaryJob = 0;
         Date mDateJoined;
@@ -91,7 +94,7 @@ struct non_player : public person {
     club_contract mClubContract;
 
     struct nation_contract {
-        Int mNation = 0;
+        nation *mNation = 0;
         Int mJob = 0;
         Date mDateJoined;
         Date mContractExpires;

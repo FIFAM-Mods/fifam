@@ -235,7 +235,7 @@ struct db {
             Int playerID = -1;
             player::contract c;
             reader.ReadLine(playerID, IntPtr(c.mClub), c.mJob, c.mSecondaryJob, c.mDateJoined, c.mContractExpires, c.mContractType, c.mWage, c.mOnRollingContract, c.mSquadNumber, c.mPreferredSquadNumber, c.mAppearanceFee, c.mGoalBonus, c.mCleanSheetBonus, c.mInternationalCapBonus, c.mYearlyWageRise, c.mPromotionWageRise, c.mRelegationWageDrop, c.mOneYearExtensionAfterLeagueGamesFinalSeason, c.mOptionalContractExtensionByClub, c.mMatchHighestEarnerClause, c.mWillLeaveAtEndOfContract, c.mMinimumFeeReleaseClause, c.mMinimumFeeReleaseClauseExpiryDate, c.mSellOnFeePercentage);
-            if (playerID != -1)
+            if (playerID != -1 && c.mClub != (club *)-1)
                 map_find(mPlayers, playerID).mContract = c;
         });
         ReaderCallback(L"fm_player_playing_history", [&](FifamReader &reader) {
@@ -292,8 +292,51 @@ struct db {
             reader.ReadLine(playerID, IntPtr(i.mInjury), i.mStartDate, i.mEndDate, i.mFuture, i.mPermanent, i.mSeverity);
             map_find(mPlayers, playerID).mVecInjuries.push_back(i);
         });
-
         // read non players
+        ReaderCallback(L"fm_non_players", [&](FifamReader &reader) {
+            non_player n;
+            reader.ReadLine(n.mID, n.mFirstName, n.mSecondName, n.mCommonName, n.mFullName, n.mFemale, n.mDateOfBirth, IntPtr(n.mNation), IntPtr(n.mLanguage), n.mAdaptability, n.mAmbition, n.mControversy, n.mLoyalty, n.mPressure, n.mProfessionalism, n.mSportsmanship, n.mTemperament, n.mJobManager, n.mJobAssistantManager, n.mJobCoach, n.mJobFitnessCoach, n.mJobGkCoach, n.mJobPhysio, n.mJobScout, n.mJobDataAnalyst, n.mJobSportsScientist, n.mJobDirectorOfFootball, n.mJobHeadOfYouth, n.mJobChairman, n.mCurrentAbility, n.mPotentialAbility, n.mCurrentReputation, n.mWorldReputation, n.mHomeReputation, n.mPreferredFormation, n.mSecondPreferredFormation, n.mCoachingStyle, n.mAttacking, n.mDepth, n.mDetermination, n.mDirectness, n.mDirtinessAllowance, n.mFlamboyancy, n.mFlexibility, n.mFreeRoles, n.mMarking, n.mOffside, n.mPressing, n.mSittingBack, n.mTacticalKnowledge, n.mTempo, n.mUseOfPlaymaker, n.mUseOfSubs, n.mWidth, n.mBuyingPlayers, n.mHardnessOfTraining, n.mJudgingPlayerAbility, n.mJudgingPlayerPotential, n.mJudgingPlayerData, n.mJudgingTeamData, n.mPresentingData, n.mLevelOfDiscipline, n.mManManagement, n.mMindGames, n.mMotivating, n.mVersatility, n.mSquadRotation, n.mWorkingWithYoungsters, n.mCoachingAttacking, n.mCoachingDefending, n.mCoachingFitness, n.mCoachingGKDistribution, n.mCoachingGKHandling, n.mCoachingGKShotStopping, n.mCoachingMental, n.mCoachingTactical, n.mCoachingTechnical, n.mBusiness, n.mInterference, n.mPatience, n.mResources, n.mPhysiotherapy, n.mSportsScience, n.mSignsALotOfYouthPlayers, n.mSignsYoungPlayersForTheFirstTeam, n.mWillMakeEarlyTacticalChanges, n.mWillFitPlayersIntoPreferredTactic, n.mExpectAttackingFootball, n.mExpectYoungSigningsForTheFirstTeam);
+            mNonPlayers[n.mID] = n;
+        });
+        ReaderCallback(L"fm_non_player_languages", [&](FifamReader &reader) {
+            Int nonplayerID = -1;
+            non_player::language l;
+            reader.ReadLine(nonplayerID, IntPtr(l.mLanguage), l.mProficiency, l.mCannotSpeakLanguage);
+            map_find(mNonPlayers, nonplayerID).mVecLanguages.push_back(l);
+        });
+        ReaderCallback(L"fm_non_player_second_nations", [&](FifamReader &reader) {
+            Int nonplayerID = -1;
+            nation *nation = nullptr;
+            reader.ReadLine(nonplayerID, IntPtr(nation));
+            map_find(mNonPlayers, nonplayerID).mVecSecondNations.push_back(nation);
+        });
+        ReaderCallback(L"fm_non_player_favourite_clubs", [&](FifamReader &reader) {
+            Int nonplayerID = -1;
+            non_player::favourite_club f;
+            reader.ReadLine(nonplayerID, IntPtr(f.mClub), f.mReason, f.mLevel);
+            map_find(mNonPlayers, nonplayerID).mVecFavouriteClubs.push_back(f);
+        });
+        ReaderCallback(L"fm_non_player_disliked_clubs", [&](FifamReader &reader) {
+            Int nonplayerID = -1;
+            non_player::disliked_club d;
+            reader.ReadLine(nonplayerID, IntPtr(d.mClub), d.mLevel);
+            map_find(mNonPlayers, nonplayerID).mVecDislikedClubs.push_back(d);
+        });
+        ReaderCallback(L"fm_nonplayer_club_contracts", [&](FifamReader &reader) {
+            Int nonplayerID = -1;
+            non_player::club_contract c;
+            reader.ReadLine(nonplayerID, IntPtr(c.mClub), c.mJob, c.mSecondaryJob, c.mDateJoined, c.mContractExpires, c.mContractType, c.mOnRollingContract);
+            if (nonplayerID != -1 && c.mClub != (club *)-1)
+                map_find(mNonPlayers, nonplayerID).mClubContract = c;
+        });
+        ReaderCallback(L"fm_nonplayer_nation_contracts", [&](FifamReader &reader) {
+            Int nonplayerID = -1;
+            non_player::nation_contract c;
+            reader.ReadLine(nonplayerID, IntPtr(c.mNation), c.mJob, c.mDateJoined, c.mContractExpires);
+            if (nonplayerID != -1 && c.mNation != (nation *)-1)
+                map_find(mNonPlayers, nonplayerID).mNationContract = c;
+        });
+
         // read officials
         ReaderCallback(L"fm_officials", [&](FifamReader &reader) {
             official o;
@@ -413,6 +456,11 @@ struct db {
             resolve(p.mContract.mClub);
             if (p.mContract.mClub)
                 p.mContract.mClub->mVecContractedPlayers.push_back(&p);
+            // TODO
+            // mVecLoanedPlayers;
+            // mVecLoanedOutPlayers;
+            // mVecFuturePlayers;
+            // mVecFutureSales;
             for (auto &l : p.mVecLanguages)
                 resolve(l.mLanguage);
             for (auto &n : p.mVecSecondNations)
@@ -430,6 +478,25 @@ struct db {
             for (auto &i : p.mVecInjuries)
                 resolve(i.mInjury);
             // TODO
+        }
+        for (auto &entry : mNonPlayers) {
+            non_player &n = entry.second;
+            resolve(n.mNation);
+            resolve(n.mLanguage);
+            resolve(n.mClubContract.mClub);
+            resolve(n.mNationContract.mNation);
+            if (n.mClubContract.mClub)
+                n.mClubContract.mClub->mVecContractedNonPlayers.push_back(&n);
+            if (n.mNationContract.mNation)
+                n.mNationContract.mNation->mVecContractedNonPlayers.push_back(&n);
+            for (auto &l : n.mVecLanguages)
+                resolve(l.mLanguage);
+            for (auto &n : n.mVecSecondNations)
+                resolve(n);
+            for (auto &f : n.mVecFavouriteClubs)
+                resolve(f.mClub);
+            for (auto &d : n.mVecDislikedClubs)
+                resolve(d.mClub);
         }
         for (auto &entry : mOfficials) {
             official &o = entry.second;
