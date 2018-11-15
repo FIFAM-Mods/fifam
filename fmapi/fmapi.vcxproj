@@ -159,6 +159,7 @@
     <ClInclude Include="FifamPlayerPositionRole.h" />
     <ClInclude Include="FifamPlayerStartingConditions.h" />
     <ClInclude Include="FifamPoolSorting.h" />
+    <ClInclude Include="FifamPropertied.h" />
     <ClInclude Include="FifamRedCardRule.h" />
     <ClInclude Include="FifamReferee.h" />
     <ClInclude Include="FifamRefereeType.h" />

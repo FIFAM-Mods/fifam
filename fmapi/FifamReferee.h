@@ -1,4 +1,5 @@
 #pragma once
+#include "FifamPropertied.h"
 #include "FifamTypes.h"
 #include "FifamReadWrite.h"
 #include "FifamRefereeType.h"
@@ -6,7 +7,7 @@
 class FifamCountry;
 
 // @since FM07
-class FifamReferee {
+class FifamReferee : public FifamPropertied {
 public:
     // @since FM07
     // @maxsize 19

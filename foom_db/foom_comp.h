@@ -6,6 +6,7 @@ namespace foom {
 struct nation;
 struct stage_name;
 struct club;
+struct stadium;
 
 struct comp {
     Int mID = 0;
@@ -29,6 +30,7 @@ struct comp {
         stage_name *mStageName = 0;
         Int mYearOrder = 0;
         Bool mNoDataForYear = 0;
+        stadium *mHostStadium = 0;
     };
 
     Vector<history> mVecHistory;
@@ -37,6 +39,8 @@ struct comp {
 
     struct converter_data {
         void *mDivInfo = nullptr;
+        void *mLeague = nullptr;
+        void *mCup = nullptr;
     } mConverterData;
 };
 

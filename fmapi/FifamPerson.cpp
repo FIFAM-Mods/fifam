@@ -1,4 +1,5 @@
 #include "FifamPerson.h"
+#include "FifamUtils.h"
 
 FifamPlayer * FifamPerson::AsPlayer() {
     return mPersonType == FifamPersonType::Player ? (FifamPlayer *)this : nullptr;
@@ -17,10 +18,5 @@ String FifamPerson::GetName() const {
 }
 
 UInt FifamPerson::GetAge(FifamDate const & currentDate) {
-    if (currentDate.year <= mBirthday.year)
-        return 0;
-    UInt age = currentDate.year - mBirthday.year - 1;
-    if (mBirthday.month < 7)
-        ++age;
-    return age;
+    return FifamUtils::GetAge(mBirthday, currentDate);
 }

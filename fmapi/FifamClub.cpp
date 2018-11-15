@@ -388,7 +388,9 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
         FifamCheckEnum(mAiStrategy);
         FifamCheckEnum(mLandscape);
         FifamCheckEnum(mSettlement);
-        FifamCheckEnum(mMediaPressure);
+        //FifamCheckEnum(mMediaPressure);
+        if (mMediaPressure.GetWasSetFromUnknown())
+            Error(FifamTr(mName));
         //FifamCheckEnum(mPenaltyType);
     }
 }

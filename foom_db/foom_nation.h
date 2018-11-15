@@ -9,6 +9,7 @@ struct city;
 struct stadium;
 struct language;
 struct region;
+struct comp;
 
 struct nation : public team {
     String mThreeLetterName;
@@ -21,7 +22,7 @@ struct nation : public team {
     Int mYearAssociationFormed = 0;
     Int mRankingPoints = 0;
     Int mYouthRating = 0;
-    Float mEuroCoeff6 = 0;
+    Float mEuroCoeff11 = 0;
 
     struct language {
         language *mLanguage = 0;
@@ -40,13 +41,19 @@ struct nation : public team {
     Vector<region_transfer_preference> mVecRegionTransferPreferences;
 
     struct converter_data {
+        void *mFifamCountry;
         UInt mFIFAManagerID = 0;
         UInt mFIFAManagerReplacementID = 0;
         UInt mFIFAID = 0;
+        UInt mFIFATeamID = 0;
         Set<UShort> mWorldCupWins;
-        Set<UShort> mEuroCupWins;
+        Set<UShort> mContinentalCupWins;
         Set<UShort> mWorldCupFinals;
-        Set<UShort> mEuroCupFinals;
+        Set<UShort> mContinentalCupFinals;
+        Vector<comp *> mMainLeagues;
+        Vector<comp *> mMainCups;
+        Vector<comp *> mLeagueCups;
+        Vector<comp *> mSuperCups;
     } mConverterData;
 
     nation() {

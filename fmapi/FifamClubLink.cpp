@@ -42,6 +42,10 @@ String FifamClubLink::GetTeamName() const {
     return result;
 }
 
+void FifamClubLink::Clear() {
+    mPtr = nullptr;
+}
+
 Bool operator==(FifamClubLink const & lhs, FifamClubLink const & rhs) {
     return lhs.mPtr == rhs.mPtr && lhs.mTeamType == rhs.mTeamType;
 }

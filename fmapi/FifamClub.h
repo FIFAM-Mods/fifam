@@ -1,5 +1,7 @@
 #pragma once
+#include "Color.h"
 #include "FifamDbWriteable.h"
+#include "FifamPropertied.h"
 #include "FifamClubLink.h"
 #include "FifamPlayer.h"
 #include "FifamStaff.h"
@@ -22,7 +24,6 @@
 #include "FifamClubLastSeasonInfo.h"
 #include "FifamClubPenaltyType.h"
 #include "FifamClubTeamColor.h"
-#include "Color.h"
 
 class FifamDatabase;
 class FifamCountry;
@@ -42,7 +43,7 @@ class FifamCompetition;
 */
 
 // @since FM07
-class FifamClub : public FifamDbWriteable {
+class FifamClub : public FifamDbWriteable, public FifamPropertied {
 public:
     // @since FM08
     UInt mUniqueID = 0;

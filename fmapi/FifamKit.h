@@ -1,9 +1,9 @@
 #pragma once
 #include "FifamTypes.h"
+#include "Color.h"
 #include "FifamKitBadgePosition.h"
 #include "FifamKitColor.h"
 #include "FifamShirtNumberColor.h"
-#include "Color.h"
 #include "FifamReadWrite.h"
 
 // @since FM07

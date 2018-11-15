@@ -41,4 +41,5 @@ public:
     static FifamDbWriteableIDsList MakeWriteableIDsList(Vector<FifamCompetition *> const &comps, bool unique = true);
     static void SaveIDsToClubLinkList(Vector<UInt> ids, Vector<FifamClubLink> &clubs);
     static void SaveIDsToCompetitionList(Vector<UInt> ids, Vector<FifamCompetition *> &comps);
+    static UInt GetAge(FifamDate const &birthDate, FifamDate const &currentDate);
 };

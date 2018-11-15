@@ -49,6 +49,8 @@ public:
     void WriteOne(String const &value);
     void WriteOne(Hexademical const &value);
     void WriteOne(Quoted const &value);
+    void WriteOne(FifamDate const &date);
+    void WriteOne(Date const &date);
 
     template<typename T, typename = std::enable_if_t<std::is_enum_v<T>>>
     void WriteOne(T const &value) {
@@ -67,7 +69,6 @@ public:
 
     void WriteStartIndex(String const &name, Bool newLine = true);
     void WriteEndIndex(String const &name, Bool newLine = true);
-    void WriteOne(FifamDate const &date);
     void WriteVersion();
 private:
     template<typename One>

@@ -50,7 +50,7 @@ FifamPlayerPlayingStyle FifamPlayerLevel::GetBestStyleForPlayer(FifamPlayer *pla
     if (player->mMainPosition == FifamPlayerPosition::None || player->mMainPosition == FifamPlayerPosition::GK)
         return FifamPlayerPlayingStyle::None;
     FifamPlayerPlayingStyle result = FifamPlayerPlayingStyle::None;
-    Vector<FifamPlayerPlayingStyle> possibleStyles = GetPlayingStylesForPosition(player->mMainPosition);
+    Vector<FifamPlayerPlayingStyle> possibleStyles = GetPlayingStylesForPosition(player->mMainPosition, includeNewStyles);
     float bestLevel = 0.0f;
     for (auto const &style : possibleStyles) {
         float level = player->GetLevel(player->mMainPosition, style);
@@ -59,6 +59,27 @@ FifamPlayerPlayingStyle FifamPlayerLevel::GetBestStyleForPlayer(FifamPlayer *pla
             bestLevel = level;
         }
     }
+    return result;
+}
+
+Vector<FifamPlayerPlayingStyle> FifamPlayerLevel::GetBestStylesForPlayer(FifamPlayer * player, Bool includeNewStyles) {
+    if (player->mMainPosition == FifamPlayerPosition::None || player->mMainPosition == FifamPlayerPosition::GK)
+        return { FifamPlayerPosition::None };
+    Vector<FifamPlayerPlayingStyle> result;
+    Vector<FifamPlayerPlayingStyle> possibleStyles = GetPlayingStylesForPosition(player->mMainPosition, includeNewStyles);
+    UChar bestLevel = 0;
+    for (auto const &style : possibleStyles) {
+        UChar level = player->GetLevel(player->mMainPosition, style);
+        if (level > bestLevel) {
+            result.clear();
+            result.push_back(style);
+            bestLevel = level;
+        }
+        else if (level == bestLevel)
+            result.push_back(style);
+    }
+    if (result.empty())
+        return { FifamPlayerPosition::None };
     return result;
 }
 

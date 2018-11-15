@@ -22,8 +22,12 @@ double Color::Distance(Color const &e1, Color const &e2) {
     return sqrt((((512 + rmean)*r*r) >> 8) + 4 * g*g + (((767 - rmean)*b*b) >> 8));
 }
 
-bool Color::operator== (Color const &rhs) {
+bool Color::operator== (Color const &rhs) const {
     return r == rhs.r && g == rhs.g && b == rhs.b;
+}
+
+bool Color::operator!= (Color const &rhs) const {
+    return r != rhs.r || g != rhs.g || b != rhs.b;
 }
 
 unsigned int Color::FindIndexInTable(std::vector<std::pair<unsigned int, Color>> const &table, unsigned int tableMin, unsigned int tableMax) {
@@ -90,7 +94,7 @@ double ColorPair::Distance(ColorPair const &e1, ColorPair const &e2) {
     return fmin(dist1, dist2);
 }
 
-bool ColorPair::operator== (ColorPair const &rhs) {
+bool ColorPair::operator== (ColorPair const &rhs) const {
     return (first == rhs.first && second == rhs.second) || (first == rhs.second && second == rhs.first);
 }
 

@@ -1,11 +1,12 @@
 #pragma once
+#include "FifamPropertied.h"
 #include "FifamTypes.h"
 #include "FifamReadWrite.h"
 
 class FifamCountry;
 
 // @since FM07
-class FifamSponsor {
+class FifamSponsor : public FifamPropertied {
 public:
     struct {
         // @since FM07

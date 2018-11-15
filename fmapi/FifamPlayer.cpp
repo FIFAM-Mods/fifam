@@ -416,11 +416,11 @@ void FifamPlayer::Read(FifamReader &reader) {
         UInt totalInternationalMatches = mNationalTeamMatches;
 
         if (reader.IsVersionGreaterOrEqual(0x2011, 0x04)) {
-            UChar potentilValues[10] = { 50, 55, 60, 64, 68, 72, 76, 82, 88, 95 };
+            UChar potentialValues[10] = { 50, 55, 60, 64, 68, 72, 76, 82, 88, 95 };
             if (mTalent > 9)
                 mPotential = 99;
             else
-                mPotential = potentilValues[mTalent];
+                mPotential = potentialValues[mTalent];
             UChar playerLevel = GetLevel();
             if (playerLevel > mPotential)
                 mPotential = playerLevel;

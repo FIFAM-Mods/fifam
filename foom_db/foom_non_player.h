@@ -29,22 +29,8 @@ struct non_player : public person {
     Int mSecondPreferredFormation = 0;
     Int mCoachingStyle = 0;
     Int mAttacking = 0;
-    Int mDepth = 0;
     Int mDetermination = 0;
-    Int mDirectness = 0;
-    Int mDirtinessAllowance = 0;
-    Int mFlamboyancy = 0;
-    Int mFlexibility = 0;
-    Int mFreeRoles = 0;
-    Int mMarking = 0;
-    Int mOffside = 0;
-    Int mPressing = 0;
-    Int mSittingBack = 0;
     Int mTacticalKnowledge = 0;
-    Int mTempo = 0;
-    Int mUseOfPlaymaker = 0;
-    Int mUseOfSubs = 0;
-    Int mWidth = 0;
     Int mBuyingPlayers = 0;
     Int mHardnessOfTraining = 0;
     Int mJudgingPlayerAbility = 0;
@@ -74,12 +60,13 @@ struct non_player : public person {
     Int mResources = 0;
     Int mPhysiotherapy = 0;
     Int mSportsScience = 0;
-    Bool mSignsALotOfYouthPlayers = 0;
-    Bool mSignsYoungPlayersForTheFirstTeam = 0;
-    Bool mWillMakeEarlyTacticalChanges = 0;
-    Bool mWillFitPlayersIntoPreferredTactic = 0;
-    Bool mExpectAttackingFootball = 0;
-    Bool mExpectYoungSigningsForTheFirstTeam = 0;
+    Int mSignsALotOfYouthPlayers = 0;
+    Int mSignsYoungPlayersForTheFirstTeam = 0;
+    Int mWillMakeEarlyTacticalChanges = 0;
+    Int mWillFitPlayersIntoPreferredTactic = 0;
+    Int mExpectAttackingFootball = 0;
+    Int mExpectYoungSigningsForTheFirstTeam = 0;
+    Int mWillLookToPlayOutOfDefence = 0;
 
     struct club_contract {
         club *mClub = 0;

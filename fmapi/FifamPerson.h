@@ -1,5 +1,6 @@
 #pragma once
 #include "FifamDbWriteable.h"
+#include "FifamPropertied.h"
 #include "FifamPersonType.h"
 #include "FifamDate.h"
 #include "FifamNation.h"
@@ -11,7 +12,7 @@
 class FifamPlayer;
 class FifamStaff;
 
-class FifamPerson : public FifamDbWriteable {
+class FifamPerson : public FifamDbWriteable, public FifamPropertied {
 public:
     // @since FM07
     UInt mID;

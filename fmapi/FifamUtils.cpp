@@ -194,3 +194,12 @@ void FifamUtils::SaveIDsToCompetitionList(Vector<UInt> ids, Vector<FifamCompetit
     for (UInt i = 0; i < comps.size(); i++)
         SaveCompetitionIDToPtr(comps[i], ids[i]);
 }
+
+UInt FifamUtils::GetAge(FifamDate const & birthDate, FifamDate const & currentDate) {
+    if (currentDate.year <= birthDate.year)
+        return 0;
+    UInt age = currentDate.year - birthDate.year - 1;
+    if (birthDate.month < 7)
+        ++age;
+    return age;
+}

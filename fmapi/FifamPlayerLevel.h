@@ -9,6 +9,7 @@ class FifamPlayerLevel {
 public:
     static Array<Float, 18> GetDefaultBiasValues(FifamPlayerPosition const &position);
     static FifamPlayerPlayingStyle GetBestStyleForPlayer(FifamPlayer *player, Bool includeNewStyles = true);
+    static Vector<FifamPlayerPlayingStyle> GetBestStylesForPlayer(FifamPlayer *player, Bool includeNewStyles = true);
     static UChar GetPlayerLevel13(FifamPlayer *player, FifamPlayerPosition position, FifamPlayerPlayingStyle style, Bool experience = true);
     static UChar GetPlayerLevel12(FifamPlayer *player, FifamPlayerPosition position, FifamPlayerPlayingStyle style, Bool experience = true);
     static UChar GetPlayerLevel(FifamPlayer *player, FifamPlayerPosition position, FifamPlayerPlayingStyle style, Bool experience = true);

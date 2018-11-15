@@ -1,11 +1,12 @@
 #pragma once
+#include "FifamPropertied.h"
 #include "FifamTypes.h"
 #include "FifamReadWrite.h"
 
 class FifamCountry;
 
 // @since FM07
-class FifamStadium {
+class FifamStadium : public FifamPropertied {
 public:
     // @since FM07
     // @maxsize 29

@@ -112,12 +112,12 @@ ENUM_BEGIN(FifamFormation, UChar)
         }
     }
 
-    ENUM_WRITE(writer) {
-        if (writer.GetGameId() <= 8) {
+    UChar GetIdForGame(UInt gameId) {
+        if (gameId <= 8) {
             static Vector<Pair<UChar, UChar>> table = {
                 { 11, None },
                 { 18, _5_4_1 },
-                {  1, _5_3_2 },
+                { 1, _5_3_2 },
                 { 14, _4_5_1_Defensive },
                 { 14, _4_5_1_Normal },
                 { 14, _4_5_1_Classic },
@@ -128,36 +128,36 @@ ENUM_BEGIN(FifamFormation, UChar)
                 { 13, _4_4_2_Normal },
                 { 13, _4_4_2_Attacking },
                 { 13, _4_4_2_Diamond_Low },
-                {  6, _4_4_2_Diamond },
-                {  9, _4_4_2_Diamond_Attacking },
+                { 6, _4_4_2_Diamond },
+                { 9, _4_4_2_Diamond_Attacking },
                 { 11, _4_3_3_Defensive },
                 { 10, _4_3_3_Normal },
-                {  0, _4_3_3_Attacking },
-                {  0, _4_3_3_Wings },
-                {  8, _4_2_4 },
-                {  2, _3_5_2_Sweeper },
-                {  5, _3_5_2 },
-                {  4, _3_4_3_Defensive },
-                {  3, _3_4_3_Diamond },
-                {  2, _3_4_3_Wings },
-                {  8, _4_2_2_1_1_V2 },
+                { 0, _4_3_3_Attacking },
+                { 0, _4_3_3_Wings },
+                { 8, _4_2_4 },
+                { 2, _3_5_2_Sweeper },
+                { 5, _3_5_2 },
+                { 4, _3_4_3_Defensive },
+                { 3, _3_4_3_Diamond },
+                { 2, _3_4_3_Wings },
+                { 8, _4_2_2_1_1_V2 },
                 { 12, _4_2_2_1_1 },
-                {  7, _4_2_2_1_1_V3 },
+                { 7, _4_2_2_1_1_V3 },
                 { 12, _4_5_1_Attacking_V2 },
-                {  0, _4_3_3_Defensive_V2 },
-                {  0, _4_3_3_Normal_V2 },
-                {  0, _4_3_3_Attacking_V2 },
-                {  3, _3_4_3_Wing_Defenders },
-                {  5, _3_5_2_Defenders },
+                { 0, _4_3_3_Defensive_V2 },
+                { 0, _4_3_3_Normal_V2 },
+                { 0, _4_3_3_Attacking_V2 },
+                { 3, _3_4_3_Wing_Defenders },
+                { 5, _3_5_2_Defenders },
                 { 15, _5_2_1_2 },
                 { 16, _5_2_2_1 },
                 { 17, _5_3_2_Attacking }
             };
-            writer.WriteOne(TranslateTo<UChar>(table, 11));
+            return TranslateTo<UChar>(table, 11);
         }
-        else if (writer.GetGameId() == 9) {
+        else if (gameId == 9) {
             if (ToInt() <= 24)
-                writer.WriteOne(ToInt());
+                return ToInt();
             else {
                 static Vector<Pair<UChar, UChar>> table = {
                     { _4_4_2_Defensive,   _4_2_2_1_1_V2 },
@@ -173,12 +173,12 @@ ENUM_BEGIN(FifamFormation, UChar)
                     { _5_4_1,             _5_2_2_1 },
                     { _5_3_2,             _5_3_2_Attacking }
                 };
-                writer.WriteOne(TranslateTo<UChar>(table, _3_4_3_Wings));
+                return TranslateTo<UChar>(table, _3_4_3_Wings);
             }
         }
-        else if (writer.GetGameId() == 10) {
+        else if (gameId == 10) {
             if (ToInt() <= 24)
-                writer.WriteOne(ToInt());
+                return ToInt();
             else {
                 static Vector<Pair<UChar, UChar>> table = {
                     { _4_4_2_Defensive,   _4_2_2_1_1_V2 },
@@ -194,12 +194,12 @@ ENUM_BEGIN(FifamFormation, UChar)
                     { _5_4_1,             _5_2_2_1 },
                     { _5_3_2,             _5_3_2_Attacking }
                 };
-                writer.WriteOne(TranslateTo<UChar>(table, _3_4_3_Wings));
+                return TranslateTo<UChar>(table, _3_4_3_Wings);
             }
         }
-        else if (writer.GetGameId() == 11) {
+        else if (gameId == 11) {
             if (ToInt() <= 31)
-                writer.WriteOne(ToInt());
+                return ToInt();
             else {
                 static Vector<Pair<UChar, UChar>> table = {
                     { _3_4_3_Wings, _3_4_3_Wing_Defenders },
@@ -208,51 +208,55 @@ ENUM_BEGIN(FifamFormation, UChar)
                     { _5_4_1,       _5_2_2_1 },
                     { _5_3_2,       _5_3_2_Attacking }
                 };
-                writer.WriteOne(TranslateTo<UChar>(table, _3_4_3_Wings));
+               return TranslateTo<UChar>(table, _3_4_3_Wings);
             }
         }
-        else if (writer.GetGameId() >= 12) {
+        else if (gameId >= 12) {
             static Vector<Pair<UChar, UChar>> table = {
-                {  0, None },
-                {  4, _5_4_1 },
-                {  5, _5_3_2 },
-                {  4, _4_5_1_Defensive },
-                {  8, _4_5_1_Normal },
-                {  8, _4_5_1_Classic },
-                {  8, _4_5_1_Attacking },
-                {  8, _4_1_4_1 },
-                {  6, _4_4_1_1_Defensive },
-                {  7, _4_4_2_Defensive },
-                {  5, _4_4_2_Normal },
-                {  7, _4_4_2_Attacking },
-                {  1, _4_4_2_Diamond_Low },
-                {  1, _4_4_2_Diamond },
-                {  1, _4_4_2_Diamond_Attacking },
-                {  9, _4_3_3_Defensive },
-                {  9, _4_3_3_Normal },
-                {  3, _4_3_3_Attacking },
-                {  3, _4_3_3_Wings },
+                { 0, None },
+                { 0, _5_4_1 },
+                { 0, _5_3_2 },
+                { 4, _4_5_1_Defensive },
+                { 8, _4_5_1_Normal },
+                { 8, _4_5_1_Classic },
+                { 8, _4_5_1_Attacking },
+                { 8, _4_1_4_1 },
+                { 6, _4_4_1_1_Defensive },
+                { 7, _4_4_2_Defensive },
+                { 5, _4_4_2_Normal },
+                { 7, _4_4_2_Attacking },
+                { 1, _4_4_2_Diamond_Low },
+                { 1, _4_4_2_Diamond },
+                { 1, _4_4_2_Diamond_Attacking },
+                { 9, _4_3_3_Defensive },
+                { 9, _4_3_3_Normal },
+                { 3, _4_3_3_Attacking },
+                { 3, _4_3_3_Wings },
                 { 10, _4_2_4 },
-                {  1, _3_5_2_Sweeper },
-                {  1, _3_5_2 },
-                {  9, _3_4_3_Defensive },
-                {  9, _3_4_3_Diamond },
-                {  3, _3_4_3_Wings },
-                {  7, _4_2_2_1_1_V2 },
+                { 0, _3_5_2_Sweeper },
+                { 0, _3_5_2 },
+                { 0, _3_4_3_Defensive },
+                { 0, _3_4_3_Diamond },
+                { 0, _3_4_3_Wings },
+                { 7, _4_2_2_1_1_V2 },
                 { 18, _4_2_2_1_1 },
                 { 18, _4_2_2_1_1_V3 },
                 { 18, _4_5_1_Attacking_V2 },
-                {  3, _4_3_3_Defensive_V2 },
-                {  9, _4_3_3_Normal_V2 },
-                {  2, _4_3_3_Attacking_V2 },
-                {  2, _3_4_3_Wing_Defenders },
-                {  1, _3_5_2_Defenders },
-                {  1, _5_2_1_2 },
-                {  9, _5_2_2_1 },
-                {  6, _5_3_2_Attacking }
+                { 3, _4_3_3_Defensive_V2 },
+                { 9, _4_3_3_Normal_V2 },
+                { 2, _4_3_3_Attacking_V2 },
+                { 0, _3_4_3_Wing_Defenders },
+                { 0, _3_5_2_Defenders },
+                { 0, _5_2_1_2 },
+                { 0, _5_2_2_1 },
+                { 0, _5_3_2_Attacking }
             };
-            writer.WriteOne(TranslateTo<UChar>(table, 0));
+            return TranslateTo<UChar>(table, 0);
         }
+    }
+
+    ENUM_WRITE(writer) {
+        writer.WriteOne(GetIdForGame(writer.GetGameId()));
     }
 ENUM_END(FifamFormation)
 

@@ -57,7 +57,7 @@ String FifamNames::LimitName(String const &name, UInt maxSize) {
 }
 
 String FifamNames::GetClubAbbr(String const &name) {
-    String nameUpper = Utils::ToUpper(name);
+    String nameUpper = Utils::ToUpper(Utils::GetStringWithoutUnicodeChars(name));
     String abbr;
     UInt abbrSize = 0;
     for (auto &c : nameUpper) {

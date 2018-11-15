@@ -186,6 +186,10 @@ void FifamWriter::WriteOne(FifamDate const &date) {
     }
 }
 
+void FifamWriter::WriteOne(Date const &date) {
+    WriteOne(Utils::Format(L"%02d.%02d.%04d", date.day, date.month, date.year));
+}
+
 void FifamWriter::WriteVersion() {
     WriteStartIndex(L"VERSION");
     WriteLine(mVersion.GetIntValue());

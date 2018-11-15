@@ -75,7 +75,7 @@ void FifamCompPool::Write(FifamWriter &writer, FifamDatabase *database, FifamNat
         sortingFlags.push_back(L"POOL_RESERVE_TEAMS");
     writer.WriteLineArray(sortingFlags);
     auto compConstraints = FifamUtils::MakeWriteableIDsList(mCompConstraints);
-    UShort numCompConstraints = Utils::Min(3, compConstraints.size());
+    UShort numCompConstraints = Utils::Min(3u, compConstraints.size());
     writer.WriteLine(L"; how many comps to check");
     writer.WriteLine(numCompConstraints);
     writer.WriteLine(L"; which comps to check");

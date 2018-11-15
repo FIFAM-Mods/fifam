@@ -11,7 +11,10 @@ public:
     void SetDays(UInt Days);
     UInt GetDays() const;
     void Validate();
-
+    FifamDate IncreasedByYears(UInt numYears);
+    FifamDate DecreasedByYears(UInt numYears);
+    FifamDate IncreasedByOneYear();
+    FifamDate DecreasedByOneYear();
     Bool operator==(FifamDate const &rhs) const;
     void operator=(FifamDate const &rhs);
     void operator=(Date const &rhs);

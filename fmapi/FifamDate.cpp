@@ -65,6 +65,30 @@ void FifamDate::Validate() {
         year = 0;
 }
 
+FifamDate FifamDate::IncreasedByYears(UInt numYears) {
+    FifamDate result = *this;
+    result.year += numYears;
+    return result;
+}
+
+FifamDate FifamDate::DecreasedByYears(UInt numYears) {
+    FifamDate result = *this;
+    result.year -= numYears;
+    return result;
+}
+
+FifamDate FifamDate::IncreasedByOneYear() {
+    FifamDate result = *this;
+    result.year += 1;
+    return result;
+}
+
+FifamDate FifamDate::DecreasedByOneYear() {
+    FifamDate result = *this;
+    result.year -= 1;
+    return result;
+}
+
 Bool FifamDate::operator==(FifamDate const &rhs) const {
     return Date::operator==(rhs);
 }

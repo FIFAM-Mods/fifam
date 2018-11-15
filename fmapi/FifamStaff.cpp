@@ -159,6 +159,10 @@ void FifamStaff::ReadWorker(FifamReader &reader) {
         UShort joinedYear = reader.ReadLine<UShort>();
         mJoinedClubDate.Set(1, 7, joinedYear);
     }
+    mManagerGoalkeepersTraining = Utils::MapTo(mSkills.GoalkeeperTraining, 0, 99, 0, 15);
+    mManagerMotivationSkills = Utils::MapTo(mSkills.MotivationAbility, 0, 99, 0, 15);
+    mManagerNegotiationSkills = Utils::MapTo(mSkills.Negotiation, 0, 99, 0, 15);
+    mManagerCoachingSkills = Utils::MapTo(mSkills.FieldPlayerTraining, 0, 99, 0, 15);
     mLinkedCountry = mNationality[0];
 }
 
@@ -676,6 +680,150 @@ UChar FifamStaff::GetLevel(FifamClubStaffPosition position) {
     return CalcStaffLevel(vec);
 }
 
+void FifamStaff::ForAllAttributes(FifamClubStaffPosition position, Function<void(UChar &, Float)> callback) {
+    switch (position.ToInt()) {
+    case FifamClubStaffPosition::AssistantCoach:
+        callback(mSkills.Tactics, 0.5f);
+        callback(mSkills.FieldPlayerTraining, 1.0f);
+        callback(mSkills.GoalkeeperTraining, 0.5f);
+        callback(mSkills.FitnessTraining, 0.25f);
+        callback(mSkills.MotivationAbility, 0.25f);
+        break;
+    case FifamClubStaffPosition::AmateurCoach:
+        callback(mSkills.Tactics, 0.75f);
+        callback(mSkills.FieldPlayerTraining, 0.5f);
+        callback(mSkills.GoalkeeperTraining, 0.25f);
+        callback(mSkills.FitnessTraining, 0.25f);
+        callback(mSkills.MotivationAbility, 0.75f);
+        break;
+    case FifamClubStaffPosition::YouthCoach:
+        callback(mSkills.Tactics, 0.75f);
+        callback(mSkills.FieldPlayerTraining, 1.0f);
+        callback(mSkills.GoalkeeperTraining, 1.0f);
+        callback(mSkills.FitnessTraining, 0.0f);
+        callback(mSkills.MotivationAbility, 1.0f);
+        break;
+    case FifamClubStaffPosition::FitnessCoach:
+        callback(mSkills.Tactics, 0.0f);
+        callback(mSkills.FieldPlayerTraining, 0.0f);
+        callback(mSkills.GoalkeeperTraining, 0.0f);
+        callback(mSkills.FitnessTraining, 1.0f);
+        callback(mSkills.MotivationAbility, 0.25f);
+        break;
+    case FifamClubStaffPosition::GoalkeeperCoach:
+        callback(mSkills.Tactics, 0.0f);
+        callback(mSkills.FieldPlayerTraining, 0.0f);
+        callback(mSkills.GoalkeeperTraining, 1.0f);
+        callback(mSkills.FitnessTraining, 0.0f);
+        callback(mSkills.MotivationAbility, 0.25f);
+        break;
+    case FifamClubStaffPosition::TeamDoctor:
+        callback(mSkills.BoneInjury, 0.5f);
+        callback(mSkills.KneeInjury, 0.5f);
+        callback(mSkills.MuscleInjury, 0.5f);
+        callback(mSkills.InjuryPrevention, 0.5f);
+        callback(mSkills.RegenerationAbility, 0.0f);
+        callback(mSkills.MotivationAbility, 0.0f);
+        break;
+    case FifamClubStaffPosition::SpecialistBone:
+        callback(mSkills.BoneInjury, 1.0f);
+        callback(mSkills.KneeInjury, 0.0f);
+        callback(mSkills.MuscleInjury, 0.0f);
+        callback(mSkills.InjuryPrevention, 0.25f);
+        callback(mSkills.RegenerationAbility, 0.0f);
+        callback(mSkills.MotivationAbility, 0.0f);
+        break;
+    case FifamClubStaffPosition::SpecialistKnee:
+        callback(mSkills.BoneInjury, 0.0f);
+        callback(mSkills.KneeInjury, 1.0f);
+        callback(mSkills.MuscleInjury, 0.0f);
+        callback(mSkills.InjuryPrevention, 0.25f);
+        callback(mSkills.RegenerationAbility, 0.0f);
+        callback(mSkills.MotivationAbility, 0.0f);
+        break;
+    case FifamClubStaffPosition::SpecialistMuscle:
+        callback(mSkills.BoneInjury, 0.0f);
+        callback(mSkills.KneeInjury, 0.0f);
+        callback(mSkills.MuscleInjury, 1.0f);
+        callback(mSkills.InjuryPrevention, 0.25f);
+        callback(mSkills.RegenerationAbility, 0.0f);
+        callback(mSkills.MotivationAbility, 0.0f);
+        break;
+    case FifamClubStaffPosition::Masseur:
+        callback(mSkills.BoneInjury, 0.0f);
+        callback(mSkills.KneeInjury, 0.0f);
+        callback(mSkills.MuscleInjury, 0.0f);
+        callback(mSkills.InjuryPrevention, 0.0f);
+        callback(mSkills.RegenerationAbility, 1.0f);
+        callback(mSkills.MotivationAbility, 0.0f);
+        break;
+    case FifamClubStaffPosition::Psychologist:
+        callback(mSkills.BoneInjury, 0.0f);
+        callback(mSkills.KneeInjury, 0.0f);
+        callback(mSkills.MuscleInjury, 0.0f);
+        callback(mSkills.InjuryPrevention, 0.0f);
+        callback(mSkills.RegenerationAbility, 0.0f);
+        callback(mSkills.MotivationAbility, 1.0f);
+        break;
+    case FifamClubStaffPosition::GeneralManager:
+        callback(mSkills.Negotiation, 0.25f);
+        callback(mSkills.Marketing, 0.0f);
+        callback(mSkills.Sponsoring, 1.0f);
+        callback(mSkills.Construction, 0.0f);
+        break;
+    case FifamClubStaffPosition::MarketingManager:
+        callback(mSkills.Negotiation, 0.0f);
+        callback(mSkills.Marketing, 1.0f);
+        callback(mSkills.Sponsoring, 0.0f);
+        callback(mSkills.Construction, 0.0f);
+        break;
+    case FifamClubStaffPosition::ConstructionManager:
+        callback(mSkills.Negotiation, 0.0f);
+        callback(mSkills.Marketing, 0.0f);
+        callback(mSkills.Sponsoring, 0.0f);
+        callback(mSkills.Construction, 1.0f);
+        break;
+    case FifamClubStaffPosition::SportsDirector:
+        callback(mSkills.Negotiation, 1.0f);
+        callback(mSkills.Marketing, 0.0f);
+        callback(mSkills.Sponsoring, 0.0f);
+        callback(mSkills.Construction, 0.0f);
+        break;
+    case FifamClubStaffPosition::FanRepresentative:
+        callback(mSkills.PR, 0.25f);
+        callback(mSkills.Arbitrate, 0.5f);
+        callback(mSkills.FanContact, 1.0f);
+        break;
+    case FifamClubStaffPosition::Spokesperson:
+        callback(mSkills.PR, 1.0f);
+        callback(mSkills.Arbitrate, 0.0f);
+        callback(mSkills.FanContact, 0.0f);
+        break;
+    case FifamClubStaffPosition::Lawyer:
+        callback(mSkills.Negotiation, 0.0f);
+        callback(mSkills.SportsLaw, 1.0f);
+        callback(mSkills.LaborLaw, 1.0f);
+        break;
+    case FifamClubStaffPosition::GeneralScout:
+        callback(mSkills.GeneralScouting, 1.0f);
+        callback(mSkills.TalentEstimation, 0.75f);
+        callback(mSkills.FieldSkillsEstimation, 0.5f);
+        callback(mSkills.GoalkeeperSkillsEstimation, 0.5f);
+        callback(mSkills.MentalSkillsEstimation, 0.5f);
+        callback(mSkills.PhysicalSkillsEstimation, 0.5f);
+        callback(mSkills.Networking, 0.25f);
+        break;
+    }
+}
+
+void FifamStaff::ForAllAttributes(Function<void(UChar &, Float)> callback) {
+    ForAllAttributes(mClubPosition, callback);
+}
+
 String FifamStaff::GetStringUniqueId(UInt gameId) {
     return FifamNames::GetPersonStringId(gameId, mFirstName, mLastName, mPseudonym, mBirthday, 0);
+}
+
+UChar FifamStaff::GetManagerLevel() {
+    return (mManagerCoachingSkills + mManagerGoalkeepersTraining + mManagerMotivationSkills + mManagerNegotiationSkills) / 4;
 }

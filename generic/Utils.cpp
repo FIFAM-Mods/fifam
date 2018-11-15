@@ -126,14 +126,14 @@ void Utils::Trim(std::wstring &str) {
 std::wstring Utils::ToUpper(std::wstring const &str) {
     std::wstring result;
     for (size_t i = 0; i < str.length(); i++)
-        result += toupper(static_cast<unsigned char>(str[i]));
+        result += toupper(static_cast<unsigned short>(str[i]));
     return result;
 }
 
 std::wstring Utils::ToLower(std::wstring const &str) {
     std::wstring result;
     for (size_t i = 0; i < str.length(); i++)
-        result += tolower(static_cast<unsigned char>(str[i]));
+        result += tolower(static_cast<unsigned short>(str[i]));
     return result;
 }
 

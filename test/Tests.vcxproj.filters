@@ -97,6 +97,9 @@
     <ClInclude Include="tests\PlayerRelationsTest.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\WritePlayerIDs.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

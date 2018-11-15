@@ -1,5 +1,5 @@
 #pragma once
-
+#include "FifamPropertied.h"
 #include "FifamClub.h"
 #include "FifamStadium.h"
 #include "FifamSponsor.h"
@@ -21,7 +21,7 @@
 
 class FifamDatabase;
 
-class FifamCountry {
+class FifamCountry : public FifamPropertied {
 public:
     // @since FM07
     // @maxsize 30

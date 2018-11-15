@@ -1,5 +1,6 @@
 #pragma once
 #include "FifamDbWriteable.h"
+#include "FifamPropertied.h"
 #include "FifamTypes.h"
 #include "FifamCompID.h"
 #include "FifamInstructionList.h"
@@ -11,7 +12,7 @@ class FifamCompCup;
 class FifamCompPool;
 class FifamDatabase;
 
-class FifamCompetition : public FifamDbWriteable {
+class FifamCompetition : public FifamDbWriteable, public FifamPropertied {
 protected:
     FifamCompetition() {}
 public:

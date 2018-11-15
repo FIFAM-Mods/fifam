@@ -11,6 +11,7 @@
 #include <functional>
 #include <filesystem>
 #include <new>
+#include <any>
 
 using namespace std::experimental::filesystem;
 
@@ -57,3 +58,4 @@ using BitSet = std::bitset<Bits>;
 using Path = path;
 template<typename FT>
 using Function = std::function<FT>;
+using Any = std::any;

@@ -1,4 +1,5 @@
 #pragma once
+#include "FifamPropertied.h"
 #include "FifamCountry.h"
 #include "FifamCupAlloc.h"
 #include "FifamClubLink.h"
@@ -10,7 +11,7 @@
     Minimum supported version: FM07 0x2007.0x0C
 */
 
-class FifamDatabase {
+class FifamDatabase : public FifamPropertied {
 public:
     static const UChar NUM_COUNTRIES = 207;
     static const UInt LATEST_GAME_VERSION = 14;

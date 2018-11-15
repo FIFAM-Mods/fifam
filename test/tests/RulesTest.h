@@ -54,5 +54,7 @@ public:
         std::wcout << std::endl;
         std::wcout << L"Unknown teams: " << db->mRules.Unknown._1.GetTeamName() << L"," << db->mRules.Unknown._2.GetTeamName();
         std::wcout << std::endl;
+
+        delete db;
     }
 };

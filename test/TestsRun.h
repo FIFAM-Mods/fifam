@@ -20,7 +20,8 @@
 #include "tests\FifaConverter.h"
 #include "tests\FoomBasicTest.h"
 #include "tests\PlayerRelationsTest.h"
+#include "tests\WritePlayerIDs.h"
 
 void RunTests() {
-    RunTest<WriteDbTest<FM14, FM14>>();
+    RunTest<RulesTest<FM14, Default>>();
 }

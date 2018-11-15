@@ -58,16 +58,16 @@ namespace Utils {
     int Clamp(int value, int min, int max);
     int MapTo(int value, int input_start, int input_end, int output_start, int output_end);
 
-    template<typename T1, typename T2>
-    T1 Min(T1 const &a, T2 const &b) {
-        if (a < static_cast<T1>(b))
+    template<typename T>
+    T Min(T const &a, T const &b) {
+        if (a < b)
             return a;
         return b;
     }
 
-    template<typename T1, typename T2>
-    T1 Max(T1 const &a, T2 const &b) {
-        if (a > static_cast<T1>(b))
+    template<typename T>
+    T Max(T const &a, T const &b) {
+        if (a > b)
             return a;
         return b;
     }
@@ -109,12 +109,38 @@ namespace Utils {
     bool IsPunctuationMark(wchar_t wideChar);
 
     template<typename ValueType, typename IdType>
-    std::pair<ValueType, IdType> GetMaxElement(std::vector<std::pair<ValueType, IdType>> const &elements) {
+    std::pair<ValueType, IdType> GetMaxElementId(std::vector<std::pair<ValueType, IdType>> const &elements) {
         std::pair<ValueType, IdType> result;
         if (!elements.empty()) {
             result = elements[0];
             for (size_t i = 1; i < elements.size(); i++) {
                 if (elements[i].first > result.first)
+                    result = elements[i];
+            }
+        }
+        return result;
+    }
+
+    template<typename ValueType>
+    ValueType GetMaxElement(std::vector<ValueType> const &elements) {
+        ValueType result;
+        if (!elements.empty()) {
+            result = elements[0];
+            for (size_t i = 1; i < elements.size(); i++) {
+                if (elements[i] > result)
+                    result = elements[i];
+            }
+        }
+        return result;
+    }
+
+    template<typename ValueType>
+    ValueType GetMinElement(std::vector<ValueType> const &elements) {
+        ValueType result;
+        if (!elements.empty()) {
+            result = elements[0];
+            for (size_t i = 1; i < elements.size(); i++) {
+                if (elements[i] < result)
                     result = elements[i];
             }
         }

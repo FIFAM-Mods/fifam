@@ -1,4 +1,5 @@
 #pragma once
+#include "FifamPropertied.h"
 #include "FifamTypes.h"
 #include "FifamNation.h"
 #include "FifamClubLink.h"
@@ -11,7 +12,7 @@
 #include "FifamPlayerCharacterID.h"
 
 // @since FM07
-class FifamCACPlayer {
+class FifamCACPlayer : public FifamPropertied {
 public:
     // @since FM07
     String mFirstName;

@@ -54,6 +54,9 @@ struct club : public team {
     Int mRecordAttendance = 0;
     Int mRecordAttendanceYear = 0;
     Int mBadge = 0;
+    Int mSupporterExpectations = 0;
+
+    Bool mIsReserveDummyClub = false;
 
     struct reserve_team {
         club *mReserveClub = 0;
@@ -125,24 +128,13 @@ struct club : public team {
 
     Vector<team_league_history> mVecTeamLeagueHistory;
 
-    Vector<player *> mVecContractedPlayers;
-    Vector<player *> mVecLoanedPlayers;
-    Vector<player *> mVecLoanedOutPlayers;
-    Vector<player *> mVecFuturePlayers;
-    Vector<player *> mVecFutureSales;
-
     struct converter_data {
         UInt mFIFAManagerID = 0;
         UInt mFIFAID = 0;
         void *mFifamClub = nullptr;
+        Int mLeaguePos = 0;
         Set<UShort> mLeagueWins;
         Set<UShort> mCupWins;
-        Set<UShort> mSuperCupWins;
-        Set<UShort> mLeagueCupWins;
-        Set<UShort> mChampionsLeagueWins;
-        Set<UShort> mEuropaLeagueWins;
-        Set<UShort> mToyotaCupWins;
-        Set<UShort> mClubWorldCupWins;
         club *mParentClub = nullptr;
         club *mMainChildClubInDB = nullptr;
         club *mParentClubInDB = nullptr;
@@ -154,14 +146,26 @@ struct club : public team {
             u20,
             u19,
             u18,
+            u21_b,
+            u19_b,
+            u18_b,
             other
         } mChildType = other;
         struct child_club {
             club *mClub = 0;
-            bool mIsAffiliated = false;
+            Bool mIsAffiliated = false;
             Int mType = other;
         };
         Vector<child_club> mChildClubs;
+
+        Vector<player *> mFutureSigns;
+        Vector<player *> mLoanedPlayers;
+        Vector<player *> mLoanedOutPlayers;
+        Vector<player *> mContractedPlayers;
+
+        bool IsChildTypeYouthTeam() {
+            return mChildType == u18 || mChildType == u18_b || mChildType == u19 || mChildType == u19_b;
+        }
     } mConverterData;
 
     club () {

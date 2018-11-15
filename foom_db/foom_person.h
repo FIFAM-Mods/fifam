@@ -58,47 +58,12 @@ struct person {
     struct converter_data {
         void *mFifamPerson = nullptr;
         void *mContractedFifamClub = nullptr;
+        Bool mAvailableForAdultTeams = false; // ?
+        Int mTeamType = -1; // ?
+        club *mLoanedFromClub = nullptr;
+        club *mFutureClub = nullptr;
+        Bool mFitsIntoDbLimit = true;
     } mConverterData;
-
-    void read_binary(binary_file &file) {
-        file.read(mID);
-        file.read(mFirstName);
-        file.read(mSecondName);
-        file.read(mCommonName);
-        file.read(mFullName);
-        file.read(mFemale);
-        file.read(mDateOfBirth);
-        file.read(mNation);
-        file.read(mLanguage);
-        file.read(mAdaptability);
-        file.read(mAmbition);
-        file.read(mControversy);
-        file.read(mLoyalty);
-        file.read(mPressure);
-        file.read(mProfessionalism);
-        file.read(mSportsmanship);
-        file.read(mTemperament);
-    }
-
-    void write_binary(binary_file &file) {
-        file.write(mID);
-        file.write(mFirstName);
-        file.write(mSecondName);
-        file.write(mCommonName);
-        file.write(mFullName);
-        file.write(mFemale);
-        file.write(mDateOfBirth);
-        file.write(mNation);
-        file.write(mLanguage);
-        file.write(mAdaptability);
-        file.write(mAmbition);
-        file.write(mControversy);
-        file.write(mLoyalty);
-        file.write(mPressure);
-        file.write(mProfessionalism);
-        file.write(mSportsmanship);
-        file.write(mTemperament);
-    }
 };
 
 }

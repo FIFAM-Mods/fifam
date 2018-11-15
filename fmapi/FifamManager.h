@@ -1,4 +1,5 @@
 #pragma once
+#include "FifamPropertied.h"
 #include "FifamTypes.h"
 #include "FifamDate.h"
 #include "FifamReadWrite.h"
@@ -7,7 +8,7 @@
 
 // @since FM07
 // @until FM11
-class FifamManager {
+class FifamManager : public FifamPropertied {
 public:
     // @since FM07
     String mFirstName;
