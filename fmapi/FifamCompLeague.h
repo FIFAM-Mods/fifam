@@ -115,4 +115,9 @@ public:
     void Write(FifamWriter &writer, FifamDatabase *database, FifamNation nationId) override;
     void GenerateFixtures();
     void GenerateCalendar(UInt startDay, UInt endDay, UInt winterBreakStartDay, UInt winterBreakEndDay);
+    UInt GetNumMatchesInMatchday();
+    UInt GetNumMatchdaysInRound();
+    UInt GetNumMatchdays();
+    UInt GetTotalNumMatches();
+    bool ValidateFixtures(String &outErrors);
 };

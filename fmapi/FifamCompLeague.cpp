@@ -246,6 +246,36 @@ const UChar * const fixtureTables[] = {
     fixture24
 };
 
+UInt FifamCompLeague::GetNumMatchesInMatchday() {
+    UInt numTeams = mTeams.size();
+    if (numTeams < 2 || numTeams > 24)
+        return 0;
+    return numTeams / 2;
+}
+
+UInt FifamCompLeague::GetNumMatchdaysInRound() {
+    UInt numTeams = mTeams.size();
+    UInt numRounds = mNumRounds;
+    if (numRounds < 1 || numTeams < 2 || numTeams > 24)
+        return 0;
+    return numTeams - 1 + (numTeams % 2);
+}
+
+UInt FifamCompLeague::GetNumMatchdays() {
+    return GetNumMatchdaysInRound() * mNumRounds;
+}
+
+UInt FifamCompLeague::GetTotalNumMatches() {
+    UInt numTeams = mTeams.size();
+    UInt numRounds = mNumRounds;
+    if (numRounds < 1 || numTeams < 2 || numTeams > 24)
+        return 0;
+    UInt numMatchdaysInRound = numTeams - 1 + (numTeams % 2);
+    UInt numMatchesInMatchday = numTeams / 2;
+    UInt numMatchesInRound = numMatchdaysInRound * numMatchesInMatchday;
+    return numRounds * numMatchesInRound;
+}
+
 void FifamCompLeague::GenerateFixtures() {
     mFixtures.clear();
     UInt numTeams = mTeams.size();
@@ -287,4 +317,66 @@ void FifamCompLeague::GenerateCalendar(UInt startDay, UInt endDay, UInt winterBr
         matchday += 7;
     }
     mSecondSeasonMatchdays = mFirstSeasonMatchdays;
+}
+
+bool FifamCompLeague::ValidateFixtures(String &outErrors) {
+    auto NewLine = [&](String const &line) {
+        if (!outErrors.empty())
+            outErrors += L'\n';
+        outErrors += line;
+    };
+    bool result = true;
+    if (mFixtures.empty()) {
+        NewLine(L"Fixtures list is empty");
+        result = false;
+    }
+    UInt numTeams = mTeams.size();
+    UInt numRounds = mNumRounds;
+    if (numRounds < 1 || numTeams < 2 || numTeams > 24) {
+        NewLine(L"Incorrect number of rounds");
+        result = false;
+    }
+    if (numRounds < 1 || numTeams < 2 || numTeams > 24) {
+        NewLine(L"Incorrect number of teams");
+        result = false;
+    }
+    if (!result)
+        return false;
+    UInt numMatchdaysInRound = numTeams - 1 + (numTeams % 2);
+    UInt numMatchesInMatchday = numTeams / 2;
+    UInt numMatchesInRound = numMatchdaysInRound * numMatchesInMatchday;
+    UInt numMatchdays = numMatchdaysInRound * mNumRounds;
+    if (mFixtures.size() > numMatchdays) {
+        NewLine(L"Too many fixture matchdays");
+        result = false;
+    }
+    Vector<Vector<Vector<Pair<UChar, UChar>>>> fixtures;
+    UInt matchdayId = 0;
+    for (UInt r = 0; r < mNumRounds; r++) {
+        for (UInt md = 0; md < numMatchdaysInRound; md++) {
+            if (matchdayId < mFixtures.size())
+                fixtures[r].push_back(mFixtures[matchdayId]);
+            matchdayId++;
+        }
+    }
+    fixtures.resize(mNumRounds);
+    Vector<Vector<Vector<UChar>>> teamFixtures;
+    teamFixtures.resize(mNumRounds);
+    matchdayId = 0;
+    for (UInt r = 0; r < mNumRounds; r++) {
+        
+        //for (UInt md = 0; md < numMatchdaysInRound; md++) {
+        //    if (md >= mFixtures[r].size())
+        //        break;
+        //    if (mFixtures[r][md]() < mNumRounds) {
+        //        NewLine(Utils::Format(L"Round %d has too few matchdays (%d/%d)", r + 1, mFixtures[r].size(), mNumRounds));
+        //        result = false;
+        //    }
+        //    else if (mFixtures[r][md].size() > mNumRounds) {
+        //        NewLine(Utils::Format(L"Round %d has too much matchdays (%d/%d)", r + 1, mFixtures[r].size(), mNumRounds));
+        //        result = false;
+        //    }
+        //}
+    }
+    return result;
 }

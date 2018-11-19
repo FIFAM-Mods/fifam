@@ -46,6 +46,16 @@ void FifamClubLink::Clear() {
     mPtr = nullptr;
 }
 
+Bool FifamClubLink::operator<(FifamClubLink const &rhs) const {
+    if (mPtr < rhs.mPtr) return true;
+    if (rhs.mPtr < mPtr) return false;
+    return mTeamType.ToInt() < rhs.mTeamType.ToInt();
+}
+
+Bool FifamClubLink::operator==(FifamClubLink const & rhs) const {
+    return mPtr == rhs.mPtr && mTeamType == rhs.mTeamType;
+}
+
 Bool operator==(FifamClubLink const & lhs, FifamClubLink const & rhs) {
     return lhs.mPtr == rhs.mPtr && lhs.mTeamType == rhs.mTeamType;
 }

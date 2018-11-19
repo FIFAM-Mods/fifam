@@ -19,6 +19,6 @@ public:
     Bool IsYouthTeam() const;
     String GetTeamName() const;
     void Clear();
+    Bool operator==(FifamClubLink const &rhs) const;
+    Bool operator<(FifamClubLink const &rhs) const;
 };
-
-Bool operator==(FifamClubLink const &lhs, FifamClubLink const &rhs);

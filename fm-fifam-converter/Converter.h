@@ -26,7 +26,14 @@ public:
         Int mPriority = 0;
     };
 
+    struct FixtureInfo {
+        Date mDate;
+        foom::club *mTeam1 = 0;
+        foom::club *mTeam2 = 0;
+    };
+
     Vector<DivisionInfo> mDivisions;
+    Map<UInt, Vector<FixtureInfo>> mFixturesPerLeague;
     Array<UInt, FifamDatabase::NUM_COUNTRIES> mNextFreeUID = {};
     Array<Map<UInt, Vector<FifamCompLeague *>>, FifamDatabase::NUM_COUNTRIES> mLeaguesSystem;
     Array<UInt, FifamDatabase::NUM_COUNTRIES> mNumTeamsInLeagueSystem = {};
@@ -41,7 +48,7 @@ public:
     void Convert(UInt gameId, UInt originalGameId, Path const &originalDb, UInt referenceGameId, Path const &referenceDb, Bool writeToGameFolder);
     ~Converter();
 
-    Int ConvertPlayerAttribute(Int attr);
+    Int ConvertPlayerAttribute(Int attr, Int playerLevel = 0);
     void ConvertNationInfo(FifamCountry *dst, foom::nation *nation);
     void ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);
     FifamClub *CreateAndConvertClub(UInt gameId, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);

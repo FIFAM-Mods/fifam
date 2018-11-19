@@ -239,59 +239,49 @@ public: \
 inline Bool operator== (const typeName &a, const typeName &b) { \
     return a.ToInt() == b.ToInt(); \
 } \
-template<typename T> \
-inline Bool operator== (const typeName &a, const T &b) { \
+inline Bool operator== (const typeName &a, const typeName::underlyingtype_t &b) { \
     return a.ToInt() == b; \
 } \
 inline Bool operator!= (const typeName &a, const typeName &b) { \
     return a.ToInt() != b.ToInt(); \
 } \
-template<typename T> \
-inline Bool operator!= (const typeName &a, const T &b) { \
+inline Bool operator!= (const typeName &a, const typeName::underlyingtype_t &b) { \
     return a.ToInt() != b; \
 } \
 inline Bool operator< (const typeName &a, const typeName &b) { \
     return a.ToInt() < b.ToInt(); \
 } \
-template<typename T> \
-inline Bool operator< (const typeName &a, const T &b) { \
+inline Bool operator< (const typeName &a, const typeName::underlyingtype_t &b) { \
     return a.ToInt() < b; \
 } \
-template<typename T> \
-inline Bool operator< (const T &a, const typeName &b) { \
+inline Bool operator< (const typeName::underlyingtype_t &a, const typeName &b) { \
     return a < b.ToInt(); \
 } \
 inline Bool operator> (const typeName &a, const typeName &b) { \
     return a.ToInt() > b.ToInt(); \
 } \
-template<typename T> \
-inline Bool operator> (const typeName &a, const T &b) { \
+inline Bool operator> (const typeName &a, const typeName::underlyingtype_t &b) { \
     return a.ToInt() > b; \
 } \
-template<typename T> \
-inline Bool operator> (const T &a, const typeName &b) { \
+inline Bool operator> (const typeName::underlyingtype_t &a, const typeName &b) { \
     return a > b.ToInt(); \
 } \
 inline Bool operator<= (const typeName &a, const typeName &b) { \
     return a.ToInt() <= b.ToInt(); \
 } \
-template<typename T> \
-inline Bool operator<= (const typeName &a, const T &b) { \
+inline Bool operator<= (const typeName &a, const typeName::underlyingtype_t &b) { \
     return a.ToInt() <= b; \
 } \
-template<typename T> \
-inline Bool operator<= (const T &a, const typeName &b) { \
+inline Bool operator<= (const typeName::underlyingtype_t &a, const typeName &b) { \
     return a <= b.ToInt(); \
 } \
 inline Bool operator>= (const typeName &a, const typeName &b) { \
     return a.ToInt() >= b.ToInt(); \
 } \
-template<typename T> \
-inline Bool operator>= (const typeName &a, const T &b) { \
+inline Bool operator>= (const typeName &a, const typeName::underlyingtype_t &b) { \
     return a.ToInt() >= b; \
 } \
-template<typename T> \
-inline Bool operator>= (const T &a, const typeName &b) { \
+inline Bool operator>= (const typeName::underlyingtype_t &a, const typeName &b) { \
     return a >= b.ToInt(); \
 }
 
