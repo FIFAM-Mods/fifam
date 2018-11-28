@@ -3,9 +3,11 @@
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Converter.cpp" />
+    <ClCompile Include="GraphicsConverter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Converter.h" />
     <ClInclude Include="ConverterUtil.h" />
+    <ClInclude Include="GraphicsConverter.h" />
   </ItemGroup>
 </Project>

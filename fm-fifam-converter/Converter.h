@@ -48,7 +48,7 @@ public:
     void Convert(UInt gameId, UInt originalGameId, Path const &originalDb, UInt referenceGameId, Path const &referenceDb, Bool writeToGameFolder);
     ~Converter();
 
-    Int ConvertPlayerAttribute(Int attr, Int playerLevel = 0);
+    Int ConvertPlayerAttribute(Int attr);
     void ConvertNationInfo(FifamCountry *dst, foom::nation *nation);
     void ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);
     FifamClub *CreateAndConvertClub(UInt gameId, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);
@@ -58,6 +58,7 @@ public:
     FifamStaff *CreateAndConvertStaff(foom::non_player *p, FifamClub *club, FifamClubStaffPosition position);
     void ConvertPersonAttributes(FifamPerson *person, foom::person *p);
     void CreateStaffMembersForClub(UInt gameId, foom::team *team, FifamClub *dst, Bool isNationalTeam);
+    UChar GetPlayerLevelFromCA(Int ca);
     
     Bool IsIconicPlayer(Int playerId);
     Bool IsIntrovertPlayer(Int playerId);

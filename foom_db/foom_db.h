@@ -215,6 +215,7 @@ struct db {
             reader.ReadLine(clubID, IntPtr(b.mPlayer), IntPtr(b.mFromClub), b.mBuyBackFee);
             map_find(mClubs, clubID).mVecBuyBackClauses.push_back(b);
         });
+    #if 1
         // TODO
         // read players
         String playersFile;
@@ -361,7 +362,7 @@ struct db {
             if (nonplayerID != -1 && c.mNation != (nation *)-1)
                 map_find(mNonPlayers, nonplayerID).mNationContract = c;
         });
-
+    #endif
         // read officials
         ReaderCallback(L"fm_officials", [&](FifamReader &reader) {
             official o;

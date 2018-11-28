@@ -7,8 +7,9 @@
 #include "FifamPlayerLevel.h"
 #include "Random.h"
 #include "ConverterUtil.h"
+#include "GraphicsConverter.h"
 
-#define DB_SIZE Small
+#define DB_SIZE Full
 
 // TODO: nation - alternative stadiums
 
@@ -433,13 +434,44 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     auto league = mFifamDatabase->CreateCompetition(FifamCompDbType::League, leagueID, compName)->AsLeague();
                     league->mCompetitionLevel = div->mLevel;
                     league->mLeagueLevel = div->mLevel;
-                    league->mNumRounds = 2;
                     league->mNumSubsAllowed = 3;
                     league->mNumTeams = div->mTeams;
+                    if (league->mNumTeams >= 15)
+                        league->mNumRounds = 2;
+                    else if (league->mNumTeams >= 11)
+                        league->mNumRounds = 3;
+                    else
+                        league->mNumRounds = 4;
+                    if (league->mNumTeams >= 24)
+                        league->mNumRelegatedTeams = 5;
+                    else if (league->mNumTeams >= 22)
+                        league->mNumRelegatedTeams = 4;
+                    else if (league->mNumTeams >= 18)
+                        league->mNumRelegatedTeams = 3;
+                    else if (league->mNumTeams >= 12)
+                        league->mNumRelegatedTeams = 2;
+                    else
+                        league->mNumRelegatedTeams = 1;
                     league->mRoundType = FifamRoundID::Group1;
-                    league->mAttendanceMp = 50;
-                    league->mTransferMarketMp = 50;
                     league->mTeams.resize(div->mTeams);
+
+                    league->mAttendanceMp = Utils::MapTo(comp->mReputation, 10, 180, 20, 120);
+                    league->mTransferMarketMp = Utils::MapTo(comp->mReputation, 10, 175, 10, 125);
+
+                    league->mFreeAgentsCanBeTranferredAtAnyTime = true;
+                    league->mForeignFreeAgentsCanBeTransferredAtAnyTime = true;
+                    league->mShortTermLoansTotalLimit = 15;
+                    league->mShortTermLoansSimultaneosLimit = 15;
+                    league->mLongTermLoansTotalLimit = 15;
+                    league->mLongTermLoansSimultaneosLimit = 15;
+                    league->mOverallTotalLoansLimit = 15;
+                    league->mOverallTotalSimultaneosLoansLimit = 15;
+                    league->mLoanedPlayersPerSeason = 15;
+                    league->mLoanPlayerPerSquad = 15;
+                    league->mSimLoanOtherLeague = 15;
+                    league->mSimLoanSameLeague = 15;
+                    league->mLoanOtherLeagueCount = 15;
+                    league->mLoanSameLeagueCount = 15;
 
                     // instructions
                     pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(league, 1, league->mNumTeams));
@@ -1011,12 +1043,13 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
             }
         }
     }
-
+    
     std::wcout << L"Creating players and staff..." << std::endl;
     for (auto &entry : mFoomDatabase->mClubs) {
         auto &team = entry.second;
         // team is present in db
         if (team.mConverterData.mFifamClub) {
+            std::wcout << L"Team: " << team.mID <<  std::endl;
             UInt howManyPlayersCanIAdditionalyCreate = 0;
             UInt howManyYouthPlayersCanIAdditionalyCreate = 0;
             UInt potentialSquadSize =
@@ -1904,6 +1937,13 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
         }
     }
 
+    GraphicsConverter graphicsConverter;
+    Path graphicsPath = L"D:\\Documents\\Sports Interactive\\Football Manager 2019\\graphics";
+    Path contentPath = L"D:\\Projects\\fifam\\content";
+    std::wcout << L"Converting badges..." << std::endl;
+    graphicsConverter.ConvertClubBadges(mFoomDatabase, graphicsPath, contentPath, gameId, 9000);
+    std::wcout << L"Converting portraits..." << std::endl;
+    graphicsConverter.ConvertPortraits(mFoomDatabase, graphicsPath, contentPath, gameId, 160);
     delete mFifamDatabase;
     delete mFoomDatabase;
 }
@@ -2982,47 +3022,150 @@ void Converter::CreateStaffMembersForClub(UInt gameId, foom::team * team, FifamC
         CreateAndConvertStaff(staffTeamDoctor, dst, FifamClubStaffPosition::TeamDoctor);
 }
 
+UChar Converter::GetPlayerLevelFromCA(Int ca) {
+    static Pair<UChar, UChar> playerCAtoLvlAry[99] = {
+        { 99, 199 },
+        { 98, 198 },
+        { 97, 197 },
+        { 96, 196 },
+        { 95, 195 },
+        { 94, 192 },
+        { 93, 190 },
+        { 92, 188 },
+        { 91, 184 },
+        { 90, 180 },
+        { 89, 177 },
+        { 88, 174 },
+        { 87, 170 },
+        { 86, 166 },
+        { 85, 163 },
+        { 84, 160 },
+        { 83, 157 },
+        { 82, 154 },
+        { 81, 151 },
+        { 80, 149 },
+        { 79, 146 }, // 147?
+        { 78, 143 },
+        { 77, 141 },
+        { 76, 139 },
+        { 75, 135 }, // 73, 74, 75
+        { 74, 132 },
+        { 73, 129 },
+        { 72, 126 },
+        { 71, 123 },
+        { 70, 120 },
+        { 69, 117 }, // 66, 67
+        { 68, 114 },
+        { 67, 111 },
+        { 66, 108 },
+        { 65, 105 },
+        { 64, 102 },
+        { 63,  99 },
+        { 62,  96 },
+        { 61,  93 },
+        { 60,  90 },
+        { 59,  88 },
+        { 58,  86 },
+        { 57,  84 },
+        { 56,  82 },
+        { 55,  80 },
+        { 54,  78 },
+        { 53,  76 },
+        { 52,  74 },
+        { 51,  72 },
+        { 50,  70 },
+        { 49,  68 },
+        { 48,  66 },
+        { 47,  64 },
+        { 46,  62 },
+        { 45,  60 },
+        { 44,  58 },
+        { 43,  56 },
+        { 42,  54 },
+        { 41,  52 },
+        { 40,  50 },
+        { 39,  48 },
+        { 38,  46 },
+        { 37,  44 },
+        { 36,  42 },
+        { 35,  40 },
+        { 34,  38 },
+        { 33,  36 },
+        { 32,  34 },
+        { 31,  32 },
+        { 30,  30 },
+        { 29,  29 },
+        { 28,  28 },
+        { 27,  27 },
+        { 26,  26 },
+        { 25,  25 },
+        { 24,  24 },
+        { 23,  23 },
+        { 22,  22 },
+        { 21,  21 },
+        { 20,  20 },
+        { 19,  19 },
+        { 18,  18 },
+        { 17,  17 },
+        { 16,  16 },
+        { 15,  15 },
+        { 14,  14 },
+        { 13,  13 },
+        { 12,  12 },
+        { 11,  11 },
+        { 10,  10 },
+        { 9,    9 },
+        { 8,    8 },
+        { 7,    7 },
+        { 6,    6 },
+        { 5,    5 },
+        { 4,    4 },
+        { 3,    3 },
+        { 2,    2 },
+        { 1,    1 }
+    };
+    for (UInt i = 0; i < 99; i++) {
+        if (ca >= playerCAtoLvlAry[i].second)
+            return playerCAtoLvlAry[i].first;
+    }
+    return 1;
+}
+
 Int OriginalAttrValue(Int attr) {
     return (Int)ceilf((Float)attr / 5.0f);
 }
 
-Int Converter::ConvertPlayerAttribute(Int attr, Int playerLevel) {
+Int Converter::ConvertPlayerAttribute(Int attr) {
     Int originalAttr = OriginalAttrValue(attr);
     if (originalAttr <= 0)
         originalAttr = 1;
     if (originalAttr > 20)
         originalAttr = 20;
-    if (playerLevel <= 0)
-        playerLevel = 1;
-    else if (playerLevel > 10)
-        playerLevel = 10;
-    playerLevel = 11 - playerLevel;
-    static Int fmRatingAry[21][10] = {
-        /*         20  19  18  17  16  15  14  13  12  11  */
-        { /* 1  */  5,  5,  4,  4,  4,  3,  3,  2,  2,  1 }, 
-        { /* 2  */ 19, 18, 17, 16, 15, 14, 13, 12, 11, 10 }, 
-        { /* 3  */ 30, 28, 26, 24, 22, 20, 18, 16, 15, 14 }, 
-        { /* 4  */ 40, 38, 36, 34, 32, 30, 28, 26, 24, 20 }, 
-        { /* 5  */ 50, 48, 46, 44, 42, 40, 38, 36, 34, 33 }, 
-        { /* 6  */ 60, 58, 56, 54, 51, 47, 45, 43, 41, 39 }, 
-        { /* 7  */ 63, 62, 60, 58, 56, 54, 51, 49, 47, 45 }, 
-        { /* 8  */ 66, 65, 63, 60, 58, 56, 55, 53, 51, 49 }, 
-        { /* 9  */ 68, 67, 65, 63, 61, 59, 57, 55, 54, 53 }, 
-        { /* 10 */ 70, 69, 67, 65, 63, 61, 60, 58, 57, 56 }, 
-        { /* 11 */ 72, 71, 70, 68, 66, 64, 62, 61, 60, 59 }, 
-        { /* 12 */ 75, 74, 73, 71, 69, 67, 65, 63, 62, 61 }, 
-        { /* 13 */ 78, 77, 75, 73, 71, 69, 67, 66, 65, 64 }, 
-        { /* 14 */ 81, 80, 79, 77, 75, 73, 71, 69, 68, 67 }, 
-        { /* 15 */ 84, 83, 82, 81, 80, 78, 76, 74, 72, 70 }, 
-        { /* 16 */ 86, 85, 84, 83, 82, 81, 80, 78, 76, 75 }, 
-        { /* 17 */ 88, 88, 87, 87, 86, 86, 85, 84, 82, 81 }, 
-        { /* 18 */ 91, 88, 88, 88, 87, 87, 86, 86, 85, 85 }, 
-        { /* 19 */ 95, 94, 94, 93, 92, 91, 91, 90, 90, 90 }, 
-        { /* 20 */ 98, 97, 97, 97, 96, 96, 96, 95, 95, 95 }, 
-        { /* -- */100,100,100,100,100,100,100,100,100,100 },
-        /*         20  19  18  17  16  15  14  13  12  11   */
+    static Pair<Int, Int> fmRatingAry[20] = {
+        {  5, 15 }, // 1
+        { 16, 29 }, // 2
+        { 30, 38 }, // 3
+        { 39, 44 }, // 4
+        { 45, 50 }, // 5
+        { 51, 53 }, // 6
+        { 54, 57 }, // 7
+        { 58, 61 }, // 8
+        { 62, 64 }, // 9
+        { 65, 67 }, // 10
+        { 68, 70 }, // 11
+        { 71, 74 }, // 12
+        { 75, 78 }, // 13
+        { 79, 82 }, // 14
+        { 83, 84 }, // 15
+        { 85, 86 }, // 16
+        { 87, 88 }, // 17
+        { 89, 91 }, // 18
+        { 92, 95 }, // 19
+        { 96, 99 }  // 20
     };
-    return Random::Get(fmRatingAry[originalAttr - 1][playerLevel - 1], fmRatingAry[originalAttr][playerLevel - 1] - 1);
+    if (fmRatingAry[originalAttr - 1].first == fmRatingAry[originalAttr - 1].second)
+        return fmRatingAry[originalAttr - 1].first;
+    return Random::Get(fmRatingAry[originalAttr - 1].first, fmRatingAry[originalAttr - 1].second);
 }
 
 FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, FifamClub *club) {
@@ -3107,9 +3250,41 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
         hairColorSet = true;
     }
 
+    // experience
+    UInt totalExperiencePoints = 0;
+    totalExperiencePoints += p->mInternationalApps * 10;
+    for (auto &h : p->mVecPlayingHistory) {
+        if (!h.mYouthTeam && h.mApps > 0) {
+            if (h.mDivision) {
+                switch (h.mDivision->mCompetitionLevel) {
+                case 1:
+                    totalExperiencePoints += h.mApps * 5;
+                    break;
+                case 2:
+                    totalExperiencePoints += h.mApps * 2;
+                    break;
+                default:
+                    totalExperiencePoints += h.mApps;
+                }
+            }
+            else
+                totalExperiencePoints += h.mApps;
+        }
+    }
+    if (totalExperiencePoints == 0) {
+        if (age > 34)
+            totalExperiencePoints = 500;
+        else if (age > 30)
+            totalExperiencePoints = 375;
+        else if (age > 26)
+            totalExperiencePoints = 200;
+    }
+    player->mGeneralExperience = Utils::MapTo(totalExperiencePoints, 0, 2500, 0, 18);
+
+
     // potential
 
-    static Pair<UChar, UShort> potentialTable[100] = {
+    static Pair<UChar, UChar> potentialTable[100] = {
         { 100, 199 },
         { 99, 198 },
         { 98, 197 },
@@ -3210,109 +3385,6 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
         { 3, 3 },
         { 2, 2 },
         { 1, 1 }
-    };
-
-     static Pair<UChar, UShort> playerLevelAry[99] = {
-        { 100, 199 },
-        { 99, 198 },
-        { 98, 197 },
-        { 97, 196 },
-        { 96, 195 },
-        { 95, 192 },
-        { 94, 189 },
-        { 93, 185 },
-        { 92, 182 },
-        { 91, 179 },
-        { 90, 174 },
-        { 89, 170 },
-        { 88, 167 },
-        { 87, 164 },
-        { 86, 160 },
-        { 85, 155 },
-        { 84, 150 },
-        { 83, 145 },
-        { 82, 140 },
-        { 81, 137 },
-        { 80, 135 },
-        { 79, 132 },
-        { 78, 130 },
-        { 77, 128 },
-        { 76, 126 },
-        { 75, 124 },
-        { 74, 122 },
-        { 73, 120 },
-        { 72, 115 },
-        { 71, 112 },
-        { 70, 110 },
-        { 69, 108 },
-        { 68, 106 },
-        { 67, 104 },
-        { 66, 102 },
-        { 65, 100 },
-        { 64, 98 },
-        { 63, 96 },
-        { 62, 94 },
-        { 61, 92 },
-        { 60, 90 },
-        { 59, 88 },
-        { 58, 86 },
-        { 57, 84 },
-        { 56, 82 },
-        { 55, 80 },
-        { 54, 78 },
-        { 53, 76 },
-        { 52, 74 },
-        { 51, 72 },
-        { 50, 70 },
-        { 49, 68 },
-        { 48, 66 },
-        { 47, 64 },
-        { 46, 62 },
-        { 45, 60 },
-        { 44, 58 },
-        { 43, 56 },
-        { 42, 54 },
-        { 41, 52 },
-        { 40, 50 },
-        { 39, 48 },
-        { 38, 46 },
-        { 37, 44 },
-        { 36, 42 },
-        { 35, 40 },
-        { 34, 38 },
-        { 33, 36 },
-        { 32, 34 },
-        { 31, 32 },
-        { 30, 30 },
-        { 29, 29 },
-        { 28, 28 },
-        { 27, 27 },
-        { 26, 26 },
-        { 25, 25 },
-        { 24, 24 },
-        { 23, 23 },
-        { 22, 22 },
-        { 21, 21 },
-        { 20, 20 },
-        { 19, 19 },
-        { 18, 18 },
-        { 17, 17 },
-        { 16, 16 },
-        { 15, 15 },
-        { 14, 14 },
-        { 13, 13 },
-        { 12, 12 },
-        { 11, 11 },
-        { 10, 10 },
-        { 9,  9 },
-        { 8,  8 },
-        { 7,  7 },
-        { 6,  6 },
-        { 5,  5 },
-        { 4,  4 },
-        { 3,  3 },
-        { 2,  2 },
-        { 1,  1 }
     };
 
     player->mPotential = 1;
@@ -3477,6 +3549,7 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
         Int mThrowing = 0;
     } attr;
 
+    /*
     UInt playerLevel = 1;
     static Int playerLevelAry[20] = {
           0, //  1 -1
@@ -3507,59 +3580,60 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
         }
     }
     playerLevel /= 2;
+    */
 
-    attr.mAggression = ConvertPlayerAttribute(p->mAggression, playerLevel);
-    attr.mAnticipation = ConvertPlayerAttribute(p->mAnticipation, playerLevel);
-    attr.mBravery = ConvertPlayerAttribute(p->mBravery, playerLevel);
-    attr.mComposure = ConvertPlayerAttribute(p->mComposure, playerLevel);
-    attr.mConcentration = ConvertPlayerAttribute(p->mConcentration, playerLevel);
-    attr.mConsistency = ConvertPlayerAttribute(p->mConsistency, playerLevel);
-    attr.mVision = ConvertPlayerAttribute(p->mVision, playerLevel);
-    attr.mDecisions = ConvertPlayerAttribute(p->mDecisions, playerLevel);
-    attr.mDetermination = ConvertPlayerAttribute(p->mDetermination, playerLevel);
-    attr.mDirtiness = ConvertPlayerAttribute(p->mDirtiness, playerLevel);
-    attr.mFlair = ConvertPlayerAttribute(p->mFlair, playerLevel);
-    attr.mImportantMatches = ConvertPlayerAttribute(p->mImportantMatches, playerLevel);
-    attr.mLeadership = ConvertPlayerAttribute(p->mLeadership, playerLevel);
-    attr.mMovement = ConvertPlayerAttribute(p->mMovement, playerLevel);
-    attr.mPositioning = ConvertPlayerAttribute(p->mPositioning, playerLevel);
-    attr.mTeamWork = ConvertPlayerAttribute(p->mTeamWork, playerLevel);
-    attr.mWorkRate = ConvertPlayerAttribute(p->mWorkRate, playerLevel);
-    attr.mAcceleration = ConvertPlayerAttribute(p->mAcceleration, playerLevel);
-    attr.mAgility = ConvertPlayerAttribute(p->mAgility, playerLevel);
-    attr.mBalance = ConvertPlayerAttribute(p->mBalance, playerLevel);
-    attr.mInjuryProneness = ConvertPlayerAttribute(p->mInjuryProneness, playerLevel);
-    attr.mJumpingReach = ConvertPlayerAttribute(p->mJumpingReach, playerLevel);
-    attr.mNaturalFitness = ConvertPlayerAttribute(p->mNaturalFitness, playerLevel);
-    attr.mPace = ConvertPlayerAttribute(p->mPace, playerLevel);
-    attr.mStamina = ConvertPlayerAttribute(p->mStamina, playerLevel);
-    attr.mStrength = ConvertPlayerAttribute(p->mStrength, playerLevel);
-    attr.mCorners = ConvertPlayerAttribute(p->mCorners, playerLevel);
-    attr.mCrossing = ConvertPlayerAttribute(p->mCrossing, playerLevel);
-    attr.mDribbling = ConvertPlayerAttribute(p->mDribbling, playerLevel);
-    attr.mFinishing = ConvertPlayerAttribute(p->mFinishing, playerLevel);
-    attr.mFirstTouch = ConvertPlayerAttribute(p->mFirstTouch, playerLevel);
-    attr.mFreeKicks = ConvertPlayerAttribute(p->mFreeKicks, playerLevel);
-    attr.mHeading = ConvertPlayerAttribute(p->mHeading, playerLevel);
-    attr.mLongShots = ConvertPlayerAttribute(p->mLongShots, playerLevel);
-    attr.mLongThrows = ConvertPlayerAttribute(p->mLongThrows, playerLevel);
-    attr.mMarking = ConvertPlayerAttribute(p->mMarking, playerLevel);
-    attr.mPassing = ConvertPlayerAttribute(p->mPassing, playerLevel);
-    attr.mPenaltyTaking = ConvertPlayerAttribute(p->mPenaltyTaking, playerLevel);
-    attr.mTackling = ConvertPlayerAttribute(p->mTackling, playerLevel);
-    attr.mTechnique = ConvertPlayerAttribute(p->mTechnique, playerLevel);
-    attr.mVersatility = ConvertPlayerAttribute(p->mVersatility, playerLevel);
-    attr.mAerialAbility = ConvertPlayerAttribute(p->mAerialAbility, playerLevel);
-    attr.mCommandOfArea = ConvertPlayerAttribute(p->mCommandOfArea, playerLevel);
-    attr.mCommunication = ConvertPlayerAttribute(p->mCommunication, playerLevel);
-    attr.mEccentricity = ConvertPlayerAttribute(p->mEccentricity, playerLevel);
-    attr.mHandling = ConvertPlayerAttribute(p->mHandling, playerLevel);
-    attr.mKicking = ConvertPlayerAttribute(p->mKicking, playerLevel);
-    attr.mOneOnOnes = ConvertPlayerAttribute(p->mOneOnOnes, playerLevel);
-    attr.mReflexes = ConvertPlayerAttribute(p->mReflexes, playerLevel);
-    attr.mRushingOut = ConvertPlayerAttribute(p->mRushingOut, playerLevel);
-    attr.mTendencyToPunch = ConvertPlayerAttribute(p->mTendencyToPunch, playerLevel);
-    attr.mThrowing = ConvertPlayerAttribute(p->mThrowing, playerLevel);
+    attr.mAggression = ConvertPlayerAttribute(p->mAggression);
+    attr.mAnticipation = ConvertPlayerAttribute(p->mAnticipation);
+    attr.mBravery = ConvertPlayerAttribute(p->mBravery);
+    attr.mComposure = ConvertPlayerAttribute(p->mComposure);
+    attr.mConcentration = ConvertPlayerAttribute(p->mConcentration);
+    attr.mConsistency = ConvertPlayerAttribute(p->mConsistency);
+    attr.mVision = ConvertPlayerAttribute(p->mVision);
+    attr.mDecisions = ConvertPlayerAttribute(p->mDecisions);
+    attr.mDetermination = ConvertPlayerAttribute(p->mDetermination);
+    attr.mDirtiness = ConvertPlayerAttribute(p->mDirtiness);
+    attr.mFlair = ConvertPlayerAttribute(p->mFlair);
+    attr.mImportantMatches = ConvertPlayerAttribute(p->mImportantMatches);
+    attr.mLeadership = ConvertPlayerAttribute(p->mLeadership);
+    attr.mMovement = ConvertPlayerAttribute(p->mMovement);
+    attr.mPositioning = ConvertPlayerAttribute(p->mPositioning);
+    attr.mTeamWork = ConvertPlayerAttribute(p->mTeamWork);
+    attr.mWorkRate = ConvertPlayerAttribute(p->mWorkRate);
+    attr.mAcceleration = ConvertPlayerAttribute(p->mAcceleration);
+    attr.mAgility = ConvertPlayerAttribute(p->mAgility);
+    attr.mBalance = ConvertPlayerAttribute(p->mBalance);
+    attr.mInjuryProneness = ConvertPlayerAttribute(p->mInjuryProneness);
+    attr.mJumpingReach = ConvertPlayerAttribute(p->mJumpingReach);
+    attr.mNaturalFitness = ConvertPlayerAttribute(p->mNaturalFitness);
+    attr.mPace = ConvertPlayerAttribute(p->mPace);
+    attr.mStamina = ConvertPlayerAttribute(p->mStamina);
+    attr.mStrength = ConvertPlayerAttribute(p->mStrength);
+    attr.mCorners = ConvertPlayerAttribute(p->mCorners);
+    attr.mCrossing = ConvertPlayerAttribute(p->mCrossing);
+    attr.mDribbling = ConvertPlayerAttribute(p->mDribbling);
+    attr.mFinishing = ConvertPlayerAttribute(p->mFinishing);
+    attr.mFirstTouch = ConvertPlayerAttribute(p->mFirstTouch);
+    attr.mFreeKicks = ConvertPlayerAttribute(p->mFreeKicks);
+    attr.mHeading = ConvertPlayerAttribute(p->mHeading);
+    attr.mLongShots = ConvertPlayerAttribute(p->mLongShots);
+    attr.mLongThrows = ConvertPlayerAttribute(p->mLongThrows);
+    attr.mMarking = ConvertPlayerAttribute(p->mMarking);
+    attr.mPassing = ConvertPlayerAttribute(p->mPassing);
+    attr.mPenaltyTaking = ConvertPlayerAttribute(p->mPenaltyTaking);
+    attr.mTackling = ConvertPlayerAttribute(p->mTackling);
+    attr.mTechnique = ConvertPlayerAttribute(p->mTechnique);
+    attr.mVersatility = ConvertPlayerAttribute(p->mVersatility);
+    attr.mAerialAbility = ConvertPlayerAttribute(p->mAerialAbility);
+    attr.mCommandOfArea = ConvertPlayerAttribute(p->mCommandOfArea);
+    attr.mCommunication = ConvertPlayerAttribute(p->mCommunication);
+    attr.mEccentricity = ConvertPlayerAttribute(p->mEccentricity);
+    attr.mHandling = ConvertPlayerAttribute(p->mHandling);
+    attr.mKicking = ConvertPlayerAttribute(p->mKicking);
+    attr.mOneOnOnes = ConvertPlayerAttribute(p->mOneOnOnes);
+    attr.mReflexes = ConvertPlayerAttribute(p->mReflexes);
+    attr.mRushingOut = ConvertPlayerAttribute(p->mRushingOut);
+    attr.mTendencyToPunch = ConvertPlayerAttribute(p->mTendencyToPunch);
+    attr.mThrowing = ConvertPlayerAttribute(p->mThrowing);
 
     //attributes: general
     player->mAttributes.BallControl = attr.mTechnique;
@@ -3638,38 +3712,6 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
     player->mAttributes.Punching = attr.mTendencyToPunch;
     player->mAttributes.ShotStopping = (UChar)ceilf((attr.mReflexes + attr.mOneOnOnes) / 2.0f);
     player->mAttributes.Throwing = attr.mThrowing;
-
-    Int attributesBoost = 0;
-    if (p->mCurrentAbility >= 195)
-        attributesBoost = 7;
-    else if (p->mCurrentAbility >= 180)
-        attributesBoost = 6;
-    else if (p->mCurrentAbility >= 170)
-        attributesBoost = 5;
-    else if (p->mCurrentAbility >= 160)
-        attributesBoost = 4;
-    else if (p->mCurrentAbility >= 155)
-        attributesBoost = 3;
-    else if (p->mCurrentAbility >= 150)
-        attributesBoost = 2;
-    else if (p->mCurrentAbility >= 145)
-        attributesBoost = 1;
-    if (attributesBoost > 100000) { // """
-        player->ForAllAttributes([&](UChar &attr, FifamPlayerAbilityID const &attrId) {
-            if (!FifamPlayerAttributes::IsSetPiecesAttribute(attrId)) {
-                if (FifamPlayerAttributes::IsGoalkeeperAttribute(attrId)) {
-                    if (player->mMainPosition == FifamPlayerPosition::GK) {
-                        attr = Utils::Min(99, attr + attributesBoost);
-                    }
-                }
-                else {
-                    if (player->mMainPosition != FifamPlayerPosition::GK) {
-                        attr = Utils::Min(99, attr + attributesBoost);
-                    }
-                }
-            }
-        });
-    }
 
     Int cfPosFirst = p->mStriker;
     Int cfPosSecond = p->mAttackingMidfielderCentral;
@@ -3762,6 +3804,40 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
             }
         }
         player->mPlayingStyle = bestStyle;
+    }
+
+    UChar desiredLevel = GetPlayerLevelFromCA(p->mCurrentAbility > 5 ? p->mCurrentAbility : 5);
+    UChar currLevel = player->GetLevel(true);
+    Int levelDiff = desiredLevel - currLevel;
+    if (levelDiff != 0) {
+        Int levelCorrection = 1;
+        Int levelIteration = levelDiff * 2;
+        if (levelDiff < 0) {
+            levelCorrection = -1;
+            levelIteration *= -1;
+        }
+        do {
+            player->ForAllAttributes([&](UChar &attr, FifamPlayerAbilityID const &attrId) {
+                if (!FifamPlayerAttributes::IsSetPiecesAttribute(attrId)) {
+                    if (FifamPlayerAttributes::IsGoalkeeperAttribute(attrId)) {
+                        if (player->mMainPosition == FifamPlayerPosition::GK || (levelCorrection == -1 && desiredLevel <= 20)) {
+                            attr = Utils::Clamp((Int)attr + levelCorrection, 1, 99);
+                            if (attr == 99 && Random::Get(0, 1) == 1)
+                                attr = 98;
+                        }
+                    }
+                    else {
+                        if (player->mMainPosition != FifamPlayerPosition::GK || (levelCorrection == -1 && desiredLevel <= 20)) {
+                            attr = Utils::Clamp((Int)attr + levelCorrection, 1, 99);
+                            if (attr == 99 && Random::Get(0, 1) == 1)
+                                attr = 98;
+                        }
+                    }
+                }
+            });
+            levelIteration--;
+            currLevel = player->GetLevel(true);
+        } while (levelIteration && (levelCorrection == -1 && currLevel > desiredLevel) || (levelCorrection == 1 && currLevel < desiredLevel));
     }
 
     player->mTacticalEducation = Utils::MapTo(player->mAttributes.TacticAwareness, 1, 99, 0, 7);
@@ -3889,8 +3965,10 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
             }
             history.back().mStillInThisClub = true;
         }
-        for (auto const &h : history)
-            player->mHistory.mEntries.insert(h);
+        if (p->mCurrentAbility >= 25) {
+            for (auto const &h : history)
+                player->mHistory.mEntries.insert(h);
+        }
     }
 
     // contract
@@ -3965,37 +4043,6 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
         mNationalTeamPlayers[playerOriginalCountry->mId - 1].push_back(p);
     player->mNationalTeamMatches = p->mInternationalApps;
     player->mNationalTeamGoals = p->mInternationalGoals;
-
-    // experience
-    UInt totalExperiencePoints = 0;
-    totalExperiencePoints += p->mInternationalApps * 11;
-    for (auto &h : p->mVecPlayingHistory) {
-        if (!h.mYouthTeam && h.mApps > 0) {
-            if (h.mDivision) {
-                switch (h.mDivision->mCompetitionLevel) {
-                case 1:
-                    totalExperiencePoints += h.mApps * 5;
-                    break;
-                case 2:
-                    totalExperiencePoints += h.mApps * 2;
-                    break;
-                default:
-                    totalExperiencePoints += h.mApps;
-                }
-            }
-            else
-                totalExperiencePoints += h.mApps;
-        }
-    }
-    if (totalExperiencePoints == 0) {
-        if (age > 34)
-            totalExperiencePoints = 500;
-        else if (age > 30)
-            totalExperiencePoints = 375;
-        else if (age > 26)
-            totalExperiencePoints = 200;
-    }
-    player->mGeneralExperience = Utils::MapTo(totalExperiencePoints, 0, 2500, 0, 18);
 
     // character
     if (p->mPressure >= 15)
