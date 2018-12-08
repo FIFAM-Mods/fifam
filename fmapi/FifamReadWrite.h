@@ -3,7 +3,7 @@
 #include "FifamVersion.h"
 #include "FifamDate.h"
 #include "Utils.h"
-#include "Hexademical.h"
+#include "Hexadecimal.h"
 #include "Quoted.h"
 #include "IntPtr.h"
 #include "FifamTranslation.h"
@@ -47,7 +47,7 @@ public:
     void WriteOne(Bool value);
     void WriteOne(WideChar const *value);
     void WriteOne(String const &value);
-    void WriteOne(Hexademical const &value);
+    void WriteOne(Hexadecimal const &value);
     void WriteOne(Quoted const &value);
     void WriteOne(FifamDate const &date);
     void WriteOne(Date const &date);
@@ -220,7 +220,7 @@ private:
     void StrToArg(String const &str, WideChar *arg);
     void StrToArg(String const &str, String &arg);
     void StrToArg(String const &str, FifamDate &arg);
-    void StrToArg(String const &str, Hexademical arg);
+    void StrToArg(String const &str, Hexadecimal arg);
     void StrToArg(String const &str, Quoted arg);
     void StrToArg(String const &str, Date &arg);
     template<typename T>

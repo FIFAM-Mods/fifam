@@ -27,6 +27,9 @@ struct official {
     Int mRunningLine = 0;
     Int mTimeKeeping = 0;
 
+    struct converter_data {
+        void *mFifamReferee = nullptr;
+    } mConverterData;
 };
 
 }

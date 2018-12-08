@@ -13,8 +13,8 @@ void FifamHistoric::Read(Path &historicFolder, UInt gameId) {
                 FifamWorstStartingStreak &entry = mWorstStartingStreaks.emplace_back();
                 UInt compIDInt = 0;
                 UInt clubUID = 0;
-                worstStartingStreakReader.ReadLine(compIDInt, Hexademical(clubUID), entry.mSeason, entry.mMatches);
-                FifamUtils::SaveCompetitionIDToPtr(entry.mCompetition, compIDInt);
+                worstStartingStreakReader.ReadLine(compIDInt, Hexadecimal(clubUID), entry.mSeason, entry.mMatches);
+                entry.mCompetition.SetFromInt(compIDInt);
                 FifamUtils::SaveClubIDToClubLink(entry.mClub, clubUID);
             }
         }
@@ -48,9 +48,9 @@ void FifamHistoric::Write(Path &historicFolder, UInt gameId, UShort vYear, UShor
         FifamWriter worstStartingStreakWriter(historicFolder / L"WorstStartingStreak.txt", gameId, vYear, vNumber, unicode);
         if (worstStartingStreakWriter.Available()) {
             for (auto const &entry : mWorstStartingStreaks) {
-                UInt compIDInt = FifamUtils::GetWriteableID(entry.mCompetition);
+                UInt compIDInt = FifamUtils::GetWriteableID(entry.mCompetition, gameId);
                 UInt clubUID = FifamUtils::GetWriteableUniqueID(entry.mClub);
-                worstStartingStreakWriter.WriteLine(compIDInt, Hexademical(clubUID), entry.mSeason, entry.mMatches);
+                worstStartingStreakWriter.WriteLine(compIDInt, Hexadecimal(clubUID), entry.mSeason, entry.mMatches);
             }
         }
     }

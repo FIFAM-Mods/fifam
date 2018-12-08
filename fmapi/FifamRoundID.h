@@ -2,6 +2,7 @@
 #include "FifamEnum.h"
 
 ENUM_BEGIN(FifamRoundID, UChar)
+    ENUM_MEMBER(0,  None,         L"")
     ENUM_MEMBER(1,  Quali,        L"ROUND_QUALI")
     ENUM_MEMBER(2,  Quali2,       L"ROUND_QUALI2")
     ENUM_MEMBER(3,  Quali3,       L"ROUND_QUALI3")
@@ -17,6 +18,6 @@ ENUM_BEGIN(FifamRoundID, UChar)
     ENUM_MEMBER(13, Quarterfinal, L"ROUND_QUARTERFINAL")
     ENUM_MEMBER(14, Semifinal,    L"ROUND_SEMIFINAL")
     ENUM_MEMBER(15, Final,        L"ROUND_FINAL")
-    ENUM_DEFAULT_VALUE(_1)
+    ENUM_DEFAULT_VALUE(None)
     ENUM_DEFAULT_READ_WRITE
 ENUM_END(FifamRoundID)

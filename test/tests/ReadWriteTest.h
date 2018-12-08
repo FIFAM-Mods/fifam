@@ -11,7 +11,7 @@ public:
         writer.WriteLine(Quoted(L"Quoted 1"), Quoted(L"Quoted 2"), Quoted(L"Quoted 3"));
         writer.WriteLine(L"One", L"Two", L"Three");
         writer.WriteLine(1, 2.0f, 3.0);
-        writer.WriteLine(Hexademical(0xAAA));
+        writer.WriteLine(Hexadecimal(0xAAA));
         writer.WriteLine(FifamDate(26, 6, 2018));
         writer.WriteLineWithSeparator('|', L"First name", L"Second name");
         std::vector<int> intAry = { 1, 2, 3, 4, 5 };
@@ -34,7 +34,7 @@ public:
         int i; float f; double d;
         reader.ReadLine(i, f, d);
         std::wcout << i << ',' << f << ',' << d << std::endl;
-        std::wcout << reader.ReadLine<Hexademical>()() << std::endl;
+        std::wcout << reader.ReadLine<Hexadecimal>()() << std::endl;
         std::wcout << reader.ReadLine<FifamDate>().ToString() << std::endl;
         std::wstring first, second;
         reader.ReadLineWithSeparator('|', first, second);

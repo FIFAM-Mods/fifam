@@ -52,14 +52,6 @@ UInt FifamUtils::GetSavedPlayerIDFromPtr(FifamPlayer *&ptr) {
     return reinterpret_cast<UInt>(ptr);
 }
 
-void FifamUtils::SaveCompetitionIDToPtr(FifamCompetition *& ptr, UInt ID) {
-    ptr = reinterpret_cast<FifamCompetition *>(ID);
-}
-
-UInt FifamUtils::GetSavedCompetitionIDFromPtr(FifamCompetition *& ptr) {
-    return reinterpret_cast<UInt>(ptr);
-}
-
 UChar FifamUtils::GetCountryIDFromClubID(UInt clubID) {
     return (clubID >> 16) & 0xFF;
 }
@@ -161,6 +153,10 @@ UInt FifamUtils::GetWriteableUniqueID(FifamClubLink const &clubLink) {
     return GetWriteableUniqueID(clubLink.mPtr);
 }
 
+UInt FifamUtils::GetWriteableID(FifamCompID const &compID, UInt gameId) {
+    return GetCompIdForGameVersion(compID, gameId).ToInt();
+}
+
 FifamDbWriteableIDsList FifamUtils::MakeWriteableIDsList(Vector<FifamClubLink> const &clubs, bool unique) {
     FifamDbWriteableIDsList list;
     for (UInt i = 0; i < clubs.size(); i++) {
@@ -172,13 +168,13 @@ FifamDbWriteableIDsList FifamUtils::MakeWriteableIDsList(Vector<FifamClubLink> c
     return list;
 }
 
-FifamDbWriteableIDsList FifamUtils::MakeWriteableIDsList(Vector<FifamCompetition *> const &comps, bool unique) {
+FifamDbWriteableIDsList FifamUtils::MakeWriteableIDsList(Vector<FifamCompID> const &comps, UInt gameId, bool unique) {
     FifamDbWriteableIDsList list;
     for (UInt i = 0; i < comps.size(); i++) {
         if (unique)
-            list.push_back_unique(FifamUtils::GetWriteableID(comps[i]));
+            list.push_back_unique(FifamUtils::GetWriteableID(comps[i], gameId));
         else
-            list.push_back(FifamUtils::GetWriteableID(comps[i]));
+            list.push_back(FifamUtils::GetWriteableID(comps[i], gameId));
     }
     return list;
 }
@@ -189,10 +185,10 @@ void FifamUtils::SaveIDsToClubLinkList(Vector<UInt> ids, Vector<FifamClubLink> &
         SaveClubIDToClubLink(clubs[i], ids[i]);
 }
 
-void FifamUtils::SaveIDsToCompetitionList(Vector<UInt> ids, Vector<FifamCompetition *> &comps) {
+void FifamUtils::SaveIDsToCompetitionList(Vector<UInt> ids, Vector<FifamCompID> &comps) {
     comps.resize(ids.size());
     for (UInt i = 0; i < comps.size(); i++)
-        SaveCompetitionIDToPtr(comps[i], ids[i]);
+        comps[i].SetFromInt(ids[i]);
 }
 
 UInt FifamUtils::GetAge(FifamDate const & birthDate, FifamDate const & currentDate) {

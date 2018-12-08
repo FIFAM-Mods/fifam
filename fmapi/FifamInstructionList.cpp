@@ -88,16 +88,7 @@ String StrParam(Vector<String> const &params, UInt index) {
     return params.size() > index ? params[index] : String();
 }
 
-FifamCompetition *CompParam(Vector<String> const &params, UInt index, FifamNation nationId) {
-    if (params.size() > index) {
-        FifamCompID compID;
-        compID.SetFromStr(params[index], FifamCompRegion::MakeFromInt(nationId.ToInt()));
-        return reinterpret_cast<FifamCompetition *>(compID.ToInt());
-    }
-    return nullptr;
-}
-
-FifamCompID CompIdParam(Vector<String> const &params, UInt index, FifamNation nationId) {
+FifamCompID CompParam(Vector<String> const &params, UInt index, FifamNation nationId) {
     FifamCompID compID;
     if (params.size() > index)
         compID.SetFromStr(params[index], FifamCompRegion::MakeFromInt(nationId.ToInt()));
@@ -127,15 +118,15 @@ FifamClubTeamType TeamTypeParam(Vector<String> const &params, UInt index) {
     return result;
 }
 
-String CompStr(FifamCompetition *competition) {
+String CompStr(FifamCompID const &competition, UInt gameId) {
     String result = L"{}";
-    if (competition) {
+    if (!competition.IsNull()) {
         FifamCompID compID;
-        UInt writeableID = FifamUtils::GetWriteableID(competition);
+        UInt writeableID = FifamUtils::GetWriteableID(competition, gameId);
         if (writeableID != 0)
             compID.SetFromInt(writeableID);
         else
-            compID = competition->mID;
+            compID = competition;
         result = Utils::Format(L"{ %d, %s, %d }", compID.mRegion.ToInt(), compID.mType.ToCStr(), compID.mIndex);
     }
     return result;
@@ -210,10 +201,8 @@ void FifamInstructionsList::Read(FifamReader &reader, FifamDatabase *database, F
         }
         else if (instructionID == FifamInstructionID::ID_GET_EUROPEAN_ASSESSMENT_CUPWINNER)
             PushBack(new FifamInstruction::GET_EUROPEAN_ASSESSMENT_CUPWINNER(IntParam(p, 1)));
-        else if (instructionID == FifamInstructionID::ID_GET_UEFA5_CHAMP_OR_FINALIST) {
-            auto compID = CompIdParam(p, 2, nationId);
-            PushBack(new FifamInstruction::GET_UEFA5_CHAMP_OR_FINALIST(IntParam(p, 1), compID.mType, compID.mIndex));
-        }
+        else if (instructionID == FifamInstructionID::ID_GET_UEFA5_CHAMP_OR_FINALIST)
+            PushBack(new FifamInstruction::GET_UEFA5_CHAMP_OR_FINALIST(IntParam(p, 1), CompParam(p, 0, nationId)));
         else if (instructionID == FifamInstructionID::ID_GET_WINNER)
             PushBack(new FifamInstruction::GET_WINNER(CompParam(p, 1, nationId)));
         else if (instructionID == FifamInstructionID::ID_GET_LOSER)
@@ -241,7 +230,7 @@ void FifamInstructionsList::Read(FifamReader &reader, FifamDatabase *database, F
             PushBack(new FifamInstruction::GET_HOST());
         else if (instructionID == FifamInstructionID::ID_GET_INTERNATIONAL_TAB_LEVEL_X_TO_Y) {
             FifamNation p1;
-            p1.SetFromInt(FifamUtils::GetConvertedRegion(CompIdParam(p, 1, nationId).mRegion.ToInt(), reader.GetGameId(), FifamDatabase::LATEST_GAME_VERSION));
+            p1.SetFromInt(FifamUtils::GetConvertedRegion(CompParam(p, 1, nationId).mRegion.ToInt(), reader.GetGameId(), FifamDatabase::LATEST_GAME_VERSION));
             auto p2 = reader.ReadLine<UChar>();
             auto p3 = reader.ReadLine<UShort>();
             auto p4 = reader.ReadLine<UChar>();
@@ -249,7 +238,7 @@ void FifamInstructionsList::Read(FifamReader &reader, FifamDatabase *database, F
         }
         else if (instructionID == FifamInstructionID::ID_GET_INTERNATIONAL_SPARE) {
             FifamNation p1;
-            p1.SetFromInt(FifamUtils::GetConvertedRegion(CompIdParam(p, 1, nationId).mRegion.ToInt(), reader.GetGameId(), FifamDatabase::LATEST_GAME_VERSION));
+            p1.SetFromInt(FifamUtils::GetConvertedRegion(CompParam(p, 1, nationId).mRegion.ToInt(), reader.GetGameId(), FifamDatabase::LATEST_GAME_VERSION));
             auto p2 = reader.ReadLine<UInt>();
             PushBack(new FifamInstruction::GET_INTERNATIONAL_SPARE(p1, p2));
         }
@@ -388,7 +377,7 @@ void FifamInstructionsList::Write(FifamWriter &writer, FifamDatabase *database, 
         else if (id == FifamInstructionID::ID_GET_UEFA5_CHAMP_OR_FINALIST) {
             if (gameId >= 8) {
                 auto getUefa5ChampOrFinalist = ((FifamInstruction::GET_UEFA5_CHAMP_OR_FINALIST *)instruction);
-                if (getUefa5ChampOrFinalist->mCompType != FifamCompType::FaCup || getUefa5ChampOrFinalist->mCompIndex != 0) {
+                if (getUefa5ChampOrFinalist->mCompetition.mType != FifamCompType::FaCup || getUefa5ChampOrFinalist->mCompetition.mIndex != 0) {
                     writeableData[index].mWriteable = false;
                     writeableData[index].mNotSupported = true;
                     writeableData[index].mErrors.push_back(L"This instruction is not supported");
@@ -453,22 +442,22 @@ void FifamInstructionsList::Write(FifamWriter &writer, FifamDatabase *database, 
         }
     });
     // Disable instructions with null or unknown competitions
-    ForAllCompetitionLinks([&](FifamCompetition *&competition, UInt index, FifamAbstractInstruction *instruction) {
-        if (!competition) {
+    ForAllCompetitionLinks([&](FifamCompID &competition, UInt index, FifamAbstractInstruction *instruction) {
+        if (competition.IsNull()) {
             writeableData[index].mWriteable = false;
             writeableData[index].mErrors.push_back(L"Competition is not available");
         }
         else {
-            if (!competition->GetWriteableID()) {
+            if (!FifamUtils::GetWriteableID(competition, writer.GetGameId())) {
                 writeableData[index].mWriteable = false;
                 writeableData[index].mErrors.push_back(
-                    Utils::Format(L"Competition (original ID %s) is not available (disabled)", competition->GetCompIDStr().c_str()));
+                    Utils::Format(L"Competition (original ID %s) is not available (disabled)", competition.ToStr().c_str()));
             }
             if (nationId != FifamNation::None) {
-                if (competition->mID.mRegion != FifamCompRegion::None && competition->mID.mRegion != nationId.ToInt()) {
+                if (competition.mRegion != FifamCompRegion::None && competition.mRegion != nationId.ToInt()) {
                     writeableData[index].mWriteable = false;
                     writeableData[index].mErrors.push_back(
-                        Utils::Format(L"Can refer only to country competitions in country script", competition->GetCompIDStr().c_str()));
+                        Utils::Format(L"Can refer only to country competitions in country script", competition.ToStr().c_str()));
                 }
             }
         }
@@ -571,31 +560,31 @@ void FifamInstructionsList::Write(FifamWriter &writer, FifamDatabase *database, 
             FifamCompetition *compToCheck = nullptr;
             FifamCompDbType compDbTypeToCheck;
             if (id == FifamInstructionID::ID_GET_TAB_X_TO_Y) {
-                compToCheck = ((FifamInstruction::GET_TAB_X_TO_Y *)instruction)->mLeague;
+                compToCheck = database->GetCompetition(((FifamInstruction::GET_TAB_X_TO_Y *)instruction)->mLeague);
                 compDbTypeToCheck = FifamCompDbType::League;
             }
             else if (id == FifamInstructionID::ID_GET_TAB_SURE_X_TO_Y_Z) {
-                compToCheck = ((FifamInstruction::GET_TAB_SURE_X_TO_Y_Z *)instruction)->mLeague;
+                compToCheck = database->GetCompetition(((FifamInstruction::GET_TAB_SURE_X_TO_Y_Z *)instruction)->mLeague);
                 compDbTypeToCheck = FifamCompDbType::League;
             }
             else if (id == FifamInstructionID::ID_GET_WINNER) {
-                compToCheck = ((FifamInstruction::GET_WINNER *)instruction)->mRound;
+                compToCheck = database->GetCompetition(((FifamInstruction::GET_WINNER *)instruction)->mRound);
                 compDbTypeToCheck = FifamCompDbType::Round;
             }
             else if (id == FifamInstructionID::ID_GET_LOSER) {
-                compToCheck = ((FifamInstruction::GET_LOSER *)instruction)->mRound;
+                compToCheck = database->GetCompetition(((FifamInstruction::GET_LOSER *)instruction)->mRound);
                 compDbTypeToCheck = FifamCompDbType::Round;
             }
             else if (id == FifamInstructionID::ID_GET_POOL) {
-                compToCheck = ((FifamInstruction::GET_POOL *)instruction)->mPool;
+                compToCheck = database->GetCompetition(((FifamInstruction::GET_POOL *)instruction)->mPool);
                 compDbTypeToCheck = FifamCompDbType::Pool;
             }
             else if (id == FifamInstructionID::ID_GET_RELEGATED_TEAMS) {
-                compToCheck = ((FifamInstruction::GET_RELEGATED_TEAMS *)instruction)->mLeague;
+                compToCheck = database->GetCompetition(((FifamInstruction::GET_RELEGATED_TEAMS *)instruction)->mLeague);
                 compDbTypeToCheck = FifamCompDbType::League;
             }
             else if (id == FifamInstructionID::ID_COPY_LEAGUE_DATA) {
-                compToCheck = ((FifamInstruction::COPY_LEAGUE_DATA *)instruction)->mLeague;
+                compToCheck = database->GetCompetition(((FifamInstruction::COPY_LEAGUE_DATA *)instruction)->mLeague);
                 compDbTypeToCheck = FifamCompDbType::League;
             }
             if (compToCheck && compToCheck->GetDbType() != compDbTypeToCheck) {
@@ -651,7 +640,7 @@ void FifamInstructionsList::Write(FifamWriter &writer, FifamDatabase *database, 
         }
         else if (id == FifamInstructionID::ID_GET_CHAMP) {
             auto i = (FifamInstruction::GET_CHAMP *)instruction;
-            WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mCompetition));
+            WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mCompetition, writer.GetGameId()));
         }
         else if (id == FifamInstructionID::ID_GET_EUROPEAN_ASSESSMENT_TEAMS) {
             auto i = (FifamInstruction::GET_EUROPEAN_ASSESSMENT_TEAMS *)instruction;
@@ -690,11 +679,11 @@ void FifamInstructionsList::Write(FifamWriter &writer, FifamDatabase *database, 
         else if (id == FifamInstructionID::ID_GET_CHAMP_OR_RUNNER_UP) {
             auto i = (FifamInstruction::GET_CHAMP_OR_RUNNER_UP *)instruction;
             if (gameId >= 13)
-                WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mCompetition));
+                WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mCompetition, writer.GetGameId()));
             else if (writeableData[index].mWriteable)
-                WriteInstruction(writer, FifamInstructionID::ID_GET_CHAMP, writeableData[index], {}, {}, CompStr(i->mCompetition));
+                WriteInstruction(writer, FifamInstructionID::ID_GET_CHAMP, writeableData[index], {}, {}, CompStr(i->mCompetition, writer.GetGameId()));
             else
-                WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mCompetition));
+                WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mCompetition, writer.GetGameId()));
         }
         else if (id == FifamInstructionID::ID_GET_UEFA5_SURE_UIC) {
             auto i = (FifamInstruction::GET_UEFA5_SURE_UIC *)instruction;
@@ -702,11 +691,11 @@ void FifamInstructionsList::Write(FifamWriter &writer, FifamDatabase *database, 
         }
         else if (id == FifamInstructionID::ID_GET_TAB_X_TO_Y) {
             auto i = (FifamInstruction::GET_TAB_X_TO_Y *)instruction;
-            WriteInstruction(writer, id, writeableData[index], {}, { i->mLeagueStartPosition, i->mNumTeams }, CompStr(i->mLeague));
+            WriteInstruction(writer, id, writeableData[index], {}, { i->mLeagueStartPosition, i->mNumTeams }, CompStr(i->mLeague, writer.GetGameId()));
         }
         else if (id == FifamInstructionID::ID_GET_TAB_SURE_X_TO_Y_Z) {
             auto i = (FifamInstruction::GET_TAB_SURE_X_TO_Y_Z *)instruction;
-            WriteInstruction(writer, id, writeableData[index], {}, { i->mLeagueStartPosition, i->mLeagueMaxPosition, i->mNumTeams }, CompStr(i->mLeague));
+            WriteInstruction(writer, id, writeableData[index], {}, { i->mLeagueStartPosition, i->mLeagueMaxPosition, i->mNumTeams }, CompStr(i->mLeague, writer.GetGameId()));
         }
         else if (id == FifamInstructionID::ID_GET_TAB_LEVEL_X_TO_Y) {
             auto i = (FifamInstruction::GET_TAB_LEVEL_X_TO_Y *)instruction;
@@ -729,22 +718,22 @@ void FifamInstructionsList::Write(FifamWriter &writer, FifamDatabase *database, 
                 if (writeableData[index].mWriteable)
                     WriteInstruction(writer, FifamInstructionID::ID_GET_EUROPEAN_ASSESSMENT_CUPWINNER, writeableData[index], { i->mAssessmentPosition }, {});
                 else
-                    WriteInstruction(writer, id, writeableData[index], { i->mAssessmentPosition }, {}, FifamCompID((UChar)0, i->mCompType, i->mCompIndex).ToStr(), 1);
+                    WriteInstruction(writer, id, writeableData[index], { i->mAssessmentPosition }, {}, CompStr(i->mCompetition, writer.GetGameId()), 1);
             }
             else
-                WriteInstruction(writer, id, writeableData[index], { i->mAssessmentPosition }, {}, FifamCompID((UChar)0, i->mCompType, i->mCompIndex).ToStr(), 1);
+                WriteInstruction(writer, id, writeableData[index], { i->mAssessmentPosition }, {}, CompStr(i->mCompetition, writer.GetGameId()), 1);
         }
         else if (id == FifamInstructionID::ID_GET_WINNER) {
             auto i = (FifamInstruction::GET_WINNER *)instruction;
-            WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mRound));
+            WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mRound, writer.GetGameId()));
         }
         else if (id == FifamInstructionID::ID_GET_LOSER) {
             auto i = (FifamInstruction::GET_LOSER *)instruction;
-            WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mRound));
+            WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mRound, writer.GetGameId()));
         }
         else if (id == FifamInstructionID::ID_GET_POOL) {
             auto i = (FifamInstruction::GET_POOL *)instruction;
-            WriteInstruction(writer, id, writeableData[index], {}, { i->mPoolStartPosition, i->mNumTeams }, CompStr(i->mPool));
+            WriteInstruction(writer, id, writeableData[index], {}, { i->mPoolStartPosition, i->mNumTeams }, CompStr(i->mPool, writer.GetGameId()));
         }
         else if (id == FifamInstructionID::ID_GET_NAT_UEFA5_WITH_HOST) {
             auto i = (FifamInstruction::GET_NAT_UEFA5_WITH_HOST *)instruction;
@@ -788,7 +777,7 @@ void FifamInstructionsList::Write(FifamWriter &writer, FifamDatabase *database, 
         }
         else if (id == FifamInstructionID::ID_GET_RUNNER_UP) {
             auto i = (FifamInstruction::GET_RUNNER_UP *)instruction;
-            WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mCompetition));
+            WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mCompetition, writer.GetGameId()));
         }
         else if (id == FifamInstructionID::ID_GET_TAB_LEVEL_INDOOR) {
             auto i = (FifamInstruction::GET_TAB_LEVEL_INDOOR *)instruction;
@@ -796,7 +785,7 @@ void FifamInstructionsList::Write(FifamWriter &writer, FifamDatabase *database, 
         }
         else if (id == FifamInstructionID::ID_GET_RELEGATED_TEAMS) {
             auto i = (FifamInstruction::GET_RELEGATED_TEAMS *)instruction;
-            WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mLeague));
+            WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mLeague, writer.GetGameId()));
         }
         else if (id == FifamInstructionID::ID_GET_INTERNATIONAL_TEAMS) {
             auto i = (FifamInstruction::GET_INTERNATIONAL_TEAMS *)instruction;
@@ -804,7 +793,7 @@ void FifamInstructionsList::Write(FifamWriter &writer, FifamDatabase *database, 
         }
         else if (id == FifamInstructionID::ID_GET_CC_FA_WINNER) {
             auto i = (FifamInstruction::GET_CC_FA_WINNER *)instruction;
-            WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mCompetition));
+            WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mCompetition, writer.GetGameId()));
         }
         else if (id == FifamInstructionID::ID_GET_CC_SPARE) {
             auto i = (FifamInstruction::GET_CC_SPARE *)instruction;
@@ -812,7 +801,7 @@ void FifamInstructionsList::Write(FifamWriter &writer, FifamDatabase *database, 
         }
         else if (id == FifamInstructionID::ID_GET_CHAMP_COUNTRY_TEAM) {
             auto i = (FifamInstruction::GET_CHAMP_COUNTRY_TEAM *)instruction;
-            WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mCompetition));
+            WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mCompetition, writer.GetGameId()));
         }
         else if (id == FifamInstructionID::ID_GET_RANDOM_NATIONAL_TEAM) {
             auto i = (FifamInstruction::GET_RANDOM_NATIONAL_TEAM *)instruction;
@@ -828,7 +817,7 @@ void FifamInstructionsList::Write(FifamWriter &writer, FifamDatabase *database, 
         }
         else if (id == FifamInstructionID::ID_COPY_LEAGUE_DATA) {
             auto i = (FifamInstruction::COPY_LEAGUE_DATA *)instruction;
-            WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mLeague));
+            WriteInstruction(writer, id, writeableData[index], {}, {}, CompStr(i->mLeague, writer.GetGameId()));
         }
         else if (id == FifamInstructionID::ID_GET_NATIONAL_TEAM) {
             auto i = (FifamInstruction::GET_NATIONAL_TEAM *)instruction;
@@ -851,7 +840,7 @@ void FifamInstructionsList::Write(FifamWriter &writer, FifamDatabase *database, 
     });
 }
 
-void FifamInstructionsList::ForAllCompetitionLinks(Function<void(FifamCompetition *&, UInt, FifamAbstractInstruction *)> callback) {
+void FifamInstructionsList::ForAllCompetitionLinks(Function<void(FifamCompID &, UInt, FifamAbstractInstruction *)> callback) {
     ForAll([=](FifamAbstractInstruction *instruction, UInt index) {
         auto id = instruction->GetID();
         if (id == FifamInstructionID::ID_GET_CHAMP)
@@ -872,8 +861,6 @@ void FifamInstructionsList::ForAllCompetitionLinks(Function<void(FifamCompetitio
             callback(((FifamInstruction::GET_RUNNER_UP *)instruction)->mCompetition, index, instruction);
         else if (id == FifamInstructionID::ID_GET_RELEGATED_TEAMS)
             callback(((FifamInstruction::GET_RELEGATED_TEAMS *)instruction)->mLeague, index, instruction);
-        else if (id == FifamInstructionID::ID_GET_CC_FA_WINNER)
-            callback(((FifamInstruction::GET_CC_FA_WINNER *)instruction)->mCompetition, index, instruction);
         else if (id == FifamInstructionID::ID_GET_CHAMP_COUNTRY_TEAM)
             callback(((FifamInstruction::GET_CHAMP_COUNTRY_TEAM *)instruction)->mCompetition, index, instruction);
         else if (id == FifamInstructionID::ID_COPY_LEAGUE_DATA)

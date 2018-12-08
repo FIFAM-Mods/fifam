@@ -250,7 +250,7 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
         ResolveClubUniqueID(worldPlayer.mClub, gameId);
     for (auto &worstStartingStreak : mHistoric.mWorstStartingStreaks) {
         ResolveClubUniqueID(worstStartingStreak.mClub, gameId);
-        ResolveCompetitionPtr(worstStartingStreak.mCompetition, gameId);
+        ResolveCompetitionID(worstStartingStreak.mCompetition, gameId);
     }
 }
 
@@ -284,7 +284,7 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
         compsQualiWC, compsWC, compsQualiEC, compsEC, compsU20WC, compsConfedCup, compsCopaAmerica;
     for (auto const &compEntry : mCompMap) {
         FifamCompetition *comp = compEntry.second;
-        if (FifamUtils::GetWriteableID(comp)) {
+        if (FifamUtils::GetWriteableID(comp->mID, gameId)) {
             if (comp->GetDbType() == FifamCompDbType::League || comp->GetDbType() == FifamCompDbType::Cup ||
                 comp->GetDbType() == FifamCompDbType::Round || comp->GetDbType() == FifamCompDbType::Pool)
             {
@@ -519,13 +519,6 @@ void FifamDatabase::SetupWriteableStatus(UInt gameId) {
             person->mWriteableStringID = staff->GetStringUniqueId(gameId);
         }
     }
-    for (auto compEntry : mCompMap) {
-        compEntry.second->SetIsWriteable(true);
-        UInt compID = FifamUtils::GetCompIdForGameVersion(compEntry.first, gameId).ToInt();
-        compEntry.second->SetIsWriteable(compID != 0);
-        compEntry.second->SetWriteableID(compID);
-        compEntry.second->SetWriteableUniqueID(compID);
-    }
 
     for (auto &entry : playerStrIDsCollisionsMap) {
         auto &players = entry.second;
@@ -551,8 +544,6 @@ void FifamDatabase::ResetWriteableStatus() {
         club->SetIsWriteable(true);
     for (auto personEntry : mPersonsMap)
         personEntry.second->SetIsWriteable(true);
-    for (auto compEntry : mCompMap)
-        compEntry.second->SetIsWriteable(true);
 }
 
 UInt FifamDatabase::GetClubsInCountryLimit(UInt gameId) {
@@ -727,11 +718,10 @@ void FifamDatabase::ResolveLinksForStaff(FifamStaff *staff, UInt gameId) {
 }
 
 void FifamDatabase::ResolveLinksForCompetition(FifamCompetition *comp, UInt gameId) {
-    FifamUtils::TranslateCompIdToLatestVersion(comp->mID, gameId);
     ResolveCompetitionList(comp->mPredecessors, gameId);
     ResolveCompetitionList(comp->mSuccessors, gameId);
-    comp->mInstructions.ForAllCompetitionLinks([=](FifamCompetition *& competition, UInt, FifamAbstractInstruction *instruction) {
-        ResolveCompetitionPtr(competition, gameId);
+    comp->mInstructions.ForAllCompetitionLinks([=](FifamCompID &compID, UInt, FifamAbstractInstruction *instruction) {
+        ResolveCompetitionID(compID, gameId);
     });
     if (comp->GetDbType() == FifamCompDbType::League)
         ResolveClubLinkList(comp->AsLeague()->mTeams, gameId);
@@ -812,8 +802,8 @@ void FifamDatabase::ResolvePlayerPtr(FifamPlayer *&player) {
     player = PlayerFromID(FifamUtils::GetSavedPlayerIDFromPtr(player));
 }
 
-void FifamDatabase::ResolveCompetitionPtr(FifamCompetition *&comp, UInt gameFrom, UInt gameTo) {
-    comp = GetCompetition(FifamUtils::TranslateCompId(FifamUtils::GetSavedCompetitionIDFromPtr(comp), gameFrom, gameTo));
+void FifamDatabase::ResolveCompetitionID(FifamCompID &comp, UInt gameFrom, UInt gameTo) {
+    comp = FifamUtils::TranslateCompId(comp, gameFrom, gameTo);
 }
 
 void FifamDatabase::ResolveClubLinkList(Vector<FifamClubLink> &vec, UInt gameId, bool unique) {
@@ -827,13 +817,13 @@ void FifamDatabase::ResolveClubLinkList(Vector<FifamClubLink> &vec, UInt gameId,
     }
 }
 
-void FifamDatabase::ResolveCompetitionList(Vector<FifamCompetition *> &vec, UInt gameId, bool unique) {
+void FifamDatabase::ResolveCompetitionList(Vector<FifamCompID> &vec, UInt gameId, bool unique) {
     for (UInt i = 0; i < vec.size(); i++)
-        ResolveCompetitionPtr(vec[i], gameId);
-    Vector<FifamCompetition *> oldVec = vec;
+        ResolveCompetitionID(vec[i], gameId);
+    Vector<FifamCompID> oldVec = vec;
     vec.clear();
     for (UInt i = 0; i < oldVec.size(); i++) {
-        if (oldVec[i] && (!unique || !Utils::Contains(vec, oldVec[i])))
+        if (!oldVec[i].IsNull() && (!unique || !Utils::Contains(vec, oldVec[i])))
             vec.push_back(oldVec[i]);
     }
 }
@@ -932,7 +922,7 @@ FifamCompetition *FifamDatabase::ReadCompetition(FifamReader &reader, FifamNatio
 
 void FifamDatabase::WriteCompetition(FifamWriter &writer, FifamCompetition *comp, FifamNation nationId) {
     writer.WriteLine(comp->GetDbType().ToStr());
-    writer.WriteLine(FifamCompID(FifamUtils::GetWriteableID(comp)).ToStr());
+    writer.WriteLine(FifamCompID(FifamUtils::GetWriteableID(comp->mID, writer.GetGameId())).ToStr());
     comp->Write(writer, this, nationId);
 }
 

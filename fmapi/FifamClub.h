@@ -24,10 +24,10 @@
 #include "FifamClubLastSeasonInfo.h"
 #include "FifamClubPenaltyType.h"
 #include "FifamClubTeamColor.h"
+#include "FifamCompID.h"
 
 class FifamDatabase;
 class FifamCountry;
-class FifamCompetition;
 
 /* Articles
 # | English   | French  | German     | Italian  | Spanish   | Polish
@@ -240,7 +240,7 @@ public:
     // @since FM07
     FifamKit mKit;
     // @since FM07
-    Vector<FifamCompetition *> mLowestLeagues;
+    Vector<FifamCompID> mLowestLeagues;
 
     // @since FM08
     FifamClubMediaPressure mMediaPressure;

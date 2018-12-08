@@ -20,8 +20,7 @@ void FifamCompPool::Read(FifamReader &reader, FifamDatabase *database, FifamNati
     UShort numCompConstraints = reader.ReadLine<UShort>();
     mCompConstraints.resize(numCompConstraints);
     for (UShort i = 0; i < numCompConstraints; i++) {
-        FifamUtils::SaveCompetitionIDToPtr(mCompConstraints[i],
-            FifamUtils::ExtractCompetitionID(reader.ReadFullLine(), FifamCompRegion::MakeFromInt(nationId.ToInt())).ToInt());
+        mCompConstraints[i].SetFromInt(FifamUtils::ExtractCompetitionID(reader.ReadFullLine(), FifamCompRegion::MakeFromInt(nationId.ToInt())).ToInt());
     }
     for (UInt i = 0; i < mBonuses.size(); i++)
         reader.ReadLine(mBonuses[i]);
@@ -74,7 +73,7 @@ void FifamCompPool::Write(FifamWriter &writer, FifamDatabase *database, FifamNat
     if (mReserveTeamsAllowed)
         sortingFlags.push_back(L"POOL_RESERVE_TEAMS");
     writer.WriteLineArray(sortingFlags);
-    auto compConstraints = FifamUtils::MakeWriteableIDsList(mCompConstraints);
+    auto compConstraints = FifamUtils::MakeWriteableIDsList(mCompConstraints, writer.GetGameId());
     UShort numCompConstraints = Utils::Min(3u, compConstraints.size());
     writer.WriteLine(L"; how many comps to check");
     writer.WriteLine(numCompConstraints);

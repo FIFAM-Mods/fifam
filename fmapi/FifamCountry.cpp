@@ -660,7 +660,7 @@ Bool FifamCountry::WriteFixtures(FifamWriter &writer) {
         FifamCompetition *comp = compEntry.second;
         writer.WriteLine(L"; -------------------------------------------------------------------");
         writer.WriteStartIndex(L"COMPETITION");
-        writer.WriteLine(FifamCompID(FifamUtils::GetWriteableID(comp)).ToStr());
+        writer.WriteLine(FifamCompID(FifamUtils::GetWriteableID(comp->mID, writer.GetGameId())).ToStr());
         writer.WriteLine(comp->GetDbType().ToStr());
         UInt numTeams = 0;
         UInt numRegisteredTeams = 0;
@@ -776,7 +776,7 @@ Bool FifamCountry::IsCompetitionSystemCorrect() {
 Vector<FifamCompEntry> FifamCountry::GetCompetitions(bool onlyWriteable) {
     Vector<FifamCompEntry> countryComps;
     for (auto const &compEntry : mDatabase->mCompMap) {
-        if (compEntry.second->GetWriteableID() && compEntry.first.mRegion.ToInt() == mId) {
+        if (compEntry.first.mRegion.ToInt() == mId) {
             if (!onlyWriteable ||
                 compEntry.second->GetDbType() == FifamCompDbType::League ||
                 compEntry.second->GetDbType() == FifamCompDbType::Cup ||

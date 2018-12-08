@@ -134,6 +134,8 @@ String FifamNames::GetLeagueLevelName(Vector<String> const & leagueNames, UInt l
 }
 
 String FifamNames::GetPersonStringId(UInt gameId, String const &firstName, String const &lastName, String const &pseudonym, FifamDate const &birthday, UInt empicsId) {
+    if (empicsId != 0 && gameId <= 9)
+        return Utils::Format(L"emp-%d", empicsId);
     String nameId;
     if (!pseudonym.empty())
         nameId = FifamNames::LimitPersonName(pseudonym, gameId > 7 ? 29 : 19);
@@ -185,6 +187,6 @@ String FifamNames::GetPersonStringId(UInt gameId, String const &firstName, Strin
     if (!birthday.IsEmpty())
         finalName += Utils::Format(L"%02d%02d%04d", birthday.day, birthday.month, birthday.year);
     if (empicsId != 0)
-        finalName += Utils::Format(L"-%d", empicsId);
+        finalName += (gameId >= 13 ? L"-" : L"_") + Utils::Format(L"%d", empicsId);
     return finalName;
 }

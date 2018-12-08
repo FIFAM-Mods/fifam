@@ -190,7 +190,7 @@ public:
             auto WriteClub = [](FifamWriter &writer, FifamCountry *country, FifamClub *c) {
                 writer.Write(
                     FifamTr(country->mName),
-                    Hexademical(c->mUniqueID),
+                    Hexadecimal(c->mUniqueID),
                     Quoted(FifamTr(c->mName)),
                     Quoted(FifamTr(c->mName2)),
                     Quoted(FifamTr(c->mShortName)),

@@ -70,11 +70,9 @@ void FifamCompCup::Read(FifamReader &reader, FifamDatabase *database, FifamNatio
             mRounds[i].mRoundID = cupTemplate->mRounds[i]->mRoundID;
         }
         mInstructions = cupTemplate->mInstructions;
-        mInstructions.ForAllCompetitionLinks([=](FifamCompetition *& competition, UInt, FifamAbstractInstruction *instruction) {
-            FifamCompID compID = (UInt)competition;
-            if (compID.mRegion == FifamCompRegion::None)
-                compID.mRegion.SetFromInt(nationId.ToInt());
-            competition = (FifamCompetition *)compID.ToInt();
+        mInstructions.ForAllCompetitionLinks([=](FifamCompID & competition, UInt, FifamAbstractInstruction *instruction) {
+            if (competition.mRegion == FifamCompRegion::None)
+                competition.mRegion.SetFromInt(nationId.ToInt());
         });
     }
     FifamCompetition::Read(reader, database, nationId);

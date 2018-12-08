@@ -211,7 +211,7 @@ ENUM_BEGIN(FifamFormation, UChar)
                return TranslateTo<UChar>(table, _3_4_3_Wings);
             }
         }
-        else if (gameId >= 12) {
+        else { // gameId >= 12
             static Vector<Pair<UChar, UChar>> table = {
                 { 0, None },
                 { 0, _5_4_1 },

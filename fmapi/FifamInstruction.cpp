@@ -38,7 +38,7 @@ FifamInstruction::BUILD_UEFA5 *FifamInstruction::BUILD_UEFA5::Clone() const {
     return new BUILD_UEFA5(mAssessmentPosition, mNumOfReservedSpaces);
 }
 
-FifamInstruction::GET_CHAMP::GET_CHAMP(FifamCompetition *competition) {
+FifamInstruction::GET_CHAMP::GET_CHAMP(FifamCompID competition) {
     mCompetition = competition;
 }
 
@@ -103,7 +103,7 @@ FifamInstruction::GET_UEFA5_SURE_TAB *FifamInstruction::GET_UEFA5_SURE_TAB::Clon
     return new GET_UEFA5_SURE_TAB(mAssessmentPosition, unknown1);
 }
 
-FifamInstruction::GET_CHAMP_OR_RUNNER_UP::GET_CHAMP_OR_RUNNER_UP(FifamCompetition *competition) {
+FifamInstruction::GET_CHAMP_OR_RUNNER_UP::GET_CHAMP_OR_RUNNER_UP(FifamCompID competition) {
     mCompetition = competition;
 }
 
@@ -128,7 +128,7 @@ FifamInstruction::GET_UEFA5_SURE_UIC *FifamInstruction::GET_UEFA5_SURE_UIC::Clon
     return new GET_UEFA5_SURE_UIC(mAssessmentPosition, unknown1);
 }
 
-FifamInstruction::GET_TAB_X_TO_Y::GET_TAB_X_TO_Y(FifamCompetition *league, UInt leagueStartPosition, UInt numTeams) {
+FifamInstruction::GET_TAB_X_TO_Y::GET_TAB_X_TO_Y(FifamCompID league, UInt leagueStartPosition, UInt numTeams) {
     mLeague = league;
     mLeagueStartPosition = leagueStartPosition;
     mNumTeams = numTeams;
@@ -142,7 +142,7 @@ FifamInstruction::GET_TAB_X_TO_Y *FifamInstruction::GET_TAB_X_TO_Y::Clone() cons
     return new GET_TAB_X_TO_Y(mLeague, mLeagueStartPosition, mNumTeams);
 }
 
-FifamInstruction::GET_TAB_SURE_X_TO_Y_Z::GET_TAB_SURE_X_TO_Y_Z(FifamCompetition *league, UInt leagueStartPosition, UInt leagueMaxPosition, UInt numTeams) {
+FifamInstruction::GET_TAB_SURE_X_TO_Y_Z::GET_TAB_SURE_X_TO_Y_Z(FifamCompID league, UInt leagueStartPosition, UInt leagueMaxPosition, UInt numTeams) {
     mLeague = league;
     mLeagueStartPosition = leagueStartPosition;
     mLeagueMaxPosition = leagueMaxPosition;
@@ -209,10 +209,9 @@ FifamInstruction::GET_EUROPEAN_ASSESSMENT_CUPWINNER *FifamInstruction::GET_EUROP
     return new GET_EUROPEAN_ASSESSMENT_CUPWINNER(mAssessmentPosition);
 }
 
-FifamInstruction::GET_UEFA5_CHAMP_OR_FINALIST::GET_UEFA5_CHAMP_OR_FINALIST(UInt assessmentPosition, FifamCompType compType, UInt compIndex) {
+FifamInstruction::GET_UEFA5_CHAMP_OR_FINALIST::GET_UEFA5_CHAMP_OR_FINALIST(UInt assessmentPosition, FifamCompID competition) {
     mAssessmentPosition = assessmentPosition;
-    mCompType = compType;
-    mCompIndex = compIndex;
+    mCompetition = competition;
 }
 
 FifamInstructionID FifamInstruction::GET_UEFA5_CHAMP_OR_FINALIST::GetID() const {
@@ -220,10 +219,10 @@ FifamInstructionID FifamInstruction::GET_UEFA5_CHAMP_OR_FINALIST::GetID() const 
 }
 
 FifamInstruction::GET_UEFA5_CHAMP_OR_FINALIST *FifamInstruction::GET_UEFA5_CHAMP_OR_FINALIST::Clone() const {
-    return new GET_UEFA5_CHAMP_OR_FINALIST(mAssessmentPosition, mCompType, mCompIndex);
+    return new GET_UEFA5_CHAMP_OR_FINALIST(mAssessmentPosition, mCompetition);
 }
 
-FifamInstruction::GET_WINNER::GET_WINNER(FifamCompetition *round) {
+FifamInstruction::GET_WINNER::GET_WINNER(FifamCompID round) {
     mRound = round;
 }
 
@@ -235,7 +234,7 @@ FifamInstruction::GET_WINNER *FifamInstruction::GET_WINNER::Clone() const {
     return new GET_WINNER(mRound);
 }
 
-FifamInstruction::GET_LOSER::GET_LOSER(FifamCompetition *round) {
+FifamInstruction::GET_LOSER::GET_LOSER(FifamCompID round) {
     mRound = round;
 }
 
@@ -247,7 +246,7 @@ FifamInstruction::GET_LOSER *FifamInstruction::GET_LOSER::Clone() const {
     return new GET_LOSER(mRound);
 }
 
-FifamInstruction::GET_POOL::GET_POOL(FifamCompetition *pool, UInt poolStartPosition, UInt numTeams) {
+FifamInstruction::GET_POOL::GET_POOL(FifamCompID pool, UInt poolStartPosition, UInt numTeams) {
     mPool = pool;
     mPoolStartPosition = poolStartPosition;
     mNumTeams = numTeams;
@@ -385,7 +384,7 @@ FifamInstruction::GET_INTERNATIONAL_SPARE *FifamInstruction::GET_INTERNATIONAL_S
     return new GET_INTERNATIONAL_SPARE(mCountryId, mNumTeams);
 }
 
-FifamInstruction::GET_RUNNER_UP::GET_RUNNER_UP(FifamCompetition *competition) {
+FifamInstruction::GET_RUNNER_UP::GET_RUNNER_UP(FifamCompID competition) {
     mCompetition = competition;
 }
 
@@ -411,7 +410,7 @@ FifamInstruction::GET_TAB_LEVEL_INDOOR *FifamInstruction::GET_TAB_LEVEL_INDOOR::
     return new GET_TAB_LEVEL_INDOOR(mLeagueLevel, mLeagueStartPosition, mNumTeamsFromEachLeague);
 }
 
-FifamInstruction::GET_RELEGATED_TEAMS::GET_RELEGATED_TEAMS(FifamCompetition *league) {
+FifamInstruction::GET_RELEGATED_TEAMS::GET_RELEGATED_TEAMS(FifamCompID league) {
     mLeague = league;
 }
 
@@ -436,7 +435,7 @@ FifamInstruction::GET_INTERNATIONAL_TEAMS *FifamInstruction::GET_INTERNATIONAL_T
     return new GET_INTERNATIONAL_TEAMS(mCountryId, mNumTeams);
 }
 
-FifamInstruction::GET_CC_FA_WINNER::GET_CC_FA_WINNER(FifamCompetition *competition) {
+FifamInstruction::GET_CC_FA_WINNER::GET_CC_FA_WINNER(FifamCompID competition) {
     mCompetition = competition;
 }
 
@@ -460,7 +459,7 @@ FifamInstruction::GET_CC_SPARE *FifamInstruction::GET_CC_SPARE::Clone() const {
     return new GET_CC_SPARE();
 }
 
-FifamInstruction::GET_CHAMP_COUNTRY_TEAM::GET_CHAMP_COUNTRY_TEAM(FifamCompetition *competition) {
+FifamInstruction::GET_CHAMP_COUNTRY_TEAM::GET_CHAMP_COUNTRY_TEAM(FifamCompID competition) {
     mCompetition = competition;
 }
 
@@ -509,7 +508,7 @@ FifamInstruction::GET_FAIRNESS_TEAM *FifamInstruction::GET_FAIRNESS_TEAM::Clone(
     return new GET_FAIRNESS_TEAM(mNumTeams);
 }
 
-FifamInstruction::COPY_LEAGUE_DATA::COPY_LEAGUE_DATA(FifamCompetition *league) {
+FifamInstruction::COPY_LEAGUE_DATA::COPY_LEAGUE_DATA(FifamCompID league) {
     mLeague = league;
 }
 

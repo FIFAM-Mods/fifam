@@ -26,11 +26,11 @@ void FifamCompetition::Read(FifamReader &reader, FifamDatabase *database, FifamN
     auto predecessors = FifamUtils::ExtractCompetitionIDs(reader.ReadFullLine(), FifamCompRegion::MakeFromInt(nationId.ToInt()));
     mPredecessors.resize(predecessors.size());
     for (UInt i = 0; i < mPredecessors.size(); i++)
-        FifamUtils::SaveCompetitionIDToPtr(mPredecessors[i], predecessors[i].ToInt());
+        mPredecessors[i].SetFromInt(predecessors[i].ToInt());
     auto successors = FifamUtils::ExtractCompetitionIDs(reader.ReadFullLine(), FifamCompRegion::MakeFromInt(nationId.ToInt()));
     mSuccessors.resize(successors.size());
     for (UInt i = 0; i < mSuccessors.size(); i++)
-        FifamUtils::SaveCompetitionIDToPtr(mSuccessors[i], successors[i].ToInt());
+        mSuccessors[i].SetFromInt(successors[i].ToInt());
     mInstructions.Read(reader, database, nationId);
 }
 
@@ -38,7 +38,7 @@ void FifamCompetition::Write(FifamWriter &writer, FifamDatabase *database, Fifam
     writer.WriteLine(mNumSubsAllowed);
     writer.WriteLine(mCompetitionLevel);
     if (!mPredecessors.empty()) {
-        auto predecessors = FifamUtils::MakeWriteableIDsList(mPredecessors);
+        auto predecessors = FifamUtils::MakeWriteableIDsList(mPredecessors, writer.GetGameId());
         Vector<FifamCompID> compIDs;
         for (UInt i = 0; i < predecessors.size(); i++)
             compIDs.push_back(predecessors[i]);
@@ -47,7 +47,7 @@ void FifamCompetition::Write(FifamWriter &writer, FifamDatabase *database, Fifam
     else
         writer.WriteLine(0);
     if (!mSuccessors.empty()) {
-        auto successors = FifamUtils::MakeWriteableIDsList(mSuccessors);
+        auto successors = FifamUtils::MakeWriteableIDsList(mSuccessors, writer.GetGameId());
         Vector<FifamCompID> compIDs;
         for (UInt i = 0; i < successors.size(); i++)
             compIDs.push_back(successors[i]);

@@ -16,7 +16,7 @@ public:
     Bool mReserveTeamsAllowed = false;
     // @since FM07
     // teams from these competitions can't be added
-    Vector<FifamCompetition *> mCompConstraints;
+    Vector<FifamCompID> mCompConstraints;
     // @since FM07
     // bonuses
     Array<UInt, 4> mBonuses = {};

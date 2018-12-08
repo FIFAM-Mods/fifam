@@ -5,6 +5,7 @@
 #include "FifamContinent.h"
 #include "FifamClubTeamType.h"
 #include "FifamCompType.h"
+#include "FifamCompID.h"
 
 class FifamCompetition;
 class FifamDatabase;
@@ -47,8 +48,8 @@ public:
 
     class GET_CHAMP : public FifamAbstractInstruction {
     public:
-        FifamCompetition *mCompetition = nullptr;
-        GET_CHAMP(FifamCompetition *competition);
+        FifamCompID mCompetition;
+        GET_CHAMP(FifamCompID competition);
         FifamInstructionID GetID() const override;
         GET_CHAMP *Clone() const override;
     };
@@ -91,8 +92,8 @@ public:
 
     class GET_CHAMP_OR_RUNNER_UP : public FifamAbstractInstruction {
     public:
-        FifamCompetition *mCompetition = nullptr;
-        GET_CHAMP_OR_RUNNER_UP(FifamCompetition *competition);
+        FifamCompID mCompetition;
+        GET_CHAMP_OR_RUNNER_UP(FifamCompID competition);
         FifamInstructionID GetID() const override;
         GET_CHAMP_OR_RUNNER_UP *Clone() const override;
     };
@@ -108,21 +109,21 @@ public:
 
     class GET_TAB_X_TO_Y : public FifamAbstractInstruction {
     public:
-        FifamCompetition *mLeague = nullptr;
+        FifamCompID mLeague;
         UInt mLeagueStartPosition = 0;
         UInt mNumTeams = 0;
-        GET_TAB_X_TO_Y(FifamCompetition *league, UInt leagueStartPosition, UInt numTeams);
+        GET_TAB_X_TO_Y(FifamCompID league, UInt leagueStartPosition, UInt numTeams);
         FifamInstructionID GetID() const override;
         GET_TAB_X_TO_Y *Clone() const override;
     };
 
     class GET_TAB_SURE_X_TO_Y_Z : public FifamAbstractInstruction {
     public:
-        FifamCompetition * mLeague = nullptr;
+        FifamCompID mLeague;
         UInt mLeagueStartPosition = 0;
         UInt mLeagueMaxPosition = 0;
         UInt mNumTeams = 0;
-        GET_TAB_SURE_X_TO_Y_Z(FifamCompetition *league, UInt leagueStartPosition, UInt leagueMaxPosition, UInt numTeams);
+        GET_TAB_SURE_X_TO_Y_Z(FifamCompID league, UInt leagueStartPosition, UInt leagueMaxPosition, UInt numTeams);
         FifamInstructionID GetID() const override;
         GET_TAB_SURE_X_TO_Y_Z *Clone() const override;
     };
@@ -165,35 +166,34 @@ public:
     class GET_UEFA5_CHAMP_OR_FINALIST : public FifamAbstractInstruction {
     public:
         UInt mAssessmentPosition = 0;
-        FifamCompType mCompType = FifamCompType::FaCup;
-        UInt mCompIndex = 0;
-        GET_UEFA5_CHAMP_OR_FINALIST(UInt assessmentPosition, FifamCompType compType, UInt compIndex);
+        FifamCompID mCompetition;
+        GET_UEFA5_CHAMP_OR_FINALIST(UInt assessmentPosition, FifamCompID competition);
         FifamInstructionID GetID() const override;
         GET_UEFA5_CHAMP_OR_FINALIST *Clone() const override;
     };
 
     class GET_WINNER : public FifamAbstractInstruction {
     public:
-        FifamCompetition *mRound = nullptr;
-        GET_WINNER(FifamCompetition *round);
+        FifamCompID mRound;
+        GET_WINNER(FifamCompID round);
         FifamInstructionID GetID() const override;
         GET_WINNER *Clone() const override;
     };
 
     class GET_LOSER : public FifamAbstractInstruction {
     public:
-        FifamCompetition *mRound = nullptr;
-        GET_LOSER(FifamCompetition *round);
+        FifamCompID mRound;
+        GET_LOSER(FifamCompID round);
         FifamInstructionID GetID() const override;
         GET_LOSER *Clone() const override;
     };
 
     class GET_POOL : public FifamAbstractInstruction {
     public:
-        FifamCompetition *mPool = nullptr;
+        FifamCompID mPool;
         UInt mPoolStartPosition = 0;
         UInt mNumTeams = 0;
-        GET_POOL(FifamCompetition *pool, UInt poolStartPosition, UInt numTeams);
+        GET_POOL(FifamCompID pool, UInt poolStartPosition, UInt numTeams);
         FifamInstructionID GetID() const override;
         GET_POOL *Clone() const override;
     };
@@ -279,8 +279,8 @@ public:
 
     class GET_RUNNER_UP : public FifamAbstractInstruction {
     public:
-        FifamCompetition *mCompetition = nullptr;
-        GET_RUNNER_UP(FifamCompetition *competition);
+        FifamCompID mCompetition;
+        GET_RUNNER_UP(FifamCompID competition);
         FifamInstructionID GetID() const override;
         GET_RUNNER_UP *Clone() const override;
     };
@@ -297,8 +297,8 @@ public:
 
     class GET_RELEGATED_TEAMS : public FifamAbstractInstruction {
     public:
-        FifamCompetition *mLeague = nullptr;
-        GET_RELEGATED_TEAMS(FifamCompetition *league);
+        FifamCompID mLeague;
+        GET_RELEGATED_TEAMS(FifamCompID league);
         FifamInstructionID GetID() const override;
         GET_RELEGATED_TEAMS *Clone() const override;
     };
@@ -314,8 +314,8 @@ public:
 
     class GET_CC_FA_WINNER : public FifamAbstractInstruction {
     public:
-        FifamCompetition *mCompetition = nullptr;
-        GET_CC_FA_WINNER(FifamCompetition *competition);
+        FifamCompID mCompetition;
+        GET_CC_FA_WINNER(FifamCompID competition);
         FifamInstructionID GetID() const override;
         GET_CC_FA_WINNER *Clone() const override;
     };
@@ -329,8 +329,8 @@ public:
 
     class GET_CHAMP_COUNTRY_TEAM : public FifamAbstractInstruction {
     public:
-        FifamCompetition *mCompetition = nullptr;
-        GET_CHAMP_COUNTRY_TEAM(FifamCompetition *competition);
+        FifamCompID mCompetition;
+        GET_CHAMP_COUNTRY_TEAM(FifamCompID competition);
         FifamInstructionID GetID() const override;
         GET_CHAMP_COUNTRY_TEAM *Clone() const override;
     };
@@ -362,8 +362,8 @@ public:
 
     class COPY_LEAGUE_DATA : public FifamAbstractInstruction {
     public:
-        FifamCompetition *mLeague = nullptr;
-        COPY_LEAGUE_DATA(FifamCompetition *league);
+        FifamCompID mLeague;
+        COPY_LEAGUE_DATA(FifamCompID league);
         FifamInstructionID GetID() const override;
         COPY_LEAGUE_DATA *Clone() const override;
     };

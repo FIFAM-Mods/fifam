@@ -3,22 +3,22 @@
   <ItemGroup>
     <ClCompile Include="Date.cpp" />
     <ClCompile Include="Utils.cpp" />
-    <ClCompile Include="Hexademical.cpp" />
     <ClCompile Include="Quoted.cpp" />
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="Random.cpp" />
     <ClCompile Include="Json.cpp" />
     <ClCompile Include="IntPtr.cpp" />
+    <ClCompile Include="Hexadecimal.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Date.h" />
     <ClInclude Include="Error.h" />
     <ClInclude Include="Utils.h" />
-    <ClInclude Include="Hexademical.h" />
     <ClInclude Include="Quoted.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="Json.h" />
     <ClInclude Include="IntPtr.h" />
+    <ClInclude Include="Hexadecimal.h" />
   </ItemGroup>
 </Project>

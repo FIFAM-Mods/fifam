@@ -103,6 +103,7 @@ FifaDatabase::FifaDatabase(std::filesystem::path const &path) {
                             player->m_commonName = playernames[player->internal.commonnameid];
                             player->m_playerJerseyName = playernames[player->internal.playerjerseynameid];
                             player->m_quickName = Utils::GetQuickName(player->m_firstName, player->m_lastName, player->m_commonName);
+                            player->m_birthDate.Set(player->internal.birthdate);
                         }
                     }
                     file.Close();

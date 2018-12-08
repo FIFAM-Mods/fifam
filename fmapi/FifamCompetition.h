@@ -12,7 +12,7 @@ class FifamCompCup;
 class FifamCompPool;
 class FifamDatabase;
 
-class FifamCompetition : public FifamDbWriteable, public FifamPropertied {
+class FifamCompetition : public FifamPropertied {
 protected:
     FifamCompetition() {}
 public:
@@ -33,10 +33,10 @@ public:
     UChar mCompetitionLevel = 0;
     // @since FM07
     // competition predecessors
-    Vector<FifamCompetition *> mPredecessors;
+    Vector<FifamCompID> mPredecessors;
     // @since FM07
     // competition successors
-    Vector<FifamCompetition *> mSuccessors;
+    Vector<FifamCompID> mSuccessors;
     // @since FM07
     // instructions
     FifamInstructionsList mInstructions;

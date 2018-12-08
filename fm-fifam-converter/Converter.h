@@ -1,6 +1,8 @@
 #pragma once
 #include "FifamDatabase.h"
 #include "foom_db.h"
+#include "FifaDatabase.h"
+#include "AppearanceGenerator.h"
 
 const UShort CURRENT_YEAR = 2018;
 
@@ -8,6 +10,7 @@ class Converter {
 public:
     FifamDatabase *mReferenceDatabase = nullptr;
     FifamDatabase *mFifamDatabase = nullptr;
+    FifaDatabase *mFifaDatabase = nullptr;
     UInt mCurrentGameId = FifamDatabase::LATEST_GAME_VERSION;
     foom::db *mFoomDatabase = nullptr;
 
@@ -26,6 +29,31 @@ public:
         Int mPriority = 0;
     };
 
+    struct CupInfo {
+        enum Type {
+            FA = 0,
+            League = 1,
+            Supercup = 2
+        };
+        Int mNationID = -1;
+        String mName;
+        String mShortName;
+        Int mID = -1;
+        Int mLevel = 0;
+        Type mType = League;
+        Int mReputation = 0;
+        Int mPriority = 0;
+        FifamCupSystemType mTemplateType;
+        Array<String, 8> mRoundDesc;
+        String mStructure;
+        Int mMaxLevel = 0;
+        Int mNumSubs = 0;
+        Int mBonus = 0;
+        Int mTvBonus = 0;
+        Date mStartDate;
+        Date mEndDate;
+    };
+
     struct FixtureInfo {
         Date mDate;
         foom::club *mTeam1 = 0;
@@ -33,12 +61,15 @@ public:
     };
 
     Vector<DivisionInfo> mDivisions;
+    Vector<CupInfo> mCups;
     Map<UInt, Vector<FixtureInfo>> mFixturesPerLeague;
     Array<UInt, FifamDatabase::NUM_COUNTRIES> mNextFreeUID = {};
     Array<Map<UInt, Vector<FifamCompLeague *>>, FifamDatabase::NUM_COUNTRIES> mLeaguesSystem;
     Array<UInt, FifamDatabase::NUM_COUNTRIES> mNumTeamsInLeagueSystem = {};
     Array<Vector<foom::player *>, FifamDatabase::NUM_COUNTRIES> mNationalTeamPlayers;
     UInt mPersonIdCounter = 1;
+    Map<Int, Path> mAvailableBadges;
+    AppearanceGenerator appearanceGenerator;
     
     Date GetCurrentDate() { return Date(1, 7, CURRENT_YEAR); }
     Date FmEmptyDate() { return Date(1, 1, 1900); }
@@ -53,7 +84,7 @@ public:
     void ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);
     FifamClub *CreateAndConvertClub(UInt gameId, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);
     void ConvertReferee(FifamReferee *dst, foom::official *official);
-    void ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &kits, Int badgeType, Color const &teamBackgroundColor, Color const &teamForegroundColor);
+    void ConvertKitsAndColors(FifamClub *dst, Int foomId, Vector<foom::kit> const &kits, Int badgeType, Color const &teamBackgroundColor, Color const &teamForegroundColor);
     FifamPlayer *CreateAndConvertPlayer(UInt gameId, foom::player *p, FifamClub *club);
     FifamStaff *CreateAndConvertStaff(foom::non_player *p, FifamClub *club, FifamClubStaffPosition position);
     void ConvertPersonAttributes(FifamPerson *person, foom::person *p);

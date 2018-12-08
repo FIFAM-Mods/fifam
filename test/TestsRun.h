@@ -23,5 +23,5 @@
 #include "tests\WritePlayerIDs.h"
 
 void RunTests() {
-    RunTest<RulesTest<FM14, Default>>();
+    RunTest<WriteDbTest<FM14, FM14, false>>();
 }

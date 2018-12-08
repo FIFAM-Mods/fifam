@@ -79,3 +79,9 @@ FifamDate GetDateAlignedToSeasonEnd(FifamDate const &date, bool allowHalfSeason,
     AlignToSeasonEnd(result, allowHalfSeason, forwardDirection);
     return result;
 }
+
+template<typename T> T AlignMoneyValue(T input, T alignment) {
+    if (input > alignment * 3)
+        return ((input + (alignment / 2)) / alignment) * alignment;
+    return input;
+}

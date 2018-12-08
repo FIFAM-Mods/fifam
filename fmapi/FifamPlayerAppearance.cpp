@@ -5,6 +5,12 @@ const UChar g14HairEditorIdToReal[98] = {
     0, 25, 1, 41, 46, 47, 92, 72, 29, 31, 43, 16, 28, 88, 90, 37, 65, 77, 82, 18, 24, 40, 2, 39, 63, 61, 64, 85, 38, 86, 21, 54, 45, 75, 78, 57, 22, 89, 70, 69, 93, 19, 23, 30, 14, 20, 62, 17, 66, 67, 94, 74, 58, 87, 83, 73, 95, 36, 32, 44, 13, 15, 11, 33, 8, 9, 10, 34, 35, 53, 7, 68, 12, 56, 55, 59, 76, 80, 84, 91, 26, 4, 71, 6, 5, 42, 27, 48, 49, 81, 52, 79, 60, 97, 96, 3, 51, 50
 };
 
+UChar FifamPlayerAppearance::GetHairIdFromEditor14Id(UChar hairId) {
+    if (hairId >= 1 && hairId <= 98)
+        return g14HairEditorIdToReal[hairId - 1];
+    return 0;
+}
+
 enum class Face07 {
     Caucasian1 = 1,
     Caucasian2,

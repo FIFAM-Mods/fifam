@@ -58,11 +58,17 @@ struct person {
     struct converter_data {
         void *mFifamPerson = nullptr;
         void *mContractedFifamClub = nullptr;
-        Bool mAvailableForAdultTeams = false; // ?
         Int mTeamType = -1; // ?
         club *mLoanedFromClub = nullptr;
         club *mFutureClub = nullptr;
+        Int mFifaPlayerId = 0;
+        Bool mAvailableForAdultTeams = false; // ?
         Bool mFitsIntoDbLimit = true;
+        Short mEditorFace = -1;
+        Char mEditorHair = -1;
+        Char mEditorSkin = -1;
+        Char mEditorEye = -1;
+        Char mEditorBeard = -1;
     } mConverterData;
 };
 

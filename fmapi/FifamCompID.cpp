@@ -98,6 +98,10 @@ Bool operator==(FifamCompID const & lhs, FifamCompID const & rhs) {
     return lhs.ToInt() == rhs.ToInt();
 }
 
+Bool operator!=(FifamCompID const & lhs, FifamCompID const & rhs) {
+    return lhs.ToInt() != rhs.ToInt();
+}
+
 Bool operator<(FifamCompID const & lhs, FifamCompID const & rhs) {
     return lhs.ToInt() < rhs.ToInt();
 }

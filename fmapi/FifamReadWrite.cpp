@@ -136,7 +136,7 @@ void FifamWriter::WriteOne(String const &value) {
     fputws(str.c_str(), mFile);
 }
 
-void FifamWriter::WriteOne(Hexademical const &value) {
+void FifamWriter::WriteOne(Hexadecimal const &value) {
     fwprintf(mFile, L"%X", value());
 }
 
@@ -533,7 +533,7 @@ void FifamReader::StrToArg(String const &str, Date &arg) {
     arg.MakeEmpty();
 }
 
-void FifamReader::StrToArg(String const &str, Hexademical arg) {
+void FifamReader::StrToArg(String const &str, Hexadecimal arg) {
     arg = str.empty() ? 0 : Utils::SafeConvertInt<UInt>(str, true);
 }
 

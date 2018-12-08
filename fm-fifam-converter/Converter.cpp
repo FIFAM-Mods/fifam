@@ -1,6 +1,7 @@
 #include "Converter.h"
 #include "FifamCompLeague.h"
 #include "FifamCompPool.h"
+#include "FifamCompCup.h"
 #include "FifamNames.h"
 #include "FifamUtils.h"
 #include "FifamPlayerGenerator.h"
@@ -10,8 +11,6 @@
 #include "GraphicsConverter.h"
 
 #define DB_SIZE Full
-
-// TODO: nation - alternative stadiums
 
 Converter::~Converter() {
 
@@ -28,7 +27,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath) {
                     String dummy;
                     foom::club::converter_data info;
                     Int FootballManagerID;
-                    reader.ReadLineWithSeparator(L'\t', dummy, dummy, dummy, dummy, dummy, FootballManagerID, Hexademical(info.mFIFAManagerID), info.mFIFAID);
+                    reader.ReadLineWithSeparator(L'\t', dummy, dummy, dummy, dummy, dummy, FootballManagerID, Hexadecimal(info.mFIFAManagerID), info.mFIFAID);
                     map_find(mFoomDatabase->mClubs, FootballManagerID).mConverterData = info;
                 }
                 else
@@ -128,6 +127,38 @@ void Converter::ReadAdditionalInfo(Path const &infoPath) {
         }
     }
     {
+        std::wcout << L"Reading fifam_cups.txt..." << std::endl;
+        FifamReader reader(infoPath / L"fifam_cups.txt", 0);
+        if (reader.Available()) {
+            reader.SkipLine();
+            while (!reader.IsEof()) {
+                if (!reader.EmptyLine()) {
+                    CupInfo c;
+                    String strDummy, strType, strTemplateType;
+                    reader.ReadLineWithSeparator(L'\t', strDummy, c.mNationID, c.mName, c.mShortName, c.mID, c.mLevel, strType, strDummy, c.mReputation, c.mPriority, strTemplateType, c.mRoundDesc[7], c.mRoundDesc[6], c.mRoundDesc[5], c.mRoundDesc[4], c.mRoundDesc[3], c.mRoundDesc[2], c.mRoundDesc[1], c.mRoundDesc[0], c.mStructure, c.mMaxLevel, c.mNumSubs, c.mBonus, c.mTvBonus, c.mStartDate, c.mEndDate);
+                    if (c.mPriority < 1)
+                        continue;
+                    c.mTemplateType.SetFromStr(strTemplateType);
+                    if (c.mTemplateType.GetWasSetFromUnknown()) {
+                        Error(L"Unknown cup template type: %s\nCup name: %s\nCup ID: %d", strTemplateType.c_str(), c.mName.c_str(), c.mID);
+                        continue;
+                    }
+                    if (c.mLevel < 0)
+                        c.mLevel = 0;
+                    if (strType == L"Domestic Main Cup")
+                        c.mType = CupInfo::FA;
+                    else if (strType == L"Super Cup")
+                        c.mType = CupInfo::Supercup;
+                    else
+                        c.mType = CupInfo::League;
+                    mCups.push_back(c);
+                }
+                else
+                    reader.SkipLine();
+            }
+        }
+    }
+    {
         std::wcout << L"Reading fixtures..." << std::endl;
         for (auto const &p : recursive_directory_iterator(infoPath / L"fixtures")) {
             if (is_regular_file(p.path()) && p.path().extension() == ".txt") {
@@ -162,6 +193,44 @@ void Converter::ReadAdditionalInfo(Path const &infoPath) {
             }
         }
     }
+    {
+        std::wcout << L"Reading fm-fifa-players..." << std::endl;
+        FifamReader reader(infoPath / L"fm-fifa-players.txt", 0);
+        if (reader.Available()) {
+            reader.SkipLine();
+            while (!reader.IsEof()) {
+                if (!reader.EmptyLine()) {
+                    String dummy;
+                    String foomId, fifaId, editorFace, editorHair, editorBeard, editorSkin, editorEye;
+                    reader.ReadLineWithSeparator(L'\t', dummy, dummy, dummy, dummy, dummy, dummy, dummy,
+                        foomId, fifaId, editorSkin, editorFace, editorHair, editorBeard, editorEye);
+                    if (!foomId.empty()) {
+                        UInt playerId = Utils::SafeConvertInt<Int>(foomId);
+                        if (playerId != -1) {
+                            foom::player *foomPlayer = mFoomDatabase->get<foom::player>(playerId);
+                            if (foomPlayer) {
+                                auto SetPlayerParameter = [](auto &param, String const &str) {
+                                    if (!str.empty()) {
+                                        UInt paramId = Utils::SafeConvertInt<Int>(str);
+                                        if (paramId != -1)
+                                            param = paramId;
+                                    }
+                                };
+                                SetPlayerParameter(foomPlayer->mConverterData.mFifaPlayerId, fifaId);
+                                SetPlayerParameter(foomPlayer->mConverterData.mEditorFace, editorFace);
+                                SetPlayerParameter(foomPlayer->mConverterData.mEditorHair, editorHair);
+                                SetPlayerParameter(foomPlayer->mConverterData.mEditorBeard, editorBeard);
+                                SetPlayerParameter(foomPlayer->mConverterData.mEditorSkin, editorSkin);
+                                SetPlayerParameter(foomPlayer->mConverterData.mEditorEye, editorEye);
+                            }
+                        }
+                    }
+                }
+                else
+                    reader.SkipLine();
+            }
+        }
+    }
 }
 
 void Converter::Convert(UInt gameId, Bool writeToGameFolder) {
@@ -173,9 +242,24 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     FifamDatabase::mReadingOptions.mReadClubs = false;
     FifamDatabase::mReadingOptions.mReadCountryCompetitions = false;
     FifamDatabase::mReadingOptions.mReadPersons = false;
+
     mFifamDatabase = new FifamDatabase(originalGameId, originalDb);
+    mFifaDatabase = new FifaDatabase(L"D:\\Projects\\fifam\\db\\fifa");
     mFoomDatabase = new foom::db(L"D:\\Projects\\fifam\\db\\foom", foom::db::db_size::DB_SIZE);
-    ReadAdditionalInfo(L"D:\\Projects\\fifam\\db");
+
+    Path infoPath = L"D:\\Projects\\fifam\\db";
+    Path graphicsPath = L"D:\\Documents\\Sports Interactive\\Football Manager 2019\\graphics";
+    Path contentPath = L"D:\\Projects\\fifam\\content";
+
+    ReadAdditionalInfo(infoPath);
+    appearanceGenerator.Read(infoPath / L"AppearanceDefs.sav");
+
+    std::wcout << L"Scanning badges folder..." << std::endl;
+    for (auto const &i : recursive_directory_iterator(graphicsPath / L"dvx-logos" / L"clubs" / L"primary" / L"@2x")) {
+        Int id = Utils::SafeConvertInt<Int>(i.path().filename().c_str());
+        if (id > 0 && i.path().extension() == ".png")
+            mAvailableBadges[id] = i.path();
+    }
 
     std::wcout << L"Finding reserve clubs..." << std::endl;
     for (auto &entry : mFoomDatabase->mClubs) {
@@ -427,8 +511,8 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     if (div->mName.length() < 64)
                         compName = div->mName;
                     else
-                        compName = div->mShortName;
-                    auto pool = mFifamDatabase->CreateCompetition(FifamCompDbType::Pool, poolID, compName)->AsPool();
+                        compName = FifamNames::LimitName(div->mShortName, 63);
+                    auto pool = mFifamDatabase->CreateCompetition(FifamCompDbType::Pool, poolID, FifamNames::LimitName(compName, 58) + L" Pool")->AsPool();
                     pool->mCompetitionLevel = div->mLevel;
                     pool->mNumTeams = div->mTeams;
                     auto league = mFifamDatabase->CreateCompetition(FifamCompDbType::League, leagueID, compName)->AsLeague();
@@ -455,9 +539,20 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     league->mRoundType = FifamRoundID::Group1;
                     league->mTeams.resize(div->mTeams);
 
-                    league->mAttendanceMp = Utils::MapTo(comp->mReputation, 10, 180, 20, 120);
-                    league->mTransferMarketMp = Utils::MapTo(comp->mReputation, 10, 175, 10, 125);
-
+                    if (comp->mReputation <= 20) {
+                        if (comp->mReputation > 10) {
+                            league->mTransferMarketMp = comp->mReputation - 10;
+                            league->mAttendanceMp = comp->mReputation - 10;
+                        }
+                        else {
+                            league->mTransferMarketMp = 10;
+                            league->mAttendanceMp = 10;
+                        }
+                    }
+                    else {
+                        league->mTransferMarketMp = Utils::Min(200, (Int)((Float)(comp->mReputation - 20) * 1.3f));
+                        league->mAttendanceMp = Utils::Min(120, (Int)((Float)(comp->mReputation - 20) * 0.69f));
+                    }
                     league->mFreeAgentsCanBeTranferredAtAnyTime = true;
                     league->mForeignFreeAgentsCanBeTransferredAtAnyTime = true;
                     league->mShortTermLoansTotalLimit = 15;
@@ -474,14 +569,16 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     league->mLoanSameLeagueCount = 15;
 
                     // instructions
-                    pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(league, 1, league->mNumTeams));
+                    pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(league->mID, 1, league->mNumTeams));
                     if ((i + 1) == comps.size())
                         pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
 
-                    league->mInstructions.PushBack(new FifamInstruction::GET_POOL(pool, 0, league->mNumTeams));
+                    league->mInstructions.PushBack(new FifamInstruction::GET_POOL(pool->mID, 0, league->mNumTeams));
 
                     comp->mConverterData.mLeague = league;
                     league->SetProperty(L"foom::comp", comp);
+                    league->SetProperty(L"foom::id", div->mID);
+                    league->SetProperty(L"foom::reputation", div->mRep);
                     createdLeagues.push_back(league);
                     createdPools.push_back(pool);
                     mLeaguesSystem[country->mId - 1][league->mLeagueLevel].push_back(league);
@@ -697,6 +794,292 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                 else
                     country->mLeagueLevelWithReserveTeams = comps.back()->mLevel + 1;
             }
+
+            for (auto &e : mLeaguesSystem[country->mId - 1]) {
+                for (auto &l : e.second)
+                    l->SetProperty<Int>(L"NumLeaguesOnLevel", e.second.size());
+            }
+
+            Int cupsMinPriority = 1;
+            Int maxFACups = 1;
+            Int maxLeagueCups = 4;
+            Int maxSuperCups = 1;
+            Int numCreatedFACups = 0;
+            Int numCreatedLeagueCups = 0;
+            Int numCreatedSuperCups = 0;
+            if (gameId <= 7)
+                cupsMinPriority = 2;
+            Int startMatchdaySuperCup = 3;
+            Int startMatchdayFaCup = startMatchdaySuperCup + 2;
+            Int startMatchdayLeagueCup = startMatchdayFaCup + 16;
+
+            // find all cups in this country
+            for (auto &cupInfo : mCups) {
+                if (cupInfo.mNationID == nation.mID && cupInfo.mPriority >= cupsMinPriority) {
+                    Int nextAvailableCompIndex = -1;
+                    FifamCompType cupCompType = FifamCompType::LeagueCup;
+                    if (cupInfo.mType == CupInfo::FA) {
+                        if (numCreatedFACups < maxFACups) {
+                            nextAvailableCompIndex = numCreatedFACups;
+                            numCreatedFACups++;
+                            cupCompType = FifamCompType::FaCup;
+                        }
+                    }
+                    else if (cupInfo.mType == CupInfo::League) {
+                        if (numCreatedLeagueCups < maxLeagueCups) {
+                            nextAvailableCompIndex = numCreatedLeagueCups;
+                            numCreatedLeagueCups++;
+                            cupCompType = FifamCompType::LeagueCup;
+                        }
+                    }
+                    else if (cupInfo.mType == CupInfo::Supercup) {
+                        if (numCreatedSuperCups < maxSuperCups) {
+                            nextAvailableCompIndex = numCreatedSuperCups;
+                            cupCompType = FifamCompType::SuperCup;
+                        }
+                    }
+                    if (nextAvailableCompIndex != -1) {
+                        if (cupInfo.mTemplateType == FifamCupSystemType::None) {
+                            Error(L"Unknown cup template type\nCup: %s", cupInfo.mName.c_str());
+                            continue;
+                        }
+                        FifamCupAlloc *cupTemplate = mFifamDatabase->GetCupTemplate(cupInfo.mTemplateType);
+                        if (!cupTemplate) {
+                            Error(L"Cup template not found\nCup: %s\nTemplate: %s", cupInfo.mName.c_str(), cupInfo.mTemplateType.ToCStr());
+                            continue;
+                        }
+                        FifamCompID cupID = { (UChar)country->mId, cupCompType, (UShort)nextAvailableCompIndex };
+                        String cupName;
+                        if (cupInfo.mName.length() < 64)
+                            cupName = cupInfo.mName;
+                        else
+                            cupName = FifamNames::LimitName(cupInfo.mShortName, 63);
+                        FifamCompCup *cup = mFifamDatabase->CreateCompetition(FifamCompDbType::Cup, cupID, cupName)->AsCup();
+                        cup->SetProperty(L"foom::id", cupInfo.mID);
+                        cup->SetProperty(L"foom::reputation", cupInfo.mReputation);
+                        if (cupInfo.mLevel < 0 || cupInfo.mLevel > 15)
+                            cup->mCompetitionLevel = 0;
+                        else
+                            cup->mCompetitionLevel = cupInfo.mLevel;
+                        if (cupInfo.mNumSubs <= 0)
+                            cup->mNumSubsAllowed = 3;
+                        else
+                            cup->mNumSubsAllowed = Utils::Clamp(cupInfo.mNumSubs, 1, 7);
+                        cup->mCupTemplate = cupInfo.mTemplateType;
+                        Int numRounds = 0;
+                        Int startRoundIndex = -1;
+                        for (Int i = 7; i >= 0; i--) {
+                            if (startRoundIndex == -1) {
+                                if (!cupInfo.mRoundDesc[i].empty()) {
+                                    startRoundIndex = i;
+                                    numRounds++;
+                                }
+                            }
+                            else {
+                                if (cupInfo.mRoundDesc[i].empty()) {
+                                    startRoundIndex = -1;
+                                    numRounds = 0;
+                                    break;
+                                }
+                                else
+                                    numRounds++;
+                            }
+                        }
+                        if (numRounds > 0 && startRoundIndex >= 0) {
+                            cup->mRounds.resize(numRounds);
+                            bool failed = false;
+                            Int r = 0;
+                            for (Int i = startRoundIndex; i >= 0; i--) {
+                                if (cupInfo.mRoundDesc[i].empty()) {
+                                    failed = true;
+                                    break;
+                                }
+                                cup->mRounds[r].mFlags.Clear();
+                                for (UInt c = 0; c < cupInfo.mRoundDesc[i].length(); c++) {
+                                    if (c == 0) {
+                                        if (cupInfo.mRoundDesc[i][c] == '1')
+                                            cup->mRounds[r].mFlags.Set(FifamBeg::_1stLeg, true);
+                                        else if (cupInfo.mRoundDesc[i][c] == '2')
+                                            cup->mRounds[r].mFlags.Set(FifamBeg::_2ndLeg, true);
+                                        else if (cupInfo.mRoundDesc[i][c] == 'R')
+                                            cup->mRounds[r].mFlags.Set(FifamBeg::WithReplay, true);
+                                        else {
+                                            Error(L"Wrong round description in cup\nCup: %s\nRound: %d\nDescription: %s", cupInfo.mName.c_str(), i, cupInfo.mRoundDesc[i].c_str());
+                                            failed = true;
+                                            break;
+                                        }
+                                    }
+                                    else {
+                                        if (cupInfo.mRoundDesc[i][c] == 'E')
+                                            cup->mRounds[r].mFlags.Set(FifamBeg::WithExtraTime, true);
+                                        else if (cupInfo.mRoundDesc[i][c] == 'P')
+                                            cup->mRounds[r].mFlags.Set(FifamBeg::WithPenalty, true);
+                                        else if (cupInfo.mRoundDesc[i][c] == 'G')
+                                            cup->mRounds[r].mFlags.Set(FifamBeg::WithGoldenGoal, true);
+                                        else if (cupInfo.mRoundDesc[i][c] == 'S')
+                                            cup->mRounds[r].mFlags.Set(FifamBeg::WithSilverGoal, true);
+                                        else if (cupInfo.mRoundDesc[i][c] == 'A')
+                                            cup->mRounds[r].mFlags.Set(FifamBeg::WithoutAwayGoal, true);
+                                        else if (cupInfo.mRoundDesc[i][c] == '-' && (c + 1) < cupInfo.mRoundDesc[i].length()) {
+                                            if (cupInfo.mRoundDesc[i][c + 1] == 'P')
+                                                cup->mRounds[r].mFlags.Set(FifamBeg::NoPremierLeagueTeams, true);
+                                            else if (cupInfo.mRoundDesc[i][c + 1] == 'S')
+                                                cup->mRounds[r].mFlags.Set(FifamBeg::NoShuffle, true);
+                                            c++;
+                                        }
+                                        else if (cupInfo.mRoundDesc[i][c] == '+') {
+                                            Int newTeamsInRound = Utils::SafeConvertInt<Int>(cupInfo.mRoundDesc[i].substr(c + 1));
+                                            if (newTeamsInRound > 0)
+                                                cup->mRounds[r].mNewTeamsRound = newTeamsInRound;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (failed)
+                                    break;
+                                r++;
+                            }
+                            if (failed)
+                                cup->mRounds.clear();
+                            else if (!cup->mRounds.empty()) {
+                                UInt teamsFromPrevRound = 0;
+                                UInt currBeg = 0;
+                                UInt lastRoundWithAddedTeams = 0;
+                                for (UInt r = 0; r < cup->mRounds.size(); r++) {
+                                    cup->mNumTeams += cup->mRounds[r].mNewTeamsRound;
+                                    cup->mRounds[r].mTeamsRound = cup->mRounds[r].mNewTeamsRound + teamsFromPrevRound;
+                                    teamsFromPrevRound = cup->mRounds[r].mTeamsRound / 2;
+                                    cup->mRounds[r].mStartBeg = currBeg;
+                                    currBeg += teamsFromPrevRound;
+                                    cup->mRounds[r].mEndBeg = currBeg;
+                                    if (cup->mRounds[r].mNewTeamsRound)
+                                        lastRoundWithAddedTeams = r;
+                                }
+                                UInt numRawRounds = cup->mRounds.size() - lastRoundWithAddedTeams;
+                                // final rounds
+                                Int numFinalRounds = 0;
+                                for (Int r = (Int)cup->mRounds.size() - 1; r >= (Int)lastRoundWithAddedTeams; r--) {
+                                    if (numFinalRounds >= 4)
+                                        break;
+                                    cup->mRounds[r].mRoundID.SetFromInt(15 - numFinalRounds);
+                                    numFinalRounds++;
+                                }
+                                Int numRoundsLeft = cup->mRounds.size() - numFinalRounds;
+                                // quali rounds
+                                Int numQualiRounds = numRoundsLeft > 5 ? 8 - numRoundsLeft : 0;
+                                for (Int r = 0; r < numQualiRounds; r++)
+                                    cup->mRounds[r].mRoundID.SetFromInt(r + 1);
+                                // other rounds
+                                numRoundsLeft -= numQualiRounds;
+                                for (Int r = 0; r < numRoundsLeft; r++)
+                                    cup->mRounds[r + numQualiRounds].mRoundID.SetFromInt(r + 5);
+                            }
+                        }
+                        if (cup->mRounds.empty()) {
+                            // use template
+                            UInt numRounds = cupTemplate->mRounds.size();
+                            cup->mRounds.resize(numRounds);
+                            for (UInt i = 0; i < numRounds; i++) {
+                                cup->mRounds[i].mTeamsRound = cupTemplate->mRounds[i]->mTeamsRound;
+                                cup->mRounds[i].mNewTeamsRound = cupTemplate->mRounds[i]->mNewTeamsRound;
+                                cup->mRounds[i].mStartBeg = cupTemplate->mRounds[i]->mStartBeg;
+                                cup->mRounds[i].mEndBeg = cupTemplate->mRounds[i]->mEndBeg;
+                                cup->mRounds[i].mFlags = cupTemplate->mRounds[i]->mFlags;
+                                cup->mRounds[i].mRoundID = cupTemplate->mRounds[i]->mRoundID;
+                            }
+                        }
+                        cup->mNumTeams = 0;
+                        if (cupInfo.mBonus <= 0)
+                            cupInfo.mBonus = AlignMoneyValue(cupInfo.mReputation * cupInfo.mReputation * 75, 1'000);
+                        if (cupInfo.mTvBonus <= 0)
+                            cupInfo.mTvBonus = AlignMoneyValue((cupInfo.mReputation * cupInfo.mReputation * cupInfo.mReputation * cupInfo.mReputation) / 320, 1'000);
+                        UInt numMatchdays = 0;
+                        for (UInt r = 0; r < cup->mRounds.size(); r++) {
+                            cup->mNumTeams += cup->mRounds[r].mNewTeamsRound;
+                            cup->mRounds[r].mBonuses[1] = cupInfo.mBonus;
+                            cup->mRounds[r].mBonuses[3] = cupInfo.mTvBonus;
+                            UInt roundId = cup->mRounds.size() - r - 1;
+                            if (roundId != 0) {
+                                UInt divValue = 1 << roundId;
+                                cup->mRounds[r].mBonuses[1] = AlignMoneyValue(cup->mRounds[r].mBonuses[1] / divValue, 1'000u);
+                                cup->mRounds[r].mBonuses[3] = AlignMoneyValue(cup->mRounds[r].mBonuses[3] / divValue, 1'000u);
+                            }
+                            numMatchdays += cup->mRounds[r].mFlags.Check(FifamBeg::With2ndLeg) ? 2 : 1;
+                        }
+                        if (!cupInfo.mStructure.empty()) {
+                            UInt currentLevel = 0;
+                            if (cupInfo.mMaxLevel > 1)
+                                currentLevel = cupInfo.mMaxLevel - 1;
+                            for (auto c : cupInfo.mStructure) {
+                                switch (c) {
+                                case L'-':
+                                    if (mLeaguesSystem[country->mId - 1][currentLevel].size() > 0)
+                                        cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(mLeaguesSystem[country->mId - 1][currentLevel][0]->mID, 1, 24));
+                                    currentLevel++;
+                                    break;
+                                case L'|':
+                                    cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_LEVEL_X_TO_Y(currentLevel, 1, 24));
+                                    currentLevel++;
+                                    break;
+                                case L'W':
+                                    cup->mInstructions.PushBack(new FifamInstruction::GET_CC_FA_WINNER({ country->mId, FifamCompType::FaCup, 1 }));
+                                    break;
+                                case L'S':
+                                    cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
+                                    break;
+                                case L'C':
+                                    cup->mInstructions.PushBack(new FifamInstruction::GET_CHAMP({ country->mId, FifamCompType::FaCup, 0 }));
+                                    break;
+                                case L'L':
+                                    cup->mInstructions.PushBack(new FifamInstruction::GET_CHAMP({ country->mId, FifamCompType::League, 0 }));
+                                    break;
+                                case L'R':
+                                    cup->mInstructions.PushBack(new FifamInstruction::GET_RUNNER_UP({ country->mId, FifamCompType::FaCup, 0 }));
+                                    break;
+                                case L'N':
+                                    cup->mInstructions.PushBack(new FifamInstruction::GET_RUNNER_UP({ country->mId, FifamCompType::League, 0 }));
+                                    break;
+                                }
+                            }
+                        }
+                        if (cup->mInstructions.Empty()) {
+                            if (cupInfo.mType == CupInfo::Supercup) {
+                                cup->mInstructions.PushBack(new FifamInstruction::GET_CHAMP({ country->mId, FifamCompType::FaCup, 0 }));
+                                cup->mInstructions.PushBack(new FifamInstruction::GET_CHAMP({ country->mId, FifamCompType::League, 0 }));
+                                cup->mInstructions.PushBack(new FifamInstruction::GET_RUNNER_UP({ country->mId, FifamCompType::FaCup, 0 }));
+                                cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_LEVEL_X_TO_Y(0, 1, 24));
+                            }
+                            else {
+                                UInt maxLevel = 0;
+                                if (cupInfo.mMaxLevel > 1)
+                                    maxLevel = cupInfo.mMaxLevel - 1;
+                                for (auto const &level : mLeaguesSystem[country->mId - 1]) {
+                                    if (level.first >= maxLevel) {
+                                        if (level.first == 0 && level.second.size() == 1)
+                                            cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(level.second[0]->mID, 1, 24));
+                                        else if (level.second.size() > 0)
+                                            cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_LEVEL_X_TO_Y(level.first, 1, 24));
+                                    }
+                                }
+                                cup->mInstructions.PushBack(new FifamInstruction::GET_CC_FA_WINNER({ country->mId, FifamCompType::FaCup, 1 }));
+                                cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
+                            }
+                        }
+                        //cup->mMathcdays
+                        //for (UInt r = 0; r < cup->mRounds.size(); r++) {
+                        for (UInt m = 0; m < numMatchdays; m++) {
+                            if (cupCompType == FifamCompType::FaCup)
+                                cup->mFirstSeasonMatchdays.push_back(startMatchdayFaCup++);
+                            else if (cupCompType == FifamCompType::LeagueCup)
+                                cup->mFirstSeasonMatchdays.push_back(startMatchdayLeagueCup++);
+                            else if (cupCompType == FifamCompType::SuperCup)
+                                cup->mFirstSeasonMatchdays.push_back(startMatchdaySuperCup++);
+                        }
+                        //}
+                        cup->mSecondSeasonMatchdays = cup->mFirstSeasonMatchdays;
+                    }
+                }
+            }
         }
     }
 
@@ -720,7 +1103,8 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     }
 
     for (auto &country : mFifamDatabase->mCountries) {
-        if (country) {
+        UInt maxClubs = gameId >= 10 ? 1000 : 500;
+        if (country && country->mClubs.size() < maxClubs) {
             if (!spareClubs[country->mId - 1].empty()) {
                 std::sort(spareClubs[country->mId - 1].begin(), spareClubs[country->mId - 1].end(), [](foom::club *a, foom::club *b) {
                     UInt teamALeagueLevel = a->mDivision ? a->mDivision->mCompetitionLevel : 0;
@@ -735,26 +1119,16 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     if (b->mReputation > a->mReputation) return false;
                     return false;
                 });
-                UInt numSpareClubsToAdd = mNumTeamsInLeagueSystem[country->mId - 1];
-                UInt maxClubs = gameId >= 10 ? 1000 : 500;
-                if (numSpareClubsToAdd == 0)
-                    numSpareClubsToAdd = 8;
-                else {
-                    if (numSpareClubsToAdd >= maxClubs)
-                        numSpareClubsToAdd = maxClubs;
-                    else {
-                        numSpareClubsToAdd = numSpareClubsToAdd; // set num of spare teams here
-                        if (numSpareClubsToAdd >= maxClubs)
-                            numSpareClubsToAdd = maxClubs;
-                    }
-                }
-                //numSpareClubsToAdd = 1023 - mNumTeamsInLeagueSystem[country->mId - 1];
+                UInt numSpareClubsToAdd = 8;
+                if (mLeaguesSystem[country->mId - 1].begin() != mLeaguesSystem[country->mId - 1].end() && (*mLeaguesSystem[country->mId - 1].begin()).second.size())
+                    numSpareClubsToAdd = 100;
+                if ((numSpareClubsToAdd + country->mClubs.size()) >= maxClubs)
+                    numSpareClubsToAdd = maxClubs - country->mClubs.size();
                 if (numSpareClubsToAdd > spareClubs[country->mId - 1].size())
                     numSpareClubsToAdd = spareClubs[country->mId - 1].size();
                 for (UInt i = 0; i < numSpareClubsToAdd; i++) {
                     foom::club *team = spareClubs[country->mId - 1][i];
                     CreateAndConvertClub(gameId, team, team, country, nullptr);
-
                 }
             }
         }
@@ -927,7 +1301,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     if (r.mDivision && r.mDivision->mConverterData.mLeague) {
                         FifamCompLeague *league = (FifamCompLeague *)r.mDivision->mConverterData.mLeague;
                         if (league->mID.mRegion.ToInt() == country->mId) {
-                            if (league->mLeagueLevel > 0 && mLeaguesSystem[league->mLeagueLevel].size() > 1)
+                            if (league->mLeagueLevel > 0 && mLeaguesSystem[country->mId - 1][league->mLeagueLevel].size() > 1)
                                 availableLowestLeagues[league->mLeagueLevel].push_back(league);
                         }
                     }
@@ -935,7 +1309,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
             }
             for (auto &le : availableLowestLeagues) {
                 if (le.second.size() == 1) {
-                    dst->mLowestLeagues.push_back(le.second[0]);
+                    dst->mLowestLeagues.push_back(le.second[0]->mID);
                     if (dst->mLowestLeagues.size() >= 3)
                         break;
                 }
@@ -1040,6 +1414,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     natPrestige = maxAllowedPrestigeForPlace;
                 if (natPrestige > country->mClubs[i]->mNationalPrestige)
                     country->mClubs[i]->mNationalPrestige = natPrestige;
+
             }
         }
     }
@@ -1049,7 +1424,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
         auto &team = entry.second;
         // team is present in db
         if (team.mConverterData.mFifamClub) {
-            std::wcout << L"Team: " << team.mID <<  std::endl;
+            //std::wcout << L"Team: " << team.mID << std::endl;
             UInt howManyPlayersCanIAdditionalyCreate = 0;
             UInt howManyYouthPlayersCanIAdditionalyCreate = 0;
             UInt potentialSquadSize =
@@ -1435,6 +1810,173 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
             ProcessPersonFavouriteAndDislikedClubs(&p, (FifamStaff *)p.mConverterData.mFifamPerson);
     }
 
+    // process player history and experience
+    std::wcout << L"Processing player history and experience..." << std::endl;
+    for (auto &entry : mFoomDatabase->mPlayers) {
+        auto &p = entry.second;
+        if (p.mConverterData.mFifamPerson) {
+            FifamPlayer *player = (FifamPlayer *)p.mConverterData.mFifamPerson;
+            // history - validate years
+            for (auto &h : p.mVecPlayingHistory) {
+                if (h.mYear <= 0) {
+                    Error(L"Wrong date in player history\nPlayer: %s\nPlayerID: %d", p.mFullName.c_str(), p.mID);
+                    h.mYear = 1970;
+                }
+            };
+            // history - sort history entries
+            std::sort(p.mVecPlayingHistory.begin(), p.mVecPlayingHistory.end(), [](foom::player::playing_history const &a, foom::player::playing_history const &b) {
+                if (a.mYear < b.mYear) return true;
+                if (b.mYear < a.mYear) return true;
+                return a.mOrder < b.mOrder;
+            });
+
+            // history - separate by years
+            Map<Int, Vector<foom::player::playing_history *>> playerHistoryMap;
+            for (auto &h : p.mVecPlayingHistory) {
+                if (h.mYear <= CURRENT_YEAR) // ignore 'future' records
+                    playerHistoryMap[h.mYear].push_back(&h);
+            }
+
+            auto GetPlayerHistorySeasonStartDate = [=](Int year) {
+                if (year == CURRENT_YEAR)
+                    return FifamDate(1, 1, CURRENT_YEAR);
+                return FifamDate(1, 7, year);
+            };
+
+            auto GetPlayerHistorySeasonEndDate = [=](Int year, bool hasCurrentYear) {
+                if (year == CURRENT_YEAR)
+                    return FifamDate(30, 6, CURRENT_YEAR);
+                else if (year == (CURRENT_YEAR - 1) && hasCurrentYear)
+                    return FifamDate(31, 12, year);
+                return FifamDate(30, 6, year + 1);
+            };
+
+            // history - fill player history
+            foom::player::playing_history *lastEntry = nullptr;
+            Vector<FifamPlayerHistoryEntry> history;
+            bool hasCurrent = playerHistoryMap.count(CURRENT_YEAR) > 0;
+            Int lastTransferFee = 0;
+            for (auto const &e : playerHistoryMap) {
+                for (auto &h : e.second) {
+                    FifamPlayerHistoryEntry *last = nullptr;
+                    if (!history.empty())
+                        last = &history.back();
+                    FifamPlayerHistoryEntry *curr = nullptr;
+                    FifamClubLink historyClub;
+                    if (h->mClub)
+                        historyClub = GetTeamClubLink(h->mClub);
+                    bool createNewEntry = true;
+                    bool sameClub = false;
+
+                    if (last) {
+                        if (historyClub.mPtr && historyClub.mPtr == last->mClub.mPtr) {
+                            sameClub = true;
+                            if (h->mOnLoan == last->mLoan)
+                                createNewEntry = false;
+                        }
+                        else if (lastEntry && lastEntry->mClub && h->mClub) {
+                            if (h->mClub == lastEntry->mClub || h->mClub->mConverterData.mParentClub == lastEntry->mClub || lastEntry->mClub->mConverterData.mParentClub == h->mClub) {
+                                sameClub = true;
+                                if (h->mOnLoan == last->mLoan)
+                                    createNewEntry = false;
+                            }
+                        }
+                    }
+                    if (!createNewEntry) {
+                        curr = last;
+                        curr->mEndDate = GetPlayerHistorySeasonEndDate(h->mYear, hasCurrent);
+                    }
+                    else {
+                        curr = &history.emplace_back();
+                        curr->mClub = FifamClubLink(historyClub.mPtr);
+                        curr->mStartDate = GetPlayerHistorySeasonStartDate(h->mYear);
+                        curr->mEndDate = GetPlayerHistorySeasonEndDate(h->mYear, hasCurrent);
+                        curr->mLoan = h->mOnLoan;
+                    }
+                    if (!h->mYouthTeam) {
+                        bool firstTeam = true;
+                        if (historyClub.IsValid())
+                            firstTeam = historyClub.mTeamType == FifamClubTeamType::First;
+                        else
+                            firstTeam = !h->mClub || !h->mClub->mConverterData.mParentClub;
+                        if (firstTeam) { // MAYBE: also check division level?
+                            curr->mMatches += h->mApps;
+                            curr->mGoals += h->mGoals;
+                        }
+                        else {
+                            curr->mReserveMatches += h->mApps;
+                            curr->mReserveGoals += h->mGoals;
+                        }
+                    }
+                    if (h->mOnLoan) {
+                        if (h->mTransferFee > 0)
+                            curr->mTransferFee = foom::db::convert_money(h->mTransferFee);
+                    }
+                    else if (lastTransferFee > 0)
+                        curr->mTransferFee = foom::db::convert_money(lastTransferFee);
+                    if (!h->mOnLoan)
+                        lastTransferFee = h->mTransferFee;
+                    if (sameClub && !curr->mLoan && last->mLoan) {
+                        //Int lastFee = last->mTransferFee;
+                        //last->mTransferFee = curr->mTransferFee;
+                        //curr->mTransferFee = lastFee;
+                    }
+                    lastEntry = h;
+                }
+            }
+
+            if (!history.empty()) {
+                if (player->mClub) {
+                    FifamPlayerHistoryEntry &last = history.back();
+                    if (last.mClub.mPtr != player->mClub || last.mLoan) {
+                        FifamPlayerHistoryEntry &curr = history.emplace_back();
+                        curr.mClub = FifamClubLink(player->mClub);
+                        curr.mStartDate = FifamDate(1, 7, CURRENT_YEAR);
+                        curr.mEndDate = FifamDate(1, 7, CURRENT_YEAR);
+                        //curr.mLoan = h->mOnLoan;
+                        if (lastTransferFee > 0)
+                            curr.mTransferFee = foom::db::convert_money(lastTransferFee);
+                    }
+                    history.back().mStillInThisClub = true;
+                }
+                // NOTE: check this
+                if (p.mCurrentAbility >= 25) {
+                    for (auto const &h : history)
+                        player->mHistory.mEntries.insert(h);
+                }
+            }
+
+            // national/international experience
+            UInt totalLeagueMatches = 0;
+            for (auto &careerEntry : player->mHistory.mEntries)
+                totalLeagueMatches += careerEntry.mMatches + careerEntry.mReserveMatches;
+            UInt totalInternationalMatches = player->mNationalTeamMatches;
+            if (totalLeagueMatches > 450)
+                player->mNationalExperience = 6;
+            else if (totalLeagueMatches > 350)
+                player->mNationalExperience = 5;
+            else if (totalLeagueMatches > 250)
+                player->mNationalExperience = 4;
+            else if (totalLeagueMatches > 150)
+                player->mNationalExperience = 3;
+            else if (totalLeagueMatches > 50)
+                player->mNationalExperience = 2;
+            else if (totalLeagueMatches > 20)
+                player->mNationalExperience = 1;
+            else
+                player->mNationalExperience = 0;
+
+            if (p.mInternationalApps > 85)
+                player->mInternationalExperience = 4;
+            else if (p.mInternationalApps >= 55)
+                player->mInternationalExperience = 3;
+            else if (p.mInternationalApps >= 30)
+                player->mInternationalExperience = 2;
+            else if (p.mInternationalApps >= 10)
+                player->mInternationalExperience = 1;
+        }
+    }
+
     // add players to national teams
     std::wcout << L"Adding players to national teams..." << std::endl;
     for (auto &n : mNationalTeamPlayers) {
@@ -1461,7 +2003,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
         if (!official.mFemale && official.mNation) {
             auto country = mFifamDatabase->GetCountry(official.mNation->mConverterData.mFIFAManagerReplacementID);
             if (country) {
-                auto referee = country->AddReferee();
+                FifamReferee *referee = country->AddReferee();
                 ConvertReferee(referee, &official);
             }
         }
@@ -1847,6 +2389,86 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     //
     //}
 
+    {
+        FifamWriter fifaPlayersWriter(L"fm-fifa-players.csv", 14, 0, 0);
+        if (fifaPlayersWriter.Available()) {
+            fifaPlayersWriter.WriteLine(L"Country,Level,Club,Name,Birthdate,Nationality,Rating,FoomID,FifaID");
+            auto WriteOnePlayer = [&](foom::player *_player, foom::club *_club, Int level, FifaTeam *fifaClub) {
+                String countryName;
+                if (_club && _club->mNation)
+                    countryName = Quoted(_club->mNation->mShortName)();
+                String clubName;
+                if (_club)
+                    clubName = Quoted(_club->mShortName)();
+                String fifaIdStr;
+                if (_player->mNation && fifaClub) {
+                    fifaClub->ForAllPlayers([&](FifaPlayer &fifaPlayer) {
+                        if (fifaIdStr.empty()) {
+                            if (fifaPlayer.internal.nationality == _player->mNation->mConverterData.mFIFAID && fifaPlayer.m_birthDate == _player->mDateOfBirth)
+                                fifaIdStr = Utils::Format(L"%d", fifaPlayer.internal.playerid);
+                        }
+                    });
+                    if (fifaIdStr.empty()) {
+                        String foomPlayerName = Utils::GetQuickName(_player->mFirstName, _player->mSecondName, _player->mCommonName);
+                        fifaClub->ForAllPlayers([&](FifaPlayer &fifaPlayer) {
+                            if (fifaIdStr.empty()) {
+                                if (fifaPlayer.m_quickName == foomPlayerName)
+                                    fifaIdStr = Utils::Format(L"%d", fifaPlayer.internal.playerid);
+                            }
+                        });
+                    }
+                }
+                String playerName;
+                if (!_player->mCommonName.empty())
+                    playerName = _player->mCommonName;
+                else {
+                    if (!_player->mFirstName.empty())
+                        playerName = _player->mFirstName;
+                    if (!_player->mSecondName.empty()) {
+                        if (!playerName.empty())
+                            playerName += L" ";
+                        playerName += _player->mSecondName;
+                    }
+                }
+                fifaPlayersWriter.WriteLine(
+                    countryName,
+                    level,
+                    clubName,
+                    Quoted(playerName),
+                    _player->mDateOfBirth,
+                    _player->mNation ? _player->mNation->mThreeLetterName : L"",
+                    _player->mCurrentAbility / 10,
+                    _player->mID,
+                    fifaIdStr);
+            };
+            for (auto &entry : mFoomDatabase->mClubs) {
+                foom::club &team = entry.second;
+                if (!team.mExtinct && team.mNation) {
+                    Int leagueLevel = 99;
+                    if (team.mDivision && team.mDivision->mCompetitionLevel > 0)
+                        leagueLevel = team.mDivision->mCompetitionLevel;
+
+                    FifaTeam *fifaClub = nullptr;
+                    if (team.mConverterData.mFIFAID != 0)
+                        fifaClub = mFifaDatabase->GetTeam(team.mConverterData.mFIFAID);
+
+                    for (foom::player *p : team.mConverterData.mContractedPlayers)
+                        WriteOnePlayer(p, &team, leagueLevel, fifaClub);
+                    for (foom::player *p : team.mConverterData.mLoanedPlayers)
+                        WriteOnePlayer(p, &team, leagueLevel, fifaClub);
+                        
+                }
+            }
+            FifaTeam *freeAgentsClub = mFifaDatabase->GetTeam(111592);
+            for (auto &entry : mFoomDatabase->mPlayers) {
+                foom::player p = entry.second;
+                if (!p.mContract.mClub)
+                    WriteOnePlayer(&p, nullptr, 99, freeAgentsClub);
+            }
+            fifaPlayersWriter.Close();
+        }
+    }
+
     FifamVersion version = FifamDatabase::GetGameDbVersion(gameId);
     std::wcout << L"Writing database..." << std::endl;
     mFifamDatabase->Write(gameId, version.GetYear(), version.GetNumber(),
@@ -1937,15 +2559,21 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
         }
     }
 
+#if 0
     GraphicsConverter graphicsConverter;
-    Path graphicsPath = L"D:\\Documents\\Sports Interactive\\Football Manager 2019\\graphics";
-    Path contentPath = L"D:\\Projects\\fifam\\content";
-    std::wcout << L"Converting badges..." << std::endl;
-    graphicsConverter.ConvertClubBadges(mFoomDatabase, graphicsPath, contentPath, gameId, 9000);
+    std::wcout << L"Converting club badges..." << std::endl;
+    graphicsConverter.ConvertClubBadges(mFoomDatabase, mAvailableBadges, graphicsPath, contentPath, gameId, 8000);
     std::wcout << L"Converting portraits..." << std::endl;
     graphicsConverter.ConvertPortraits(mFoomDatabase, graphicsPath, contentPath, gameId, 160);
+    std::wcout << L"Converting competition badges..." << std::endl;
+    graphicsConverter.ConvertCompBadges(mFifamDatabase, graphicsPath, contentPath, gameId, 160);
+    std::wcout << L"Converting trophies..." << std::endl;
+    graphicsConverter.ConvertTrophies(mFifamDatabase, graphicsPath, contentPath, gameId, 160);
+#endif
+
     delete mFifamDatabase;
     delete mFoomDatabase;
+    delete mFifaDatabase;
 }
 
 FifamClub *Converter::CreateAndConvertClub(UInt gameId, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div) {
@@ -2019,7 +2647,7 @@ void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation) {
     dst->mNumContinentalChampions = (UShort)nation->mConverterData.mContinentalCupWins.size();
     dst->mNumContinentalRunnersUp = (UShort)nation->mConverterData.mContinentalCupFinals.size();
 
-    ConvertKitsAndColors(&dst->mNationalTeam, nation->mVecKits, -1, nation->mBackgroundColor, nation->mForegroundColor);
+    ConvertKitsAndColors(&dst->mNationalTeam, -1, nation->mVecKits, -1, nation->mBackgroundColor, nation->mForegroundColor);
 }
 
 void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div) {
@@ -2296,10 +2924,10 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
         }
     }
 
-    ConvertKitsAndColors(dst, mainTeam->mVecKits, team->mBadge, team->mBackgroundColor, team->mForegroundColor);
+    ConvertKitsAndColors(dst, team->mID, mainTeam->mVecKits, team->mBadge, team->mBackgroundColor, team->mForegroundColor);
 }
 
-void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &kits, Int badgeType, Color const &teamBackgroundColor, Color const &teamForegroundColor) {
+void Converter::ConvertKitsAndColors(FifamClub *dst, Int foomId, Vector<foom::kit> const &kits, Int badgeType, Color const &teamBackgroundColor, Color const &teamForegroundColor) {
     enum KitPart { Shirt, Icon, Text, Shorts, Socks };
 
     const foom::kit *tmpKitSets[5][2] = {};
@@ -2407,51 +3035,64 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Vector<foom::kit> const &ki
         dst->mBackgroundColour = backgroundClr;
         dst->mHeaderColour = foregroundClr;
     }
-    dst->mBadge.SetColorDefault(dst->mClubColour);
 
-    if (badgeType != -1) {
-        Bool inverted = Random::Get(0, 1);
-        switch (badgeType) {
-        case 0:
-            dst->mBadge.SetColor(FifamClubBadgeShape::Ball, 1, 1, inverted);
-            break;
-        case 1:
-        case 13:
-            dst->mBadge.SetColor(FifamClubBadgeShape::Round, 1, 7, inverted);
-            break;
-        case 2:
-            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 5, Random::Get(1, 4), inverted);
-            break;
-        case 3:
-            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 2, 1, inverted);
-            break;
-        case 4:
-            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 6, 1, inverted);
-            break;
-        case 5:
-            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 17, 1, inverted);
-            break;
-        case 6:
-            dst->mBadge.SetColor(FifamClubBadgeShape::Round, 1, Random::Get(1, 2), false);
-            break;
-        case 7:
-            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 4, 2, inverted);
-            break;
-        case 8:
-            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 8, 1, inverted);
-            break;
-        case 9:
-            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 4, 4, inverted);
-            break;
-        case 10:
-            dst->mBadge.SetColor(FifamClubBadgeShape::Oval, 1, 1, false);
-            break;
-        case 11:
-            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 10, 1, inverted);
-            break;
-        case 12:
-            dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 9, 1, inverted);
-            break;
+    bool hasCustomBadge = false;
+
+    if (foomId != -1) {
+        auto badgeIt = mAvailableBadges.find(foomId);
+        if (badgeIt != mAvailableBadges.end()) {
+            dst->mBadge.SetBadgePath(L"clubs\\Badge%d\\" + Utils::Format(L"%08X", dst->mUniqueID) + L".tga");
+            hasCustomBadge = true;
+        }
+    }
+
+    if (!hasCustomBadge) {
+        dst->mBadge.SetColorDefault(dst->mClubColour);
+
+        if (badgeType != -1) {
+            Bool inverted = Random::Get(0, 1);
+            switch (badgeType) {
+            case 0:
+                dst->mBadge.SetColor(FifamClubBadgeShape::Ball, 1, 1, inverted);
+                break;
+            case 1:
+            case 13:
+                dst->mBadge.SetColor(FifamClubBadgeShape::Round, 1, 7, inverted);
+                break;
+            case 2:
+                dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 5, Random::Get(1, 4), inverted);
+                break;
+            case 3:
+                dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 2, 1, inverted);
+                break;
+            case 4:
+                dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 6, 1, inverted);
+                break;
+            case 5:
+                dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 17, 1, inverted);
+                break;
+            case 6:
+                dst->mBadge.SetColor(FifamClubBadgeShape::Round, 1, Random::Get(1, 2), false);
+                break;
+            case 7:
+                dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 4, 2, inverted);
+                break;
+            case 8:
+                dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 8, 1, inverted);
+                break;
+            case 9:
+                dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 4, 4, inverted);
+                break;
+            case 10:
+                dst->mBadge.SetColor(FifamClubBadgeShape::Oval, 1, 1, false);
+                break;
+            case 11:
+                dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 10, 1, inverted);
+                break;
+            case 12:
+                dst->mBadge.SetColor(FifamClubBadgeShape::Crest, 9, 1, inverted);
+                break;
+            }
         }
     }
 
@@ -3193,8 +3834,20 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
         player->mRightFoot = 4;
 
     // appearance
-    player->mHeight = p->mHeight;
-    player->mWeight = p->mWeight;
+    player->mHeight = Utils::Clamp(p->mHeight, 150, 220);
+    if (player->mHeight <= 0) {
+        if (playerCountry->mAverageHeight > 10)
+            player->mHeight = Utils::Clamp(playerCountry->mAverageHeight - 10 + Random::Get(0, 20), 150, 220);
+        else
+            player->mHeight = 180;
+    }
+    player->mWeight = Utils::Clamp(p->mWeight, 50, 150);
+    if (player->mWeight <= 0) {
+        if (playerCountry->mAverageWeight > 10)
+            player->mWeight = Utils::Clamp(playerCountry->mAverageWeight - 10 + Random::Get(0, 20), 50, 150);
+        else
+            player->mWeight = 75;
+    }
 
     UInt randomShoeType = Random::Get(1, 99);
     if (randomShoeType > 66)
@@ -3204,6 +3857,52 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
     else
         player->mShoeType = FifamShoeType::Black;
 
+    AppearanceGenerator::Type ethnicity = AppearanceGenerator::EasternEuropeDark;
+
+    if (p->mEthnicity == 0) {
+        if (p->mSkinTone <= 7)
+            ethnicity = AppearanceGenerator::EasternEuropeLight;
+        else
+            ethnicity = AppearanceGenerator::EasternEuropeDark;
+    }
+    else if (p->mEthnicity == 1) {
+        if (p->mSkinTone < 0 || p->mSkinTone >= 8)
+            ethnicity = AppearanceGenerator::WesternEuropeDark;
+        else
+            ethnicity = AppearanceGenerator::WesternEuropeLight;
+    }
+    else if (p->mEthnicity == 2) {
+        if (p->mSkinTone <= 10)
+            ethnicity = AppearanceGenerator::Arabic2;
+        else
+            ethnicity = AppearanceGenerator::Arabic1;
+    }
+    else if (p->mEthnicity == 3) {
+        if (p->mSkinTone < 0 || p->mSkinTone >= 16)
+            ethnicity = AppearanceGenerator::African1;
+        else
+            ethnicity = AppearanceGenerator::African2;
+    }
+    else if (p->mEthnicity == 4 || p->mEthnicity == 10)
+        ethnicity = AppearanceGenerator::Asian;
+    else if (p->mEthnicity == 5)
+        ethnicity = AppearanceGenerator::Indian;
+    else if (p->mEthnicity == 6 || p->mEthnicity == 8) {
+        if (p->mSkinTone <= 7)
+            ethnicity = AppearanceGenerator::WesternEuropeLight;
+        else
+            ethnicity = AppearanceGenerator::WesternEuropeDark;
+    }
+    else if (p->mEthnicity == 7 || p->mEthnicity == 9)
+        ethnicity = AppearanceGenerator::Latin;
+
+    // first - generate random appearance for ethnicity
+    appearanceGenerator.Generate(player, ethnicity);
+
+    if (player->mAppearance.mHairStyle <= 1)
+        player->mAppearance.mHairStyle = 28;
+
+    // second - apply skin color and hair color (if available)
     bool skinColorSet = false;
     if (p->mSkinTone >= 0 && p->mSkinTone <= 20) {
         if (p->mSkinTone <= 6) // 1, 2, 3, 4, 5, 6, 7
@@ -3250,6 +3949,39 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
         hairColorSet = true;
     }
 
+    // third - convert appearance from FIFA (if available)
+    if (p->mConverterData.mFifaPlayerId > 0) {
+        FifaPlayer *fifaPlayer = mFifaDatabase->GetPlayer(p->mConverterData.mFifaPlayerId);
+        if (fifaPlayer)
+            appearanceGenerator.SetFromFifaPlayer(player, fifaPlayer);
+    }
+
+    // fourth - apply custom appearance (if available)
+    bool hasCustomFace = false;
+    bool hasCustomHair = false;
+    if (p->mConverterData.mEditorFace >= 1 && p->mConverterData.mEditorFace <= 135) {
+        player->mAppearance.mGenericFace = p->mConverterData.mEditorFace - 1;
+        hasCustomFace = true;
+    }
+    if (p->mConverterData.mEditorHair >= 1 && p->mConverterData.mEditorHair <= 98) {
+        player->mAppearance.mHairStyle = FifamPlayerAppearance::GetHairIdFromEditor14Id(p->mConverterData.mEditorHair);
+        hasCustomHair = true;
+    }
+    if (p->mConverterData.mEditorBeard >= 0 && p->mConverterData.mEditorBeard <= 8)
+        player->mAppearance.mBeardType.SetFromInt(p->mConverterData.mEditorBeard);
+    else if (hasCustomFace && hasCustomHair) {
+        player->mAppearance.mBeardType = FifamBeardType::None;
+        player->mAppearance.mBeardColor = FifamBeardColor::Black;
+    }
+    if (p->mConverterData.mEditorEye >= 0 && p->mConverterData.mEditorEye <= 6)
+        player->mAppearance.mEyeColour.SetFromInt(p->mConverterData.mEditorEye);
+    else if (hasCustomFace && hasCustomHair)
+        player->mAppearance.mEyeColour = FifamEyeColor::Brown;
+    if (p->mConverterData.mEditorSkin >= 1 && p->mConverterData.mEditorSkin <= 7)
+        player->mAppearance.mSkinColor.SetFromInt(p->mConverterData.mEditorSkin - 1);
+    if (hasCustomFace && hasCustomHair)
+        player->mAppearance.mFaceVariation = FifamFaceVariation::Normal;
+
     // experience
     UInt totalExperiencePoints = 0;
     totalExperiencePoints += p->mInternationalApps * 10;
@@ -3281,129 +4013,18 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
     }
     player->mGeneralExperience = Utils::MapTo(totalExperiencePoints, 0, 2500, 0, 18);
 
-
     // potential
-
-    static Pair<UChar, UChar> potentialTable[100] = {
-        { 100, 199 },
-        { 99, 198 },
-        { 98, 197 },
-        { 97, 196 },
-        { 96, 195 },
-        { 95, 192 },
-        { 94, 189 },
-        { 93, 185 },
-        { 92, 182 },
-        { 91, 179 },
-        { 90, 174 },
-        { 89, 170 },
-        { 88, 167 },
-        { 87, 164 },
-        { 86, 160 },
-        { 85, 155 },
-        { 84, 150 },
-        { 83, 145 },
-        { 82, 140 },
-        { 81, 137 },
-        { 80, 135 },
-        { 79, 132 },
-        { 78, 130 },
-        { 77, 128 },
-        { 76, 126 },
-        { 75, 124 },
-        { 74, 122 },
-        { 73, 120 },
-        { 72, 115 },
-        { 71, 112 },
-        { 70, 110 },
-        { 69, 108 },
-        { 68, 106 },
-        { 67, 104 },
-        { 66, 102 },
-        { 65, 100 },
-        { 64, 98 },
-        { 63, 96 },
-        { 62, 94 },
-        { 61, 92 },
-        { 60, 90 },
-        { 59, 88 },
-        { 58, 86 },
-        { 57, 84 },
-        { 56, 82 },
-        { 55, 80 },
-        { 54, 78 },
-        { 53, 76 },
-        { 52, 74 },
-        { 51, 72 },
-        { 50, 70 },
-        { 49, 68 },
-        { 48, 66 },
-        { 47, 64 },
-        { 46, 62 },
-        { 45, 60 },
-        { 44, 58 },
-        { 43, 56 },
-        { 42, 54 },
-        { 41, 52 },
-        { 40, 50 },
-        { 39, 48 },
-        { 38, 46 },
-        { 37, 44 },
-        { 36, 42 },
-        { 35, 40 },
-        { 34, 38 },
-        { 33, 36 },
-        { 32, 34 },
-        { 31, 32 },
-        { 30, 30 },
-        { 29, 29 },
-        { 28, 28 },
-        { 27, 27 },
-        { 26, 26 },
-        { 25, 25 },
-        { 24, 24 },
-        { 23, 23 },
-        { 22, 22 },
-        { 21, 21 },
-        { 20, 20 },
-        { 19, 19 },
-        { 18, 18 },
-        { 17, 17 },
-        { 16, 16 },
-        { 15, 15 },
-        { 14, 14 },
-        { 13, 13 },
-        { 12, 12 },
-        { 11, 11 },
-        { 10, 10 },
-        { 9, 9 },
-        { 8, 8 },
-        { 7, 7 },
-        { 6, 6 },
-        { 5, 5 },
-        { 4, 4 },
-        { 3, 3 },
-        { 2, 2 },
-        { 1, 1 }
-    };
-
-    player->mPotential = 1;
-    for (UInt i = 0; i < 100; i++) {
-        if (p->mPotentialAbility >= potentialTable[i].second) {
-            player->mPotential = potentialTable[i].first;
-            break;
-        }
-    }
+    player->mPotential = GetPlayerLevelFromCA(p->mPotentialAbility);
 
     // talent
     if (gameId >= 9) {
         UInt maxTalent = 9;
         UChar *potantialAbilityRanges = nullptr;
-        static UChar potantialAbilityRanges1to10[9] = { 35, 55, 75, 95, 116, 135, 155, 169, 190 };
-        potantialAbilityRanges = potantialAbilityRanges1to10;
+        static UChar potentialAbilityRanges1to10[9] = { 35, 55, 75, 95, 116, 135, 155, 169, 190 };
+        potantialAbilityRanges = potentialAbilityRanges1to10;
         player->mTalent = 0;
         for (UInt i = 0; i < maxTalent; i++) {
-            if (p->mPotentialAbility >= potantialAbilityRanges[maxTalent - 1 - i]) {
+            if (p->mPotentialAbility >= potentialAbilityRanges1to10[maxTalent - 1 - i]) {
                 player->mTalent = maxTalent - i;
                 break;
             }
@@ -3806,7 +4427,7 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
         player->mPlayingStyle = bestStyle;
     }
 
-    UChar desiredLevel = GetPlayerLevelFromCA(p->mCurrentAbility > 5 ? p->mCurrentAbility : 5);
+    UChar desiredLevel = GetPlayerLevelFromCA(p->mCurrentAbility > 0 ? p->mCurrentAbility : 1);
     UChar currLevel = player->GetLevel(true);
     Int levelDiff = desiredLevel - currLevel;
     if (levelDiff != 0) {
@@ -3842,134 +4463,10 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
 
     player->mTacticalEducation = Utils::MapTo(player->mAttributes.TacticAwareness, 1, 99, 0, 7);
 
-    // history - validate years
-    for(auto &h : p->mVecPlayingHistory) {
-        if (h.mYear <= 0) {
-            Error("Wrong date in player history\nPlayer: %s\nPlayerID: %d", p->mFullName.c_str(), p->mID);
-            h.mYear = 1970;
-        }
-    };
-    // history - sort history entries
-    std::sort(p->mVecPlayingHistory.begin(), p->mVecPlayingHistory.end(), [](foom::player::playing_history const &a, foom::player::playing_history const &b) {
-        if (a.mYear < b.mYear) return true;
-        if (b.mYear < a.mYear) return true;
-        return a.mOrder < b.mOrder;
-    });
-
-    // history - separate by years
-    Map<Int, Vector<foom::player::playing_history *>> playerHistoryMap;
-    for (auto &h : p->mVecPlayingHistory) {
-        if (h.mYear <= CURRENT_YEAR) // ignore 'future' records
-            playerHistoryMap[h.mYear].push_back(&h);
-    }
-
-    auto GetPlayerHistorySeasonStartDate = [=](Int year) {
-        if (year == CURRENT_YEAR)
-            return FifamDate(1, 1, CURRENT_YEAR);
-        return FifamDate(1, 7, year);
-    };
-
-    auto GetPlayerHistorySeasonEndDate = [=](Int year, bool hasCurrentYear) {
-        if (year == CURRENT_YEAR)
-            return FifamDate(30, 6, CURRENT_YEAR);
-        else if (year == (CURRENT_YEAR - 1) && hasCurrentYear)
-            return FifamDate(31, 12, year);
-        return FifamDate(30, 6, year + 1);
-    };
-
-    // history - fill player history
-    foom::player::playing_history *lastEntry = nullptr;
-    Vector<FifamPlayerHistoryEntry> history;
-    bool hasCurrent = playerHistoryMap.count(CURRENT_YEAR) > 0;
-    Int lastTransferFee = 0;
-    for (auto const &e : playerHistoryMap) {
-        for (auto &h : e.second) {
-            FifamPlayerHistoryEntry *last = nullptr;
-            if (!history.empty())
-                last = &history.back();
-            FifamPlayerHistoryEntry *curr = nullptr;
-            FifamClubLink historyClub;
-            if (h->mClub)
-                historyClub = GetTeamClubLink(h->mClub);
-            bool createNewEntry = true;
-            bool sameClub = false;
-
-            if (last) {
-                if (historyClub.mPtr && historyClub.mPtr == last->mClub.mPtr) {
-                    sameClub = true;
-                    if (h->mOnLoan == last->mLoan)
-                        createNewEntry = false;
-                }
-                else if (lastEntry && lastEntry->mClub && h->mClub) {
-                    if (h->mClub == lastEntry->mClub || h->mClub->mConverterData.mParentClub == lastEntry->mClub || lastEntry->mClub->mConverterData.mParentClub == h->mClub) {
-                        sameClub = true;
-                        if (h->mOnLoan == last->mLoan)
-                            createNewEntry = false;
-                    }
-                }
-            }
-            if (!createNewEntry) {
-                curr = last;
-                curr->mEndDate = GetPlayerHistorySeasonEndDate(h->mYear, hasCurrent);
-            }
-            else {
-                curr = &history.emplace_back();
-                curr->mClub = FifamClubLink(historyClub.mPtr);
-                curr->mStartDate = GetPlayerHistorySeasonStartDate(h->mYear);
-                curr->mEndDate = GetPlayerHistorySeasonEndDate(h->mYear, hasCurrent);
-                curr->mLoan = h->mOnLoan;
-            }
-            if (!h->mYouthTeam) {
-                bool firstTeam = true;
-                if (historyClub.IsValid())
-                    firstTeam = historyClub.mTeamType == FifamClubTeamType::First;
-                else
-                    firstTeam = !h->mClub || !h->mClub->mConverterData.mParentClub;
-                if (firstTeam) { // MAYBE: also check division level?
-                    curr->mMatches += h->mApps;
-                    curr->mGoals += h->mGoals;
-                }
-                else {
-                    curr->mReserveMatches += h->mApps;
-                    curr->mReserveGoals += h->mGoals;
-                }
-            }
-            if (h->mOnLoan) {
-                if (h->mTransferFee > 0)
-                    curr->mTransferFee = foom::db::convert_money(h->mTransferFee);
-            }
-            else if (lastTransferFee > 0)
-                curr->mTransferFee = foom::db::convert_money(lastTransferFee);
-            if (!h->mOnLoan)
-                lastTransferFee = h->mTransferFee;
-            if (sameClub && !curr->mLoan && last->mLoan) {
-                //Int lastFee = last->mTransferFee;
-                //last->mTransferFee = curr->mTransferFee;
-                //curr->mTransferFee = lastFee;
-            }
-            lastEntry = h;
-        }
-    }
-
-    if (!history.empty()) {
-        if (club) {
-            FifamPlayerHistoryEntry &last = history.back();
-            if (last.mClub.mPtr != club || last.mLoan) {
-                FifamPlayerHistoryEntry &curr = history.emplace_back();
-                curr.mClub = FifamClubLink(club);
-                curr.mStartDate = FifamDate(1, 7, CURRENT_YEAR);
-                curr.mEndDate = FifamDate(1, 7, CURRENT_YEAR);
-                //curr.mLoan = h->mOnLoan;
-                if (lastTransferFee > 0)
-                    curr.mTransferFee = foom::db::convert_money(lastTransferFee);
-            }
-            history.back().mStillInThisClub = true;
-        }
-        if (p->mCurrentAbility >= 25) {
-            for (auto const &h : history)
-                player->mHistory.mEntries.insert(h);
-        }
-    }
+    // update potential if needed
+    UChar finalLevel = player->GetLevel();
+    if (player->mPotential < finalLevel)
+        player->mPotential = finalLevel;
 
     // contract
     if (club) {
@@ -4792,7 +5289,6 @@ FifamFormation Converter::ConvertFormationId(Int id) {
         return FifamFormation::_5_3_2_Attacking;
     case 3:
         return FifamFormation::_4_4_2_Normal;
-    case 4:
     case 32:
         return FifamFormation::_4_1_4_1;
     case 7:
@@ -4826,6 +5322,7 @@ FifamFormation Converter::ConvertFormationId(Int id) {
     case 34:
     case 60:
         return FifamFormation::_3_5_2;
+    case 4:
     case 26:
     case 27:
         return FifamFormation::_4_3_3_Wings;
@@ -4853,6 +5350,7 @@ FifamFormation Converter::ConvertFormationId(Int id) {
 }
 
 void Converter::ConvertReferee(FifamReferee *dst, foom::official *official) {
+    official->mConverterData.mFifamReferee = dst;
     dst->mFirstName = FifamNames::LimitPersonName(official->mFirstName, 19);
     dst->mLastName = FifamNames::LimitPersonName(official->mSecondName, 19);
     if (official->mFIFACategory && official->mContinentalOfficial && official->mCurrentAbility > 140)

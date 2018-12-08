@@ -83,9 +83,9 @@ public:
     void ResolveClubUniqueID(UInt &uid, UInt gameFrom, UInt gameTo = LATEST_GAME_VERSION);
     void ResolveClubLink(FifamClubLink &clubLink, UInt gameFrom, UInt gameTo = LATEST_GAME_VERSION);
     void ResolvePlayerPtr(FifamPlayer *&player);
-    void ResolveCompetitionPtr(FifamCompetition *&comp, UInt gameFrom, UInt gameTo = LATEST_GAME_VERSION);
+    void ResolveCompetitionID(FifamCompID &comp, UInt gameFrom, UInt gameTo = LATEST_GAME_VERSION);
     void ResolveClubLinkList(Vector<FifamClubLink> &vec, UInt gameId, bool unique = true);
-    void ResolveCompetitionList(Vector<FifamCompetition *> &vec, UInt gameId, bool unique = true);
+    void ResolveCompetitionList(Vector<FifamCompID> &vec, UInt gameId, bool unique = true);
     FifamClub *GetClubFromUID(UInt uid);
     void GetClubFromUID(FifamClubLink &link, UInt uid);
     FifamCompetition *GetCompetition(FifamCompID const &compID);

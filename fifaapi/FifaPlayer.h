@@ -173,6 +173,7 @@ public:
 
     FifaTeam *m_loanedFrom;
     FifaDate m_loanEndDate;
+    FifaDate m_birthDate;
     bool m_inNationalTeam;
     bool m_linkedWithClub;
     std::vector<LinkedTeam> m_linkedTeams;

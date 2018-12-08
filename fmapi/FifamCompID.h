@@ -35,5 +35,6 @@ public:
 };
 
 Bool operator==(FifamCompID const &lhs, FifamCompID const &rhs);
+Bool operator!=(FifamCompID const &lhs, FifamCompID const &rhs);
 Bool operator<(FifamCompID const &lhs, FifamCompID const &rhs);
 Bool operator>(FifamCompID const &lhs, FifamCompID const &rhs);

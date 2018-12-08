@@ -22,7 +22,8 @@ struct player : public person {
     Int mCurrentAbility = 0;
     Int mRecommendedCurrentAbility = 0;
     Int mPotentialAbility = 0;
-    Int mPotentialAbilityRange = 0;
+    Int mOriginalCA = 0;
+    Int mOriginalPA = 0;
     Int mCurrentReputation = 0;
     Int mHomeReputation = 0;
     Int mWorldReputation = 0;

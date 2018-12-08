@@ -100,6 +100,7 @@ public:
         UChar beardType = 0;
     };
 
+    static UChar GetHairIdFromEditor14Id(UChar hairId);
     void SetFrom07AppearanceInfo(AppearanceInfo07 const &data);
     AppearanceInfo07 Get07AppearanceInfo();
 };

@@ -7,7 +7,6 @@ class FifamDatabase;
 class FifamClubLink;
 class FifamPlayer;
 class FifamCompID;
-class FifamCompetition;
 class FifamDbWriteable;
 
 class FifamUtils {
@@ -18,8 +17,6 @@ public:
     static UInt GetSavedClubIDFromClubLink(FifamClubLink &link);
     static void SavePlayerIDToPtr(FifamPlayer *&ptr, UInt ID);
     static UInt GetSavedPlayerIDFromPtr(FifamPlayer *&ptr);
-    static void SaveCompetitionIDToPtr(FifamCompetition *&ptr, UInt ID);
-    static UInt GetSavedCompetitionIDFromPtr(FifamCompetition *&ptr);
     static UChar GetCountryIDFromClubID(UInt clubID);
     static String GetPlayerName(FifamPlayer *player);
     static Bool ExtractCompetitionID(FifamCompID &outID, String const &line, UInt &linePos, FifamCompRegion const &region = FifamCompRegion::None);
@@ -37,9 +34,10 @@ public:
     static UInt GetWriteableUniqueID(FifamDbWriteable *dbWriteable);
     static UInt GetWriteableID(FifamClubLink const &clubLink);
     static UInt GetWriteableUniqueID(FifamClubLink const &clubLink);
+    static UInt GetWriteableID(FifamCompID const &compID, UInt gameId);
     static FifamDbWriteableIDsList MakeWriteableIDsList(Vector<FifamClubLink> const &clubs, bool unique = true);
-    static FifamDbWriteableIDsList MakeWriteableIDsList(Vector<FifamCompetition *> const &comps, bool unique = true);
+    static FifamDbWriteableIDsList MakeWriteableIDsList(Vector<FifamCompID> const &comps, UInt gameId, bool unique = true);
     static void SaveIDsToClubLinkList(Vector<UInt> ids, Vector<FifamClubLink> &clubs);
-    static void SaveIDsToCompetitionList(Vector<UInt> ids, Vector<FifamCompetition *> &comps);
+    static void SaveIDsToCompetitionList(Vector<UInt> ids, Vector<FifamCompID> &comps);
     static UInt GetAge(FifamDate const &birthDate, FifamDate const &currentDate);
 };

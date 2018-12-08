@@ -25,18 +25,16 @@ std::wstring Utils::CurrentTime() {
 }
 
 std::wstring Utils::GetQuickName(std::wstring const &firstName, std::wstring const &lastName, std::wstring const &commonName) {
-    if (commonName.length() > 0)
+    if (!commonName.empty())
         return commonName;
-    if (firstName.length() > 0) {
-        if (lastName.length() > 0)
+    if (!firstName.empty()) {
+        if (!lastName.empty())
             return firstName + L" " + lastName;
         else
             return firstName;
     }
-    else {
-        if (lastName.length() > 0)
-            return lastName;
-    }
+    else if (!lastName.empty())
+        return lastName;
     return std::wstring();
 }
 
