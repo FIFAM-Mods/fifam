@@ -10,31 +10,13 @@
 #include "ConverterUtil.h"
 #include "GraphicsConverter.h"
 
-#define DB_SIZE Full
+#define DB_SIZE Tiny
 
 Converter::~Converter() {
 
 }
 
 void Converter::ReadAdditionalInfo(Path const &infoPath) {
-    {
-        std::wcout << L"Reading fifam-uids.txt..." << std::endl;
-        FifamReader reader(infoPath / L"fifam-uids.txt", 0);
-        if (reader.Available()) {
-            reader.SkipLine();
-            while (!reader.IsEof()) {
-                if (!reader.EmptyLine()) {
-                    String dummy;
-                    foom::club::converter_data info;
-                    Int FootballManagerID;
-                    reader.ReadLineWithSeparator(L'\t', dummy, dummy, dummy, dummy, dummy, FootballManagerID, Hexadecimal(info.mFIFAManagerID), info.mFIFAID);
-                    map_find(mFoomDatabase->mClubs, FootballManagerID).mConverterData = info;
-                }
-                else
-                    reader.SkipLine();
-            }
-        }
-    }
     {
         std::wcout << L"Reading fifam_countries.txt..." << std::endl;
         FifamReader reader(infoPath / L"fifam_countries.txt", 0);
@@ -50,6 +32,61 @@ void Converter::ReadAdditionalInfo(Path const &infoPath) {
                 }
                 else
                     reader.SkipLine();
+            }
+        }
+    }
+    {
+        std::wcout << L"Reading fifam-uids.txt..." << std::endl;
+        FifamReader reader(infoPath / L"fifam-uids.txt", 0);
+        if (reader.Available()) {
+            reader.SkipLine();
+            Map<UInt, UInt> uidsMap;
+            Map<UInt, UInt> uniqueUIDsMap;
+            while (!reader.IsEof()) {
+                if (!reader.EmptyLine()) {
+                    String dummy;
+                    foom::club::converter_data info;
+                    Int FootballManagerID;
+                    reader.ReadLineWithSeparator(L'\t', dummy, dummy, dummy, dummy, dummy, FootballManagerID, Hexadecimal(info.mFIFAManagerID), info.mFIFAID);
+                    map_find(mFoomDatabase->mClubs, FootballManagerID).mConverterData = info;
+                    uidsMap[FootballManagerID] = info.mFIFAManagerID;
+
+                    if (info.mFIFAManagerID > 0) {
+                        auto it = uniqueUIDsMap.find(info.mFIFAManagerID);
+                        if (it != uniqueUIDsMap.end()) {
+                            Error(L"Duplicated Unique ID: %08X\nClub1: %d\nClub2: %d", info.mFIFAManagerID, (*it).second, FootballManagerID);
+                        }
+                        else
+                            uniqueUIDsMap[info.mFIFAManagerID] = FootballManagerID;
+                    }
+                }
+                else
+                    reader.SkipLine();
+            }
+            Array<UInt, FifamDatabase::NUM_COUNTRIES> nextUid;
+            for (UInt i = 0; i < FifamDatabase::NUM_COUNTRIES; i++)
+                nextUid[i] = ((i + 1) << 16) | 0x3001;
+            for (auto &e : uidsMap) {
+                if (e.second == 0) {
+                    foom::club *c = mFoomDatabase->get<foom::club>(e.first);
+                    if (c) {
+                        foom::nation *n = c->mNation;
+                        if (!n)
+                            n = c->mContinentalCupNation;
+                        if (n) {
+                            UInt countryId = n->mConverterData.mFIFAManagerID;
+                            if (countryId > 0 && countryId <= FifamDatabase::NUM_COUNTRIES)
+                                e.second = nextUid[countryId - 1]++;
+                        }
+                    }
+                }
+            }
+            FifamWriter clubsUIDsWriter(L"out_club_uids.txt", 14, 0, 0);
+            for (auto &e : uidsMap) {
+                if (e.second == 0)
+                    clubsUIDsWriter.WriteLine(Utils::Format(L"%u\t", e.first));
+                else
+                    clubsUIDsWriter.WriteLine(Utils::Format(L"%u\t%08X", e.first, e.second));
             }
         }
     }
@@ -495,7 +532,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                         country->mAveragePlayerRating = country->mLeagueLevels[i].mRating;
                 }
                 // add leagues
-                mNextFreeUID[country->mId - 1] = 0x3001;
+                mNextFreeUID[country->mId - 1] = 0x4001;
                 mNumTeamsInLeagueSystem[country->mId - 1] = 0;
                 Int minLevelWithReserveTeams = -1;
                 for (UShort i = 0; i < comps.size(); i++) {
@@ -3689,14 +3726,14 @@ UChar Converter::GetPlayerLevelFromCA(Int ca) {
         { 78, 143 },
         { 77, 141 },
         { 76, 139 },
-        { 75, 135 }, // 73, 74, 75
-        { 74, 132 },
-        { 73, 129 },
-        { 72, 126 },
-        { 71, 123 },
-        { 70, 120 },
-        { 69, 117 }, // 66, 67
-        { 68, 114 },
+        { 75, 136 }, // 73, 74, 75
+        { 74, 133 },
+        { 73, 130 },
+        { 72, 127 },
+        { 71, 124 },
+        { 70, 122 },
+        { 69, 119 }, // 66, 67
+        { 68, 115 },
         { 67, 111 },
         { 66, 108 },
         { 65, 105 },
@@ -4020,7 +4057,7 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
     if (gameId >= 9) {
         UInt maxTalent = 9;
         UChar *potantialAbilityRanges = nullptr;
-        static UChar potentialAbilityRanges1to10[9] = { 35, 55, 75, 95, 116, 135, 155, 169, 190 };
+        static UChar potentialAbilityRanges1to10[9] = { 35, 60, 80, 100, 119, 136, 155, 169, 190 };
         potantialAbilityRanges = potentialAbilityRanges1to10;
         player->mTalent = 0;
         for (UInt i = 0; i < maxTalent; i++) {
