@@ -10,7 +10,7 @@
 #include "ConverterUtil.h"
 #include "GraphicsConverter.h"
 
-#define DB_SIZE Tiny
+#define DB_SIZE Full
 
 Converter::~Converter() {
 
@@ -458,7 +458,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
         auto &nation = entry.second;
         auto country = mFifamDatabase->GetCountry(nation.mConverterData.mFIFAManagerID);
         if (country) {
-            ConvertNationInfo(country, &nation);
+            ConvertNationInfo(country, &nation, gameId);
             country->SetProperty(L"foom::nation", &nation);
             CreateStaffMembersForClub(gameId, &nation, &country->mNationalTeam, true);
             country->mNationalTeam.SetProperty(L"foom::nation", &nation);
@@ -1994,7 +1994,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     history.back().mStillInThisClub = true;
                 }
                 // NOTE: check this
-                if (p.mCurrentAbility >= 25) {
+                if (p.mCurrentAbility >= 20) {
                     for (auto const &h : history)
                         player->mHistory.mEntries.insert(h);
                 }
@@ -2044,9 +2044,21 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     return false;
                 });
             }
-            UInt numPlayersInNationalTeam = Utils::Min(25u, n.size());
-            for (UInt i = 0; i < numPlayersInNationalTeam; i++)
-                ((FifamPlayer *)(n[i]->mConverterData.mFifamPerson))->mCurrentlyInNationalTeam = true;
+            UInt numPlayersInNationalTeam = 0;
+            UInt numGoalkeepersInNationalTeam = 0;
+            for (UInt i = 0; i < n.size(); i++) {
+                Bool isGk = ((FifamPlayer *)(n[i]->mConverterData.mFifamPerson))->mMainPosition == FifamPlayerPosition::GK;
+                if (isGk) {
+                    if (numGoalkeepersInNationalTeam < 3)
+                        ((FifamPlayer *)(n[i]->mConverterData.mFifamPerson))->mCurrentlyInNationalTeam = true;
+                }
+                else {
+                    if (numPlayersInNationalTeam < 22)
+                        ((FifamPlayer *)(n[i]->mConverterData.mFifamPerson))->mCurrentlyInNationalTeam = true;
+                }
+                if (numGoalkeepersInNationalTeam == 3 && numPlayersInNationalTeam == 22)
+                    break;
+            }
         }
     }
 
@@ -2531,7 +2543,7 @@ FifamClub *Converter::CreateAndConvertClub(UInt gameId, foom::club *team, foom::
     return club;
 }
 
-void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation) {
+void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt gameId) {
 
     nation->mConverterData.mFifamCountry = dst;
 
@@ -2568,6 +2580,7 @@ void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation) {
     dst->mNumContinentalChampions = (UShort)nation->mConverterData.mContinentalCupWins.size();
     dst->mNumContinentalRunnersUp = (UShort)nation->mConverterData.mContinentalCupFinals.size();
 
+    ConvertClubStadium(&dst->mNationalTeam, gameId);
     ConvertKitsAndColors(&dst->mNationalTeam, -1, nation->mVecKits, -1, nation->mBackgroundColor, nation->mForegroundColor);
 }
 
@@ -2845,7 +2858,190 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
         }
     }
 
+    ConvertClubStadium(dst, gameId);
     ConvertKitsAndColors(dst, team->mID, mainTeam->mVecKits, team->mBadge, team->mBackgroundColor, team->mForegroundColor);
+}
+
+void Converter::ConvertClubStadium(FifamClub * dst, UInt gameId) {
+
+    /* SPAIN */
+
+    if (dst->mFifaID == 240) // Vicente Calderon (Madrid)
+        dst->mStadiumVenue = 42;
+    else if (dst->mFifaID == 241) { // Camp Nou (Barcelona)
+        if (gameId != 13)
+            dst->mStadiumVenue = 6;
+    }
+    else if (dst->mFifaID == 243) { // Santiago Bernabeu (Madrid)
+        if (gameId >= 10)
+            dst->mStadiumVenue = 2;
+    }
+    else if (dst->mFifaID == 461) { // Mestalla
+        if (gameId <= 9 && gameId >= 12)
+            dst->mStadiumVenue = 10;
+    }
+
+    /* ENGLAND */
+
+    else if (dst->mFifaID == 1) { // Highbury (Arsenal), The Emirates Stadium (London)
+        if (gameId <= 7)
+            dst->mStadiumVenue = 7;
+        else
+            dst->mStadiumVenue = 156;
+    }
+    else if (dst->mFifaID == 5) // Stamford Bridge (London)
+        dst->mStadiumVenue = 28;
+    else if (dst->mFifaID == 9) // Anfield (Liverpool)
+        dst->mStadiumVenue = 13;
+    else if (dst->mFifaID == 11) // Old Trafford (Manchester)
+        dst->mStadiumVenue = 1;
+    else if (dst->mFifaID == 13) // St. James' Park (Newcastle)
+        dst->mStadiumVenue = 100;
+    else if (dst->mFifaID == 18) { // White Hart Lane (London), New Wembley (London)
+        if (gameId >= 8) {
+            if (gameId >= 13)
+                dst->mStadiumVenue = 116;
+            else
+                dst->mStadiumVenue = 155;
+        }
+    }
+    else if (dst->mFifaID == 1318) { // New Wembley (London)
+        if (gameId >= 8 && gameId <= 12)
+            dst->mStadiumVenue = 155;
+    }
+    else if (dst->mFifaID == 1961) { // Millennium Stadium (Cardiff)
+        if (gameId == 8 || gameId == 9)
+            dst->mStadiumVenue = 103;
+    }
+
+    /* ITALY */
+
+    else if (dst->mFifaID == 44 || dst->mFifaID == 47) // San Siro (Milan)
+        dst->mStadiumVenue = 5;
+    else if (dst->mFifaID == 45) { // Delle Alpi (Turin)
+        if (gameId <= 10)
+            dst->mStadiumVenue = 8;
+    }
+    else if (dst->mFifaID == 46 || dst->mFifaID == 52) { // Stadio Olimpico (Rome)
+        if (gameId >= 8)
+            dst->mStadiumVenue = 157;
+    }
+
+    /* GERMANY */
+
+    else if (dst->mFifaID == 21) { // Allianz Arena (Munich)
+        if (gameId >= 8)
+            dst->mStadiumVenue = 137;
+    }
+    else if (dst->mFifaID == 22) // Signal Iduna Park (Dortmund)
+        dst->mStadiumVenue = 9;
+    else if (dst->mFifaID == 28) // Imtech Arena (Hamburg)
+        dst->mStadiumVenue = 41;
+    else if (dst->mFifaID == 32) { // BayArena (Leverkusen)
+        if (gameId <= 10)
+            dst->mStadiumVenue = 12;
+    }
+    else if (dst->mFifaID == 34) { // Veltins-Arena (Gelsenkirchen)
+        if (gameId >= 8)
+            dst->mStadiumVenue = 30;
+    }
+    else if (dst->mFifaID == 36) { // Gottlieb Daimler Stadion (Stuttgart)
+        if (gameId == 8 || gameId == 9)
+            dst->mStadiumVenue = 133;
+    }
+    else if (dst->mFifaID == 166) { // Olympiastadion Berlin (Berlin)
+        if (gameId >= 8)
+            dst->mStadiumVenue = 135;
+    }
+    else if (dst->mFifaID == 485) { // HDI Arena (Hanover)
+        if (gameId == 8 || gameId == 9 || gameId >= 11)
+            dst->mStadiumVenue = 134;
+    }
+    else if (dst->mFifaID == 1824) { // Commerzbank Arena (Frankfurt)
+        if (gameId == 8 || gameId == 9 || gameId >= 11)
+            dst->mStadiumVenue = 138;
+    }
+
+    /* FRANCE */
+
+    else if (dst->mFifaID == 66) // Stade Gerland (Lyon)
+        dst->mStadiumVenue = 4;
+    else if (dst->mFifaID == 73) { // Parc des Princes
+        if (gameId != 11)
+            dst->mStadiumVenue = 14;
+    }
+    else if (dst->mFifaID == 64) // Stade Bollaert-Delelis (Lens)
+        dst->mStadiumVenue = 16;
+    else if (dst->mFifaID == 219) { // Stade Velodrome
+        if (gameId != 11)
+            dst->mStadiumVenue = 29;
+    }
+
+    /* PORTUGAL */
+
+    else if (dst->mFifaID == 234) { // Estadio Jose Alvalade
+        if (gameId != 11)
+            dst->mStadiumVenue = 107;
+    }
+    else if (dst->mFifaID == 236) { // Estadio do Dragao
+        if (gameId != 11)
+            dst->mStadiumVenue = 111;
+    }
+    else if (dst->mFifaID == 237) { // Estadio Jose Alvalade
+        if (gameId != 11)
+            dst->mStadiumVenue = 102;
+    }
+    else if (dst->mFifaID == 1898) { // Estadio Da Bessa (Boavista Porto)
+        if (gameId == 8 || gameId == 9)
+            dst->mStadiumVenue = 123;
+    }
+
+    /* NETHERLANDS */
+
+    else if (dst->mFifaID == 245) // Amsterdam ArenA (Amsterdam)
+        dst->mStadiumVenue = 15;
+
+    /* BELGIUM */
+
+    else if (dst->mFifaID == 229) // Constant Vanden Stock (Brussels)
+        dst->mStadiumVenue = 17;
+
+    /* TURKEY */
+
+    else if (dst->mFifaID == 325) { // Ali Sami Yen Stadi (Istanbul)
+        if (gameId <= 7)
+            dst->mStadiumVenue = 101;
+    }
+
+    /* MEXICO */
+
+    else if (dst->mFifaID == 1878) { // Azteca (Mexico City)
+        if (gameId >= 8)
+            dst->mStadiumVenue = 104;
+    }
+    else if (dst->mFifaID == 1880) { // Jalisco (Guadalajara)
+        if (gameId == 10 || gameId == 11 || gameId == 13 || gameId == 14)
+            dst->mStadiumVenue = 163;
+    }
+
+    /* USA */
+
+    else if (dst->mFifaID == 697) { // Home Depot Center (Los Angeles)
+        if (gameId >= 8 && gameId <= 10)
+            dst->mStadiumVenue = 161;
+    }
+
+    /* SOUTH KOREA */
+
+    else if (dst->mFifaID == 982) { // Seoul World Cup Stadium (Seoul)
+        if (gameId >= 8)
+            dst->mStadiumVenue = 108;
+    }
+    else if (dst->mFifaID == 2056) { // Daegu Stadium (Daegu)
+        if (gameId >= 8)
+            dst->mStadiumVenue = 110;
+    }
+
 }
 
 void Converter::ConvertKitsAndColors(FifamClub *dst, Int foomId, Vector<foom::kit> const &kits, Int badgeType, Color const &teamBackgroundColor, Color const &teamForegroundColor) {

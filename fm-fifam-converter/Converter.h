@@ -101,8 +101,9 @@ public:
     ~Converter();
 
     Int ConvertPlayerAttribute(Int attr);
-    void ConvertNationInfo(FifamCountry *dst, foom::nation *nation);
+    void ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt gameId);
     void ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);
+    void ConvertClubStadium(FifamClub *dst, UInt gameId);
     FifamClub *CreateAndConvertClub(UInt gameId, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);
     void ConvertReferee(FifamReferee *dst, foom::official *official);
     void ConvertKitsAndColors(FifamClub *dst, Int foomId, Vector<foom::kit> const &kits, Int badgeType, Color const &teamBackgroundColor, Color const &teamForegroundColor);
