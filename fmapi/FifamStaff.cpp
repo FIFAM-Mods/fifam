@@ -488,15 +488,15 @@ void FifamStaff::WriteToPlayer(FifamWriter &writer) {
     player.Write(writer);
 }
 
-UChar FifamStaff::GetLevel() {
-    return 0;
+UChar FifamStaff::GetStaffLevel() {
+    return GetStaffLevel(mClubPosition);
 }
 
 UChar CalcStaffLevel(Vector<Pair<UChar, Float>> const &attributes) {
     Float level = 0.0f;
     Float totalInfluence = 0.0f;
     for (auto const &attr : attributes) {
-        level += attr.first * attr.second;
+        level += (Float)attr.first * attr.second;
         totalInfluence += attr.second;
     }
     if (totalInfluence != 0.0f)
@@ -504,7 +504,7 @@ UChar CalcStaffLevel(Vector<Pair<UChar, Float>> const &attributes) {
     return (UChar)level;
 }
 
-UChar FifamStaff::GetLevel(FifamClubStaffPosition position) {
+UChar FifamStaff::GetStaffLevel(FifamClubStaffPosition position) {
     Vector<Pair<UChar, Float>> vec;
     switch (position.ToInt()) {
     case FifamClubStaffPosition::AssistantCoach:

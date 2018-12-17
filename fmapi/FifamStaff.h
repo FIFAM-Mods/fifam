@@ -95,10 +95,10 @@ public:
     void WriteManager(FifamWriter &writer);
     void WriteWorker(FifamWriter &writer);
     void WriteToPlayer(FifamWriter &writer);
-    UChar GetLevel();
-    UChar GetLevel(FifamClubStaffPosition position);
-    String GetStringUniqueId(UInt gameId);
     UChar GetManagerLevel();
+    UChar GetStaffLevel();
+    UChar GetStaffLevel(FifamClubStaffPosition position);
+    String GetStringUniqueId(UInt gameId);
     void ForAllAttributes(Function<void(UChar &, Float)> callback);
     void ForAllAttributes(FifamClubStaffPosition position, Function<void(UChar &, Float)> callback);
 };

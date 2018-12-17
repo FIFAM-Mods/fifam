@@ -63,31 +63,6 @@ void Converter::ReadAdditionalInfo(Path const &infoPath) {
                 else
                     reader.SkipLine();
             }
-            Array<UInt, FifamDatabase::NUM_COUNTRIES> nextUid;
-            for (UInt i = 0; i < FifamDatabase::NUM_COUNTRIES; i++)
-                nextUid[i] = ((i + 1) << 16) | 0x3001;
-            for (auto &e : uidsMap) {
-                if (e.second == 0) {
-                    foom::club *c = mFoomDatabase->get<foom::club>(e.first);
-                    if (c) {
-                        foom::nation *n = c->mNation;
-                        if (!n)
-                            n = c->mContinentalCupNation;
-                        if (n) {
-                            UInt countryId = n->mConverterData.mFIFAManagerID;
-                            if (countryId > 0 && countryId <= FifamDatabase::NUM_COUNTRIES)
-                                e.second = nextUid[countryId - 1]++;
-                        }
-                    }
-                }
-            }
-            FifamWriter clubsUIDsWriter(L"out_club_uids.txt", 14, 0, 0);
-            for (auto &e : uidsMap) {
-                if (e.second == 0)
-                    clubsUIDsWriter.WriteLine(Utils::Format(L"%u\t", e.first));
-                else
-                    clubsUIDsWriter.WriteLine(Utils::Format(L"%u\t%08X", e.first, e.second));
-            }
         }
     }
     {
@@ -151,11 +126,32 @@ void Converter::ReadAdditionalInfo(Path const &infoPath) {
             while (!reader.IsEof()) {
                 if (!reader.EmptyLine()) {
                     DivisionInfo d;
-                    reader.ReadLineWithSeparator(L'\t', d.mNationName, d.mNationID, d.mName, d.mShortName, d.mID, d.mIsLvl, d.mLevel, d.mIsTop, d.mParent, d.mTeams, d.mRep, d.mPriority);
+                    String e, type, rounds;
+                    reader.ReadLineWithSeparator(L'\t', e, d.mNationID, d.mName, d.mShortName, d.mID, type, d.mLevel, e, e, d.mTeams, d.mRep, d.mPriority,
+                        d.mOrder, rounds);
+                    
+                    type = Utils::ToLower(type);
+                    if (type == L"league")
+                        d.mType = DivisionInfo::League;
+                    else if (type == L"level")
+                        d.mType = DivisionInfo::Level;
+                    else if (type == L"relround")
+                        d.mType = DivisionInfo::RelRound;
+                    else if (type == L"relleague")
+                        d.mType = DivisionInfo::RelLeague;
+                    else {
+                        Error(L"Unknown DivisionInfo type: %s", type.c_str());
+                        continue;
+                    }
+
                     if (d.mLevel <= 0)
                         d.mLevel = 256;
                     else
                         d.mLevel -= 1;
+
+                    if (!rounds.empty())
+                        d.mRounds = Utils::SafeConvertInt<Int>(rounds);
+
                     mDivisions.push_back(d);
                 }
                 else
@@ -328,6 +324,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                             c.mConverterData.mChildClubs.push_back(childInfo);
                             child->mConverterData.mParentClub = &c;
                             child->mConverterData.mChildType = childType;
+                            child->mConverterData.mOriginallyChildClub = true;
                         }
                     }
                 }
@@ -391,6 +388,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                         c.mConverterData.mChildClubs.push_back(childInfo);
                         child->mConverterData.mParentClub = &c;
                         child->mConverterData.mChildType = childType;
+                        child->mConverterData.mOriginallyChildClub = true;
                     }
                 }
             }
@@ -465,6 +463,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
             CreateStaffMembersForClub(gameId, &nation, &country->mNationalTeam, true);
             country->mNationalTeam.SetProperty(L"foom::nation", &nation);
 
+
             Map<UInt, DivisionInfo *> leagueLevels;
             Vector<DivisionInfo *> comps;
             Vector<DivisionInfo *> unusedComps;
@@ -474,7 +473,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                 if (divInfo.mNationID == nation.mID) {
                     Int minPriority = (gameId <= 7) ? 2 : 1;
                     if (divInfo.mPriority >= minPriority) {
-                        if (divInfo.mIsLvl)
+                        if (divInfo.mType == DivisionInfo::Level)
                             leagueLevels[divInfo.mLevel] = &divInfo;
                         else
                             comps.push_back(&divInfo);
@@ -791,13 +790,13 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                                         }
                                         UInt team1id = 0, team2id = 0;
                                         if (!fixtures[matchId].mTeam1 || leagueTeamsMap.count(GetTeamClubLink(fixtures[matchId].mTeam1)) == 0) {
-                                            Error(L"Incorrect fixtures team (match %d)\nLeague: %s\nTeam: %s", matchId + 1, comp->mName.c_str(), fixtures[matchId].mTeam1 ? GetTeamClubLink(fixtures[matchId].mTeam1).GetTeamName().c_str() : L"none");
+                                            //Error(L"Incorrect fixtures team (match %d)\nLeague: %s\nTeam: %s", matchId + 1, comp->mName.c_str(), fixtures[matchId].mTeam1 ? GetTeamClubLink(fixtures[matchId].mTeam1).GetTeamName().c_str() : L"none");
                                             gotFixtures = false;
                                             break;
                                         }
                                         team1id = leagueTeamsMap[GetTeamClubLink(fixtures[matchId].mTeam1)];
                                         if (!fixtures[matchId].mTeam2 || leagueTeamsMap.count(GetTeamClubLink(fixtures[matchId].mTeam2)) == 0) {
-                                            Error(L"Incorrect fixtures team (match %d)\nLeague: %s\nTeam: %s", matchId + 1, comp->mName.c_str(), fixtures[matchId].mTeam2 ? GetTeamClubLink(fixtures[matchId].mTeam2).GetTeamName().c_str() : L"none");
+                                            //Error(L"Incorrect fixtures team (match %d)\nLeague: %s\nTeam: %s", matchId + 1, comp->mName.c_str(), fixtures[matchId].mTeam2 ? GetTeamClubLink(fixtures[matchId].mTeam2).GetTeamName().c_str() : L"none");
                                             gotFixtures = false;
                                             break;
                                         }
@@ -1102,6 +1101,10 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                                 cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
                             }
                         }
+                        if (cup->mNumTeams > 128) {
+                            Error(L"Cup has more than 128 teams: %d\nCountry: %s\nCup: %s",
+                                cup->mNumTeams, FifamTr(country->mName).c_str(), FifamTr(cup->mName).c_str());
+                        }
                         //cup->mMathcdays
                         //for (UInt r = 0; r < cup->mRounds.size(); r++) {
                         for (UInt m = 0; m < numMatchdays; m++) {
@@ -1114,6 +1117,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                         }
                         //}
                         cup->mSecondSeasonMatchdays = cup->mFirstSeasonMatchdays;
+
                     }
                 }
             }
@@ -1870,8 +1874,11 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
             // history - separate by years
             Map<Int, Vector<foom::player::playing_history *>> playerHistoryMap;
             for (auto &h : p.mVecPlayingHistory) {
-                if (h.mYear <= CURRENT_YEAR) // ignore 'future' records
-                    playerHistoryMap[h.mYear].push_back(&h);
+                if (h.mYear <= CURRENT_YEAR && !h.mYouthTeam && h.mClub) { // ignore 'future' records and youth team
+                    auto historyClub = GetTeamClubLink(h.mClub);
+                    if (historyClub.IsValid() || !h.mClub->mConverterData.mOriginallyChildClub)
+                        playerHistoryMap[h.mYear].push_back(&h);
+                }
             }
 
             auto GetPlayerHistorySeasonStartDate = [=](Int year) {
@@ -1894,6 +1901,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
             bool hasCurrent = playerHistoryMap.count(CURRENT_YEAR) > 0;
             Int lastTransferFee = 0;
             for (auto const &e : playerHistoryMap) {
+                UInt entryIndex = 0;
                 for (auto &h : e.second) {
                     FifamPlayerHistoryEntry *last = nullptr;
                     if (!history.empty())
@@ -1919,15 +1927,23 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                             }
                         }
                     }
+                    Date startDate = GetPlayerHistorySeasonStartDate(h->mYear);
+                    Date endDate = GetPlayerHistorySeasonEndDate(h->mYear, hasCurrent);
+                    if (e.second.size() > 1 && endDate.month != 12) {
+                        if (entryIndex == (e.second.size() - 1))
+                            startDate.Set(1, 1, endDate.year);
+                        else
+                            endDate.Set(31, 12, endDate.year - 1);
+                    }
                     if (!createNewEntry) {
                         curr = last;
-                        curr->mEndDate = GetPlayerHistorySeasonEndDate(h->mYear, hasCurrent);
+                        curr->mEndDate = endDate;
                     }
                     else {
                         curr = &history.emplace_back();
                         curr->mClub = FifamClubLink(historyClub.mPtr);
-                        curr->mStartDate = GetPlayerHistorySeasonStartDate(h->mYear);
-                        curr->mEndDate = GetPlayerHistorySeasonEndDate(h->mYear, hasCurrent);
+                        curr->mStartDate = startDate;
+                        curr->mEndDate = endDate;
                         curr->mLoan = h->mOnLoan;
                     }
                     if (!h->mYouthTeam) {
@@ -1959,19 +1975,20 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                         //curr->mTransferFee = lastFee;
                     }
                     lastEntry = h;
+                    entryIndex++;
                 }
             }
 
             if (!history.empty()) {
                 if (player->mClub) {
                     FifamPlayerHistoryEntry &last = history.back();
-                    if (last.mClub.mPtr != player->mClub || last.mLoan) {
+                    if (last.mClub.mPtr != player->mClub || last.mLoan != player->mStartingConditions.mLoan.Enabled()) {
                         FifamPlayerHistoryEntry &curr = history.emplace_back();
                         curr.mClub = FifamClubLink(player->mClub);
                         curr.mStartDate = FifamDate(1, 7, CURRENT_YEAR);
                         curr.mEndDate = FifamDate(1, 7, CURRENT_YEAR);
-                        //curr.mLoan = h->mOnLoan;
-                        if (lastTransferFee > 0)
+                        curr.mLoan = player->mStartingConditions.mLoan.Enabled();
+                        if (!curr.mLoan && lastTransferFee > 0)
                             curr.mTransferFee = foom::db::convert_money(lastTransferFee);
                     }
                     history.back().mStillInThisClub = true;
@@ -2042,6 +2059,48 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
             if (country) {
                 FifamReferee *referee = country->AddReferee();
                 ConvertReferee(referee, &official);
+            }
+        }
+    }
+
+    // reference database
+    if (mReferenceDatabase) {
+        // create reference map
+        Map<UInt, FifamClub *> referenceClubsByFifaID;
+        for (FifamClub *c : mReferenceDatabase->mClubs) {
+            if (c->mFifaID)
+                referenceClubsByFifaID[c->mFifaID] = c;
+        }
+        // apply parameters
+        for (FifamClub *c : mFifamDatabase->mClubs) {
+            if (c->mFifaID) {
+                auto it = referenceClubsByFifaID.find(c->mFifaID);
+                if (it != referenceClubsByFifaID.end()) {
+                    FifamClub *ref = (*it).second;
+                    c->mMediaPressure = ref->mMediaPressure;
+                    c->mAddress = ref->mAddress;
+                    c->mTelephone = ref->mTelephone;
+                    c->mWebsiteAndMail = ref->mWebsiteAndMail;
+                    c->mFansites = ref->mFansites;
+                    c->mFanMembers = ref->mFanMembers;
+                    c->mAiStrategy = ref->mAiStrategy;
+                    c->mLandscape = ref->mLandscape;
+                    c->mTransfersCountry = ref->mTransfersCountry;
+                    c->mMascotName = ref->mMascotName;
+                    c->mPlayerInText = ref->mPlayerInText;
+                    c->mFanName1 = ref->mFanName1;
+                    c->mFanName2 = ref->mFanName2;
+                    c->mTermForTeam1 = ref->mTermForTeam1;
+                    c->mTermForTeam2 = ref->mTermForTeam2;
+                    c->mAbbreviationArticle = ref->mAbbreviationArticle;
+                    c->mPlayerInTextArticle = ref->mPlayerInTextArticle;
+                    c->mFanName1Article = ref->mFanName1Article;
+                    c->mClubNameUsageInPhrase = ref->mClubNameUsageInPhrase;
+                    c->mClubNameUsageInPhrase2 = ref->mClubNameUsageInPhrase2;
+                    c->mFanName2Article = ref->mFanName2Article;
+                    c->mTermForTeam1Article =  ref->mTermForTeam1Article;
+                    c->mTermForTeam2Article =  ref->mTermForTeam2Article;
+                }
             }
         }
     }
@@ -2284,56 +2343,6 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
         }
     }
 
-    // adjust player ratings
-    for (auto club : mFifamDatabase->mClubs) {
-        for (auto player : club->mPlayers) {
-
-        }
-    }
-
-    /*
-    FifamWriter nonPlayersWriter(L"NonPlayers.csv", 14, 0, 0);
-    if (nonPlayersWriter.Available()) {
-        nonPlayersWriter.WriteLine(L"ID,FirstName,SecondName,CommonName,Country,Club,ClubPosition,DateOfBirth,Nation,Adaptability,Ambition,Controversy,Loyalty,Pressure,Professionalism,Sportsmanship,Temperament,JobManager,JobAssistantManager,JobCoach,JobFitnessCoach,JobGkCoach,JobPhysio,JobScout,JobDataAnalyst,JobSportsScientist,JobDirectorOfFootball,JobHeadOfYouth,JobChairman,CurrentAbility,PotentialAbility,CurrentReputation,WorldReputation,HomeReputation,PreferredFormation,SecondPreferredFormation,CoachingStyle,Attacking,Depth,Determination,Directness,DirtinessAllowance,Flamboyancy,Flexibility,FreeRoles,Marking,Offside,Pressing,SittingBack,TacticalKnowledge,Tempo,UseOfPlaymaker,UseOfSubs,Width,BuyingPlayers,HardnessOfTraining,JudgingPlayerAbility,JudgingPlayerPotential,JudgingPlayerData,JudgingTeamData,PresentingData,LevelOfDiscipline,ManManagement,MindGames,Motivating,Versatility,SquadRotation,WorkingWithYoungsters,CoachingAttacking,CoachingDefending,CoachingFitness,CoachingGKDistribution,CoachingGKHandling,CoachingGKShotStopping,CoachingMental,CoachingTactical,CoachingTechnical,Business,Interference,Patience,Resources,Physiotherapy,SportsScience,SignsALotOfYouthPlayers,SignsYoungPlayersForTheFirstTeam,WillMakeEarlyTacticalChanges,WillFitPlayersIntoPreferredTactic,ExpectAttackingFootball,ExpectYoungSigningsForTheFirstTeam");
-        for (auto entry : mFoomDatabase->mNonPlayers) {
-            auto n = entry.second;
-            if (n.mConverterData.mFifamPerson) {
-                FifamStaff *staff = (FifamStaff *)n.mConverterData.mFifamPerson;
-                String clubName;
-                String countryName;
-                if (staff->mClub) {
-                    clubName = FifamTr(staff->mClub->mName);
-                    if (staff->mClub->mCountry)
-                        countryName = FifamTr(staff->mClub->mCountry->mName);
-                }
-                nonPlayersWriter.WriteLine(n.mID, n.mFirstName, n.mSecondName, n.mCommonName, countryName, clubName, staff->mClubPosition.ToStr(), n.mDateOfBirth, n.mNation->mName, n.mAdaptability, n.mAmbition, n.mControversy, n.mLoyalty, n.mPressure, n.mProfessionalism, n.mSportsmanship, n.mTemperament, n.mJobManager, n.mJobAssistantManager, n.mJobCoach, n.mJobFitnessCoach, n.mJobGkCoach, n.mJobPhysio, n.mJobScout, n.mJobDataAnalyst, n.mJobSportsScientist, n.mJobDirectorOfFootball, n.mJobHeadOfYouth, n.mJobChairman, n.mCurrentAbility, n.mPotentialAbility, n.mCurrentReputation, n.mWorldReputation, n.mHomeReputation, n.mPreferredFormation, n.mSecondPreferredFormation, n.mCoachingStyle, n.mAttacking, n.mDepth, n.mDetermination, n.mDirectness, n.mDirtinessAllowance, n.mFlamboyancy, n.mFlexibility, n.mFreeRoles, n.mMarking, n.mOffside, n.mPressing, n.mSittingBack, n.mTacticalKnowledge, n.mTempo, n.mUseOfPlaymaker, n.mUseOfSubs, n.mWidth, n.mBuyingPlayers, n.mHardnessOfTraining, n.mJudgingPlayerAbility, n.mJudgingPlayerPotential, n.mJudgingPlayerData, n.mJudgingTeamData, n.mPresentingData, n.mLevelOfDiscipline, n.mManManagement, n.mMindGames, n.mMotivating, n.mVersatility, n.mSquadRotation, n.mWorkingWithYoungsters, n.mCoachingAttacking, n.mCoachingDefending, n.mCoachingFitness, n.mCoachingGKDistribution, n.mCoachingGKHandling, n.mCoachingGKShotStopping, n.mCoachingMental, n.mCoachingTactical, n.mCoachingTechnical, n.mBusiness, n.mInterference, n.mPatience, n.mResources, n.mPhysiotherapy, n.mSportsScience, n.mSignsALotOfYouthPlayers, n.mSignsYoungPlayersForTheFirstTeam, n.mWillMakeEarlyTacticalChanges, n.mWillFitPlayersIntoPreferredTactic, n.mExpectAttackingFootball, n.mExpectYoungSigningsForTheFirstTeam);
-            }
-        }
-        nonPlayersWriter.Close();
-    }
-    */
-    //FifamWriter nonPlayersWriter(L"Managers.csv", 14, 0, 0);
-    //if (nonPlayersWriter.Available()) {
-    //    nonPlayersWriter.WriteLine(L"ID,FirstName,SecondName,CommonName,Country,Club,ClubPosition,DateOfBirth,Nation,CurrentAbility,PotentialAbility,Motivation,Coaching,GkTraining,Negotiation,Level,Talent");
-    //    for (auto entry : mFoomDatabase->mNonPlayers) {
-    //        auto n = entry.second;
-    //        if (n.mConverterData.mFifamPerson) {
-    //            FifamStaff *staff = (FifamStaff *)n.mConverterData.mFifamPerson;
-    //            if (staff->mClubPosition == FifamClubStaffPosition::Manager || staff->mClubPosition == FifamClubStaffPosition::ChiefExec) {
-    //                String clubName;
-    //                String countryName;
-    //                if (staff->mClub) {
-    //                    clubName = FifamTr(staff->mClub->mName);
-    //                    if (staff->mClub->mCountry)
-    //                        countryName = FifamTr(staff->mClub->mCountry->mName);
-    //                }
-    //                nonPlayersWriter.WriteLine(n.mID, n.mFirstName, n.mSecondName, n.mCommonName, countryName, clubName, staff->mClubPosition.ToStr(), n.mDateOfBirth, n.mNation->mName, n.mCurrentAbility, n.mPotentialAbility, staff->mManagerMotivationSkills, staff->mManagerCoachingSkills, staff->mManagerGoalkeepersTraining, staff->mManagerNegotiationSkills, staff->GetManagerLevel(), staff->mTalent + 1);
-    //            }
-    //        }
-    //    }
-    //    nonPlayersWriter.Close();
-    //}
-
     {
         std::wcout << L"Reading fifam_continental_comps.txt..." << std::endl;
         FifamReader reader(L"D:\\Projects\\fifam\\db\\fifam_continental_comps.txt", 0);
@@ -2373,136 +2382,6 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     reader.SkipLine();
             }
             reader.Close();
-        }
-    }
-
-    //{
-    //    FifamWriter clubsRepWriter(L"FmClubsRep.csv", 14, 0, 0);
-    //    if (clubsRepWriter.Available()) {
-    //        clubsRepWriter.WriteLine(L"ID,Name,Nation,League,Reputation,18,17,16,15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0,99,98,97,96,95,94,93,92,91,90,89,18%,17%,16%,15%,14%,13%,12%,11%,10%,9%,8%,7%,6%,5%,4%,3%,2%,1%,0%,99%,98%,97%,96%,95%,94%,93%,92%,91%,90%,89%,LeagueWins,CupWins");
-    //        for (auto &entry : mFoomDatabase->mClubs) {
-    //            foom::club &team = entry.second;
-    //            if (!team.mExtinct && team.mNation) {
-    //                Int leagueLevel = -1;
-    //                if (team.mDivision && team.mDivision->mCompetitionLevel > 0)
-    //                    leagueLevel = team.mDivision->mCompetitionLevel;
-    //                clubsRepWriter.Write(team.mID, Quoted(team.mName), Quoted(team.mNation->mName), leagueLevel, team.mReputation);
-    //                clubsRepWriter.Write(L",");
-    //                const Int maxYears = 30;
-    //                Vector<Pair<Int, Float>> leaguePositions(maxYears + 1, { 999, 0.0f});
-    //                auto teamLeagueHistory = team.mVecTeamLeagueHistory;
-    //                std::sort(teamLeagueHistory.begin(), teamLeagueHistory.end(), [](foom::club::team_league_history const &a, foom::club::team_league_history const &b) {
-    //                    if (a.mYear < b.mYear) return true;
-    //                    if (b.mYear < a.mYear) return false;
-    //                    if (a.mOrder < b.mOrder) return true;
-    //                    if (b.mOrder < a.mOrder) return false;
-    //                    return false;
-    //                });
-    //                for (auto &h : team.mVecTeamLeagueHistory) {
-    //                    if (h.mYear <= CURRENT_YEAR && h.mYear >= (CURRENT_YEAR - maxYears) && h.mYear && h.mDivision) {
-    //                        if (h.mDivision->mType == 0)
-    //                            leaguePositions[CURRENT_YEAR - h.mYear] = { h.mPosition, (h.mMaxTeams > 1 && h.mPosition > 0) ? (h.mPosition >= h.mMaxTeams? 0.0f : (1.0f - ((Float)h.mPosition - 1.0f)/((Float)h.mMaxTeams - 1))) : 0.0f };
-    //                        else if (h.mDivision->mCompetitionLevel == 2)
-    //                            leaguePositions[CURRENT_YEAR - h.mYear] = { h.mPosition + 200, (h.mMaxTeams > 1 && h.mPosition > 0) ? (h.mPosition >= h.mMaxTeams ? 0.0f : (1.0f - ((Float)h.mPosition - 1.0f)/((Float)h.mMaxTeams - 1))) : 0.0f };
-    //                    }
-    //                }
-    //                if (leaguePositions.front().first == 999)
-    //                    leaguePositions.erase(leaguePositions.begin());
-    //                else
-    //                    leaguePositions.pop_back();
-    //                for (auto &p : leaguePositions) {
-    //                    clubsRepWriter.Write(p.first);
-    //                    clubsRepWriter.Write(L",");
-    //                }
-    //                for (auto &p : leaguePositions) {
-    //                    clubsRepWriter.Write(Utils::Format(L"%.2f", p.second));
-    //                    clubsRepWriter.Write(L",");
-    //                }
-    //                clubsRepWriter.WriteLine(team.mConverterData.mLeagueWins.size(), team.mConverterData.mCupWins.size());
-    //            }
-    //        }
-    //        clubsRepWriter.Close();
-    //    }
-    //
-    //}
-
-    {
-        FifamWriter fifaPlayersWriter(L"fm-fifa-players.csv", 14, 0, 0);
-        if (fifaPlayersWriter.Available()) {
-            fifaPlayersWriter.WriteLine(L"Country,Level,Club,Name,Birthdate,Nationality,Rating,FoomID,FifaID");
-            auto WriteOnePlayer = [&](foom::player *_player, foom::club *_club, Int level, FifaTeam *fifaClub) {
-                String countryName;
-                if (_club && _club->mNation)
-                    countryName = Quoted(_club->mNation->mShortName)();
-                String clubName;
-                if (_club)
-                    clubName = Quoted(_club->mShortName)();
-                String fifaIdStr;
-                if (_player->mNation && fifaClub) {
-                    fifaClub->ForAllPlayers([&](FifaPlayer &fifaPlayer) {
-                        if (fifaIdStr.empty()) {
-                            if (fifaPlayer.internal.nationality == _player->mNation->mConverterData.mFIFAID && fifaPlayer.m_birthDate == _player->mDateOfBirth)
-                                fifaIdStr = Utils::Format(L"%d", fifaPlayer.internal.playerid);
-                        }
-                    });
-                    if (fifaIdStr.empty()) {
-                        String foomPlayerName = Utils::GetQuickName(_player->mFirstName, _player->mSecondName, _player->mCommonName);
-                        fifaClub->ForAllPlayers([&](FifaPlayer &fifaPlayer) {
-                            if (fifaIdStr.empty()) {
-                                if (fifaPlayer.m_quickName == foomPlayerName)
-                                    fifaIdStr = Utils::Format(L"%d", fifaPlayer.internal.playerid);
-                            }
-                        });
-                    }
-                }
-                String playerName;
-                if (!_player->mCommonName.empty())
-                    playerName = _player->mCommonName;
-                else {
-                    if (!_player->mFirstName.empty())
-                        playerName = _player->mFirstName;
-                    if (!_player->mSecondName.empty()) {
-                        if (!playerName.empty())
-                            playerName += L" ";
-                        playerName += _player->mSecondName;
-                    }
-                }
-                fifaPlayersWriter.WriteLine(
-                    countryName,
-                    level,
-                    clubName,
-                    Quoted(playerName),
-                    _player->mDateOfBirth,
-                    _player->mNation ? _player->mNation->mThreeLetterName : L"",
-                    _player->mCurrentAbility / 10,
-                    _player->mID,
-                    fifaIdStr);
-            };
-            for (auto &entry : mFoomDatabase->mClubs) {
-                foom::club &team = entry.second;
-                if (!team.mExtinct && team.mNation) {
-                    Int leagueLevel = 99;
-                    if (team.mDivision && team.mDivision->mCompetitionLevel > 0)
-                        leagueLevel = team.mDivision->mCompetitionLevel;
-
-                    FifaTeam *fifaClub = nullptr;
-                    if (team.mConverterData.mFIFAID != 0)
-                        fifaClub = mFifaDatabase->GetTeam(team.mConverterData.mFIFAID);
-
-                    for (foom::player *p : team.mConverterData.mContractedPlayers)
-                        WriteOnePlayer(p, &team, leagueLevel, fifaClub);
-                    for (foom::player *p : team.mConverterData.mLoanedPlayers)
-                        WriteOnePlayer(p, &team, leagueLevel, fifaClub);
-                        
-                }
-            }
-            FifaTeam *freeAgentsClub = mFifaDatabase->GetTeam(111592);
-            for (auto &entry : mFoomDatabase->mPlayers) {
-                foom::player p = entry.second;
-                if (!p.mContract.mClub)
-                    WriteOnePlayer(&p, nullptr, 99, freeAgentsClub);
-            }
-            fifaPlayersWriter.Close();
         }
     }
 
@@ -2608,9 +2487,14 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     graphicsConverter.ConvertTrophies(mFifamDatabase, graphicsPath, contentPath, gameId, 160);
 #endif
 
+    delete mReferenceDatabase;
+    mReferenceDatabase = nullptr;
     delete mFifamDatabase;
+    mFifamDatabase = nullptr;
     delete mFoomDatabase;
+    mFoomDatabase = nullptr;
     delete mFifaDatabase;
+    mFifaDatabase = nullptr;
 }
 
 FifamClub *Converter::CreateAndConvertClub(UInt gameId, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div) {
@@ -4761,6 +4645,140 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
     return player;
 }
 
+UChar GetManagerLevelFromCA(Int ca) {
+    static Pair<UChar, UChar> managerCAtoLvlAry[15] = {
+        { 15,  185 },
+        { 14,  170 },
+        { 13,  160 },
+        { 12,  151 },
+        { 11,  140 },
+        { 10,  130 },
+        { 9,   120 },
+        { 8,   110 },
+        { 7,   100 },
+        { 6,    90 },
+        { 5,    80 },
+        { 4,    70 },
+        { 3,    50 },
+        { 2,    25 },
+        { 1,     0 }
+    };
+    for (UInt i = 0; i < 15; i++) {
+        if (ca >= managerCAtoLvlAry[i].second)
+            return managerCAtoLvlAry[i].first;
+    }
+    return 1;
+}
+
+UChar GetStaffLevelFromCA(Int ca) {
+    static Pair<UChar, UChar> staffCAtoLvlAry[99] = {
+        { 99, 190 },
+        { 98, 185 },
+        { 97, 180 },
+        { 96, 175 },
+        { 95, 170 },
+        { 94, 167 },
+        { 93, 164 },
+        { 92, 161 },
+        { 91, 158 },
+        { 90, 155 },
+        { 89, 152 },
+        { 88, 149 },
+        { 87, 146 },
+        { 86, 143 },
+        { 85, 140 },
+        { 84, 138 },
+        { 83, 136 },
+        { 82, 134 },
+        { 81, 132 },
+        { 80, 130 },
+        { 79, 128 },
+        { 78, 126 },
+        { 77, 124 },
+        { 76, 122 },
+        { 75, 120 },
+        { 74, 118 },
+        { 73, 116 },
+        { 72, 114 },
+        { 71, 112 },
+        { 70, 110 },
+        { 69, 108 },
+        { 68, 106 },
+        { 67, 104 },
+        { 66, 102 },
+        { 65, 100 },
+        { 64,  98 },
+        { 63,  96 },
+        { 62,  94 },
+        { 61,  92 },
+        { 60,  90 },
+        { 59,  88 },
+        { 58,  86 },
+        { 57,  84 },
+        { 56,  82 },
+        { 55,  80 },
+        { 54,  78 },
+        { 53,  76 },
+        { 52,  74 },
+        { 51,  72 },
+        { 50,  70 },
+        { 49,  68 },
+        { 48,  66 },
+        { 47,  64 },
+        { 46,  62 },
+        { 45,  60 },
+        { 44,  58 },
+        { 43,  56 },
+        { 42,  54 },
+        { 41,  52 },
+        { 40,  50 },
+        { 39,  48 },
+        { 38,  46 },
+        { 37,  44 },
+        { 36,  42 },
+        { 35,  40 },
+        { 34,  38 },
+        { 33,  36 },
+        { 32,  34 },
+        { 31,  32 },
+        { 30,  30 },
+        { 29,  29 },
+        { 28,  28 },
+        { 27,  27 },
+        { 26,  26 },
+        { 25,  25 },
+        { 24,  24 },
+        { 23,  23 },
+        { 22,  22 },
+        { 21,  21 },
+        { 20,  20 },
+        { 19,  19 },
+        { 18,  18 },
+        { 17,  17 },
+        { 16,  16 },
+        { 15,  15 },
+        { 14,  14 },
+        { 13,  13 },
+        { 12,  12 },
+        { 11,  11 },
+        { 10,  10 },
+        { 9,    9 },
+        { 8,    8 },
+        { 7,    7 },
+        { 6,    6 },
+        { 5,    5 },
+        { 4,    4 },
+        { 3,    3 },
+        { 2,    2 },
+        { 1,    1 }
+    };
+    for (UInt i = 0; i < 99; i++) {
+        if (ca >= staffCAtoLvlAry[i].second)
+            return staffCAtoLvlAry[i].first;
+    }
+    return 1;
+}
+
 Int ConvertStaffAttribute_20_15(Int attr) {
     if (attr <= 0)
         attr = 1;
@@ -4892,11 +4910,15 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player *p, FifamClub *clu
         staff->mPersonType = FifamPersonType::Staff;
 
     // talent
+    Int potential = p->mPotentialAbility;
+    if (potential == 180 && p->mOriginalPA != 0 && p->mOriginalPA != 180)
+        potential = Utils::Clamp(p->mOriginalCA + Random::Get(0, 20), 1, 200);
+
     //static UChar potantialAbilityRanges[9] = { 35, 55, 75, 100, 115, 130, 145, 160, 175 };
-    static UChar potantialAbilityRanges[9] = { 30, 50, 70, 90, 110, 130, 150, 170, 181 };
+    static UChar potantialAbilityRanges[9] = { 30, 50, 70, 90, 110, 130, 140, 160, 180 };
     staff->mTalent = 0;
     for (UInt i = 0; i < 9; i++) {
-        if (p->mPotentialAbility >= potantialAbilityRanges[9 - 1 - i]) {
+        if (potential >= potantialAbilityRanges[9 - 1 - i]) {
             staff->mTalent = 9 - i;
             break;
         }
@@ -5013,9 +5035,21 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player *p, FifamClub *clu
     staff->mManagerNegotiationSkills = overallSkillPart + negotiationSkillPart;
 
     // fix overall rating
-    auto overallRating = (staff->mManagerMotivationSkills + staff->mManagerCoachingSkills + staff->mManagerNegotiationSkills) / 3;
+    Int  overallRating = (staff->mManagerMotivationSkills + staff->mManagerCoachingSkills + staff->mManagerNegotiationSkills) / 3;
     if (overallRating > 1 && (staff->mManagerGoalkeepersTraining + 1) < overallRating) {
         staff->mManagerGoalkeepersTraining = overallRating - 1;
+    }
+
+    overallRating = staff->GetManagerLevel();
+    Int desiredOverall = GetManagerLevelFromCA(p->mCurrentAbility);
+    Bool dir = desiredOverall > overallRating;
+    while ((dir && overallRating < desiredOverall) || (!dir && overallRating > desiredOverall)) {
+        Int ratingDiff = dir ? 1 : -1;
+        staff->mManagerMotivationSkills = Utils::Clamp(staff->mManagerMotivationSkills + ratingDiff, 1, 15);
+        staff->mManagerCoachingSkills = Utils::Clamp(staff->mManagerCoachingSkills + ratingDiff, 1, 15);
+        staff->mManagerNegotiationSkills = Utils::Clamp(staff->mManagerNegotiationSkills + ratingDiff, 1, 15);
+        staff->mManagerGoalkeepersTraining = Utils::Clamp(staff->mManagerGoalkeepersTraining + ratingDiff, 1, 15);
+        overallRating = staff->GetManagerLevel();
     }
 
     // personality attributes
@@ -5112,6 +5146,27 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player *p, FifamClub *clu
                 attr = (UChar)newAttrValue;
         }
     });
+
+    Int staffCurrLevel = staff->GetStaffLevel();
+    Int staffDesiredLevel = GetStaffLevelFromCA(p->mCurrentAbility);
+    if (staffCurrLevel > 0 && staffCurrLevel != staffDesiredLevel) {
+        Bool dir = staffDesiredLevel > staffCurrLevel;
+        while ((dir && staffCurrLevel < staffDesiredLevel) || (!dir && staffCurrLevel > staffDesiredLevel)) {
+            staff->ForAllAttributes([=](UChar &attr, Float weight) {
+                if (weight > 0.0f) {
+                    if (dir) {
+                        if (attr < 99)
+                            attr++;
+                    }
+                    else {
+                        if (attr > 1)
+                            attr--;
+                    }
+                }
+            });
+            staffCurrLevel = staff->GetStaffLevel();
+        }
+    }
 
     return staff;
 }

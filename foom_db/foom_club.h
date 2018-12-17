@@ -166,6 +166,8 @@ struct club : public team {
         bool IsChildTypeYouthTeam() {
             return mChildType == u18 || mChildType == u18_b || mChildType == u19 || mChildType == u19_b;
         }
+
+        Bool mOriginallyChildClub = false;
     } mConverterData;
 
     club () {

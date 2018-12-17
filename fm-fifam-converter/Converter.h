@@ -15,18 +15,39 @@ public:
     foom::db *mFoomDatabase = nullptr;
 
     struct DivisionInfo {
-        String mNationName;
+        enum Type {
+            League,
+            Level,
+            RelRound,
+            RelLeague
+        };
+
         Int mNationID = -1;
         String mName;
         String mShortName;
         Int mID = -1;
-        Bool mIsLvl = 0;
+        Type mType = League;
         Int mLevel = 0;
-        Bool mIsTop = 0;
-        Int mParent = -1;
         Int mTeams = 0;
         Int mRep = 0;
+        Int mOrder = 0;
         Int mPriority = 0;
+        Int mRounds = -1;
+        Int mPromoted = -1;
+        Int mPromotedPlayOff = -1;
+        Int mRelegated = -1;
+        Int mRelegatedPlayOff = -1;
+        Date mStartDate;
+        Date mEndDate;
+        UChar mNumSubs = 3;
+        String mRules;
+        String mSorting;
+        String mScript;
+        Vector<String> mPredecessors;
+        Vector<String> mSuccessors;
+        Int mTvBonus = -1;
+        Int mWinBouns = -1;
+        Int mPlaceBonus = -1;
     };
 
     struct CupInfo {
