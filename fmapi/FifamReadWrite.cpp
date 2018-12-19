@@ -543,6 +543,13 @@ void FifamReader::StrToArg(String const &str, Quoted arg) {
     arg = modstr;
 }
 
+void FifamReader::StrToArg(String const &str, OptionalInt arg) {
+    String trimmed = str;
+    Utils::Trim(trimmed);
+    if (!trimmed.empty())
+        arg = Utils::SafeConvertInt<UInt>(str);
+}
+
 Bool FifamReader::ReadVersion() {
     if (ReadStartIndex(L"VERSION")) {
         mVersion.Set(ReadLine<UInt>());

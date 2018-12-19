@@ -48,6 +48,7 @@ public:
         Int mTvBonus = -1;
         Int mWinBouns = -1;
         Int mPlaceBonus = -1;
+        FifamCompID mCompID;
     };
 
     struct CupInfo {

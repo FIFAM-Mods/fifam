@@ -355,7 +355,7 @@ Bool FifamCountry::Write(FifamWriter &writer) {
     writer.WriteVersion();
     if (writer.IsVersionGreaterOrEqual(0x2007, 0x12)) {
         if (!mClubsMap.empty())
-            writer.WriteLine(mClubsMap.rbegin()->first);
+            writer.WriteLine(mClubsMap.rbegin()->first + 1);
         else
             writer.WriteLine((mId << 16) | 1);
     }

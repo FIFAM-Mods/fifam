@@ -9,6 +9,7 @@
     <ClCompile Include="Json.cpp" />
     <ClCompile Include="IntPtr.cpp" />
     <ClCompile Include="Hexadecimal.cpp" />
+    <ClCompile Include="OptionalInt.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Date.h" />
@@ -20,5 +21,6 @@
     <ClInclude Include="Json.h" />
     <ClInclude Include="IntPtr.h" />
     <ClInclude Include="Hexadecimal.h" />
+    <ClInclude Include="OptionalInt.h" />
   </ItemGroup>
 </Project>

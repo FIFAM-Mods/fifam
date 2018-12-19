@@ -167,7 +167,8 @@ struct club : public team {
             return mChildType == u18 || mChildType == u18_b || mChildType == u19 || mChildType == u19_b;
         }
 
-        Bool mOriginallyChildClub = false;
+        Int mAdditionalHistoryReserveTeamType = -1;
+        club *mAdditionalHistoryParentTeam = nullptr;
     } mConverterData;
 
     club () {

@@ -6,6 +6,7 @@
 #include "Hexadecimal.h"
 #include "Quoted.h"
 #include "IntPtr.h"
+#include "OptionalInt.h"
 #include "FifamTranslation.h"
 #include <iostream>
 
@@ -222,6 +223,7 @@ private:
     void StrToArg(String const &str, FifamDate &arg);
     void StrToArg(String const &str, Hexadecimal arg);
     void StrToArg(String const &str, Quoted arg);
+    void StrToArg(String const &str, OptionalInt arg);
     void StrToArg(String const &str, Date &arg);
     template<typename T>
     void StrToArg(String const &str, IntPtr<T> const &arg) {
