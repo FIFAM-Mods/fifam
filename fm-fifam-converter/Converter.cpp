@@ -10,7 +10,7 @@
 #include "ConverterUtil.h"
 #include "GraphicsConverter.h"
 
-#define DB_SIZE Full
+#define DB_SIZE Tiny
 
 Converter::~Converter() {
 
@@ -152,25 +152,32 @@ void Converter::ReadAdditionalInfo(Path const &infoPath) {
             while (!reader.IsEof()) {
                 if (!reader.EmptyLine()) {
                     DivisionInfo d;
-                    String e, type;
+                    String e, type, sorting;
                     reader.ReadLineWithSeparator(L'\t', e, d.mNationID, d.mName, d.mShortName, OptionalInt(d.mID), type, d.mLevel, e, e,
-                        d.mTeams, d.mRep, d.mPriority, d.mOrder, OptionalInt(d.mRounds), OptionalInt(d.mPromoted), OptionalInt(d.mPromotedPlayOff),
-                        OptionalInt(d.mRelegated), OptionalInt(d.mRelegatedPlayOff), d.mStartDate, d.mEndDate, d.mRules, d.mSorting, d.mScript,
-                        d.mPredecessors, d.mSuccessors, d.mWinBouns, d.mTvBonus, d.mPlaceBonus);
+                        d.mTeams, d.mRep, d.mPriority, d.mOrder, OptionalInt(d.mRounds), d.mPromoted, d.mRelegated, d.mStartDate,
+                        d.mEndDate, OptionalInt(d.mNumSubs), OptionalInt(d.mForeignersLimit), OptionalInt(d.mNonEuSigns),
+                        OptionalInt(d.mDomesticPlayers), OptionalInt(d.mU21Players), OptionalInt(d.mReserveTeamsAllowed),
+                        sorting, d.mAttendanceMp, d.mTransfersMp, d.mTvBonus, d.mWinBouns, d.mPlaceBonus);
                     
                     type = Utils::ToLower(type);
                     if (type == L"league")
                         d.mType = DivisionInfo::League;
                     else if (type == L"level")
                         d.mType = DivisionInfo::Level;
-                    else if (type == L"relround")
-                        d.mType = DivisionInfo::RelRound;
-                    else if (type == L"relleague")
-                        d.mType = DivisionInfo::RelLeague;
                     else {
                         Error(L"Unknown DivisionInfo type: %s", type.c_str());
                         continue;
                     }
+
+                    Utils::Trim(sorting);
+                    sorting = Utils::ToLower(sorting);
+
+                    if (sorting == L"dm")
+                        d.mSorting = FifamEqualPointsSorting::DirectMatches;
+                    else if (sorting == L"g")
+                        d.mSorting = FifamEqualPointsSorting::Goals;
+                    else
+                        d.mSorting = FifamEqualPointsSorting::GoalDiff;
 
                     if (d.mLevel <= 0)
                         d.mLevel = 256;
@@ -481,14 +488,13 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
         auto &nation = entry.second;
         auto country = mFifamDatabase->GetCountry(nation.mConverterData.mFIFAManagerID);
         if (country) {
-            ConvertNationInfo(country, &nation);
+            ConvertNationInfo(country, &nation, gameId);
             country->SetProperty(L"foom::nation", &nation);
             CreateStaffMembersForClub(gameId, &nation, &country->mNationalTeam, true);
             country->mNationalTeam.SetProperty(L"foom::nation", &nation);
 
             Map<UInt, DivisionInfo *> divLeagueLevels;
             Map<UInt, Vector<DivisionInfo *>> divLeagues;
-            Vector<DivisionInfo *> divRelegation;
 
             // find all division competitions for this country
             Int maxLevel = -1;
@@ -500,8 +506,6 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                             divLeagues[divInfo.mLevel].push_back(&divInfo);
                         else if (divInfo.mType == DivisionInfo::Level)
                             divLeagueLevels[divInfo.mLevel] = &divInfo;
-                        else if (divInfo.mType == DivisionInfo::RelLeague || divInfo.mType == DivisionInfo::RelRound)
-                            divRelegation.push_back(&divInfo);
                         if (divInfo.mLevel > maxLevel)
                             maxLevel = divInfo.mLevel;
                     }
@@ -510,71 +514,340 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
 
             Vector<FifamCompLeague *> createdLeagues;
             Vector<FifamCompPool *> createdPools;
-            Vector<FifamCompLeague *> createdRelLeagues;
-            Vector<FifamCompRound *> createdRelRounds;
 
             if (maxLevel >= 0) {
-                // sort leagues and relegation leagues/rounds
+
+                bool countryUsesSpecialScript =
+                    country->mId == FifamNation::England ||
+                    country->mId == FifamNation::Germany ||
+                    country->mId == FifamNation::Scotland ||
+                    country->mId == FifamNation::Spain;
+
+                // sort leagues
                 for (auto &e : divLeagues) {
                     if (e.second.size() > 1) {
-                        std::stable_sort(e.second.begin(), e.second.end(), [](DivisionInfo *a, DivisionInfo *b) {
+                        std::sort(e.second.begin(), e.second.end(), [](DivisionInfo *a, DivisionInfo *b) {
                             return a->mOrder < b->mOrder;
                         });
                     }
                 }
-                std::stable_sort(divRelegation.begin(), divRelegation.end(), [](DivisionInfo *a, DivisionInfo *b) {
-                    return a->mOrder < b->mOrder;
-                });
-
-                auto DivToComp = [](FifamCompetition *comp, DivisionInfo *div) {
-                    comp->mCompetitionLevel = div->mLevel;
-                    comp->mNumTeams = div->mTeams;
-                };
-
-                // create relegation competitions
-                UInt relIndex = 0;
-                for (DivisionInfo *rel : divRelegation) {
-                    FifamCompID relegationID = { (UChar)country->mId, FifamCompType::Relegation, relIndex++ };
-                    String compName;
-                    if (rel->mName.length() < 64)
-                        compName = rel->mName;
-                    else
-                        compName = FifamNames::LimitName(rel->mShortName, 63);
-                    FifamCompetition *relComp = nullptr;
-                    if (rel->mType == DivisionInfo::League)
-                        relComp = mFifamDatabase->CreateCompetition(FifamCompDbType::League, relegationID, compName);
-                    else
-                        relComp = mFifamDatabase->CreateCompetition(FifamCompDbType::Round, relegationID, compName);
-                    DivToComp(relComp, rel);
-                }
 
                 // create leagues
+
+                mNextFreeUID[country->mId - 1] = 0x4001;
+                mNumTeamsInLeagueSystem[country->mId - 1] = 0;
+                Int minLevelWithReserveTeams = -1;
+
                 UInt leagueIndex = 0;
                 for (auto &leagues : divLeagues) {
                     UInt teamCounter = 0;
                     for (DivisionInfo *lg : leagues.second) {
-                        FifamCompID leagueID = { (UChar)country->mId, FifamCompType::League, leagueIndex++ };
+                        FifamCompID leagueID = FifamCompID(country->mId, FifamCompType::League, leagueIndex++);
                         String compName;
                         if (lg->mName.length() < 64)
                             compName = lg->mName;
                         else
                             compName = FifamNames::LimitName(lg->mShortName, 63);
                         FifamCompLeague *league = mFifamDatabase->CreateCompetition(FifamCompDbType::League, leagueID, compName)->AsLeague();
-                        DivToComp(league, lg);
 
-                        bool customScriptForLeague = false;
+                        lg->mCompID = leagueID;
 
-                        if (!customScriptForLeague) {
-                            league->mInstructions.PushBack(new FifamInstruction::GET_POOL(
-                                FifamCompID(country->mId, FifamCompType::Pool, leagues.first), teamCounter + 1, lg->mTeams));
+                        // convert - old
+
+                        foom::comp *comp = mFoomDatabase->get<foom::comp>(lg->mID);
+                        if (!comp) {
+                            Error(L"Competition is not available\nCompetitionName: %s\nCompetitionID: %d", lg->mName.c_str(), lg->mID);
+                            continue;
                         }
+
+                        league->mCompetitionLevel = lg->mLevel;
+                        league->mLeagueLevel = lg->mLevel;
+                        league->mNumSubsAllowed = 3;
+                        league->mNumTeams = lg->mTeams;
+                        league->mNumRelegatedTeams = lg->mRelegated;
+
+                        // rounds (auto-calculation)
+
+                        if (league->mNumTeams >= 15)
+                            league->mNumRounds = 2;
+                        else if (league->mNumTeams >= 11)
+                            league->mNumRounds = 3;
+                        else
+                            league->mNumRounds = 4;
+
+                        league->mRoundType = FifamRoundID::Group1;
+                        league->mTeams.resize(lg->mTeams);
+
+                        if (comp->mReputation <= 20) {
+                            if (comp->mReputation > 10) {
+                                league->mTransferMarketMp = comp->mReputation;
+                                league->mAttendanceMp = comp->mReputation;
+                            }
+                            else {
+                                league->mTransferMarketMp = 10;
+                                league->mAttendanceMp = 10;
+                            }
+                        }
+                        else {
+                            league->mTransferMarketMp = Utils::Min(200, (Int)((Float)(comp->mReputation - 20) * 1.3f));
+                            league->mAttendanceMp = Utils::Min(120, (Int)((Float)(comp->mReputation - 20) * 0.69f));
+                        }
+                        league->mFreeAgentsCanBeTranferredAtAnyTime = true;
+                        league->mForeignFreeAgentsCanBeTransferredAtAnyTime = true;
+                        league->mShortTermLoansTotalLimit = 15;
+                        league->mShortTermLoansSimultaneosLimit = 15;
+                        league->mLongTermLoansTotalLimit = 15;
+                        league->mLongTermLoansSimultaneosLimit = 15;
+                        league->mOverallTotalLoansLimit = 15;
+                        league->mOverallTotalSimultaneosLoansLimit = 15;
+                        league->mLoanedPlayersPerSeason = 15;
+                        league->mLoanPlayerPerSquad = 15;
+                        league->mSimLoanOtherLeague = 15;
+                        league->mSimLoanSameLeague = 15;
+                        league->mLoanOtherLeagueCount = 15;
+                        league->mLoanSameLeagueCount = 15;
+
+                        comp->mConverterData.mLeague = league;
+                        league->SetProperty(L"foom::comp", comp);
+                        league->SetProperty(L"foom::id", lg->mID);
+                        league->SetProperty(L"foom::reputation", lg->mRep);
+                        createdLeagues.push_back(league);
+                        mLeaguesSystem[country->mId - 1][league->mLeagueLevel].push_back(league);
+
+                        league->mEqualPointsSorting = lg->mSorting;
+                        if (lg->mTvBonus >= 0)
+                            league->mBonuses[3] = AlignMoneyValue(lg->mTvBonus, 1'000);
+                        if (lg->mWinBouns >= 0)
+                            league->mBonuses[1] = AlignMoneyValue(lg->mWinBouns, 1'000);
+                        if (lg->mPlaceBonus >= 0)
+                            league->mBonuses[2] = AlignMoneyValue(lg->mPlaceBonus, 1'000);
+                        if (lg->mAttendanceMp > 0)
+                            league->mAttendanceMp = lg->mAttendanceMp;
+                        if (lg->mTransfersMp > 0)
+                            league->mTransferMarketMp = lg->mTransfersMp;
+                        if (lg->mNumSubs > 0)
+                            league->mNumSubsAllowed = lg->mNumSubs;
+                        if (lg->mDomesticPlayers > 0)
+                            league->mMinDomesticPlayerCount = lg->mDomesticPlayers;
+                        if (lg->mU21Players > 0)
+                            league->mMinU21PlayerCount = lg->mU21Players;
+                        if (lg->mNonEuSigns > 0)
+                            league->mMaxNumberOfNonEUSigns = lg->mNonEuSigns;
+
+                        league->mInstructions.PushBack(new FifamInstruction::GET_POOL(
+                            FifamCompID(country->mId, FifamCompType::Pool, leagues.first), teamCounter + 1, lg->mTeams));
+
+                        // add teams
+                        Bool hasReserveTeams = lg->mReserveTeamsAllowed;
+                        UInt numLeaguePromotedTeams = 0;
+                        UInt numLeagueRelegatedTeams = 0;
+                        for (auto entry : comp->mVecTeams) {
+                            foom::club *team = (foom::club *)entry;
+                            if (!team)
+                                continue;
+                            Int teamRep = team->mReputation;
+                            if (teamRep < 0)
+                                teamRep = 0;
+                            else if (teamRep > 10'000)
+                                teamRep = 10'000;
+                            if (team->mLastDivision) {
+                                if (team->mLastDivision != comp) {
+                                    if (team->mLastDivision->mCompetitionLevel == 0 || team->mLastDivision->mCompetitionLevel > comp->mCompetitionLevel) {
+                                        numLeaguePromotedTeams++;
+                                        if (team->mLastPosition != 0)
+                                            team->mConverterData.mLeaguePos = 100'000 + team->mLastPosition;
+                                        else
+                                            team->mConverterData.mLeaguePos = 100'000 + 1'000 + (10'000 - teamRep);
+                                    }
+                                    else {
+                                        numLeagueRelegatedTeams++;
+                                        if (team->mLastPosition != 0)
+                                            team->mConverterData.mLeaguePos = -100'000 - (1'000 - team->mLastPosition);
+                                        else
+                                            team->mConverterData.mLeaguePos = -1 - teamRep;
+                                    }
+                                }
+                                else {
+                                    if (team->mLastPosition != 0)
+                                        team->mConverterData.mLeaguePos = team->mLastPosition;
+                                    else
+                                        team->mConverterData.mLeaguePos = 1'000 + (10'000 - teamRep);
+                                }
+                            }
+                            else {
+                                numLeaguePromotedTeams++;
+                                team->mConverterData.mLeaguePos = 200'000 + (10'000 - teamRep);
+                            }
+                        }
+                        UInt leagueClubCounter = 0;
+                        std::sort(comp->mVecTeams.begin(), comp->mVecTeams.end(), [](foom::team *a, foom::team *b) {
+                            if (!a) return false;
+                            if (!b) return true;
+                            return ((foom::club *)a)->mConverterData.mLeaguePos < ((foom::club *)b)->mConverterData.mLeaguePos;
+                        });
+                        for (auto entry : comp->mVecTeams) {
+                            foom::club *team = (foom::club *)entry;
+                            if (!team) {
+                                Error(L"Invalid club pointer in league\nLeague: %s", lg->mName.c_str());
+                                continue;
+                            }
+                            FifamClub *club = nullptr;
+                            foom::club *mainTeam = nullptr; // for reserve teams
+                            FifamClubTeamType teamType = FifamClubTeamType::First;
+                            Bool createNewClub = false;
+                            Bool isExtinct = team->mExtinct;
+                            if (team->mConverterData.mParentClub) {
+                                isExtinct = team->mConverterData.mParentClub->mExtinct;
+                                hasReserveTeams = true;
+                            }
+                            if (isExtinct) {
+                                Error(L"Extinct club in the league\nClub: '%s'\nLeague: '%s'",
+                                    team->mName.c_str(), lg->mName.c_str());
+                            }
+                            else if (team->mConverterData.mFifamClub) {
+                                Message(Utils::Format(L"Team already present in other league\nClub: '%s'\nLeague: '%s'",
+                                    team->mName.c_str(), lg->mName.c_str()));
+                                club = (FifamClub *)team->mConverterData.mFifamClub;
+                                if (team->mConverterData.mParentClub)
+                                    teamType = FifamClubTeamType::Reserve;
+                            }
+                            else if (team->mConverterData.mParentClub) {
+                                if (!team->mConverterData.mParentClub->mConverterData.mFifamClub) {
+                                    Error(L"Reserve club appears before the first team in the league\nMainClub: '%s'\nReserveClub: '%s'\nLeague: '%s'",
+                                        team->mConverterData.mParentClub->mName.c_str(), team->mName.c_str(), lg->mName.c_str());
+                                }
+                                else {
+                                    if (!team->mConverterData.mParentClub->mConverterData.mMainChildClubInDB) {
+                                        club = (FifamClub *)team->mConverterData.mParentClub->mConverterData.mFifamClub;
+                                        teamType = FifamClubTeamType::Reserve;
+                                        team->mConverterData.mParentClub->mConverterData.mMainChildClubInDB = team;
+                                        team->mConverterData.mParentClubInDB = team->mConverterData.mParentClub;
+                                    }
+                                    else {
+                                        if (!team->mIsReserveDummyClub) {
+                                            team->mConverterData.mParentClub->mConverterData.mChildClubs.erase(std::remove_if(
+                                                team->mConverterData.mParentClub->mConverterData.mChildClubs.begin(),
+                                                team->mConverterData.mParentClub->mConverterData.mChildClubs.end(),
+                                                [=](foom::club::converter_data::child_club const &a) {
+                                                return a.mClub == team;
+                                            }), team->mConverterData.mParentClub->mConverterData.mChildClubs.end());
+                                            mainTeam = team->mConverterData.mParentClub;
+                                            team->mConverterData.mParentClub = nullptr;
+                                            createNewClub = true;
+                                        }
+                                        else {
+                                            Error(L"Reserve club can't be created because it's a dummy club\nMainClub: '%s'\nReserveTeamID: %d\nLeague: '%s'",
+                                                team->mConverterData.mParentClub->mName.c_str(), team->mID, lg->mName.c_str());
+                                        }
+                                        //Error(L"Reserve club already present for team in the league\nMainClub: '%s'\nReserveClub: '%s'\nLeague: '%s'",
+                                        //    team->mConverterData.mParentClub->mName.c_str(), team->mName.c_str(), div->mName.c_str());
+                                    }
+                                }
+                            }
+                            else
+                                createNewClub = true;
+                            if (createNewClub)
+                                club = CreateAndConvertClub(gameId, team, mainTeam, country, lg);
+                            // put team to league
+                            if (club) {
+                                league->mTeams[leagueClubCounter].mPtr = club;
+                                league->mTeams[leagueClubCounter].mTeamType = teamType;
+                                club->SetProperty(L"league", league);
+                                if (team->mConverterData.mLeaguePos >= 100'000) {
+                                    if (numLeaguePromotedTeams <= (comp->mVecTeams.size() / 2)) {
+                                        if (teamType == FifamClubTeamType::First)
+                                            club->mFirstTeamLastSeasonInfo.mLeague = FifamClubLastSeasonLeague::Promoted;
+                                        else
+                                            club->mReserveTeamLastSeasonInfo.mLeague = FifamClubLastSeasonLeague::Promoted;
+                                    }
+                                }
+                                else if (team->mConverterData.mLeaguePos < 0) {
+                                    if (numLeagueRelegatedTeams <= (comp->mVecTeams.size() / 2)) {
+                                        if (teamType == FifamClubTeamType::First)
+                                            club->mFirstTeamLastSeasonInfo.mLeague = FifamClubLastSeasonLeague::Relegated;
+                                        else
+                                            club->mReserveTeamLastSeasonInfo.mLeague = FifamClubLastSeasonLeague::Relegated;
+                                    }
+                                }
+                                leagueClubCounter++;
+                            }
+                        }
+
+                        if (hasReserveTeams) {
+                            if (minLevelWithReserveTeams == -1 || minLevelWithReserveTeams > league->mLeagueLevel)
+                                minLevelWithReserveTeams = league->mLeagueLevel;
+                        }
+
+                        bool gotFixtures = false;
+                        Date leagueStart, leagueEnd;
+
+                        if (mFixturesPerLeague.count(comp->mID) > 0) {
+                            auto const &fixtures = mFixturesPerLeague[comp->mID];
+                            UInt leagueTotalMatches = league->GetTotalNumMatches();
+                            UInt leagueMatchdaysInRound = league->GetNumMatchdaysInRound();
+                            UInt leagueMatchesInMatchday = league->GetNumMatchesInMatchday();
+                            if (leagueTotalMatches > 0 && fixtures.size() == leagueTotalMatches) {
+                                gotFixtures = true;
+                                league->mFixtures.resize(league->mNumRounds * leagueMatchdaysInRound);
+                                Map<FifamClubLink, UInt> leagueTeamsMap;
+                                for (UInt i = 0; i < league->mTeams.size(); i++)
+                                    leagueTeamsMap[league->mTeams[i]] = i + 1;
+                                UInt matchId = 0;
+                                UInt matchdayId = 0;
+                                for (UInt r = 0; r < league->mNumRounds; r++) {
+                                    if (!gotFixtures)
+                                        break;
+                                    for (UInt md = 0; md < leagueMatchdaysInRound; md++) {
+                                        if (!gotFixtures)
+                                            break;
+                                        league->mFixtures[matchdayId].resize(leagueMatchesInMatchday);
+                                        for (UInt d = 0; d < leagueMatchesInMatchday; d++) {
+                                            if (fixtures.size() <= matchId) {
+                                                Error(L"Incorrect fixtures list size\nLeague: %s", comp->mName.c_str());
+                                                gotFixtures = false;
+                                                break;
+                                            }
+                                            UInt team1id = 0, team2id = 0;
+                                            if (!fixtures[matchId].mTeam1 || leagueTeamsMap.count(GetTeamClubLink(fixtures[matchId].mTeam1)) == 0) {
+                                                //Error(L"Incorrect fixtures team (match %d)\nLeague: %s\nTeam: %s", matchId + 1, comp->mName.c_str(), fixtures[matchId].mTeam1 ? GetTeamClubLink(fixtures[matchId].mTeam1).GetTeamName().c_str() : L"none");
+                                                gotFixtures = false;
+                                                break;
+                                            }
+                                            team1id = leagueTeamsMap[GetTeamClubLink(fixtures[matchId].mTeam1)];
+                                            if (!fixtures[matchId].mTeam2 || leagueTeamsMap.count(GetTeamClubLink(fixtures[matchId].mTeam2)) == 0) {
+                                                //Error(L"Incorrect fixtures team (match %d)\nLeague: %s\nTeam: %s", matchId + 1, comp->mName.c_str(), fixtures[matchId].mTeam2 ? GetTeamClubLink(fixtures[matchId].mTeam2).GetTeamName().c_str() : L"none");
+                                                gotFixtures = false;
+                                                break;
+                                            }
+                                            team2id = leagueTeamsMap[GetTeamClubLink(fixtures[matchId].mTeam2)];
+                                            league->mFixtures[matchdayId][d] = { team1id, team2id };
+                                            matchId++;
+                                        }
+                                        matchdayId++;
+                                    }
+                                }
+                            }
+                            //else {
+                            //    Error(L"Error fixtures list size\nLeague: %s\n%d/%d", comp->mName.c_str(), fixtures.size(), leagueTotalMatches);
+                            //}
+                        }
+
+                        if (!gotFixtures)
+                            league->GenerateFixtures();
+                        league->GenerateCalendar(13, 0, 0, 0);
+
+                        // TODO: translate date to calendar day
+
+                        mNumTeamsInLeagueSystem[country->mId - 1] += lg->mTeams;
+
                         teamCounter += lg->mTeams;
                     }
                 }
 
                 // create league levels
-                for (UInt i = 0; i <= maxLevel; i++) {
+                for (Int i = 0; i <= maxLevel; i++) {
                     DivisionInfo *level = nullptr;
+                    Int levelRep = 0;
                     String levelName;
                     auto itLevel = divLeagueLevels.find(i);
                     // if level exists
@@ -584,6 +857,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                             levelName = level->mName;
                         else
                             levelName = level->mShortName;
+                        levelRep = level->mRep;
                     }
                     else { // if level does not exist
                         Vector<String> divsOnLevelNames;
@@ -598,28 +872,44 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                             Error(L"No league levels or leagues at level %d in country %s", i, FifamTr(country->mName).c_str());
                     }
                     // setup level information
-                    if (level) {
-                        auto &levelNames = country->mLeagueLevelNames.emplace_back();
-                        FifamTrSetAll<String>(levelNames, FifamNames::LimitName(levelName, 28));
+                    auto &levelNames = country->mLeagueLevelNames.emplace_back();
+                    FifamTrSetAll<String>(levelNames, FifamNames::LimitName(levelName, 28));
+
+                    DivisionInfo *firstDivOnLevel = nullptr;
+
+                    auto itFirstLeague = divLeagues.find(i);
+                    if (itFirstLeague != divLeagues.end() && divLeagues[i].size() > 0)
+                        firstDivOnLevel = divLeagues[i][0];
+
+                    if (firstDivOnLevel) {
+                        country->mLeagueLevels[i].mEqualPointsSorting = firstDivOnLevel->mSorting;
+                        country->mLeagueLevels[i].mNumNonEUPlayersAllowed = firstDivOnLevel->mForeignersLimit;
+                        country->mLeagueLevels[i].mNumRelegatedTeams = firstDivOnLevel->mRelegated;
+                    }
+                    else {
                         country->mLeagueLevels[i].mEqualPointsSorting = FifamEqualPointsSorting::GoalDiff;
                         country->mLeagueLevels[i].mNumNonEUPlayersAllowed = 0;
                         country->mLeagueLevels[i].mNumRelegatedTeams = 0;
-
-                        country->mLeagueLevels[i].mRating = (UChar)(roundf((
-                            (Float)level->mRep / 370.0f +
-                            (Float)nation.mYouthRating / 1200.0f +
-                            0.15f) * 100.0f));
                     }
+
+                    country->mLeagueLevels[i].mRating = (UChar)(roundf((
+                        (Float)levelRep / 370.0f +
+                        (Float)nation.mYouthRating / 1200.0f +
+                        0.15f) * 100.0f));
+
                     if (i == 0)
                         country->mAveragePlayerRating = country->mLeagueLevels[i].mRating;
 
                     // setup pool
 
-                    FifamCompID poolID = { (UChar)country->mId, FifamCompType::Pool, i };
+                    FifamCompID poolID = FifamCompID(country->mId, FifamCompType::Pool, i);
                     FifamCompPool *pool = mFifamDatabase->CreateCompetition(FifamCompDbType::Pool, poolID, FifamNames::LimitName(levelName, 58) + L" Pool")->AsPool();
                     pool->mCompetitionLevel = i;
 
-                    bool customScriptForPool = false;
+                    createdPools.push_back(pool);
+
+                    if (level)
+                        level->mCompID = poolID;
 
                     if (i > 0)
                         pool->mCompConstraints.push_back(FifamCompID(country->mId, FifamCompType::Pool, i - 1));
@@ -629,9 +919,9 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                         UInt higherLevel = i - 1;
                         if (divLeagues.find(higherLevel) != divLeagues.end()) {
                             for (DivisionInfo *l : divLeagues[higherLevel]) {
-                                if (!customScriptForPool) {
+                                if (l->mRelegated > 0) {
                                     pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(
-                                        l->mCompID, l->mTeams - (l->mRelegated + l->mRelegatedPlayOff), l->mRelegated + l->mRelegatedPlayOff));
+                                        l->mCompID, l->mTeams - l->mRelegated + 1, l->mRelegated));
                                 }
                             }
                         }
@@ -647,10 +937,10 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
 
                         for (DivisionInfo *l : divLeagues[i]) {
                             pool->mNumTeams += l->mTeams;
-                            if (!customScriptForPool) {
+                            Int numTeamsFromThisLeague = l->mTeams - (l->mPromoted + l->mRelegated);
+                            if (numTeamsFromThisLeague > 0) {
                                 pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(
-                                    l->mCompID, l->mPromoted + l->mPromotedPlayOff,
-                                    l->mTeams - (l->mPromoted + l->mPromotedPlayOff + l->mRelegated + l->mRelegatedPlayOff)));
+                                    l->mCompID, l->mPromoted + 1, numTeamsFromThisLeague));
                             }
                         }
                     }
@@ -659,317 +949,24 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
 
                     // next level - promoted teams
                     if (i != maxLevel) {
-                        UInt lowerLevel = i - 1;
+                        UInt lowerLevel = i + 1;
                         if (divLeagues.find(lowerLevel) != divLeagues.end()) {
                             for (DivisionInfo *l : divLeagues[lowerLevel]) {
-                                if (!customScriptForPool)
-                                    pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(l->mCompID, 1, l->mPromoted + l->mPromotedPlayOff));
+                                if (l->mPromoted > 0) {
+                                    pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(l->mCompID, 1, l->mPromoted));
+                                }
                             }
                         }
                         else
                             Error(L"No leagues at level %d\nCountry: %s", lowerLevel, FifamTr(country->mName).c_str());
                     }
                     else { // CaC league & spare
-                        if (!customScriptForPool) {
-                            pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(FifamCompID(country->mId, FifamCompType::League, i + 1), 1, 1));
-                            pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
-                        }
-                    }
-                }
-            }
-
-            if (!comps.empty()) {
-
-                // add leagues
-                mNextFreeUID[country->mId - 1] = 0x4001;
-                mNumTeamsInLeagueSystem[country->mId - 1] = 0;
-                Int minLevelWithReserveTeams = -1;
-                for (UShort i = 0; i < comps.size(); i++) {
-                    auto div = comps[i];
-                    auto comp = mFoomDatabase->get<foom::comp>(div->mID);
-                    if (!comp) {
-                        Error(L"Competition is not available\nCompetitionName: %s\nCompetitionID: %d", div->mName.c_str(), div->mID);
-                        continue;
-                    }
-                    FifamCompID leagueID = { (UChar)country->mId, FifamCompType::League, i };
-                    FifamCompID poolID = { (UChar)country->mId, FifamCompType::Pool, i };
-                    String compName;
-                    if (div->mName.length() < 64)
-                        compName = div->mName;
-                    else
-                        compName = FifamNames::LimitName(div->mShortName, 63);
-                    auto pool = mFifamDatabase->CreateCompetition(FifamCompDbType::Pool, poolID, FifamNames::LimitName(compName, 58) + L" Pool")->AsPool();
-                    pool->mCompetitionLevel = div->mLevel;
-                    pool->mNumTeams = div->mTeams;
-                    auto league = mFifamDatabase->CreateCompetition(FifamCompDbType::League, leagueID, compName)->AsLeague();
-                    league->mCompetitionLevel = div->mLevel;
-                    league->mLeagueLevel = div->mLevel;
-                    league->mNumSubsAllowed = 3;
-                    league->mNumTeams = div->mTeams;
-                    if (league->mNumTeams >= 15)
-                        league->mNumRounds = 2;
-                    else if (league->mNumTeams >= 11)
-                        league->mNumRounds = 3;
-                    else
-                        league->mNumRounds = 4;
-                    if (league->mNumTeams >= 24)
-                        league->mNumRelegatedTeams = 5;
-                    else if (league->mNumTeams >= 22)
-                        league->mNumRelegatedTeams = 4;
-                    else if (league->mNumTeams >= 18)
-                        league->mNumRelegatedTeams = 3;
-                    else if (league->mNumTeams >= 12)
-                        league->mNumRelegatedTeams = 2;
-                    else
-                        league->mNumRelegatedTeams = 1;
-                    league->mRoundType = FifamRoundID::Group1;
-                    league->mTeams.resize(div->mTeams);
-
-                    if (comp->mReputation <= 20) {
-                        if (comp->mReputation > 10) {
-                            league->mTransferMarketMp = comp->mReputation - 10;
-                            league->mAttendanceMp = comp->mReputation - 10;
-                        }
-                        else {
-                            league->mTransferMarketMp = 10;
-                            league->mAttendanceMp = 10;
-                        }
-                    }
-                    else {
-                        league->mTransferMarketMp = Utils::Min(200, (Int)((Float)(comp->mReputation - 20) * 1.3f));
-                        league->mAttendanceMp = Utils::Min(120, (Int)((Float)(comp->mReputation - 20) * 0.69f));
-                    }
-                    league->mFreeAgentsCanBeTranferredAtAnyTime = true;
-                    league->mForeignFreeAgentsCanBeTransferredAtAnyTime = true;
-                    league->mShortTermLoansTotalLimit = 15;
-                    league->mShortTermLoansSimultaneosLimit = 15;
-                    league->mLongTermLoansTotalLimit = 15;
-                    league->mLongTermLoansSimultaneosLimit = 15;
-                    league->mOverallTotalLoansLimit = 15;
-                    league->mOverallTotalSimultaneosLoansLimit = 15;
-                    league->mLoanedPlayersPerSeason = 15;
-                    league->mLoanPlayerPerSquad = 15;
-                    league->mSimLoanOtherLeague = 15;
-                    league->mSimLoanSameLeague = 15;
-                    league->mLoanOtherLeagueCount = 15;
-                    league->mLoanSameLeagueCount = 15;
-
-                    // instructions
-                    pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(league->mID, 1, league->mNumTeams));
-                    if ((i + 1) == comps.size())
+                        pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(
+                            FifamCompID(country->mId, FifamCompType::League, leagueIndex), 1, 1));
                         pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
-
-                    league->mInstructions.PushBack(new FifamInstruction::GET_POOL(pool->mID, 0, league->mNumTeams));
-
-                    comp->mConverterData.mLeague = league;
-                    league->SetProperty(L"foom::comp", comp);
-                    league->SetProperty(L"foom::id", div->mID);
-                    league->SetProperty(L"foom::reputation", div->mRep);
-                    createdLeagues.push_back(league);
-                    createdPools.push_back(pool);
-                    mLeaguesSystem[country->mId - 1][league->mLeagueLevel].push_back(league);
-
-                    // add teams
-                    Bool hasReserveTeams = false;
-                    UInt numLeaguePromotedTeams = 0;
-                    UInt numLeagueRelegatedTeams = 0;
-                    for (auto entry : comp->mVecTeams) {
-                        foom::club *team = (foom::club *)entry;
-                        if (!team)
-                            continue;
-                        Int teamRep = team->mReputation;
-                        if (teamRep < 0)
-                            teamRep = 0;
-                        else if (teamRep > 10'000)
-                            teamRep = 10'000;
-                        if (team->mLastDivision) {
-                            if (team->mLastDivision != comp) {
-                                if (team->mLastDivision->mCompetitionLevel == 0 || team->mLastDivision->mCompetitionLevel > comp->mCompetitionLevel) {
-                                    numLeaguePromotedTeams++;
-                                    if (team->mLastPosition != 0)
-                                        team->mConverterData.mLeaguePos = 100'000 + team->mLastPosition;
-                                    else
-                                        team->mConverterData.mLeaguePos = 100'000 + 1'000 + (10'000 - teamRep);
-                                }
-                                else {
-                                    numLeagueRelegatedTeams++;
-                                    if (team->mLastPosition != 0)
-                                        team->mConverterData.mLeaguePos = -100'000 - (1'000 - team->mLastPosition);
-                                    else
-                                        team->mConverterData.mLeaguePos = -1 - teamRep;
-                                }
-                            }
-                            else {
-                                if (team->mLastPosition != 0)
-                                    team->mConverterData.mLeaguePos = team->mLastPosition;
-                                else
-                                    team->mConverterData.mLeaguePos = 1'000 + (10'000 - teamRep);
-                            }
-                        }
-                        else {
-                            numLeaguePromotedTeams++;
-                            team->mConverterData.mLeaguePos = 200'000 + (10'000 - teamRep);
-                        }
                     }
-                    UInt leagueClubCounter = 0;
-                    std::sort(comp->mVecTeams.begin(), comp->mVecTeams.end(), [](foom::team *a, foom::team *b) {
-                        if (!a) return false;
-                        if (!b) return true;
-                        return ((foom::club *)a)->mConverterData.mLeaguePos < ((foom::club *)b)->mConverterData.mLeaguePos;
-                    });
-                    for (auto entry : comp->mVecTeams) {
-                        foom::club *team = (foom::club *)entry;
-                        if (!team) {
-                            Error(L"Invalid club pointer in league\nLeague: %s", div->mName.c_str());
-                            continue;
-                        }
-                        FifamClub *club = nullptr;
-                        foom::club *mainTeam = nullptr; // for reserve teams
-                        FifamClubTeamType teamType = FifamClubTeamType::First;
-                        Bool createNewClub = false;
-                        Bool isExtinct = team->mExtinct;
-                        if (team->mConverterData.mParentClub) {
-                            isExtinct = team->mConverterData.mParentClub->mExtinct;
-                            hasReserveTeams = true;
-                        }
-                        if (isExtinct) {
-                            Error(L"Extinct club in the league\nClub: '%s'\nLeague: '%s'",
-                                team->mName.c_str(), div->mName.c_str());
-                        }
-                        else if (team->mConverterData.mFifamClub) {
-                            Message(Utils::Format(L"Team already present in other league\nClub: '%s'\nLeague: '%s'",
-                                team->mName.c_str(), div->mName.c_str()));
-                            club = (FifamClub *)team->mConverterData.mFifamClub;
-                            if (team->mConverterData.mParentClub)
-                                teamType = FifamClubTeamType::Reserve;
-                        }
-                        else if (team->mConverterData.mParentClub) {
-                            if (!team->mConverterData.mParentClub->mConverterData.mFifamClub) {
-                                Error(L"Reserve club appears before the first team in the league\nMainClub: '%s'\nReserveClub: '%s'\nLeague: '%s'",
-                                    team->mConverterData.mParentClub->mName.c_str(), team->mName.c_str(), div->mName.c_str());
-                            }
-                            else {
-                                if (!team->mConverterData.mParentClub->mConverterData.mMainChildClubInDB) {
-                                    club = (FifamClub *)team->mConverterData.mParentClub->mConverterData.mFifamClub;
-                                    teamType = FifamClubTeamType::Reserve;
-                                    team->mConverterData.mParentClub->mConverterData.mMainChildClubInDB = team;
-                                    team->mConverterData.mParentClubInDB = team->mConverterData.mParentClub;
-                                }
-                                else {
-                                    if (!team->mIsReserveDummyClub) {
-                                        team->mConverterData.mParentClub->mConverterData.mChildClubs.erase(std::remove_if(
-                                            team->mConverterData.mParentClub->mConverterData.mChildClubs.begin(),
-                                            team->mConverterData.mParentClub->mConverterData.mChildClubs.end(),
-                                            [=](foom::club::converter_data::child_club const &a) {
-                                            return a.mClub == team;
-                                        }), team->mConverterData.mParentClub->mConverterData.mChildClubs.end());
-                                        mainTeam = team->mConverterData.mParentClub;
-                                        team->mConverterData.mParentClub = nullptr;
-                                        createNewClub = true;
-                                    }
-                                    else {
-                                        Error(L"Reserve club can't be created because it's a dummy club\nMainClub: '%s'\nReserveTeamID: %d\nLeague: '%s'",
-                                            team->mConverterData.mParentClub->mName.c_str(), team->mID, div->mName.c_str());
-                                    }
-                                    //Error(L"Reserve club already present for team in the league\nMainClub: '%s'\nReserveClub: '%s'\nLeague: '%s'",
-                                    //    team->mConverterData.mParentClub->mName.c_str(), team->mName.c_str(), div->mName.c_str());
-                                }
-                            }
-                        }
-                        else
-                            createNewClub = true;
-                        if (createNewClub)
-                            club = CreateAndConvertClub(gameId, team, mainTeam, country, div);
-                        // put team to league
-                        if (club) {
-                            league->mTeams[leagueClubCounter].mPtr = club;
-                            league->mTeams[leagueClubCounter].mTeamType = teamType;
-                            club->SetProperty(L"league", league);
-                            if (team->mConverterData.mLeaguePos >= 100'000) {
-                                if (numLeaguePromotedTeams <= (comp->mVecTeams.size() / 2)) {
-                                    if (teamType == FifamClubTeamType::First)
-                                        club->mFirstTeamLastSeasonInfo.mLeague = FifamClubLastSeasonLeague::Promoted;
-                                    else
-                                        club->mReserveTeamLastSeasonInfo.mLeague = FifamClubLastSeasonLeague::Promoted;
-                                }
-                            }
-                            else if (team->mConverterData.mLeaguePos < 0) {
-                                if (numLeagueRelegatedTeams <= (comp->mVecTeams.size() / 2)) {
-                                    if (teamType == FifamClubTeamType::First)
-                                        club->mFirstTeamLastSeasonInfo.mLeague = FifamClubLastSeasonLeague::Relegated;
-                                    else
-                                        club->mReserveTeamLastSeasonInfo.mLeague = FifamClubLastSeasonLeague::Relegated;
-                                }
-                            }
-                            leagueClubCounter++;
-                        }
-                    }
-
-                    // TODO: check 'Reserve' flag from fifam_div file
-                    if (hasReserveTeams && (minLevelWithReserveTeams == -1 || minLevelWithReserveTeams > league->mLeagueLevel))
-                        minLevelWithReserveTeams = league->mLeagueLevel;
-
-                    bool gotFixtures = false;
-                    Date leagueStart, leagueEnd;
-
-                    if (mFixturesPerLeague.count(comp->mID) > 0) {
-                        auto const &fixtures = mFixturesPerLeague[comp->mID];
-                        UInt leagueTotalMatches = league->GetTotalNumMatches();
-                        UInt leagueMatchdaysInRound = league->GetNumMatchdaysInRound();
-                        UInt leagueMatchesInMatchday = league->GetNumMatchesInMatchday();
-                        if (leagueTotalMatches > 0 && fixtures.size() == leagueTotalMatches) {
-                            gotFixtures = true;
-                            league->mFixtures.resize(league->mNumRounds * leagueMatchdaysInRound);
-                            Map<FifamClubLink, UInt> leagueTeamsMap;
-                            for (UInt i = 0; i < league->mTeams.size(); i++)
-                                leagueTeamsMap[league->mTeams[i]] = i + 1;
-                            UInt matchId = 0;
-                            UInt matchdayId = 0;
-                            for (UInt r = 0; r < league->mNumRounds; r++) {
-                                if (!gotFixtures)
-                                    break;
-                                for (UInt md = 0; md < leagueMatchdaysInRound; md++) {
-                                    if (!gotFixtures)
-                                        break;
-                                    league->mFixtures[matchdayId].resize(leagueMatchesInMatchday);
-                                    for (UInt d = 0; d < leagueMatchesInMatchday; d++) {
-                                        if (fixtures.size() <= matchId) {
-                                            Error(L"Incorrect fixtures list size\nLeague: %s", comp->mName.c_str());
-                                            gotFixtures = false;
-                                            break;
-                                        }
-                                        UInt team1id = 0, team2id = 0;
-                                        if (!fixtures[matchId].mTeam1 || leagueTeamsMap.count(GetTeamClubLink(fixtures[matchId].mTeam1)) == 0) {
-                                            //Error(L"Incorrect fixtures team (match %d)\nLeague: %s\nTeam: %s", matchId + 1, comp->mName.c_str(), fixtures[matchId].mTeam1 ? GetTeamClubLink(fixtures[matchId].mTeam1).GetTeamName().c_str() : L"none");
-                                            gotFixtures = false;
-                                            break;
-                                        }
-                                        team1id = leagueTeamsMap[GetTeamClubLink(fixtures[matchId].mTeam1)];
-                                        if (!fixtures[matchId].mTeam2 || leagueTeamsMap.count(GetTeamClubLink(fixtures[matchId].mTeam2)) == 0) {
-                                            //Error(L"Incorrect fixtures team (match %d)\nLeague: %s\nTeam: %s", matchId + 1, comp->mName.c_str(), fixtures[matchId].mTeam2 ? GetTeamClubLink(fixtures[matchId].mTeam2).GetTeamName().c_str() : L"none");
-                                            gotFixtures = false;
-                                            break;
-                                        }
-                                        team2id = leagueTeamsMap[GetTeamClubLink(fixtures[matchId].mTeam2)];
-                                        league->mFixtures[matchdayId][d] = { team1id, team2id };
-                                        matchId++;
-                                    }
-                                    matchdayId++;
-                                }
-                            }
-                        }
-                        //else {
-                        //    Error(L"Error fixtures list size\nLeague: %s\n%d/%d", comp->mName.c_str(), fixtures.size(), leagueTotalMatches);
-                        //}
-                    }
-
-                    if (!gotFixtures)
-                        league->GenerateFixtures();
-                    league->GenerateCalendar(13, 0, 0, 0);
-
-                    // TODO: translate date to calendar day
-                    mNumTeamsInLeagueSystem[country->mId - 1] += div->mTeams;
                 }
+
                 if (minLevelWithReserveTeams >= 0) {
                     country->mLeagueLevelWithReserveTeams = minLevelWithReserveTeams;
                     for (auto pool : createdPools) {
@@ -978,7 +975,21 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     }
                 }
                 else
-                    country->mLeagueLevelWithReserveTeams = comps.back()->mLevel + 1;
+                    country->mLeagueLevelWithReserveTeams = maxLevel + 1;
+            }
+            else {
+                country->mLeagueLevels[0].mEqualPointsSorting = FifamEqualPointsSorting::GoalDiff;
+                country->mLeagueLevels[0].mNumNonEUPlayersAllowed = 0;
+                country->mLeagueLevels[0].mNumRelegatedTeams = 0;
+                
+                // TODO: calculate rating for countires without league system
+
+                //country->mLeagueLevels[0].mRating = (UChar)(roundf((
+                //    (Float)levelRep / 370.0f +
+                //    (Float)nation.mYouthRating / 1200.0f +
+                //    0.15f) * 100.0f));
+                //
+                //country->mAveragePlayerRating = country->mLeagueLevels[i].mRating;
             }
 
             for (auto &e : mLeaguesSystem[country->mId - 1]) {
@@ -1056,28 +1067,18 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                             Int numRounds = 0;
                             Int startRoundIndex = -1;
                             for (Int i = 7; i >= 0; i--) {
-                                if (startRoundIndex == -1) {
-                                    if (!cupInfo.mRoundDesc[i].empty()) {
-                                        startRoundIndex = i;
-                                        numRounds++;
-                                    }
-                                }
-                                else {
-                                    if (cupInfo.mRoundDesc[i].empty()) {
-                                        startRoundIndex = -1;
-                                        numRounds = 0;
-                                        break;
-                                    }
-                                    else
-                                        numRounds++;
-                                }
+                                if (cupInfo.mRoundDesc[i].empty())
+                                    break;
+                                startRoundIndex = i;
+                                numRounds++;
                             }
                             if (numRounds > 0 && startRoundIndex >= 0) {
                                 cup->mRounds.resize(numRounds);
                                 bool failed = false;
                                 Int r = 0;
-                                for (Int i = startRoundIndex; i >= 0; i--) {
+                                for (Int i = startRoundIndex; i <= 7; i++) {
                                     if (cupInfo.mRoundDesc[i].empty()) {
+                                        Error(L"Empty cup description\nCountry: %s\nCup: %s", FifamTr(country->mName).c_str(), cupInfo.mName.c_str());
                                         failed = true;
                                         break;
                                     }
@@ -1178,8 +1179,12 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                             cup->mNumTeams = 0;
                             if (cupInfo.mBonus <= 0)
                                 cupInfo.mBonus = AlignMoneyValue(cupInfo.mReputation * cupInfo.mReputation * 75, 1'000);
+                            else
+                                cupInfo.mBonus = AlignMoneyValue(cupInfo.mBonus, 1'000);
                             if (cupInfo.mTvBonus <= 0)
                                 cupInfo.mTvBonus = AlignMoneyValue((cupInfo.mReputation * cupInfo.mReputation * cupInfo.mReputation * cupInfo.mReputation) / 320, 1'000);
+                            else
+                                cupInfo.mTvBonus = AlignMoneyValue(cupInfo.mTvBonus, 1'000);
                             UInt numMatchdays = 0;
                             for (UInt r = 0; r < cup->mRounds.size(); r++) {
                                 cup->mNumTeams += cup->mRounds[r].mNewTeamsRound;
@@ -1198,8 +1203,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                             }
                             if (!cupInfo.mStructure.empty()) {
                                 UInt currentLevel = 0;
-                                if (cupInfo.mMaxLevel > 1)
-                                    currentLevel = cupInfo.mMaxLevel - 1;
+                                currentLevel = cupInfo.mMaxLevel;
                                 for (auto c : cupInfo.mStructure) {
                                     switch (c) {
                                     case L'-':
@@ -1224,10 +1228,12 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                                         cup->mInstructions.PushBack(new FifamInstruction::GET_CHAMP({ country->mId, FifamCompType::League, 0 }));
                                         break;
                                     case L'R':
-                                        cup->mInstructions.PushBack(new FifamInstruction::GET_RUNNER_UP({ country->mId, FifamCompType::FaCup, 0 }));
+                                        if (gameId >= 10)
+                                            cup->mInstructions.PushBack(new FifamInstruction::GET_RUNNER_UP({ country->mId, FifamCompType::FaCup, 0 }));
                                         break;
                                     case L'N':
-                                        cup->mInstructions.PushBack(new FifamInstruction::GET_RUNNER_UP({ country->mId, FifamCompType::League, 0 }));
+                                        if (gameId >= 10)
+                                            cup->mInstructions.PushBack(new FifamInstruction::GET_RUNNER_UP({ country->mId, FifamCompType::League, 0 }));
                                         break;
                                     }
                                 }
@@ -1236,15 +1242,13 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                                 if (cupInfo.mType == CupInfo::Supercup) {
                                     cup->mInstructions.PushBack(new FifamInstruction::GET_CHAMP({ country->mId, FifamCompType::FaCup, 0 }));
                                     cup->mInstructions.PushBack(new FifamInstruction::GET_CHAMP({ country->mId, FifamCompType::League, 0 }));
-                                    cup->mInstructions.PushBack(new FifamInstruction::GET_RUNNER_UP({ country->mId, FifamCompType::FaCup, 0 }));
+                                    if (gameId >= 10)
+                                        cup->mInstructions.PushBack(new FifamInstruction::GET_RUNNER_UP({ country->mId, FifamCompType::FaCup, 0 }));
                                     cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_LEVEL_X_TO_Y(0, 1, 24));
                                 }
                                 else {
-                                    UInt maxLevel = 0;
-                                    if (cupInfo.mMaxLevel > 1)
-                                        maxLevel = cupInfo.mMaxLevel - 1;
                                     for (auto const &level : mLeaguesSystem[country->mId - 1]) {
-                                        if (level.first >= maxLevel) {
+                                        if (level.first >= (UInt)cupInfo.mMaxLevel) {
                                             if (level.first == 0 && level.second.size() == 1)
                                                 cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(level.second[0]->mID, 1, 24));
                                             else if (level.second.size() > 0)
@@ -1255,9 +1259,21 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                                     cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
                                 }
                             }
-                            if (cup->mNumTeams > 128) {
+                            if (cup->mRounds.empty()) {
+                                Error(L"Cup has no rounds\nCountry: %s\nCup: %s",
+                                    FifamTr(country->mName).c_str(), FifamTr(cup->mName).c_str());
+                            }
+                            else if (cup->mNumTeams > 128) {
                                 Error(L"Cup has more than 128 teams: %d\nCountry: %s\nCup: %s",
                                     cup->mNumTeams, FifamTr(country->mName).c_str(), FifamTr(cup->mName).c_str());
+                            }
+                            else {
+                                for (unsigned int ir = 0; ir < cup->mRounds.size(); ir++) {
+                                    if (cup->mRounds[ir].mTeamsRound == 0 || (cup->mRounds[ir].mTeamsRound % 2)) {
+                                        Error(L"Wrong teams count in cup round: %d\nCountry: %s\nCup: %s\nRound: %d",
+                                            cup->mRounds[ir].mTeamsRound, FifamTr(country->mName).c_str(), FifamTr(cup->mName).c_str(), ir);
+                                    }
+                                }
                             }
                             //cup->mMathcdays
                             //for (UInt r = 0; r < cup->mRounds.size(); r++) {
@@ -1271,7 +1287,6 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                             }
                             //}
                             cup->mSecondSeasonMatchdays = cup->mFirstSeasonMatchdays;
-
                         }
                     }
                 }

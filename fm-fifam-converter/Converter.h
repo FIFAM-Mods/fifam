@@ -18,8 +18,6 @@ public:
         enum Type {
             League,
             Level,
-            RelRound,
-            RelLeague
         };
 
         Int mNationID = -1;
@@ -33,21 +31,22 @@ public:
         Int mOrder = 0;
         Int mPriority = 0;
         Int mRounds = -1;
-        Int mPromoted = -1;
-        Int mPromotedPlayOff = -1;
-        Int mRelegated = -1;
-        Int mRelegatedPlayOff = -1;
+        Int mPromoted = 0;
+        Int mRelegated = 0;
         Date mStartDate;
         Date mEndDate;
-        UChar mNumSubs = 3;
-        String mRules;
-        String mSorting;
-        String mScript;
-        Vector<String> mPredecessors;
-        Vector<String> mSuccessors;
+        Int mNumSubs = 3;
+        Int mForeignersLimit = 0;
+        Int mNonEuSigns = 0;
+        Int mDomesticPlayers = 0;
+        Int mU21Players = 0;
+        Int mReserveTeamsAllowed = -1;
+        FifamEqualPointsSorting mSorting;
         Int mTvBonus = -1;
         Int mWinBouns = -1;
         Int mPlaceBonus = -1;
+        Int mAttendanceMp = 0;
+        Int mTransfersMp = 0;
         FifamCompID mCompID;
     };
 
