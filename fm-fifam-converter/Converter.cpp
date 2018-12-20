@@ -2588,6 +2588,37 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
         }
     }
 
+    // dump competitions
+    FifamWriter compsDump(L"fifam_comps_calendar.txt", 14, 0, 0);
+    compsDump.WriteLine(L"Country,Level,Type,ID,Name,NumMatchdays,MatchdaysSeason1,MatchdaysSeason2");
+
+    for (auto[compID, comp] : mFifamDatabase->mCompMap) {
+        if (comp->GetDbType() == FifamCompDbType::League || comp->GetDbType() == FifamCompDbType::Cup || comp->GetDbType() == FifamCompDbType::Round) {
+            if (compID.mRegion.ToInt() > 0 && compID.mRegion.ToInt() <= FifamDatabase::NUM_COUNTRIES) {
+                Int numMatchdays = 0;
+                if (comp->GetDbType() == FifamCompDbType::Round)
+                    numMatchdays = 2;
+                else if (comp->GetDbType() == FifamCompDbType::League)
+                    numMatchdays = comp->AsLeague()->GetNumMatchdays();
+                else if (comp->GetDbType() == FifamCompDbType::Cup) {
+                    for (auto &round : comp->AsCup()->mRounds)
+                        numMatchdays += (round.mFlags.Check(FifamBeg::With2ndLeg) || round.mFlags.Check(FifamBeg::WithReplay)) ? 2 : 1;
+                }
+                compsDump.WriteLine(
+                    Quoted(compID.mRegion.ToStr()),
+                    comp->mCompetitionLevel,
+                    compID.mType.ToStr(),
+                    compID.ToHexStr(),
+                    Quoted(FifamTr(comp->mName)),
+                    numMatchdays,
+                    L"",
+                    L"");
+            }
+        }
+       
+    }
+    compsDump.Close();
+
     FifamVersion version = FifamDatabase::GetGameDbVersion(gameId);
     std::wcout << L"Writing database..." << std::endl;
     mFifamDatabase->Write(gameId, version.GetYear(), version.GetNumber(),
