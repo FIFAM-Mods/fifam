@@ -65,7 +65,7 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
         }
     }
 
-    if (!scriptPath.empty() && mReadingOptions.mReadCountryCompetitions) {
+    if (!scriptPath.empty() && mReadingOptions.mReadInternationalCompetitions) {
         if (gameId >= 8) {
             ReadExternalScriptFile(scriptPath / L"Continental - Europe.txt", L"EURO", gameId);
             ReadExternalScriptFile(scriptPath / L"Continental - South America.txt", L"SOUTHAM", gameId);

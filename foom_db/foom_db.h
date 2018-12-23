@@ -215,7 +215,7 @@ struct db {
             reader.ReadLine(clubID, IntPtr(b.mPlayer), IntPtr(b.mFromClub), b.mBuyBackFee);
             map_find(mClubs, clubID).mVecBuyBackClauses.push_back(b);
         });
-    #if 1
+    #if 0
         // TODO
         // read players
         String playersFile;

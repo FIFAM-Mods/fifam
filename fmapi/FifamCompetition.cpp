@@ -73,3 +73,23 @@ void FifamCompetition::SetName(String const &name) {
 void FifamCompetition::SetName(FifamTrArray<String> const &names) {
     mName = names;
 }
+
+bool FifamCompetition::TakesPlaceInSeason(UShort year) const {
+    switch (mID.mType.ToInt()) {
+    case FifamCompType::QualiWC:
+        return !(year % 4); // 2013, 2017
+    case FifamCompType::QualiEC:
+        return (year % 4) == 2; // 2015, 2019
+    case FifamCompType::WorldCup:
+        return (year % 4) == 1; // 2014, 2018
+    case FifamCompType::EuroCup:
+        return (year % 4) == 3; // 2016
+    case FifamCompType::U20WorldCup:
+        return (year % 2) == 1; // 2014, 2016, 2018
+    case FifamCompType::ConfedCup:
+        return !(year % 4); // 2013, 2017
+    case FifamCompType::CopaAmerica:
+        return (year % 4) == 2; // 2015, 2019
+    }
+    return true;
+}

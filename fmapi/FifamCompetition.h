@@ -55,6 +55,8 @@ public:
     String GetCompIDStr(bool countryName = false) const;
     void SetName(String const &name);
     void SetName(FifamTrArray<String> const &names);
+
+    bool TakesPlaceInSeason(UShort year) const;
 };
 
 using FifamCompEntry = Pair<FifamCompID, FifamCompetition *>;

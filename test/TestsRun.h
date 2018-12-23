@@ -21,7 +21,8 @@
 #include "tests\FoomBasicTest.h"
 #include "tests\PlayerRelationsTest.h"
 #include "tests\WritePlayerIDs.h"
+#include "tests\CalendarDatabase.h"
 
 void RunTests() {
-    RunTest<WriteDbTest<FM14, FM14, false>>();
+    RunTest<MakeCalendarDatabase<FM14, FM13>>();
 }

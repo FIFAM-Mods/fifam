@@ -52,7 +52,8 @@ void FifamCompLeague::Read(FifamReader &reader, FifamDatabase *database, FifamNa
         reader.ReadEndIndex(L"MATCHDAYS");
     }
     bool readMatchdays2 = false;
-    if (reader.ReadStartIndex(L"MATCHDAYS2")) {
+    if (reader.CheckLine(L"%INDEX%MATCHDAYS2")) {
+        reader.SkipLine();
         if (!reader.CheckLine(L"%INDEXEND%MATCHDAYS2")) {
             mSecondSeasonMatchdays = reader.ReadLineArray<UShort>();
             readMatchdays2 = true;
@@ -149,9 +150,11 @@ void FifamCompLeague::Write(FifamWriter &writer, FifamDatabase *database, FifamN
     writer.WriteStartIndex(L"MATCHDAYS");
     writer.WriteLineArray(mFirstSeasonMatchdays);
     writer.WriteEndIndex(L"MATCHDAYS");
-    writer.WriteStartIndex(L"MATCHDAYS2");
-    writer.WriteLineArray(mSecondSeasonMatchdays);
-    writer.WriteEndIndex(L"MATCHDAYS2");
+    if (!mSecondSeasonMatchdays.empty()) {
+        writer.WriteStartIndex(L"MATCHDAYS2");
+        writer.WriteLineArray(mSecondSeasonMatchdays);
+        writer.WriteEndIndex(L"MATCHDAYS2");
+    }
     writer.WriteLine(L";");
     writer.WriteStartIndex(L"FIXTURE");
     for (UInt i = 0; i < mFixtures.size(); i++) {

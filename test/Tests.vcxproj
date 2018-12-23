@@ -94,6 +94,7 @@
     <ClInclude Include="Tests.h" />
     <ClInclude Include="TestsRun.h" />
     <ClInclude Include="tests\BadgeTest.h" />
+    <ClInclude Include="tests\CalendarDatabase.h" />
     <ClInclude Include="tests\ClubIDsMap.h" />
     <ClInclude Include="tests\CompetitionsTest.h" />
     <ClInclude Include="tests\CompIDTest.h" />

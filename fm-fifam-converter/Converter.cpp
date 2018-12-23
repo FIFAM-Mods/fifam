@@ -10,7 +10,7 @@
 #include "ConverterUtil.h"
 #include "GraphicsConverter.h"
 
-#define DB_SIZE Tiny
+#define DB_SIZE Small
 
 Converter::~Converter() {
 
@@ -155,9 +155,9 @@ void Converter::ReadAdditionalInfo(Path const &infoPath) {
                     String e, type, sorting;
                     reader.ReadLineWithSeparator(L'\t', e, d.mNationID, d.mName, d.mShortName, OptionalInt(d.mID), type, d.mLevel, e, e,
                         d.mTeams, d.mRep, d.mPriority, d.mOrder, OptionalInt(d.mRounds), d.mPromoted, d.mRelegated, d.mStartDate,
-                        d.mEndDate, OptionalInt(d.mNumSubs), OptionalInt(d.mForeignersLimit), OptionalInt(d.mNonEuSigns),
-                        OptionalInt(d.mDomesticPlayers), OptionalInt(d.mU21Players), OptionalInt(d.mReserveTeamsAllowed),
-                        sorting, d.mAttendanceMp, d.mTransfersMp, d.mTvBonus, d.mWinBouns, d.mPlaceBonus);
+                        d.mEndDate, d.mWinterBreakStart, d.mWinterBreakEnd, OptionalInt(d.mNumSubs), OptionalInt(d.mForeignersLimit),
+                        OptionalInt(d.mNonEuSigns), OptionalInt(d.mDomesticPlayers), OptionalInt(d.mU21Players),
+                        OptionalInt(d.mReserveTeamsAllowed), sorting, d.mAttendanceMp, d.mTransfersMp, d.mTvBonus, d.mWinBouns, d.mPlaceBonus);
                     
                     type = Utils::ToLower(type);
                     if (type == L"league")
@@ -514,6 +514,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
 
             Vector<FifamCompLeague *> createdLeagues;
             Vector<FifamCompPool *> createdPools;
+            Vector<FifamCompCup *> createdCups;
 
             if (maxLevel >= 0) {
 
@@ -1053,6 +1054,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                             else
                                 cupName = FifamNames::LimitName(cupInfo.mShortName, 63);
                             FifamCompCup *cup = mFifamDatabase->CreateCompetition(FifamCompDbType::Cup, cupID, cupName)->AsCup();
+                            createdCups.push_back(cup);
                             cup->SetProperty(L"foom::id", cupInfo.mID);
                             cup->SetProperty(L"foom::reputation", cupInfo.mReputation);
                             if (cupInfo.mLevel < 0 || cupInfo.mLevel > 15)
@@ -1291,6 +1293,23 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     }
                 }
             }
+            Int calendarStart = 0;
+            Int calendarEnd = 0;
+            Int calendarWinterBreakStart = 0;
+            Int calendarWinterBreakEnd = 0;
+            if (createdLeagues.size() > 0) {
+                auto it = divLeagues.find(0);
+                if (it != divLeagues.end()) {
+                    if (divLeagues[0].size() > 0) {
+                        calendarStart = divLeagues[0][0]->mStartDate;
+                        calendarEnd = divLeagues[0][0]->mEndDate;
+                        calendarWinterBreakStart = divLeagues[0][0]->mWinterBreakStart;
+                        calendarWinterBreakEnd = divLeagues[0][0]->mWinterBreakEnd;
+                    }
+                }
+            }
+            GenerateCalendar(FifamNation::MakeFromInt(country->mId), mFifamDatabase, createdLeagues, createdCups,
+                calendarStart, calendarEnd, calendarWinterBreakStart, calendarWinterBreakEnd);
         }
     }
 
@@ -1527,10 +1546,17 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                 }
             }
             for (auto &le : availableLowestLeagues) {
-                if (le.second.size() == 1) {
+                if (dst->mLowestLeagues.size() >= 3)
+                    break;
+                if (le.second.size() == 1)
                     dst->mLowestLeagues.push_back(le.second[0]->mID);
-                    if (dst->mLowestLeagues.size() >= 3)
-                        break;
+                else {
+                    for (FifamCompLeague *l : le.second) {
+                        if (l == clubLeague) {
+                            dst->mLowestLeagues.push_back(l->mID);
+                            break;
+                        }
+                    }
                 }
             }
 
@@ -2588,37 +2614,6 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
         }
     }
 
-    // dump competitions
-    FifamWriter compsDump(L"fifam_comps_calendar.txt", 14, 0, 0);
-    compsDump.WriteLine(L"Country,Level,Type,ID,Name,NumMatchdays,MatchdaysSeason1,MatchdaysSeason2");
-
-    for (auto[compID, comp] : mFifamDatabase->mCompMap) {
-        if (comp->GetDbType() == FifamCompDbType::League || comp->GetDbType() == FifamCompDbType::Cup || comp->GetDbType() == FifamCompDbType::Round) {
-            if (compID.mRegion.ToInt() > 0 && compID.mRegion.ToInt() <= FifamDatabase::NUM_COUNTRIES) {
-                Int numMatchdays = 0;
-                if (comp->GetDbType() == FifamCompDbType::Round)
-                    numMatchdays = 2;
-                else if (comp->GetDbType() == FifamCompDbType::League)
-                    numMatchdays = comp->AsLeague()->GetNumMatchdays();
-                else if (comp->GetDbType() == FifamCompDbType::Cup) {
-                    for (auto &round : comp->AsCup()->mRounds)
-                        numMatchdays += (round.mFlags.Check(FifamBeg::With2ndLeg) || round.mFlags.Check(FifamBeg::WithReplay)) ? 2 : 1;
-                }
-                compsDump.WriteLine(
-                    Quoted(compID.mRegion.ToStr()),
-                    comp->mCompetitionLevel,
-                    compID.mType.ToStr(),
-                    compID.ToHexStr(),
-                    Quoted(FifamTr(comp->mName)),
-                    numMatchdays,
-                    L"",
-                    L"");
-            }
-        }
-       
-    }
-    compsDump.Close();
-
     FifamVersion version = FifamDatabase::GetGameDbVersion(gameId);
     std::wcout << L"Writing database..." << std::endl;
     mFifamDatabase->Write(gameId, version.GetYear(), version.GetNumber(),
@@ -2712,13 +2707,13 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
 #if 0
     GraphicsConverter graphicsConverter;
     std::wcout << L"Converting club badges..." << std::endl;
-    graphicsConverter.ConvertClubBadges(mFoomDatabase, mAvailableBadges, graphicsPath, contentPath, gameId, 8000);
+    graphicsConverter.ConvertClubBadges(mFoomDatabase, mAvailableBadges, graphicsPath, contentPath, gameId, 0);
     std::wcout << L"Converting portraits..." << std::endl;
-    graphicsConverter.ConvertPortraits(mFoomDatabase, graphicsPath, contentPath, gameId, 160);
+    graphicsConverter.ConvertPortraits(mFoomDatabase, graphicsPath, contentPath, gameId, 140);
     std::wcout << L"Converting competition badges..." << std::endl;
-    graphicsConverter.ConvertCompBadges(mFifamDatabase, graphicsPath, contentPath, gameId, 160);
+    graphicsConverter.ConvertCompBadges(mFifamDatabase, graphicsPath, contentPath, gameId, 0);
     std::wcout << L"Converting trophies..." << std::endl;
-    graphicsConverter.ConvertTrophies(mFifamDatabase, graphicsPath, contentPath, gameId, 160);
+    graphicsConverter.ConvertTrophies(mFifamDatabase, graphicsPath, contentPath, gameId, 0);
 #endif
 
     delete mReferenceDatabase;
@@ -2803,7 +2798,7 @@ void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt 
     dst->mNumContinentalRunnersUp = (UShort)nation->mConverterData.mContinentalCupFinals.size();
 
     ConvertClubStadium(&dst->mNationalTeam, gameId);
-    ConvertKitsAndColors(&dst->mNationalTeam, -1, nation->mVecKits, -1, nation->mBackgroundColor, nation->mForegroundColor);
+    ConvertKitsAndColors(&dst->mNationalTeam, -1, nation->mVecKits, -1, nation->mBackgroundColor, nation->mForegroundColor, gameId);
 }
 
 void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div) {
@@ -3081,7 +3076,7 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     }
 
     ConvertClubStadium(dst, gameId);
-    ConvertKitsAndColors(dst, team->mID, mainTeam->mVecKits, team->mBadge, team->mBackgroundColor, team->mForegroundColor);
+    ConvertKitsAndColors(dst, team->mID, mainTeam->mVecKits, team->mBadge, team->mBackgroundColor, team->mForegroundColor, gameId);
 }
 
 void Converter::ConvertClubStadium(FifamClub * dst, UInt gameId) {
@@ -3266,7 +3261,7 @@ void Converter::ConvertClubStadium(FifamClub * dst, UInt gameId) {
 
 }
 
-void Converter::ConvertKitsAndColors(FifamClub *dst, Int foomId, Vector<foom::kit> const &kits, Int badgeType, Color const &teamBackgroundColor, Color const &teamForegroundColor) {
+void Converter::ConvertKitsAndColors(FifamClub *dst, Int foomId, Vector<foom::kit> const &kits, Int badgeType, Color const &teamBackgroundColor, Color const &teamForegroundColor, UInt gameId) {
     enum KitPart { Shirt, Icon, Text, Shorts, Socks };
 
     const foom::kit *tmpKitSets[5][2] = {};
@@ -3377,7 +3372,7 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Int foomId, Vector<foom::ki
 
     bool hasCustomBadge = false;
 
-    if (foomId != -1) {
+    if (gameId <= 9 && foomId != -1) {
         auto badgeIt = mAvailableBadges.find(foomId);
         if (badgeIt != mAvailableBadges.end()) {
             dst->mBadge.SetBadgePath(L"clubs\\Badge%d\\" + Utils::Format(L"%08X", dst->mUniqueID) + L".tga");
@@ -5860,6 +5855,614 @@ FifamFormation Converter::ConvertFormationId(Int id) {
         return FifamFormation::_5_3_2;
     }
     return FifamFormation::None;
+}
+
+bool Converter::GenerateCalendar(FifamNation const & countryId, FifamDatabase * database, Vector<FifamCompLeague*> const & leagues, Vector<FifamCompCup*> const & cups, Int startDate, Int endDate, Int winterBreakStart, Int winterBreakEnd)
+{
+
+    if (leagues.empty() && cups.empty())
+        return false;
+
+    Array<Array<UInt, 366>, 2> calendar = {};
+
+    FifamCountry *country = database->GetCountry(countryId.ToInt());
+
+    // is valid country
+    if (!country) {
+        Error(L"Calendar generator: unknown country (ID %d)", countryId.ToInt());
+        return false;
+    }
+
+    Bool veryDifficultCalendar = country->mId == FifamNation::England;
+
+    auto PutOneMatch = [](Array<Array<UInt, 366>, 2> &c, Bool season, UShort matchdayId) {
+        if (matchdayId >= 1 && matchdayId <= 365) {
+            if (c[season][matchdayId] < 1002)
+                c[season][matchdayId] = 1002;
+            if (matchdayId >= 2) {
+                if (c[season][matchdayId - 1] < 1001)
+                    c[season][matchdayId - 1] = 1001;
+            }
+            if (matchdayId <= 364) {
+                if (c[season][matchdayId + 1] < 1001)
+                    c[season][matchdayId + 1] = 1001;
+            }
+        }
+    };
+
+    auto MarkPossibleMatchday = [&](Array<Array<UInt, 366>, 2> &c, Bool season, UShort matchdayId, UInt &index) {
+        if (matchdayId >= 1 && matchdayId <= 365 && c[season][matchdayId] == 0) {
+            PutOneMatch(c, season, matchdayId);
+            c[season][matchdayId] = ++index;
+        }
+    };
+
+    auto MarkPossibleWeekEndMatchday = [&](Array<Array<UInt, 366>, 2> &c, Bool season, UShort matchdayId, Bool bSunday, UInt &index) {
+        if (matchdayId >= 1) {
+            if (bSunday)
+                matchdayId++;
+            if (matchdayId <= 365) {
+                if (c[season][matchdayId] == 0) {
+                    PutOneMatch(c, season, matchdayId);
+                    c[season][matchdayId] = ++index;
+                }
+            }
+            /// additional matches movement
+            //else if (bSunday) {
+            //    if (c[season][matchdayId - 1] == 0) {
+            //        PutOneMatch(c, season, matchdayId - 1);
+            //        c[season][matchdayId - 1] = ++index;
+            //    }
+            //}
+            //else {
+            //    if (matchdayId <= 364 && c[season][matchdayId + 1] == 0) {
+            //        PutOneMatch(c, season, matchdayId + 1);
+            //        c[season][matchdayId + 1] = ++index;
+            //    }
+            //}
+        }
+    };
+
+    auto MarkPossibleWeekEndMatchdayForCup = [&](Array<Array<UInt, 366>, 2> &c, Bool season, UShort matchdayId, UInt &index) {
+        if (matchdayId >= 1) {
+            if (matchdayId <= 365) {
+                if (c[season][matchdayId] == 0) {
+                    PutOneMatch(c, season, matchdayId);
+                    c[season][matchdayId] = ++index;
+                }
+                else {
+                    if (matchdayId <= 364 && c[season][matchdayId + 1] == 0) {
+                        PutOneMatch(c, season, matchdayId + 1);
+                        c[season][matchdayId + 1] = ++index;
+                    }
+                }
+            }
+        }
+    };
+
+    auto MarkPossibleMidWeekMatchday = [&](Array<Array<UInt, 366>, 2> &c, Bool season, UShort matchdayId, Bool bSunday, UInt &index) {
+        matchdayId += 4;
+        if (matchdayId >= 1) {
+            if (bSunday)
+                matchdayId++;
+            if (matchdayId <= 365) {
+                if (c[season][matchdayId] == 0) {
+                    PutOneMatch(c, season, matchdayId);
+                    c[season][matchdayId] = ++index;
+                }
+            }
+        }
+    };
+
+    auto MarkPossibleMidWeekMatchdayForCup = [&](Array<Array<UInt, 366>, 2> &c, Bool season, UShort matchdayId, UInt &index) {
+        if (veryDifficultCalendar) {
+            MarkPossibleMatchday(c, season, matchdayId + 3, index);
+            MarkPossibleMatchday(c, season, matchdayId + 5, index);
+        }
+        matchdayId += 4;
+        if (matchdayId >= 1) {
+            if (matchdayId <= 365) {
+                if (c[season][matchdayId] == 0) {
+                    PutOneMatch(c, season, matchdayId);
+                    c[season][matchdayId] = ++index;
+                }
+                else {
+                    if (matchdayId <= 364 && c[season][matchdayId + 1] == 0) {
+                        PutOneMatch(c, season, matchdayId + 1);
+                        c[season][matchdayId + 1] = ++index;
+                    }
+                }
+            }
+        }
+    };
+
+    auto PutCompToCalendar = [&](Array<Array<UInt, 366>, 2> &c, FifamCompetition *comp) {
+        bool isInternational = comp->mID.mType == FifamCompType::WorldCup ||
+            comp->mID.mType == FifamCompType::EuroCup ||
+            comp->mID.mType == FifamCompType::QualiEC ||
+            comp->mID.mType == FifamCompType::QualiWC ||
+            comp->mID.mType == FifamCompType::CopaAmerica ||
+            comp->mID.mType == FifamCompType::ConfedCup;
+        bool firstSeason = comp->TakesPlaceInSeason(CURRENT_YEAR) || comp->TakesPlaceInSeason(CURRENT_YEAR + 2);
+        bool secondSeason = comp->TakesPlaceInSeason(CURRENT_YEAR - 1) || comp->TakesPlaceInSeason(CURRENT_YEAR + 1);
+        if (comp->GetDbType() == FifamCompDbType::League) {
+            if (firstSeason) {
+                for (auto &m : comp->AsLeague()->mFirstSeasonMatchdays) {
+                    if (m <= 365)
+                        PutOneMatch(c, 0, m);
+                    else
+                        PutOneMatch(c, 1, m - 365);
+                }
+            }
+            if (secondSeason) {
+                if (isInternational) {
+                    for (auto &m : comp->AsLeague()->mFirstSeasonMatchdays) {
+                        if (m <= 365)
+                            PutOneMatch(c, 1, m);
+                        else
+                            PutOneMatch(c, 0, m - 365);
+                    }
+                }
+                else {
+                    for (auto &m : comp->AsLeague()->mSecondSeasonMatchdays) {
+                        if (m <= 365)
+                            PutOneMatch(c, 1, m);
+                        else
+                            PutOneMatch(c, 0, m - 365);
+                    }
+                }
+            }
+        }
+        else if (comp->GetDbType() == FifamCompDbType::Round) {
+            if (firstSeason) {
+                for (auto &m : comp->AsRound()->mFirstSeasonMatchdays)
+                    PutOneMatch(c, 0, m);
+            }
+            if (secondSeason) {
+                if (isInternational) {
+                    for (auto &m : comp->AsRound()->mFirstSeasonMatchdays)
+                        PutOneMatch(c, 1, m);
+                }
+                else {
+                    for (auto &m : comp->AsRound()->mSecondSeasonMatchdays)
+                        PutOneMatch(c, 1, m);
+                }
+            }
+        }
+        else if (comp->GetDbType() == FifamCompDbType::Cup) {
+            for (auto &m : comp->AsCup()->mFirstSeasonMatchdays)
+                PutOneMatch(c, 0, m);
+            for (auto &m : comp->AsCup()->mSecondSeasonMatchdays)
+                PutOneMatch(c, 1, m);
+        }
+    };
+
+    // winter break
+    if (winterBreakStart > 0 && winterBreakEnd > 0 && winterBreakStart < winterBreakEnd) {
+        for (UInt s = 0; s < 2; s++) {
+            // for (UInt m = 166; m <= 228; m++) {
+            for (Int m = winterBreakStart; m <= winterBreakEnd; m++) {
+                if (calendar[s][m] < 1000)
+                    calendar[s][m] = 1000;
+            }
+        }
+    }
+
+    // generate calendar for leagues
+
+    Array<UInt, 2> matchdayIndex = { 0, 0 };
+
+    for (FifamCompLeague *l : leagues) {
+
+        auto cc = calendar;
+
+        if (l->mLeagueLevel == 0) {
+            // put international matches to calendar (for highest league level only)
+            for (auto &m : database->mRules.mInternationalFriendliesFirstSeason)
+                PutOneMatch(cc, 0, m);
+            for (auto &m : database->mRules.mInternationalFriendliesSecondSeason)
+                PutOneMatch(cc, 1, m);
+        }
+
+        for (auto[compID, comp] : database->mCompMap) {
+            if (compID.mRegion == FifamCompRegion::International || compID.mType == FifamCompType::WorldClubChamp ||
+                (country->mContinent.ToInt() <= 5 && compID.mRegion.ToInt() == (249 + country->mContinent.ToInt())))
+            {
+                if (compID.mType != FifamCompType::U20WorldCup) {
+                    if (l->mLeagueLevel == 0 || (compID.mType != FifamCompType::WorldCup && compID.mType != FifamCompType::EuroCup &&
+                        compID.mType != FifamCompType::QualiWC && compID.mType != FifamCompType::QualiEC &&
+                        compID.mType != FifamCompType::CopaAmerica && compID.mType != FifamCompType::ConfedCup))
+                    {
+                        PutCompToCalendar(cc, comp);
+                    }
+                }
+            }
+        }
+
+        // play matches in Sunday or Saturday?
+        bool bSunday = l->mLeagueLevel > 0;
+
+        Int startMatchday1 = 48; // End of August
+        Int startMatchday2 = 27; // End of July
+        Int startMatchday3 = 13; // Middle of July
+        Int endMatchday = 315; // May
+
+        if (startDate > 0 && startDate < endDate) {
+            startMatchday3 = startDate;
+            if (startMatchday1 < startDate)
+                startMatchday1 = startDate;
+            if (startMatchday2 < startDate)
+                startMatchday2 = startDate;
+        }
+        if (endDate > 0 && startDate < endDate && endDate < endMatchday)
+            endMatchday = endDate;
+
+        matchdayIndex = { 0, 0 };
+
+        for (UInt s = 0; s < 2; s++) {
+            // phase 1 - add possible match every 2 weeks
+            for (Int m = startMatchday1; m <= endMatchday; m += 14)
+                MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+
+            // phase 2 - add possible match every week
+            for (Int m = startMatchday1; m <= endMatchday; m += 7)
+                MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+
+            // phase 3 - add possible matches in August (reverse direction)
+            for (Int m = startMatchday1 - 7; m >= startMatchday2; m -= 7)
+                MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+
+            // phase 4 - add possible mid-week matches every 2 weeks
+            for (Int m = startMatchday2 + 14; m <= endMatchday; m += 14)
+                MarkPossibleMidWeekMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+
+            // phase 5 - add possible matches in July (reverse direction)
+            for (Int m = startMatchday2 - 7; m >= startMatchday3; m -= 7)
+                MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+
+            // phase 6 - add possible mid-week matches every week
+            for (Int m = startMatchday1; m <= endMatchday; m += 7)
+                MarkPossibleMidWeekMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+
+            // phase 7 - add possible mid-week matches every week in July and August (reverse direction)
+            for (Int m = startMatchday1 - 7; m >= startMatchday3; m -= 7)
+                MarkPossibleMidWeekMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+        }
+
+        for (UInt s = 0; s < 2; s++) {
+            Vector<Pair<UInt, UInt>> availableMatchdays;
+            for (UInt i = 1; i < cc[s].size(); i++) {
+                if (cc[s][i] > 0 && cc[s][i] < 1000)
+                    availableMatchdays.emplace_back(cc[s][i], i);
+            }
+            UInt requiredMatchdays = l->GetNumMatchdays();
+            if (availableMatchdays.size() < requiredMatchdays) {
+                Error(L"Not enough available matches in calendar for league\nLeague: %s\nSeason: %d\nRequired matches: %d\nAvailable matches: %d",
+                    FifamTr(l->mName).c_str(), s + 1, requiredMatchdays, availableMatchdays.size());
+            }
+            else {
+                std::sort(availableMatchdays.begin(), availableMatchdays.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
+                    return a.first < b.first;
+                });
+                if (s == 0) {
+                    l->mFirstSeasonMatchdays.resize(requiredMatchdays);
+                    for (UInt i = 0; i < requiredMatchdays; i++)
+                        l->mFirstSeasonMatchdays[i] = availableMatchdays[i].second;
+                    std::sort(l->mFirstSeasonMatchdays.begin(), l->mFirstSeasonMatchdays.end());
+                }
+                else {
+                    l->mSecondSeasonMatchdays.resize(requiredMatchdays);
+                    for (UInt i = 0; i < requiredMatchdays; i++)
+                        l->mSecondSeasonMatchdays[i] = availableMatchdays[i].second;
+                    std::sort(l->mSecondSeasonMatchdays.begin(), l->mSecondSeasonMatchdays.end());
+                }
+            }
+        }
+    }
+
+    // generate calendar for cups
+
+    // add international and continental matches to calendar
+
+    for (auto &m : database->mRules.mInternationalFriendliesFirstSeason)
+        PutOneMatch(calendar, 0, m);
+    for (auto &m : database->mRules.mInternationalFriendliesSecondSeason)
+        PutOneMatch(calendar, 1, m);
+
+    for (auto[compID, comp] : database->mCompMap) {
+        if (compID.mRegion == FifamCompRegion::International || compID.mType == FifamCompType::WorldClubChamp ||
+            (country->mContinent.ToInt() <= 5 && compID.mRegion.ToInt() == (249 + country->mContinent.ToInt())))
+        {
+            if (compID.mType != FifamCompType::U20WorldCup)
+                PutCompToCalendar(calendar, comp);
+        }
+    }
+
+    // add league matches to calendar
+
+    Array<Int, 2> lastLeagueMatchday = { 0, 0 };
+
+    for (FifamCompLeague *l : leagues) {
+        PutCompToCalendar(calendar, l);
+        if (!l->mFirstSeasonMatchdays.empty()) {
+            if (l->mFirstSeasonMatchdays.back() > lastLeagueMatchday[0])
+                lastLeagueMatchday[0] = l->mFirstSeasonMatchdays.back();
+        }
+        if (!l->mSecondSeasonMatchdays.empty()) {
+            if (l->mSecondSeasonMatchdays.back() > lastLeagueMatchday[1])
+                lastLeagueMatchday[1] = l->mSecondSeasonMatchdays.back();
+        }
+    }
+
+    // collect available matchdays for cups
+
+    Int cupsStartMatchday1 = 20;
+    Int cupsStartMatchday2 = 13;
+    Int cupsEndMatchday2 = 321;
+
+    matchdayIndex = { 0, 0 };
+
+    UInt numFaCups = 0;
+    UInt numLeCups = 0;
+    UInt numSuperCups = 0;
+    FifamCompCup *superCup = nullptr;
+    UInt numMatchesForLeAndFaCups = 0;
+
+    for (FifamCompCup *c : cups) {
+        if (c->mID.mType == FifamCompType::SuperCup) {
+            if (!superCup)
+                superCup = c;
+            numSuperCups++;
+        }
+        else if (c->mID.mType == FifamCompType::FaCup)
+            numFaCups++;
+        else if (c->mID.mType == FifamCompType::LeagueCup)
+            numLeCups++;
+
+        if (c->mID.mType == FifamCompType::FaCup || c->mID.mType == FifamCompType::LeagueCup) {
+            for (auto &r : c->mRounds) {
+                if (r.mFlags.Check(FifamBeg::_2ndLeg) || r.mFlags.Check(FifamBeg::WithReplay))
+                    numMatchesForLeAndFaCups += 2;
+                else
+                    numMatchesForLeAndFaCups += 1;
+            }
+        }
+    }
+
+    UInt numFaAndLeCups = numFaCups + numLeCups;
+
+    auto cupcc = calendar;
+
+    if (numFaAndLeCups > 0) {
+
+        for (UInt s = 0; s < 2; s++) {
+
+            Int cupsEndMatchday1 = cupsEndMatchday2;
+            if (lastLeagueMatchday[s] > 0 && (lastLeagueMatchday[s] + 7) < cupsEndMatchday2)
+                cupsEndMatchday1 = lastLeagueMatchday[s] + 7;
+
+            MarkPossibleWeekEndMatchdayForCup(cupcc, s, cupsEndMatchday1, matchdayIndex[s]);
+
+            if (matchdayIndex[s] == 0 || numFaAndLeCups > 1)
+                MarkPossibleMidWeekMatchdayForCup(cupcc, s, cupsEndMatchday1 - 7, matchdayIndex[s]);
+
+            if (numFaAndLeCups > 1) {
+                if (matchdayIndex[s] <= 1)
+                    MarkPossibleWeekEndMatchdayForCup(cupcc, s, cupsEndMatchday1 - 7, matchdayIndex[s]);
+                if (matchdayIndex[s] <= 1)
+                    MarkPossibleMidWeekMatchdayForCup(cupcc, s, cupsEndMatchday1 - 14, matchdayIndex[s]);
+            }
+
+            // phase 1 - add possible match every 2 weeks (reverse direction)
+            for (Int m = cupsEndMatchday1 - 7; m >= cupsStartMatchday1; m -= 14)
+                MarkPossibleWeekEndMatchdayForCup(cupcc, s, m, matchdayIndex[s]);
+            // phase 2 - add possible match every week (reverse direction)
+            for (Int m = cupsEndMatchday1 - 7; m >= cupsStartMatchday1; m -= 7)
+                MarkPossibleWeekEndMatchdayForCup(cupcc, s, m, matchdayIndex[s]);
+
+            // phase 3 - add possible mid-week matches every 2 weeks (reverse direction)
+            for (Int m = cupsEndMatchday1 - 7; m >= cupsStartMatchday1; m -= 14)
+                MarkPossibleMidWeekMatchdayForCup(cupcc, s, m, matchdayIndex[s]);
+            // phase 4 - add possible mid-week matches every week
+            for (Int m = cupsEndMatchday1 - 7; m >= cupsStartMatchday1; m -= 7)
+                MarkPossibleMidWeekMatchdayForCup(cupcc, s, m, matchdayIndex[s]);
+
+            // phase 6 - add possible matches in June (reverse direction)
+            for (Int m = cupsStartMatchday1 - 7; m >= cupsStartMatchday2; m -= 7)
+                MarkPossibleWeekEndMatchdayForCup(cupcc, s, m, matchdayIndex[s]);
+            // phase 7 - add possible mid-week matches in June (reverse direction)
+            for (Int m = cupsStartMatchday1 - 7; m >= cupsStartMatchday2; m -= 7)
+                MarkPossibleMidWeekMatchdayForCup(cupcc, s, m, matchdayIndex[s]);
+
+            if (cupsEndMatchday1 != cupsEndMatchday2) {
+                // phase 8 - add possible matches in May
+                for (Int m = cupsEndMatchday1; m < cupsEndMatchday2; m += 7)
+                    MarkPossibleWeekEndMatchdayForCup(cupcc, s, m, matchdayIndex[s]);
+                // phase 9 - add possible mid-week matches in May
+                for (Int m = cupsEndMatchday1; m < cupsEndMatchday2; m += 7)
+                    MarkPossibleMidWeekMatchdayForCup(cupcc, s, m, matchdayIndex[s]);
+            }
+
+            if (matchdayIndex[s] < numMatchesForLeAndFaCups) {
+
+                Message(Utils::Format(L"Too difficult calendar in %s (season %d)", FifamTr(country->mName).c_str(), s + 1));
+
+                // phase 10 - add matches when possible
+                for (Int m = cupsStartMatchday2; m < cupsEndMatchday2; m += 3)
+                    MarkPossibleMatchday(cupcc, s, m, matchdayIndex[s]);
+                for (Int m = cupsStartMatchday2; m < cupsEndMatchday2; m++)
+                    MarkPossibleMatchday(cupcc, s, m, matchdayIndex[s]);
+            }
+        }
+
+        for (UInt s = 0; s < 2; s++) {
+            Vector<Pair<UInt, UInt>> availableMatchdays;
+            for (UInt i = 1; i < cupcc[s].size(); i++) {
+                if (cupcc[s][i] > 0 && cupcc[s][i] < 1000)
+                    availableMatchdays.emplace_back(cupcc[s][i], i);
+            }
+            if (availableMatchdays.size() < numMatchesForLeAndFaCups) {
+                Error(L"Not enough available matches in calendar for cups\nCountry: %s\nSeason: %d\nRequired matches: %d\nAvailable matches: %d",
+                    FifamTr(country->mName).c_str(), s + 1, numMatchesForLeAndFaCups, availableMatchdays.size());
+            }
+            else {
+                // sort by priority
+                std::sort(availableMatchdays.begin(), availableMatchdays.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
+                    return a.first < b.first;
+                });
+                availableMatchdays.resize(numMatchesForLeAndFaCups);
+                // sort by dates
+                std::sort(availableMatchdays.begin(), availableMatchdays.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
+                    return a.second > b.second;
+                });
+                // clear matchdays
+                for (FifamCompCup *c : cups) {
+                    if (c->mID.mType == FifamCompType::FaCup || c->mID.mType == FifamCompType::LeagueCup) {
+                        if (s == 0)
+                            c->mFirstSeasonMatchdays.clear();
+                        else
+                            c->mSecondSeasonMatchdays.clear();
+                    }
+                }
+                // fill matchdays
+                UInt nextMatchdayIndex = 0;
+                for (UInt r = 0; r < 8; r++) {
+                    for (UInt m = 0; m < 2; m++) {
+                        for (FifamCompCup *c : cups) {
+                            if (c->mID.mType == FifamCompType::FaCup || c->mID.mType == FifamCompType::LeagueCup) {
+                                UInt numRounds = c->mRounds.size();
+                                if (numRounds > r) {
+                                    if (m == 0 || (c->mRounds[numRounds - 1 - r].mFlags.Check(FifamBeg::_2ndLeg) ||
+                                        c->mRounds[numRounds - 1 - r].mFlags.Check(FifamBeg::WithReplay)))
+                                    {
+                                        if (s == 0)
+                                            c->mFirstSeasonMatchdays.push_back(availableMatchdays[nextMatchdayIndex++].second);
+                                        else
+                                            c->mSecondSeasonMatchdays.push_back(availableMatchdays[nextMatchdayIndex++].second);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                // sort matchdays
+                for (FifamCompCup *c : cups) {
+                    if (c->mID.mType == FifamCompType::FaCup || c->mID.mType == FifamCompType::LeagueCup) {
+                        if (s == 0)
+                            std::sort(c->mFirstSeasonMatchdays.begin(), c->mFirstSeasonMatchdays.end());
+                        else
+                            std::sort(c->mSecondSeasonMatchdays.begin(), c->mSecondSeasonMatchdays.end());
+                    }
+                }
+            }
+        }
+    }
+
+    // add FA/League cup matches to calendar
+    for (FifamCompCup *c : cups) {
+        if (c->mID.mType == FifamCompType::FaCup || c->mID.mType == FifamCompType::LeagueCup)
+            PutCompToCalendar(calendar, c);
+    }
+
+    // generate matchdays for supercup
+
+    if (superCup) {
+        if (numSuperCups > 1)
+            Error(L"More than 1 supercup in %s", FifamTr(country->mName).c_str());
+        else {
+            if (superCup->mRounds.empty())
+                Error(L"Supercup has no rounds\nCountry : %s", FifamTr(country->mName).c_str());
+            else if (superCup->mRounds.size() > 1)
+                Error(L"Supercups with more than 1 round are not supported\nCountry : %s", FifamTr(country->mName).c_str());
+            else {
+
+                auto supercupcc = calendar;
+
+                matchdayIndex = { 0, 0 };
+
+                for (UInt s = 0; s < 2; s++) {
+                    // find first matchday in country
+                    Int firstMatchday = 0;
+                    for (FifamCompLeague *l : leagues) {
+                        if (s == 0) {
+                            if (!l->mFirstSeasonMatchdays.empty() && l->mFirstSeasonMatchdays[0] < firstMatchday)
+                                firstMatchday = l->mFirstSeasonMatchdays[0];
+                        }
+                        else {
+                            if (!l->mSecondSeasonMatchdays.empty() && l->mSecondSeasonMatchdays[0] < firstMatchday)
+                                firstMatchday = l->mSecondSeasonMatchdays[0];
+                        }
+                    }
+                    for (FifamCompCup *c : cups) {
+                        if (c->mID.mType == FifamCompType::FaCup || c->mID.mType == FifamCompType::LeagueCup) {
+                            if (s == 0) {
+                                if (!c->mFirstSeasonMatchdays.empty() && c->mFirstSeasonMatchdays[0] < firstMatchday)
+                                    firstMatchday = c->mFirstSeasonMatchdays[0];
+                            }
+                            else {
+                                if (!c->mSecondSeasonMatchdays.empty() && c->mSecondSeasonMatchdays[0] < firstMatchday)
+                                    firstMatchday = c->mSecondSeasonMatchdays[0];
+                            }
+                        }
+                    }
+                    Int supercupMax = 13;
+                    Int supercupMin = 6;
+
+                    bool cantCreate = false;
+
+                    if (firstMatchday > 0) {
+                        if (firstMatchday <= supercupMin) {
+                            Error(L"No available matchdays for supercup in %s (season %d)", FifamTr(country->mName).c_str(), s + 1);
+                            cantCreate = true;
+                        }
+                        else
+                            supercupMax = firstMatchday - (firstMatchday % 7) - 1;
+                    }
+                    if (!cantCreate) {
+                        // phase 1 - add possible match every week (reverse direction)
+                        for (Int m = supercupMax; m >= supercupMin; m -= 7)
+                            MarkPossibleWeekEndMatchdayForCup(supercupcc, s, m, matchdayIndex[s]);
+
+                        // phase 2 - add possible mid-week matches every week (reverse direction)
+                        for (Int m = supercupMax; m >= supercupMin; m -= 7)
+                            MarkPossibleMidWeekMatchdayForCup(supercupcc, s, m, matchdayIndex[s]);
+
+                        UInt numMatches = (superCup->mRounds[0].mFlags.Check(FifamBeg::_2ndLeg) || superCup->mRounds[0].mFlags.Check(FifamBeg::WithReplay)) ? 2 : 1;
+
+                        Vector<Pair<UInt, UInt>> availableMatchdays;
+                        for (UInt i = 1; i < supercupcc[s].size(); i++) {
+                            if (supercupcc[s][i] > 0 && supercupcc[s][i] < 1000)
+                                availableMatchdays.emplace_back(supercupcc[s][i], i);
+                        }
+                        if (availableMatchdays.size() < numMatches) {
+                            Error(L"Not enough available matches in calendar for SuperCup\nCountry: %s\nSeason: %d\nRequired matches: %d\nAvailable matches: %d",
+                                FifamTr(country->mName).c_str(), s + 1, numMatches, availableMatchdays.size());
+                        }
+                        else {
+                            // sort by priority
+                            std::sort(availableMatchdays.begin(), availableMatchdays.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
+                                return a.first < b.first;
+                            });
+                            if (s == 0) {
+                                superCup->mFirstSeasonMatchdays.clear();
+                                for (UInt m = 0; m < numMatches; m++)
+                                    superCup->mFirstSeasonMatchdays.push_back(availableMatchdays[m].second);
+                                std::sort(superCup->mFirstSeasonMatchdays.begin(), superCup->mFirstSeasonMatchdays.end());
+                            }
+                            else {
+                                superCup->mSecondSeasonMatchdays.clear();
+                                for (UInt m = 0; m < numMatches; m++)
+                                    superCup->mSecondSeasonMatchdays.push_back(availableMatchdays[m].second);
+                                std::sort(superCup->mSecondSeasonMatchdays.begin(), superCup->mSecondSeasonMatchdays.end());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return true;
 }
 
 void Converter::ConvertReferee(FifamReferee *dst, foom::official *official) {
