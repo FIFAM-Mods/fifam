@@ -152,6 +152,23 @@ struct db {
             reader.ReadLine(compID, h.mYear, IntPtr(h.mFirstPlaced), IntPtr(h.mSecondPlaced), IntPtr(h.mThirdPlaced), IntPtr(h.mPlayOffWinner), IntPtr(h.mStageName), h.mYearOrder, h.mNoDataForYear, IntPtr(h.mHostStadium));
             map_find(mComps, compID).mVecHistory.push_back(h);
         });
+        ReaderCallback(L"fm_comp_history_additional", [&](FifamReader &reader) {
+            Int compID;
+            comp::history h;
+            reader.ReadLine(compID, h.mYear, IntPtr(h.mFirstPlaced), IntPtr(h.mSecondPlaced), IntPtr(h.mThirdPlaced), IntPtr(h.mPlayOffWinner), IntPtr(h.mStageName), h.mYearOrder, h.mNoDataForYear, IntPtr(h.mHostStadium));
+            comp *c = get<comp>(compID);
+            if (c) {
+                bool isPresent = false;
+                for (auto &e : c->mVecHistory) {
+                    if (e.mYear == h.mYear) {
+                        isPresent = true;
+                        break;
+                    }
+                }
+                if (!isPresent)
+                    c->mVecHistory.push_back(h);
+            }
+        });
         // read clubs
         ReaderCallback(L"fm_clubs", [&](FifamReader &reader) {
             club c;
@@ -215,7 +232,7 @@ struct db {
             reader.ReadLine(clubID, IntPtr(b.mPlayer), IntPtr(b.mFromClub), b.mBuyBackFee);
             map_find(mClubs, clubID).mVecBuyBackClauses.push_back(b);
         });
-    #if 0
+    #if 1
         // TODO
         // read players
         String playersFile;

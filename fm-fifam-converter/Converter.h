@@ -126,6 +126,8 @@ public:
     Bool IsFansFavouritePlayer(Int playerId);
     Bool IsSensitivePlayer(Int playerId);
 
+    Bool IsPlayerRetiredFromNationalTeam(Int playerId);
+
     FifamClubLink GetCompWinner(foom::comp *c, Bool checkPreviousSeason = false);
     void GetCompWinnerAndRunnerUp(foom::comp *c, FifamClubLink &outWinner, FifamClubLink &outRunnerUp, Bool checkPreviousSeason = false);
     FifamClubLink GetCompHost(foom::comp *c, Bool checkPreviousSeason = false);

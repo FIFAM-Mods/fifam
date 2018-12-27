@@ -821,6 +821,10 @@ void FifamStaff::ForAllAttributes(Function<void(UChar &, Float)> callback) {
 }
 
 String FifamStaff::GetStringUniqueId(UInt gameId) {
+    if (mClubPosition == FifamClubStaffPosition::Manager || mClubPosition == FifamClubStaffPosition::ChiefExec)
+        return FifamNames::GetPersonStringId(gameId, mFirstName, mLastName, String(), mBirthday, 0);
+    else if (mClubPosition == FifamClubStaffPosition::President)
+        return FifamNames::GetPersonStringId(gameId, mFirstName, mLastName, String(), Date(), 0);
     return FifamNames::GetPersonStringId(gameId, mFirstName, mLastName, mPseudonym, mBirthday, 0);
 }
 

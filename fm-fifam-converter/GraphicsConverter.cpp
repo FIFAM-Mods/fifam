@@ -557,7 +557,7 @@ void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path con
                 }
                 FifamReferee *fifamReferee = (FifamReferee *)referee->mConverterData.mFifamReferee;
                 Path outputPath = contentPath / gameFolder / artArchive / L"portraits" / L"Referees" / L"160x160" /
-                    (FifamNames::GetPersonStringId(gameId, fifamReferee->mFirstName, fifamReferee->mLastName, L"", Date(), 0) + targetFormat);
+                    (FifamNames::GetPersonStringId(gameId, fifamReferee->mFirstName, fifamReferee->mLastName, String(), Date(), 0) + targetFormat);
                 portraitImg.resize(Geometry(160, 160));
                 SafeWriteImage(portraitImg, outputPath.string());
             }

@@ -180,6 +180,8 @@ String FifamNames::GetPersonStringId(UInt gameId, String const &firstName, Strin
             case 0x153:
                 c = L'c';
                 break;
+            case 0x2019:
+                c = L'\'';
             }
             finalName += c;
         }
