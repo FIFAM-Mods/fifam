@@ -63,7 +63,7 @@ public:
     UChar mMaxNumberOfNonEUSigns = 0;
     // @since FM07
     // @range 18-31
-    UChar mAgeLimitForNonEUSigns = 0;
+    UChar mAgeLimitForNonEUSigns = 18;
     // @since FM07
     // @range 0-15
     UChar mShortTermLoansTotalLimit = 0;

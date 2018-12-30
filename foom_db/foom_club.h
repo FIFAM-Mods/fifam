@@ -71,6 +71,8 @@ struct club : public team {
         Date mStartDate;
         Date mEndDate;
         Int mAffiliationType = 0;
+        Bool mPlayersMoveFreely = false;
+        Bool mSameBoard = false;
     };
 
     Vector<affiliation> mVecAffiliations;
@@ -132,14 +134,17 @@ struct club : public team {
         UInt mFIFAManagerID = 0;
         UInt mFIFAID = 0;
         void *mFifamClub = nullptr;
+        Bool mHasFifamSquad = false;
         Int mLeaguePos = 0;
         Set<UShort> mLeagueWins;
         Set<UShort> mCupWins;
         club *mParentClub = nullptr;
         club *mMainChildClubInDB = nullptr;
         club *mParentClubInDB = nullptr;
+        club *mOriginalStoredParentClub = nullptr;
         enum child_type {
             second,
+            second_affiliated,
             third,
             u23,
             u21,

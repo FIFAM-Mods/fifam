@@ -134,7 +134,7 @@ bool KitConverter::ConvertKit(string const & inputShirt, string const & inputSho
         if (options.AddWatermarkText) {
             outputFileImg.fontPointsize(14);
             outputFileImg.fontWeight(550);
-            outputFileImg.annotate("FIFA Manager Universal Converter", Geometry(1024, 1024, 3, 1012), NorthWestGravity, -90);
+            outputFileImg.annotate("FIFAM Universal Converter Project", Geometry(1024, 1024, 3, 1012), NorthWestGravity, -90);
             outputFileImg.annotate("converted from EA SPORTS FIFA 19", Geometry(1024, 1024, 512 - 12, 1012), NorthWestGravity, -90);
         }
 
@@ -319,8 +319,10 @@ void KitConverter::ConvertClubKits(int fifaId, int fifaManagerId) {
         else
             outputFile = string("D:\\Games\\FIFA Manager ") + gameIdStr + "\\user\\kits\\";
         outputFile += clubIdStr;
-        ConvertFifaClubKit(fifaId, 0, 0, outputFile + "_h");
-        ConvertFifaClubKit(fifaId, 1, 0, outputFile + "_a");
+        if (options.ConvertHomeKit)
+            ConvertFifaClubKit(fifaId, 0, 0, outputFile + "_h");
+        if (options.ConverAwayKit)
+            ConvertFifaClubKit(fifaId, 1, 0, outputFile + "_a");
         if (options.ConvertThirdKit)
             ConvertFifaClubKit(fifaId, 3, 0, outputFile + "_t");
         if (options.ConvertGkKit)

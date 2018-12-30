@@ -348,7 +348,13 @@ public:
         { FifamClubTeamColor::Blue_Red, {{ 0, 48, 104 } ,{ 245,30,2 }}},
         { FifamClubTeamColor::Blue_Red, {{ 0, 16, 64 } ,{ 245,30,2 }}},
         { FifamClubTeamColor::Green_Red, {{ 0, 152, 120 } ,{ 200,16,24 }}},
-        { FifamClubTeamColor::Green_White, {{ 72, 112, 96 } ,{ 255,255,255 }}}
+        { FifamClubTeamColor::Green_White, {{ 72, 112, 96 } ,{ 255,255,255 }}},
+        { FifamClubTeamColor::Green_Yellow, {{ 0, 120, 96 } ,{ 248,232,40 }}},
+        { FifamClubTeamColor::Blue_Yellow, {{ 8, 32, 72 } ,{ 240,248,16 }}},
+        { FifamClubTeamColor::Blue_Yellow, {{ 38, 72, 139 } ,{ 230,230,69 }}},
+        { FifamClubTeamColor::Blue_Yellow, {{ 0, 32, 96 } ,{ 248,208,0 }}},
+        { FifamClubTeamColor::Blue_Yellow, {{ 38, 72, 139 } ,{ 255,226,82 }}},
+        { FifamClubTeamColor::Purple_White, {{ 80, 32, 120 } ,{ 248,248,248 }}}
 
     };
     inline static Vector<Pair<UInt, Color>> mMerchandiseColorsTable = {
@@ -470,7 +476,20 @@ public:
         { 42, { 202, 140, 237 }},
         { 43, { 212, 102, 141 }},
         { FifamClubInterfaceColor08::Aqua, { 0, 152, 120 }},
-        { FifamClubInterfaceColor08::Seaweed, { 72, 112, 96 }}
+        { FifamClubInterfaceColor08::Seaweed, { 72, 112, 96 }},
+        { FifamClubInterfaceColor08::Aqua, { 0, 120, 96 }},
+        { FifamClubInterfaceColor08::Midnight, { 8, 32, 72 }},
+        { FifamClubInterfaceColor08::Midnight, { 0, 32, 96 }},
+        { FifamClubInterfaceColor08::Midnight, { 32, 32, 72 }},
+        { FifamClubInterfaceColor08::Midnight, { 16, 16, 80 }},
+        { FifamClubInterfaceColor08::Forest, { 82, 181, 97 }},
+        { FifamClubInterfaceColor08::Forest, { 60, 181, 113 }},
+        { FifamClubInterfaceColor08::Forest, { 60, 140, 87 }},
+        { FifamClubInterfaceColor08::Forest, { 0, 103, 55 }},
+        { FifamClubInterfaceColor08::Forest, { 0, 157, 58 }},
+        { FifamClubInterfaceColor08::Forest, { 8, 136, 88 }},
+        { FifamClubInterfaceColor08::Forest, { 8, 104, 64 }},
+        { FifamClubInterfaceColor08::Indigo, { 80, 0, 128 }}
     };
 
     void WriteClubMembers(FifamWriter &writer);

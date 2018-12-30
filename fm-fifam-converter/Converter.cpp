@@ -296,6 +296,53 @@ void Converter::ReadAdditionalInfo(Path const &infoPath) {
             }
         }
     }
+    {
+        std::wcout << L"Reading fifam_club_colors..." << std::endl;
+        FifamReader reader(infoPath / L"fifam_club_colors.csv", 0);
+        if (reader.Available()) {
+            reader.SkipLine();
+            while (!reader.IsEof()) {
+                if (!reader.EmptyLine()) {
+                    Int teamId = -1;
+                    String colorStr;
+                    reader.ReadLine(teamId, colorStr);
+                    if (teamId != -1) {
+                        colorStr = Utils::ToUpper(colorStr);
+                        ClubColor color;
+                        if (colorStr == L"KIT") {
+                            color.type = ClubColor::KIT;
+                            mClubColorsMap[teamId] = color;
+                        }
+                        else if (colorStr == L"TEAM") {
+                            color.type = ClubColor::TEAM;
+                            mClubColorsMap[teamId] = color;
+                        }
+                        else {
+                            auto colors = Utils::Split(colorStr, L'-');
+                            if (colors.size() == 2) {
+                                bool failed = false;
+                                for (UInt i = 0; i < 2; i++) {
+                                    auto rgb = Utils::Split(colors[i], L',');
+                                    if (rgb.size() != 3) {
+                                        failed = true;
+                                        break;
+                                    }
+                                    color.rgb[i].Set(Utils::SafeConvertInt<UChar>(rgb[0]),
+                                        Utils::SafeConvertInt<UChar>(rgb[1]), Utils::SafeConvertInt<UChar>(rgb[2]));
+                                }
+                                if (!failed) {
+                                    color.type = ClubColor::RGB;
+                                    mClubColorsMap[teamId] = color;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                    reader.SkipLine();
+            }
+        }
+    }
 }
 
 void Converter::Convert(UInt gameId, Bool writeToGameFolder) {
@@ -309,6 +356,12 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     FifamDatabase::mReadingOptions.mReadPersons = false;
 
     mFifamDatabase = new FifamDatabase(originalGameId, originalDb);
+
+    FifamDatabase::mReadingOptions.mReadClubs = true;
+    FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
+
+    mReferenceDatabase = new FifamDatabase(referenceGameId, referenceDb);
+
     mFifaDatabase = new FifaDatabase(L"D:\\Projects\\fifam\\db\\fifa");
     mFoomDatabase = new foom::db(L"D:\\Projects\\fifam\\db\\foom", foom::db::db_size::DB_SIZE);
 
@@ -338,6 +391,10 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     if (a.mAffiliationType == 4 || a.mAffiliationType == 6 || a.mAffiliationType == 8) {
                         child = a.mAffiliatedClub;
                         childType = foom::club::converter_data::child_type::second;
+                    }
+                    else if ((a.mAffiliationType == 1 || a.mAffiliationType == 21) && a.mPlayersMoveFreely && a.mSameBoard) {
+                        child = a.mAffiliatedClub;
+                        childType = foom::club::converter_data::child_type::second_affiliated;
                     }
                     else if (a.mAffiliationType == 5 || a.mAffiliationType == 7) {
                         child = a.mAffiliatedClub;
@@ -636,10 +693,10 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                             league->mMaxNumberOfNonEUSigns = lg->mNonEuSigns;
 
                         league->mInstructions.PushBack(new FifamInstruction::GET_POOL(
-                            FifamCompID(country->mId, FifamCompType::Pool, leagues.first), teamCounter + 1, lg->mTeams));
+                            FifamCompID(country->mId, FifamCompType::Pool, leagues.first), teamCounter, lg->mTeams));
 
                         // add teams
-                        Bool hasReserveTeams = lg->mReserveTeamsAllowed;
+                        Bool hasReserveTeams = lg->mReserveTeamsAllowed == 1;
                         UInt numLeaguePromotedTeams = 0;
                         UInt numLeagueRelegatedTeams = 0;
                         for (auto entry : comp->mVecTeams) {
@@ -733,6 +790,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                                                 return a.mClub == team;
                                             }), team->mConverterData.mParentClub->mConverterData.mChildClubs.end());
                                             mainTeam = team->mConverterData.mParentClub;
+                                            team->mConverterData.mOriginalStoredParentClub = team->mConverterData.mParentClub;
                                             team->mConverterData.mParentClub = nullptr;
                                             createNewClub = true;
                                         }
@@ -748,7 +806,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                             else
                                 createNewClub = true;
                             if (createNewClub)
-                                club = CreateAndConvertClub(gameId, team, mainTeam, country, lg);
+                                club = CreateAndConvertClub(gameId, team, mainTeam, country, lg, true);
                             // put team to league
                             if (club) {
                                 league->mTeams[leagueClubCounter].mPtr = club;
@@ -1367,7 +1425,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     numSpareClubsToAdd = spareClubs[country->mId - 1].size();
                 for (UInt i = 0; i < numSpareClubsToAdd; i++) {
                     foom::club *team = spareClubs[country->mId - 1][i];
-                    CreateAndConvertClub(gameId, team, team, country, nullptr);
+                    CreateAndConvertClub(gameId, team, team, country, nullptr, mNumTeamsInLeagueSystem[country->mId - 1] == 0);
                 }
             }
         }
@@ -1486,16 +1544,20 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
             FifamCountry *country = dst->mCountry;
             // friendship club
             foom::club *bestFriendshipClub = nullptr;
-            Int bestFriendshipRep = 0;
-            // for all affiliated clubs
-            for (auto &a : team.mVecAffiliations) {
-                if (a.mAffiliatedClub && a.mAffiliatedClub->mConverterData.mFifamClub && (a.mAffiliationType == 1 || a.mAffiliationType == 16)) {
-                    FifamClub *affiliatedFifamClub = (FifamClub *)a.mAffiliatedClub->mConverterData.mFifamClub;
-                    if (dst->mCountry->mId == affiliatedFifamClub->mCountry->mId) {
-                        if (a.mStartDate <= GetCurrentDate() && (a.mEndDate == FmEmptyDate() || a.mEndDate > GetCurrentDate())) {
-                            if (!bestFriendshipClub || a.mAffiliatedClub->mReputation > bestFriendshipRep) {
-                                bestFriendshipClub = a.mAffiliatedClub;
-                                bestFriendshipRep = a.mAffiliatedClub->mReputation;
+            if (team.mConverterData.mOriginalStoredParentClub && team.mConverterData.mOriginalStoredParentClub->mConverterData.mFifamClub)
+                bestFriendshipClub = team.mConverterData.mOriginalStoredParentClub;
+            else {
+                Int bestFriendshipRep = 0;
+                // for all affiliated clubs
+                for (auto &a : team.mVecAffiliations) {
+                    if (a.mAffiliatedClub && a.mAffiliatedClub->mConverterData.mFifamClub && (a.mAffiliationType == 1 || a.mAffiliationType == 16)) {
+                        FifamClub *affiliatedFifamClub = (FifamClub *)a.mAffiliatedClub->mConverterData.mFifamClub;
+                        if (dst->mCountry->mId == affiliatedFifamClub->mCountry->mId) {
+                            if (a.mStartDate <= GetCurrentDate() && (a.mEndDate == FmEmptyDate() || a.mEndDate > GetCurrentDate())) {
+                                if (!bestFriendshipClub || a.mAffiliatedClub->mReputation > bestFriendshipRep) {
+                                    bestFriendshipClub = a.mAffiliatedClub;
+                                    bestFriendshipRep = a.mAffiliatedClub->mReputation;
+                                }
                             }
                         }
                     }
@@ -1669,7 +1731,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     for (auto &entry : mFoomDatabase->mClubs) {
         auto &team = entry.second;
         // team is present in db
-        if (team.mConverterData.mFifamClub) {
+        if (team.mConverterData.mFifamClub && team.mConverterData.mHasFifamSquad) {
             //std::wcout << L"Team: " << team.mID << std::endl;
             UInt howManyPlayersCanIAdditionalyCreate = 0;
             UInt howManyYouthPlayersCanIAdditionalyCreate = 0;
@@ -2718,10 +2780,11 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     mFifaDatabase = nullptr;
 }
 
-FifamClub *Converter::CreateAndConvertClub(UInt gameId, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div) {
+FifamClub *Converter::CreateAndConvertClub(UInt gameId, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div, bool convertSquad) {
     if (!mainTeam)
         mainTeam = team;
     FifamClub *club = mFifamDatabase->CreateClub(country);
+    team->mConverterData.mHasFifamSquad = convertSquad;
     club->SetProperty(L"foom::club", team);
     // uid
     club->mUniqueID = team->mConverterData.mFIFAManagerID;
@@ -3296,32 +3359,29 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Int foomId, Vector<foom::ki
         }
     }
 
+    // badge and colors
+
     Color backgroundClr, foregroundClr;
 
-    // badge and colors
-    if (teamBackgroundColor != Color(45, 104, 181) && teamForegroundColor != Color(250, 250, 250)) {
-        backgroundClr = teamBackgroundColor;
-        foregroundClr = teamForegroundColor;
-        Color secondColor = foregroundClr;
-        if (Color::Distance(backgroundClr, foregroundClr) < 100) {
-            auto white = Color::Distance(backgroundClr, { 255, 255, 255 });
-            auto black = Color::Distance(backgroundClr, { 0, 0, 0 });
-            if (black < white)
-                secondColor = { 255, 255, 255 };
-            else
-                secondColor = { 0, 0, 0 };
-        }
-        dst->mClubColour.Set(backgroundClr, secondColor);
-    }
-    else if (clubClrs) {
-        backgroundClr = Color(clubClrs->mBackground.r, clubClrs->mBackground.g, clubClrs->mBackground.b);
-        foregroundClr = Color(clubClrs->mForeground.r, clubClrs->mForeground.g, clubClrs->mForeground.b);
-        Color outlineClr = Color(clubClrs->mOutline.r, clubClrs->mOutline.g, clubClrs->mOutline.b);
-        if (textColorsUsed)
-            std::swap(foregroundClr, outlineClr);
-        Color secondColor = foregroundClr;
-        if (Color::Distance(backgroundClr, foregroundClr) < 100) {
-            if (Color::Distance(backgroundClr, outlineClr) < 100) {
+    ClubColor clubColorInfo;
+    if (mClubColorsMap.find(foomId) != mClubColorsMap.end())
+        clubColorInfo = mClubColorsMap[foomId];
+    else
+        clubColorInfo.type = ClubColor::DEFAULT;
+
+    auto SetColor_RGB = [&]() {
+        backgroundClr = clubColorInfo.rgb[0];
+        foregroundClr = clubColorInfo.rgb[1];
+        dst->mClubColour.Set(clubColorInfo.rgb[0], clubColorInfo.rgb[1]);
+        return true;
+    };
+
+    auto SetColor_TEAM = [&](bool forceApply = false) {
+        if (forceApply || (teamBackgroundColor != Color(45, 104, 181) && teamForegroundColor != Color(250, 250, 250))) {
+            backgroundClr = teamBackgroundColor;
+            foregroundClr = teamForegroundColor;
+            Color secondColor = foregroundClr;
+            if (Color::Distance(backgroundClr, foregroundClr) < 100) {
                 auto white = Color::Distance(backgroundClr, { 255, 255, 255 });
                 auto black = Color::Distance(backgroundClr, { 0, 0, 0 });
                 if (black < white)
@@ -3329,12 +3389,57 @@ void Converter::ConvertKitsAndColors(FifamClub *dst, Int foomId, Vector<foom::ki
                 else
                     secondColor = { 0, 0, 0 };
             }
-            else
-                secondColor = outlineClr;
+            dst->mClubColour.Set(backgroundClr, secondColor);
+            return true;
         }
-        dst->mClubColour.Set(backgroundClr, secondColor);
-    }
+        return false;
+    };
+
+    auto SetColor_KIT = [&]() {
+        if (clubClrs) {
+            backgroundClr = Color(clubClrs->mBackground.r, clubClrs->mBackground.g, clubClrs->mBackground.b);
+            foregroundClr = Color(clubClrs->mForeground.r, clubClrs->mForeground.g, clubClrs->mForeground.b);
+            Color outlineClr = Color(clubClrs->mOutline.r, clubClrs->mOutline.g, clubClrs->mOutline.b);
+            if (textColorsUsed)
+                std::swap(foregroundClr, outlineClr);
+            Color secondColor = foregroundClr;
+            if (Color::Distance(backgroundClr, foregroundClr) < 100) {
+                if (Color::Distance(backgroundClr, outlineClr) < 100) {
+                    if (Color::Distance(backgroundClr, outlineClr) < 100) {
+                        auto white = Color::Distance(backgroundClr, { 255, 255, 255 });
+                        auto black = Color::Distance(backgroundClr, { 0, 0, 0 });
+                        if (black < white)
+                            secondColor = { 255, 255, 255 };
+                        else
+                            secondColor = { 0, 0, 0 };
+                    }
+                    else
+                        secondColor = outlineClr;
+                }
+                else
+                    secondColor = outlineClr;
+            }
+            dst->mClubColour.Set(backgroundClr, secondColor);
+            return true;
+        }
+        return false;
+    };
+
+    bool colorsFound = false;
+
+    if (clubColorInfo.type == ClubColor::RGB)
+        colorsFound = SetColor_RGB();
+    else if (clubColorInfo.type == ClubColor::TEAM)
+        colorsFound = SetColor_TEAM(true);
+    else if (clubColorInfo.type == ClubColor::KIT)
+        colorsFound = SetColor_KIT();
     else {
+        colorsFound = SetColor_KIT();
+        if (!colorsFound)
+            colorsFound = SetColor_TEAM(false);
+    }
+
+    if (!colorsFound) {
         // random club colors
         UInt numTeamColors = FifamClub::mTeamColorsTable.size();
         if (numTeamColors > 0) {
@@ -4343,26 +4448,26 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
 
     // talent
     if (gameId >= 9) {
-        if (p->mOriginalPA == -10)
-            player->mTalent = 9;
-        else if (p->mOriginalPA == -95) {
-            if (p->mOriginalCA >= 120)
-                player->mTalent = 9;
+        if (p->mOriginalPA == -10) // 170-200
+            player->mTalent = 9; // 5 stars
+        else if (p->mOriginalPA == -95) // 160-190
+            player->mTalent = 8; // 4,5 stars
+        else if (p->mOriginalPA == -9) { // 150-180
+            if (p->mOriginalCA >= 130)
+                player->mTalent = 8; // 4,5 stars
             else
-                player->mTalent = 8;
+                player->mTalent = 7; // 4 stars
         }
-        else if (p->mOriginalPA == -9 || p->mOriginalPA == -85)
-            player->mTalent = 8;
-        else if (p->mOriginalPA == -8) {
-            if (p->mOriginalCA >= 120)
-                player->mTalent = 8;
+        else if (p->mOriginalPA == -85) // 140-170
+            player->mTalent = 7; // 4 stars
+        else if (p->mOriginalPA == -8) { // 130-160
+            if (p->mOriginalCA >= 130)
+                player->mTalent = 7; // 4 stars
             else
-                player->mTalent = 7;
+                player->mTalent = 6; // 3.5 stars
         }
-        else if (p->mOriginalPA == -75)
-            player->mTalent = 7;
-        else if (p->mOriginalPA == -7 || p->mOriginalPA == -65)
-            player->mTalent = 6;
+        else if (p->mOriginalPA == -75) // 120-150
+            player->mTalent = 6; // 3.5 stars
         else {
             UInt maxTalent = 9;
             UChar *potantialAbilityRanges = nullptr;
@@ -5348,8 +5453,8 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player *p, FifamClub *clu
 
     // talent
     Int potential = p->mPotentialAbility;
-    if (potential == 180 && p->mOriginalPA != 0 && p->mOriginalPA != 180)
-        potential = Utils::Clamp(p->mOriginalCA + Random::Get(0, 20), 1, 200);
+    if (potential == 180 && p->mOriginalPA != 180)
+        potential = p->mCurrentAbility;
 
     //static UChar potantialAbilityRanges[9] = { 35, 55, 75, 100, 115, 130, 145, 160, 175 };
     static UChar potantialAbilityRanges[9] = { 30, 50, 70, 90, 110, 130, 140, 160, 180 };

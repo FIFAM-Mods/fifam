@@ -177,7 +177,7 @@ void FifamCompLeague::Write(FifamWriter &writer, FifamDatabase *database, FifamN
         writer.WriteLine(mMaxNumberOfNonEUSigns);
         writer.WriteLine(mAgeLimitForNonEUSigns);
     }
-    UInt loanFlags =
+    Int loanFlags =
         (Utils::Clamp(mShortTermLoansTotalLimit, 0, 0xF)) |
         (Utils::Clamp(mShortTermLoansSimultaneosLimit, 0, 0xF) << 4) |
         (Utils::Clamp(mLongTermLoansTotalLimit, 0, 0xF) << 8) |
@@ -187,7 +187,7 @@ void FifamCompLeague::Write(FifamWriter &writer, FifamDatabase *database, FifamN
         (Utils::Clamp(mLoanedPlayersPerSeason, 0, 0xF) << 24) |
         (Utils::Clamp(mLoanPlayerPerSquad, 0, 0xF) << 28);
     writer.WriteLine(loanFlags);
-    UInt otherFlags =
+    Int otherFlags =
         (Utils::Clamp(mSimLoanOtherLeague, 0, 0xF)) |
         (Utils::Clamp(mSimLoanSameLeague, 0, 0xF) << 4) |
         (Utils::Clamp(mLoanOtherLeagueCount, 0, 0xF) << 8) |

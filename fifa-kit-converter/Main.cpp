@@ -6,15 +6,17 @@ int main() {
 
     KitConverter kitConverter;
 
-    UInt gameId = 14;
+    UInt gameId = 13;
 
     FifamDatabase::mReadingOptions.mReadCountryCompetitions = false;
     FifamDatabase::mReadingOptions.mReadPersons = false;
     FifamDatabase *db = new FifamDatabase(gameId, Utils::Format(L"D:\\Games\\FIFA Manager %02d\\database", gameId));
 
     kitConverter.options.OutputGameId = gameId;
+    kitConverter.options.ConvertHomeKit = false;
+    kitConverter.options.ConverAwayKit = false;
     kitConverter.options.ConvertGkKit = false;
-    kitConverter.options.ConvertThirdKit = false;
+    kitConverter.options.ConvertThirdKit = true;
     kitConverter.options.SaveLocation = gameId >= 9 ? KitConverter::Documents : KitConverter::User;
 
     for (auto country : db->mCountries) {

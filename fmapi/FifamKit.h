@@ -113,7 +113,11 @@ public:
         { FifamKitColor::Blue6, { 32, 64, 152 }}, // Everton
         { FifamKitColor::Red7, { 120, 32, 56 }}, // West Ham
         { FifamKitColor::Field2, { 72, 112, 96 }}, // Saint-Etienne
-        { FifamKitColor::Violet1, { 232, 160, 184 }} // Palermo
+        { FifamKitColor::Violet1, { 232, 160, 184 }}, // Palermo
+        { FifamKitColor::Green1, { 0, 120, 96 }}, // Norwich
+        { FifamKitColor::Blue7, { 72, 96, 184 }}, // Chayka
+        { FifamKitColor::Green4, { 0, 128, 96 }}, // Akhmat
+        { FifamKitColor::Green4, { 0, 128, 88 }} // Konyaspor
     };
     inline static Vector<Pair<UInt, Color>> mShirtNumberColorTable = {
         { 1, { 255, 255, 255 }},

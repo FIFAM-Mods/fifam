@@ -19,6 +19,8 @@ public:
         int OutputGameId = 14;
         int SaveLocation = User;
         std::string OutputFormat = "tga";
+        bool ConvertHomeKit = true;
+        bool ConverAwayKit = true;
         bool ConvertThirdKit = true;
         bool ConvertGkKit = true;
         bool AddWatermarkText = true;

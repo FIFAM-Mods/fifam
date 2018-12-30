@@ -27,7 +27,7 @@ public:
     UInt mNumTeams = 0;
     // @since FM07
     // max substitutions allowed in competition
-    UChar mNumSubsAllowed = 0;
+    UChar mNumSubsAllowed = 3;
     // @since FM07
     // 0 = highest - international competitions always have 0
     UChar mCompetitionLevel = 0;

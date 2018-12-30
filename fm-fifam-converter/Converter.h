@@ -86,6 +86,17 @@ public:
         foom::club *mTeam2 = 0;
     };
 
+    struct ClubColor {
+        enum ClubColorType {
+            DEFAULT,
+            TEAM,
+            KIT,
+            RGB
+        };
+        ClubColorType type = ClubColorType::DEFAULT;
+        Array<Color, 2> rgb;
+    };
+
     Vector<DivisionInfo> mDivisions;
     Vector<CupInfo> mCups;
     Map<UInt, Vector<FixtureInfo>> mFixturesPerLeague;
@@ -96,6 +107,7 @@ public:
     UInt mPersonIdCounter = 1;
     Map<Int, Path> mAvailableBadges;
     AppearanceGenerator appearanceGenerator;
+    Map<Int, ClubColor> mClubColorsMap;
     
     Date GetCurrentDate() { return Date(1, 7, CURRENT_YEAR); }
     Date FmEmptyDate() { return Date(1, 1, 1900); }
@@ -109,7 +121,7 @@ public:
     void ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt gameId);
     void ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);
     void ConvertClubStadium(FifamClub *dst, UInt gameId);
-    FifamClub *CreateAndConvertClub(UInt gameId, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);
+    FifamClub *CreateAndConvertClub(UInt gameId, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div, bool convertSquad);
     void ConvertReferee(FifamReferee *dst, foom::official *official);
     void ConvertKitsAndColors(FifamClub *dst, Int foomId, Vector<foom::kit> const &kits, Int badgeType, Color const &teamBackgroundColor,
         Color const &teamForegroundColor, UInt gameId);
