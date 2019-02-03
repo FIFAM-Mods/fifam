@@ -2,6 +2,7 @@
 #include <string>
 #include <vector>
 #include <ctime>
+#include <filesystem>
 
 namespace Utils {
     std::wstring TimeString(std::time_t const &time);
@@ -10,10 +11,17 @@ namespace Utils {
     std::wstring GetQuickName(std::wstring const &firstName, std::wstring const &lastName, std::wstring const &commonName);
     std::wstring CharToStr(char c);
 
+    class FormatterUtils {
+    public:
+        template<typename T> static T const &Arg(T const &arg) { return arg; }
+        static wchar_t const *Arg(std::wstring const &arg) { return arg.c_str(); }
+        static wchar_t const *Arg(std::filesystem::path const &arg) { return arg.c_str(); }
+    };
+
     template<typename ...ArgTypes>
     static std::wstring Format(const std::wstring &format, ArgTypes... args) {
         static wchar_t buf[4096];
-        swprintf(buf, 4096, format.c_str(), args...);
+        swprintf(buf, 4096, format.c_str(), FormatterUtils::Arg(args)...);
         return buf;
     }
 

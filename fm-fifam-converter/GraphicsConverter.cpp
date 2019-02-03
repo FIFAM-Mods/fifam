@@ -82,7 +82,7 @@ void WriteOneBadge(Image &badgeImg, Path const &outputPath, String const &badgeN
     SafeWriteImage(badgeImg, (Path(outputPath / (oldBadgePath ? (leagues ? L"Leagues32" : L"Badge32") : L"32x32") / badgeName).string()));
 }
 
-Bool ConvertOneCompBadge(Path const &badgePath, Path const &outputPath, String const &badgeName, UInt gameId) {
+Bool GraphicsConverter::ConvertOneCompBadge(Path const &badgePath, Path const &outputPath, String const &badgeName, UInt gameId) {
     if (exists(badgePath)) {
         Image badgeImg(badgePath.string());
         if (badgeImg.isValid() && badgeImg.baseRows() == 360) {
@@ -104,7 +104,10 @@ void GraphicsConverter::ConvertClubBadges(foom::db *db, Map<Int, Path> const &av
         auto &club = e.second;
         if (club.mReputation > minRep && club.mConverterData.mFifamClub) {
             FifamClub *fifamClub = (FifamClub *)club.mConverterData.mFifamClub;
-            auto it = availableBadges.find(club.mID);
+            Int foomIdForGraphics = club.mID;
+            if (!club.mConverterData.mParentClub && club.mConverterData.mOriginalStoredParentClub)
+                foomIdForGraphics = club.mConverterData.mOriginalStoredParentClub->mID;
+            auto it = availableBadges.find(foomIdForGraphics);
             if (it != availableBadges.end()) {
                 Image badgeImg((*it).second.string());
                 if (badgeImg.isValid() && badgeImg.baseRows() >= 360) {
@@ -405,7 +408,7 @@ String GetTrophyNameForFM09(FifamCompID const &id) {
     return String();
 }
 
-Bool ConvertOneTrophy(Path const &trophyPath, Path const &outputPath, Path const &trophyNamePath, String const &trophyRoomFolder) {
+Bool GraphicsConverter::ConvertOneTrophy(Path const &trophyPath, Path const &outputPath, Path const &trophyNamePath, String const &trophyRoomFolder) {
     if (exists(trophyPath)) {
         Image trophyImg(trophyPath.string());
         if (trophyImg.isValid()) {
@@ -517,7 +520,7 @@ void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGrap
         Path portraitPath = fmGraphicsPath / L"sortitoutsi" / L"faces" / (std::to_wstring(person->mID) + L".png");
         if (exists(portraitPath)) {
             Image portraitImg(portraitPath.string());
-            if (portraitImg.isValid() && portraitImg.baseRows() >= 180 && portraitImg.baseColumns() >= 180) {
+            if (portraitImg.isValid() && portraitImg.baseRows() >= 150 && portraitImg.baseColumns() >= 150) {
                 if (portraitImg.baseColumns() != portraitImg.baseRows()) {
                     UInt newSize = Utils::Max(portraitImg.baseColumns(), portraitImg.baseRows());
                     portraitImg.extent(Geometry(newSize, newSize), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);

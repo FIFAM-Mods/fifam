@@ -22,7 +22,8 @@
 #include "tests\PlayerRelationsTest.h"
 #include "tests\WritePlayerIDs.h"
 #include "tests\CalendarDatabase.h"
+#include "tests\ExportXML.h"
 
 void RunTests() {
-    RunTest<MakeCalendarDatabase<FM14, FM13>>();
+    RunTest<ExportXML<FM13>>();
 }

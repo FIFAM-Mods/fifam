@@ -47,11 +47,24 @@ FifamWriter::FifamWriter(Path const &filename, UInt gameId, UShort vYear, UShort
     mVersion.Set(vYear, vNumber);
 }
 
+FifamWriter::FifamWriter(String *outputString, UInt gameId, UShort vYear, UShort vNumber, Bool unicode) :
+    FifamFileWorker(gameId)
+{
+    mOutputStr = outputString;
+    mVersion.Set(vYear, vNumber);
+}
+
+void FifamWriter::SetReplaceQuotes(bool replace) {
+    mReplaceQuotes = replace;
+}
+
 FifamWriter::~FifamWriter() {
     Close();
 }
 
 Bool FifamWriter::Available() {
+    if (mOutputStr)
+        return true;
     return mFile != nullptr;
 }
 
@@ -63,31 +76,52 @@ void FifamWriter::Close() {
 }
 
 void FifamWriter::WriteOne(Char value) {
-    fwprintf(mFile, L"%d", value);
+    if (mOutputStr)
+        *mOutputStr += Utils::Format(L"%d", value);
+    else
+        fwprintf(mFile, L"%d", value);
 }
 
 void FifamWriter::WriteOne(WideChar value) {
-    fputwc(value, mFile);
+    if (mOutputStr)
+        *mOutputStr += value;
+    else
+        fputwc(value, mFile);
 }
 
 void FifamWriter::WriteOne(Short value) {
-    fwprintf(mFile, L"%d", value);
+    if (mOutputStr)
+        *mOutputStr += Utils::Format(L"%d", value);
+    else
+        fwprintf(mFile, L"%d", value);
 }
 
 void FifamWriter::WriteOne(Int value) {
-    fwprintf(mFile, L"%d", value);
+    if (mOutputStr)
+        *mOutputStr += Utils::Format(L"%d", value);
+    else
+        fwprintf(mFile, L"%d", value);
 }
 
 void FifamWriter::WriteOne(UChar value) {
-    fwprintf(mFile, L"%u", value);
+    if (mOutputStr)
+        *mOutputStr += Utils::Format(L"%u", value);
+    else
+        fwprintf(mFile, L"%u", value);
 }
 
 void FifamWriter::WriteOne(UShort value) {
-    fwprintf(mFile, L"%u", value);
+    if (mOutputStr)
+        *mOutputStr += Utils::Format(L"%u", value);
+    else
+        fwprintf(mFile, L"%u", value);
 }
 
 void FifamWriter::WriteOne(UInt value) {
-    fwprintf(mFile, L"%u", value);
+    if (mOutputStr)
+        *mOutputStr += Utils::Format(L"%u", value);
+    else
+        fwprintf(mFile, L"%u", value);
 }
 
 void FifamWriter::WriteOne(Int64 value) {
@@ -95,22 +129,39 @@ void FifamWriter::WriteOne(Int64 value) {
 }
 
 void FifamWriter::WriteOne(UInt64 value) {
-    fwprintf(mFile, L"%I64u", value);
+    if (mOutputStr)
+        *mOutputStr += Utils::Format(L"%I64u", value);
+    else
+        fwprintf(mFile, L"%I64u", value);
 }
 
 void FifamWriter::WriteOne(Float value) {
-    fwprintf(mFile, L"%f", value);
+    if (mOutputStr)
+        *mOutputStr += Utils::Format(L"%f", value);
+    else
+        fwprintf(mFile, L"%f", value);
 }
 
 void FifamWriter::WriteOne(Double value) {
-    fwprintf(mFile, L"%f", value);
+    if (mOutputStr)
+        *mOutputStr += Utils::Format(L"%f", value);
+    else
+        fwprintf(mFile, L"%f", value);
 }
 
 void FifamWriter::WriteOne(Bool value) {
-    if (value)
-        fputws(L"1", mFile);
-    else
-        fputws(L"0", mFile);
+    if (mOutputStr) {
+        if (value)
+            *mOutputStr += L"1";
+        else
+            *mOutputStr += L"0";
+    }
+    else {
+        if (value)
+            fputws(L"1", mFile);
+        else
+            fputws(L"0", mFile);
+    }
 }
 
 void FifamWriter::WriteOne(WideChar const *value) {
@@ -124,20 +175,29 @@ void FifamWriter::WriteOne(String const &value) {
         str = value;
     else
         str = Utils::GetStringWithoutUnicodeChars(value);
-    if (str.length() > 1) {
+    if (str.length() > 1 && mReplaceQuotes) {
         String noqValue = str;
         for (UInt i = 0; i < str.length(); i++) {
             if (noqValue[i] == L'"')
                 noqValue[i] = L'\'';
         }
-        fputws(noqValue.c_str(), mFile);
+        if (mOutputStr)
+            *mOutputStr += noqValue;
+        else
+            fputws(noqValue.c_str(), mFile);
         return;
     }
-    fputws(str.c_str(), mFile);
+    if (mOutputStr)
+        *mOutputStr += str;
+    else
+        fputws(str.c_str(), mFile);
 }
 
 void FifamWriter::WriteOne(Hexadecimal const &value) {
-    fwprintf(mFile, L"%X", value());
+    if (mOutputStr)
+        *mOutputStr += Utils::Format(L"%X", value);
+    else
+        fwprintf(mFile, L"%X", value());
 }
 
 void FifamWriter::WriteOne(Quoted const &value) {
@@ -220,7 +280,7 @@ void FifamWriter::WriteNewLine() {
     WriteOne(L"\n");
 }
 
-void FifamReader::Open(Path const &filename, UInt gameId) {
+void FifamReader::Open(Path const &filename, UInt gameId, Bool linesWithComments) {
     mGameId = gameId;
     FILE *file = _wfopen(filename.c_str(), L"rb");
     if (file) {
@@ -317,7 +377,7 @@ void FifamReader::Open(Path const &filename, UInt gameId) {
                 }
             }
             else if (!inComment) {
-                if (data[i] == L';') {
+                if (data[i] == L';' && (i == 0 || linesWithComments)) {
                     if (!currentLine.empty()) {
                         mLines.push_back(currentLine);
                         currentLine.clear();
@@ -334,17 +394,69 @@ void FifamReader::Open(Path const &filename, UInt gameId) {
     }
 }
 
-void FifamReader::Open(Path const &filename, UInt gameId, UShort vYear, UShort vNumber) {
-    Open(filename, gameId);
+void FifamReader::Open(Path const &filename, UInt gameId, UShort vYear, UShort vNumber, Bool linesWithComments) {
+    Open(filename, gameId, linesWithComments);
     mVersion.Set(vYear, vNumber);
 }
 
-FifamReader::FifamReader(Path const &filename, UInt gameId) {
-    Open(filename, gameId);
+void FifamReader::Open(String *inputString, UInt gameId, Bool linesWithComments) {
+    mGameId = gameId;
+    String currentLine;
+    Bool inComment = false;
+    for (UInt i = 0; i < inputString->length(); i++) {
+        if ((*inputString)[i] == L'\n') {
+            if (inComment)
+                inComment = false;
+            else {
+                mLines.push_back(currentLine);
+                currentLine.clear();
+            }
+        }
+        else if ((*inputString)[i] == L'\r') {
+            if ((i + 1) < inputString->length() && (*inputString)[i + 1] == L'\n')
+                i++;
+            if (inComment)
+                inComment = false;
+            else {
+                mLines.push_back(currentLine);
+                currentLine.clear();
+            }
+        }
+        else if (!inComment) {
+            if ((*inputString)[i] == L';' && (i == 0 || linesWithComments)) {
+                if (!currentLine.empty()) {
+                    mLines.push_back(currentLine);
+                    currentLine.clear();
+                }
+                inComment = true;
+            }
+            else
+                currentLine += (*inputString)[i];
+        }
+    }
+    if (!inComment)
+        mLines.push_back(currentLine);
 }
 
-FifamReader::FifamReader(Path const &filename, UInt gameId, UShort vYear, UShort vNumber) {
-    Open(filename, gameId, vYear, vNumber);
+void FifamReader::Open(String *inputString, UInt gameId, UShort vYear, UShort vNumber, Bool linesWithComments) {
+    Open(inputString, gameId, linesWithComments);
+    mVersion.Set(vYear, vNumber);
+}
+
+FifamReader::FifamReader(Path const &filename, UInt gameId, Bool linesWithComments) {
+    Open(filename, gameId, linesWithComments);
+}
+
+FifamReader::FifamReader(Path const &filename, UInt gameId, UShort vYear, UShort vNumber, Bool linesWithComments) {
+    Open(filename, gameId, vYear, vNumber, linesWithComments);
+}
+
+FifamReader::FifamReader(String *inputString, UInt gameId, Bool linesWithComments) {
+    Open(inputString, gameId, linesWithComments);
+}
+
+FifamReader::FifamReader(String *inputString, UInt gameId, UShort vYear, UShort vNumber, Bool linesWithComments) {
+    Open(inputString, gameId, vYear, vNumber, linesWithComments);
 }
 
 FifamReader::~FifamReader() {

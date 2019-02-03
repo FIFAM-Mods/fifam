@@ -276,9 +276,9 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
 
     SetupWriteableStatus(gameId);
 
-    WriteNamesFile(dbPath / L"MaleNames.txt", gameId, mMaleNames);
-    WriteNamesFile(dbPath / L"FemaleNames.txt", gameId, mFemaleNames);
-    WriteNamesFile(dbPath / L"Surnames.txt", gameId, mSurnames);
+    //WriteNamesFile(dbPath / L"MaleNames.txt", gameId, mMaleNames);
+    //WriteNamesFile(dbPath / L"FemaleNames.txt", gameId, mFemaleNames);
+    //WriteNamesFile(dbPath / L"Surnames.txt", gameId, mSurnames);
 
     Vector<FifamCompEntry> compsEurope, compsSouthAmerica, compsNorthAmerica, compsAfrica, compsAsia, compsOceania,
         compsQualiWC, compsWC, compsQualiEC, compsEC, compsU20WC, compsConfedCup, compsCopaAmerica;
@@ -933,7 +933,7 @@ FifamCupAlloc *FifamDatabase::GetCupTemplate(FifamCupSystemType cupSystemType) {
 }
 
 FifamCountry *FifamDatabase::GetCountry(Int countryId) {
-    if (countryId > 0 && countryId < NUM_COUNTRIES)
+    if (countryId > 0 && countryId <= NUM_COUNTRIES)
         return mCountries[countryId - 1];
     return nullptr;
 }

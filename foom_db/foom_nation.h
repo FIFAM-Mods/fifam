@@ -54,6 +54,8 @@ struct nation : public team {
         Vector<comp *> mMainCups;
         Vector<comp *> mLeagueCups;
         Vector<comp *> mSuperCups;
+
+        Vector<city *> mCities;
     } mConverterData;
 
     nation() {

@@ -1,47 +1,91 @@
 #include "FifamPlayerLevel.h"
 #include "FifamPlayer.h"
 
-Array<Float, 18> FifamPlayerLevel::GetDefaultBiasValues(FifamPlayerPosition const &position) {
+Array<Float, 18> FifamPlayerLevel::GetDefaultBiasValues(FifamPlayerPosition const &position, UInt gameId) {
     Array<Float, 18> ary;
-    switch (position.ToInt()) {
-        // None  GK   RB   LB   CB   SW  RWB  LWB  ANC   DM   RM   LM   CM   RW   LW   AM   CF   ST
-    default:
-        ary = { 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 }; break;
-    case FifamPlayerPosition::GK:
-        ary = { 0, 100,  40,  40,  40,  40,  40,  40,  40,  40,  40,  40,  40,  40,  40,  40,  40,  40 }; break;
-    case FifamPlayerPosition::RB:
-        ary = { 0,  40, 100,  90,  85,  70,  95,  85,  70,  85,  90,  85,  75,  85,  80,  75,  70,  70 }; break;
-    case FifamPlayerPosition::LB:
-        ary = { 0,  40,  90, 100,  85,  70,  85,  95,  70,  85,  85,  90,  75,  80,  85,  75,  70,  70 }; break;
-    case FifamPlayerPosition::CB:
-        ary = { 0,  40,  85,  85, 100,  85,  70,  70,  80,  85,  75,  75,  80,  70,  70,  75,  70,  70 }; break;
-    case FifamPlayerPosition::SW:
-        ary = { 0,  40,  85,  85,  95, 100,  75,  75,  90,  90,  70,  70,  80,  40,  40,  40,  40,  40 }; break;
-    case FifamPlayerPosition::RWB:
-        ary = { 0,  40,  95,  85,  80,  70, 100,  95,  70,  85,  90,  85,  75,  85,  80,  75,  70,  70 }; break;
-    case FifamPlayerPosition::LWB:
-        ary = { 0,  40,  85,  95,  80,  70,  95, 100,  70,  85,  85,  90,  75,  80,  85,  75,  70,  70 }; break;
-    case FifamPlayerPosition::ANC:
-        ary = { 0,  40,  85,  85,  90,  85,  70,  70, 100,  90,  75,  75,  85,  70,  70,  80,  70,  70 }; break;
-    case FifamPlayerPosition::DM:
-        ary = { 0,  40,  85,  85,  85,  85,  70,  70,  90, 100,  80,  80,  90,  75,  75,  85,  75,  75 }; break;
-    case FifamPlayerPosition::RM:
-        ary = { 0,  40,  90,  85,  75,  70,  90,  85,  70,  80, 100,  90,  85,  95,  85,  85,  80,  75 }; break;
-    case FifamPlayerPosition::LM:
-        ary = { 0,  40,  85,  90,  75,  70,  85,  90,  70,  80,  90, 100,  85,  85,  95,  85,  80,  75 }; break;
-    case FifamPlayerPosition::CM:
-        ary = { 0,  40,  75,  75,  80,  75,  75,  75,  85,  90,  85,  85, 100,  80,  80,  90,  85,  80 }; break;
-    case FifamPlayerPosition::RW:
-        ary = { 0,  40,  85,  80,  70,  70,  85,  80,  70,  75,  95,  85,  80, 100,  95,  85,  90,  85 }; break;
-    case FifamPlayerPosition::LW:
-        ary = { 0,  40,  80,  85,  70,  70,  80,  85,  70,  75,  85,  95,  80,  95, 100,  85,  90,  85 }; break;
-    case FifamPlayerPosition::AM:
-        ary = { 0,  40,  75,  75,  75,  70,  75,  75,  75,  85,  85,  85,  90,  85,  85, 100,  90,  85 }; break;
-    case FifamPlayerPosition::CF:
-        ary = { 0,  40,  70,  70,  70,  70,  75,  75,  70,  75,  80,  80,  85,  90,  90,  90, 100,  95 }; break;
-    case FifamPlayerPosition::ST:
-        ary = { 0,  40,  70,  70,  70,  70,  75,  75,  70,  75,  75,  75,  80,  85,  85,  85,  95, 100 }; break;
-        // None  GK   RB   LB   CB   SW  RWB  LWB  ANC   DM   RM   LM   CM   RW   LW   AM   CF   ST
+    if (gameId >= 13) {
+        switch (position.ToInt()) {
+            // None  GK   RB   LB   CB   SW  RWB  LWB  ANC   DM   RM   LM   CM   RW   LW   AM   CF   ST
+        default:
+            ary = { 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 }; break;
+        case FifamPlayerPosition::GK:
+            ary = { 0, 100,  40,  40,  40,  40,  40,  40,  40,  40,  40,  40,  40,  40,  40,  40,  40,  40 }; break;
+        case FifamPlayerPosition::RB:
+            ary = { 0,  40, 100,  90,  85,  70,  95,  85,  70,  85,  90,  85,  75,  85,  80,  75,  70,  70 }; break;
+        case FifamPlayerPosition::LB:
+            ary = { 0,  40,  90, 100,  85,  70,  85,  95,  70,  85,  85,  90,  75,  80,  85,  75,  70,  70 }; break;
+        case FifamPlayerPosition::CB:
+            ary = { 0,  40,  85,  85, 100,  85,  70,  70,  80,  85,  75,  75,  80,  70,  70,  75,  70,  70 }; break;
+        case FifamPlayerPosition::SW:
+            ary = { 0,  40,  85,  85,  95, 100,  75,  75,  90,  90,  70,  70,  80,  40,  40,  40,  40,  40 }; break;
+        case FifamPlayerPosition::RWB:
+            ary = { 0,  40,  95,  85,  80,  70, 100,  95,  70,  85,  90,  85,  75,  85,  80,  75,  70,  70 }; break;
+        case FifamPlayerPosition::LWB:
+            ary = { 0,  40,  85,  95,  80,  70,  95, 100,  70,  85,  85,  90,  75,  80,  85,  75,  70,  70 }; break;
+        case FifamPlayerPosition::ANC:
+            ary = { 0,  40,  85,  85,  90,  85,  70,  70, 100,  90,  75,  75,  85,  70,  70,  80,  70,  70 }; break;
+        case FifamPlayerPosition::DM:
+            ary = { 0,  40,  85,  85,  85,  85,  70,  70,  90, 100,  80,  80,  90,  75,  75,  85,  75,  75 }; break;
+        case FifamPlayerPosition::RM:
+            ary = { 0,  40,  90,  85,  75,  70,  90,  85,  70,  80, 100,  90,  85,  95,  85,  85,  80,  75 }; break;
+        case FifamPlayerPosition::LM:
+            ary = { 0,  40,  85,  90,  75,  70,  85,  90,  70,  80,  90, 100,  85,  85,  95,  85,  80,  75 }; break;
+        case FifamPlayerPosition::CM:
+            ary = { 0,  40,  75,  75,  80,  75,  75,  75,  85,  90,  85,  85, 100,  80,  80,  90,  85,  80 }; break;
+        case FifamPlayerPosition::RW:
+            ary = { 0,  40,  85,  80,  70,  70,  85,  80,  70,  75,  95,  85,  80, 100,  95,  85,  90,  85 }; break;
+        case FifamPlayerPosition::LW:
+            ary = { 0,  40,  80,  85,  70,  70,  80,  85,  70,  75,  85,  95,  80,  95, 100,  85,  90,  85 }; break;
+        case FifamPlayerPosition::AM:
+            ary = { 0,  40,  75,  75,  75,  70,  75,  75,  75,  85,  85,  85,  90,  85,  85, 100,  90,  85 }; break;
+        case FifamPlayerPosition::CF:
+            ary = { 0,  40,  70,  70,  70,  70,  75,  75,  70,  75,  80,  80,  85,  90,  90,  90, 100,  95 }; break;
+        case FifamPlayerPosition::ST:
+            ary = { 0,  40,  70,  70,  70,  70,  75,  75,  70,  75,  75,  75,  80,  85,  85,  85,  95, 100 }; break;
+            // None  GK   RB   LB   CB   SW  RWB  LWB  ANC   DM   RM   LM   CM   RW   LW   AM   CF   ST
+        }
+    }
+    else {
+        switch (position.ToInt()) {
+            // None  GK   RB   LB   CB   SW  RWB  LWB  ANC   DM   RM   LM   CM   RW   LW   AM   CF   ST
+        default:
+            ary = { 0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0 }; break;
+        case FifamPlayerPosition::GK:
+            ary = { 0, 100, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20, 20 }; break;
+        case FifamPlayerPosition::RB:
+            ary = { 0,  20, 100, 90, 85, 70, 95, 85, 70, 70, 80, 75, 50, 60, 55, 55, 55, 55 }; break;
+        case FifamPlayerPosition::LB:
+            ary = { 0,  20, 90, 100, 85, 70, 85, 95, 70, 70, 75, 80, 50, 55, 60, 55, 55, 55 }; break;
+        case FifamPlayerPosition::CB:
+            ary = { 0,  20, 85, 85, 100, 85, 70, 70, 80, 85, 50, 50, 50, 40, 40, 40, 40, 40 }; break;
+        case FifamPlayerPosition::SW:
+            ary = { 0,  20, 70, 70, 85, 100, 60, 60, 85, 85, 50, 50, 65, 40, 40, 40, 40, 40 }; break;
+        case FifamPlayerPosition::RWB:
+            ary = { 0,  20, 95, 85, 70, 60, 100, 95, 70, 70, 85, 80, 50, 75, 70, 65, 65, 65 }; break;
+        case FifamPlayerPosition::LWB:
+            ary = { 0,  20, 85, 95, 70, 60, 95, 100, 70, 70, 80, 85, 50, 70, 75, 65, 65, 65 }; break;
+        case FifamPlayerPosition::ANC:
+            ary = { 0,  20, 70, 70, 80, 85, 70, 70, 100, 85, 55, 55, 70, 55, 55, 60, 60, 60 }; break;
+        case FifamPlayerPosition::DM:
+            ary = { 0,  20, 70, 70, 85, 85, 70, 70, 85, 100, 70, 70, 90, 55, 55, 75, 65, 65 }; break;
+        case FifamPlayerPosition::RM:
+            ary = { 0,  20, 80, 75, 50, 50, 85, 80, 55, 70, 100, 95, 80, 85, 80, 85, 80, 80 }; break;
+        case FifamPlayerPosition::LM:
+            ary = { 0,  20, 75, 80, 50, 50, 80, 85, 55, 70, 95, 100, 80, 80, 85, 85, 80, 80 }; break;
+        case FifamPlayerPosition::CM:
+            ary = { 0,  20, 50, 50, 50, 65, 50, 50, 70, 90, 80, 80, 100, 75, 75, 90, 75, 75 }; break;
+        case FifamPlayerPosition::RW:
+            ary = { 0,  20, 60, 55, 40, 40, 75, 70, 55, 55, 85, 80, 75, 100, 95, 80, 85, 85 }; break;
+        case FifamPlayerPosition::LW:
+            ary = { 0,  20, 55, 60, 40, 40, 70, 75, 55, 55, 80, 85, 75, 95, 100, 80, 85, 85 }; break;
+        case FifamPlayerPosition::AM:
+            ary = { 0,  20, 55, 55, 40, 40, 65, 65, 60, 75, 85, 85, 90, 80, 80, 100, 90, 80 }; break;
+        case FifamPlayerPosition::CF:
+            ary = { 0,  20, 55, 55, 40, 40, 65, 65, 60, 65, 80, 80, 75, 85, 85, 90, 100, 95 }; break;
+        case FifamPlayerPosition::ST:
+            ary = { 0,  20, 55, 55, 40, 40, 65, 65, 60, 65, 80, 80, 75, 85, 85, 80, 95, 100 }; break;
+            // None  GK   RB   LB   CB   SW  RWB  LWB  ANC   DM   RM   LM   CM   RW   LW   AM   CF   ST
+        }
     }
     return ary;
 }

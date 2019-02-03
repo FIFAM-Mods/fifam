@@ -103,6 +103,9 @@
     <ClInclude Include="tests\CalendarDatabase.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\ExportXML.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

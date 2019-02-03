@@ -65,6 +65,15 @@ struct club : public team {
 
     Vector<reserve_team> mVecReserveTeams;
 
+    struct reserve_team_to_create {
+        Int mReserveTeamType = 0;
+        comp *mDivision = 0;
+        Bool mNotUsed = false;
+        Bool mNeverUsed = false;
+    };
+
+    Vector<reserve_team_to_create> mVecReserveTeamsToCreate;
+
     struct affiliation {
         club *mAffiliatedClub = 0;
         Bool mIsMainClub = 0;

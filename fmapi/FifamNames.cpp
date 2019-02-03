@@ -141,6 +141,7 @@ String FifamNames::GetPersonStringId(UInt gameId, String const &firstName, Strin
         nameId = FifamNames::LimitPersonName(pseudonym, gameId > 7 ? 29 : 19);
     else
         nameId = FifamNames::LimitPersonName(lastName, 19) + firstName.substr(0, 2);
+    nameId = Utils::GetStringWithoutUnicodeChars(nameId);
     String finalName;
     for (WideChar c : nameId) {
         if (c != L' ' && c != L'.' && c != '_' && c != 0xA0) {

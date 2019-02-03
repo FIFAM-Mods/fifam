@@ -354,7 +354,8 @@ public:
         { FifamClubTeamColor::Blue_Yellow, {{ 38, 72, 139 } ,{ 230,230,69 }}},
         { FifamClubTeamColor::Blue_Yellow, {{ 0, 32, 96 } ,{ 248,208,0 }}},
         { FifamClubTeamColor::Blue_Yellow, {{ 38, 72, 139 } ,{ 255,226,82 }}},
-        { FifamClubTeamColor::Purple_White, {{ 80, 32, 120 } ,{ 248,248,248 }}}
+        { FifamClubTeamColor::Purple_White, {{ 80, 32, 120 } ,{ 248,248,248 }}},
+        { FifamClubTeamColor::Yellow_Black, {{ 248, 240, 72 } ,{ 40,40,40 }}}
 
     };
     inline static Vector<Pair<UInt, Color>> mMerchandiseColorsTable = {

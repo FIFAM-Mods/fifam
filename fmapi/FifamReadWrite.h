@@ -28,9 +28,13 @@ public:
 
 class FifamWriter : public FifamFileWorker {
     FILE *mFile = nullptr;
+    String *mOutputStr = nullptr;
     Bool mUnicode = true;
+    Bool mReplaceQuotes = true;
 public:
     FifamWriter(Path const &filename, UInt gameId, UShort vYear, UShort vNumber, Bool unicode = true);
+    FifamWriter(String *outputString, UInt gameId, UShort vYear, UShort vNumber, Bool unicode = true);
+    void SetReplaceQuotes(bool replace);
     ~FifamWriter();
     void Close();
     Bool Available();
@@ -189,10 +193,14 @@ public:
     UInt GetPosition();
     void SetPosition(UInt pos);
     UInt GetSize();
-    FifamReader(Path const &filename, UInt gameId);
-    FifamReader(Path const &filename, UInt gameId, UShort vYear, UShort vNumber);
-    void Open(Path const &filename, UInt gameId);
-    void Open(Path const &filename, UInt gameId, UShort vYear, UShort vNumber);
+    FifamReader(Path const &filename, UInt gameId, Bool linesWithComments = true);
+    FifamReader(Path const &filename, UInt gameId, UShort vYear, UShort vNumber, Bool linesWithComments = true);
+    FifamReader(String *inputString, UInt gameId, Bool linesWithComments = true);
+    FifamReader(String *inputString, UInt gameId, UShort vYear, UShort vNumber, Bool linesWithComments = true);
+    void Open(Path const &filename, UInt gameId, Bool linesWithComments = true);
+    void Open(Path const &filename, UInt gameId, UShort vYear, UShort vNumber, Bool linesWithComments = true);
+    void Open(String *inputString, UInt gameId, Bool linesWithComments = true);
+    void Open(String *inputString, UInt gameId, UShort vYear, UShort vNumber, Bool linesWithComments = true);
     ~FifamReader();
 private:
     WideChar const *GetLine();

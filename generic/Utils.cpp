@@ -1,7 +1,6 @@
 ﻿#include <Windows.h>
 #include "Utils.h"
 #include <chrono>
-#include <ctime>
 
 std::wstring Utils::TimeString(std::time_t const &time) {
     tm t = *localtime(&time);
