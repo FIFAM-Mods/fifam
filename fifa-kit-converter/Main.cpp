@@ -7,7 +7,7 @@ int main() {
 
     KitConverter kitConverter;
 
-    UInt gameId = 7;
+    UInt gameId = 13;
 
     FifamDatabase::mReadingOptions.mReadCountryCompetitions = false;
     FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
@@ -20,8 +20,8 @@ int main() {
     kitConverter.options.ConvertGkKit = false;
     kitConverter.options.ConvertThirdKit = true;
     kitConverter.options.SaveLocation = KitConverter::User;
-    kitConverter.options.ConvertMinikits = false;
-    kitConverter.options.OnlyCustomKits = false;
+    kitConverter.options.ConvertOnlyMinikits = false;
+    kitConverter.options.OnlyCustomKits = true;
     kitConverter.options.Allow2xSize = false;
 
     auto GetClubIdName = [](String const &clubName) {
@@ -48,8 +48,8 @@ int main() {
     };
 
     for (auto country : db->mCountries) {
-        if (country && country->mId == 27) {
-            kitConverter.ConvertClubKits(GetClubIdName(FifamTr(country->mName)), country->mNationalTeam.mFifaID, country->mNationalTeam.mUniqueID);
+        if (country) {
+            //kitConverter.ConvertClubKits(GetClubIdName(FifamTr(country->mName)), country->mNationalTeam.mFifaID, country->mNationalTeam.mUniqueID);
             for (auto club : country->mClubs)
                 kitConverter.ConvertClubKits(GetClubIdName(FifamTr(club->mName)), club->mFifaID, club->mUniqueID);
         }

@@ -208,6 +208,12 @@ struct db {
                 }
             }
         });
+        ReaderCallback(L"fm_club_reserve_teams_to_create", [&](FifamReader &reader) {
+            Int clubID = -1;
+            club::reserve_team_to_create r;
+            reader.ReadLine(clubID, r.mReserveTeamType, IntPtr(r.mDivision));
+            map_find(mClubs, clubID).mVecReserveTeamsToCreate.push_back(r);
+        });
         ReaderCallback(L"fm_club_affiliations", [&](FifamReader &reader) {
             Int clubID = -1;
             club::affiliation a;
@@ -232,7 +238,7 @@ struct db {
             reader.ReadLine(clubID, IntPtr(b.mPlayer), IntPtr(b.mFromClub), b.mBuyBackFee);
             map_find(mClubs, clubID).mVecBuyBackClauses.push_back(b);
         });
-    #if 1
+    #if 0
         // TODO
         // read players
         String playersFile;
@@ -483,6 +489,8 @@ struct db {
                 resolve(h.mDivision);
             for (auto &r : c.mVecReserveTeams)
                 resolve(r.mReserveClub);
+            for (auto &r : c.mVecReserveTeamsToCreate)
+                resolve(r.mDivision);
             for (auto &a : c.mVecAffiliations)
                 resolve(a.mAffiliatedClub);
             for (auto &r : c.mVecRivalClubs)

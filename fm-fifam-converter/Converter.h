@@ -131,6 +131,9 @@ public:
     void ConvertPersonAttributes(FifamPerson *person, foom::person *p);
     void CreateStaffMembersForClub(UInt gameId, foom::team *team, FifamClub *dst, Bool isNationalTeam);
     UChar GetPlayerLevelFromCA(Int ca);
+
+    Bool IsConvertable(foom::person *p, UInt gameId);
+    Bool IsConvertable(foom::official *o, UInt gameId);
     
     Bool IsIconicPlayer(Int playerId);
     Bool IsIntrovertPlayer(Int playerId);
@@ -156,6 +159,8 @@ public:
 
     bool GenerateCalendar(FifamNation const &countryId, FifamDatabase *database, Vector<FifamCompLeague *> const &leagues,
         Vector<FifamCompCup *> const &cups, Int startDate, Int endDate, Int winterBreakStart, Int winterBreakEnd);
+
+    FifamPlayer *CreateAndConvertFifaPlayer(UInt gameId, FifaPlayer *p, FifamClub *club);
 
     /*
     void GenerateMaleFemaleNames() {

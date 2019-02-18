@@ -15,6 +15,7 @@ FifamCountry::FifamCountry(UInt id, FifamDatabase *db) {
 
 FifamReferee *FifamCountry::AddReferee() {
     FifamReferee *referee = new FifamReferee;
+    referee->mCountry = this;
     mReferees.push_back(referee);
     mDatabase->mReferees.insert(referee);
     return referee;
