@@ -275,6 +275,7 @@ void GraphicsConverter::ConvertCompBadges(FifamDatabase *db, Path const &fmGraph
         ConvertOneCompBadge(foomBadgesPath / L"121092_fifa.png", outputPath, L"2018_FF0D.tga", gameId); // FIFA World Club Cup 2018
         ConvertOneCompBadge(foomBadgesPath / L"1301389_conmebol.png", outputPath, L"2019_FF21.tga", gameId); // Copa America 2019
         ConvertOneCompBadge(foomBadgesPath / L"1301388_uefa.png", outputPath, L"2020_FF12.tga", gameId); // UEFA Euro 2020
+        ConvertOneCompBadge(foomBadgesPath / L"157097_fifa.png", outputPath, L"FF1F_2019.tga", gameId); // FIFA U20 World Cup
         ConvertOneCompBadge(foomBadgesPath / L"1301394_uefa.png", outputPath, L"F909.tga", gameId); // UEFA Champions League
         ConvertOneCompBadge(foomBadgesPath / L"1301396_uefa.png", outputPath, L"F90A.tga", gameId); // UEFA Europa League
         ConvertOneCompBadge(foomBadgesPath / L"1301397_uefa.png", outputPath, L"F90C.tga", gameId); // UEFA Super Cup
@@ -668,4 +669,81 @@ void GraphicsConverter::ConvertCities(foom::db *db, Path const &inputPath, Path 
         }
             
     }
+}
+
+void GraphicsConverter::ConvertOneStadium(Int foomId, UInt fifamClubId, Path const &inputPath, Path const &outputPath, String const &name, String const &stadName, Int rep, FifamWriter &writer) {
+    Path imagePath = inputPath / Utils::Format(L"%d.png", foomId);
+    if (!exists(imagePath)) {
+        imagePath = inputPath / Utils::Format(L"%d.jpg", foomId);
+        if (!exists(imagePath)) {
+            imagePath = inputPath / Utils::Format(L"%d.jpeg", foomId);
+            if (!exists(imagePath)) {
+                String n = name;
+                String sn = stadName;
+                writer.WriteLine(Quoted(n), Quoted(sn), foomId, rep, Hexadecimal(fifamClubId), 0, false, 0, 0);
+                return;
+            }
+        }
+    }
+    String clubIdStr = Utils::Format(L"%08X.jpg", fifamClubId);
+    Image img(imagePath.string());
+    Image img2x(img);
+    if (img2x.isValid() && img2x.baseColumns() >= 1300 && img2x.baseRows() >= 800) {
+        img2x.resize(Geometry("1920x1200^"));
+        img2x.extent(Geometry("1920x1200"), GravityType::CenterGravity);
+        img2x.write(Path(outputPath / L"1920x1200" / clubIdStr).string());
+    }
+    else {
+        String n = name;
+        String sn = stadName;
+        writer.WriteLine(Quoted(n), Quoted(sn), foomId, rep, Hexadecimal(fifamClubId), 2, true, img.baseColumns(), img.baseRows());
+    }
+    if (img.isValid() && img.baseColumns() >= 530 && img.baseRows() >= 400) {
+        img.resize(Geometry("800x600^"));
+        img.extent(Geometry("800x600"), GravityType::CenterGravity);
+        img.write(Path(outputPath / L"800x600" / clubIdStr).string());
+        img.resize(Geometry("200x150"));
+        img.write(Path(outputPath / L"200x150" / clubIdStr).string());
+    }
+    else {
+        String n = name;
+        String sn = stadName;
+        writer.WriteLine(Quoted(n), Quoted(sn), foomId, rep, Hexadecimal(fifamClubId), 1, true, img.baseColumns(), img.baseRows());
+    }
+}
+
+void GraphicsConverter::ConvertStadiums(foom::db *db, Path const &inputPath, Path const &contentPath, UInt gameId, Int minRep, bool overview) {
+    Path outputPath = contentPath / L"stadiums";
+    Path inputImagesFolder = inputPath / (overview ? L"stadiums_overview" : L"stadiums_my");
+    if (!exists(outputPath))
+        create_directories(outputPath);
+    if (!exists(outputPath / L"1920x1200"))
+        create_directories(outputPath / L"1920x1200");
+    if (!exists(outputPath / L"800x600"))
+        create_directories(outputPath / L"800x600");
+    if (!exists(outputPath / L"200x150"))
+        create_directories(outputPath / L"200x150");
+    FifamWriter writer(outputPath / (overview ? L"_missed_overview2.csv" : L"_missed2.csv"), 14, 0, 0);
+    writer.WriteLine(L"Name", L"StadiumName", L"ID", L"Reputation", L"FifamID", L"Type", L"Exists", L"DimX", L"DimY");
+    for (auto &[id, club] : db->mClubs) {
+        if (club.mReputation >= minRep && club.mConverterData.mFifamClub) {
+            auto fifamClub = (FifamClub *)club.mConverterData.mFifamClub;
+            Int stadId = overview ? fifamClub->GetProperty<Int>(L"foom::stad_id", -1) : id;
+            ConvertOneStadium(stadId, fifamClub->mUniqueID, inputImagesFolder, outputPath, club.mName, FifamTr(fifamClub->mStadiumName), club.mReputation, writer);
+        }
+    }
+    //for (auto &[id, country] : db->mNations) {
+    //    auto fifamCountry = (FifamCountry *)country.mConverterData.mFifamCountry;
+    //    if (fifamCountry) {
+    //        Int stadId = -1;
+    //        if (overview)
+    //            stadId = fifamCountry->GetProperty<Int>(L"foom::stad_id", -1);
+    //        else {
+    //            foom::team *owner = fifamCountry->GetProperty<foom::team *>(L"foom::stad_owner", nullptr);
+    //            if (owner && !owner->mIsNation)
+    //                stadId = owner->mID;
+    //        }
+    //        ConvertOneStadium(stadId, fifamCountry->mNationalTeam.mUniqueID, inputImagesFolder, outputPath, country.mName, FifamTr(fifamCountry->mNationalTeam.mStadiumName), country.mReputation, writer);
+    //    }
+    //}
 }

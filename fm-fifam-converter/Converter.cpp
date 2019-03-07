@@ -2769,7 +2769,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
             L"fm_test\\database",
             gameId).c_str());
 
-    if (gameId >= 13 && writeToGameFolder) {
+    if (gameId >= 11 && writeToGameFolder) {
         std::wcout << L"Writing derbies..." << std::endl;
         struct derby_info {
             String nameId;
@@ -2885,7 +2885,8 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     //graphicsConverter.ConvertCompBadges(mFifamDatabase, graphicsPath, contentPath, gameId, 0);
     //std::wcout << L"Converting trophies..." << std::endl;
     //graphicsConverter.ConvertTrophies(mFifamDatabase, graphicsPath, contentPath, gameId, 0);
-    graphicsConverter.ConvertCities(mFoomDatabase, L"D:\\Downloads", L"D:\\Games\\FIFA Manager 13", gameId, 0);
+    //graphicsConverter.ConvertCities(mFoomDatabase, L"D:\\Downloads", L"D:\\Games\\FIFA Manager 13", gameId, 0);
+    graphicsConverter.ConvertStadiums(mFoomDatabase, L"D:\\Downloads", L"D:\\Games\\FIFA Manager 13", gameId, 0, false);
 #endif
 
     delete mReferenceDatabase;
@@ -2936,6 +2937,24 @@ FifamClub *Converter::CreateAndConvertClub(UInt gameId, foom::club *team, foom::
     return club;
 }
 
+Int StadNationalTeamUsagePriority(foom::stadium *stad) {
+    switch (stad->mUsedByNationalTeam) {
+    case 1:
+        return 6;
+    case 2:
+        return 5;
+    case 5:
+        return 4;
+    case 3:
+        return 3;
+    case 6:
+        return 2;
+    case 4:
+        return 1;
+    }
+    return 0;
+}
+
 void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt gameId) {
 
     nation->mConverterData.mFifamCountry = dst;
@@ -2956,14 +2975,36 @@ void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt 
         dst->mNationalTeam.mFifaID = nation->mConverterData.mFIFATeamID;
 
     // national team stadium
-    if (nation->mNationalStadium) {
-        FifamTrSetAll(dst->mNationalTeam.mStadiumName, FifamNames::LimitName(nation->mNationalStadium->mName, 29));
-        if (nation->mNationalStadium->mCapacity > 0) {
-            Int seatingCapacity = nation->mNationalStadium->mSeatingCapacity;
-            if (seatingCapacity == 0 || seatingCapacity > nation->mNationalStadium->mCapacity)
-                seatingCapacity = nation->mNationalStadium->mCapacity;
+    foom::stadium *nationalStadium = nation->mNationalStadium;
+    if (!nationalStadium) {
+        Vector<foom::stadium *> stads;
+        for (auto &[stadId, stad] : mFoomDatabase->mStadiums) {
+            if (stad.mNation == nation)
+                stads.push_back(&stad);
+        }
+        if (!stads.empty()) {
+            std::sort(stads.begin(), stads.end(), [](foom::stadium *a, foom::stadium *b) {
+                if (StadNationalTeamUsagePriority(a) > StadNationalTeamUsagePriority(b)) return true;
+                if (StadNationalTeamUsagePriority(a) < StadNationalTeamUsagePriority(b)) return false;
+                if (a->mSeatingCapacity > b->mSeatingCapacity) return true;
+                if (a->mSeatingCapacity < b->mSeatingCapacity) return false;
+                return false;
+            });
+            nationalStadium = stads.front();
+        }
+    }
+
+    if (nationalStadium) {
+        dst->SetProperty<Int>(L"foom::stad_id", nationalStadium->mID);
+        if (nationalStadium->mOwner)
+            dst->SetProperty<foom::team *>(L"foom::stad_owner", nationalStadium->mOwner);
+        FifamTrSetAll(dst->mNationalTeam.mStadiumName, FifamNames::LimitName(nationalStadium->mName, 29));
+        if (nationalStadium->mCapacity > 0) {
+            Int seatingCapacity = nationalStadium->mSeatingCapacity;
+            if (seatingCapacity == 0 || seatingCapacity > nationalStadium->mCapacity)
+                seatingCapacity = nationalStadium->mCapacity;
             dst->mNationalTeam.mStadiumSeatsCapacity = seatingCapacity;
-            dst->mNationalTeam.mStadiumStandingsCapacity = nation->mNationalStadium->mCapacity - seatingCapacity;
+            dst->mNationalTeam.mStadiumStandingsCapacity = nationalStadium->mCapacity - seatingCapacity;
         }
     }
 
@@ -3093,6 +3134,7 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
 
     // Stadium
     if (team->mStadium) {
+        dst->SetProperty<Int>(L"foom::stad_id", team->mStadium->mID);
         FifamTrSetAll(dst->mStadiumName, FifamNames::LimitName(team->mStadium->mName, 29));
         if (team->mStadium->mCapacity > 0) {
             Int seatingCapacity = team->mStadium->mSeatingCapacity;

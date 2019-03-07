@@ -16,6 +16,9 @@ public:
     Bool ConvertOneCompBadge(Path const &badgePath, Path const &outputPath, String const &badgeName, UInt gameId);
     Bool ConvertOneTrophy(Path const &trophyPath, Path const &outputPath, Path const &trophyNamePath, String const &trophyRoomFolder);
 
-    void ConvertOneCity(Int foomClubId , Int fifamClubId, Path const &inputPath, Path const &contentPath, String const &name, Int rep, FifamWriter &writer);
+    void ConvertOneCity(Int foomClubId, Int fifamClubId, Path const &inputPath, Path const &contentPath, String const &name, Int rep, FifamWriter &writer);
     void ConvertCities(foom::db *db, Path const &inputPath, Path const &contentPath, UInt gameId, Int minRep);
+
+    void ConvertOneStadium(Int foomId, UInt fifamClubId, Path const &inputPath, Path const &outputPath, String const &name, String const &stadName, Int rep, FifamWriter &writer);
+    void ConvertStadiums(foom::db *db, Path const &inputPath, Path const &contentPath, UInt gameId, Int minRep, bool overview);
 };

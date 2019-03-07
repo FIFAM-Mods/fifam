@@ -41,7 +41,7 @@ struct nation : public team {
     Vector<region_transfer_preference> mVecRegionTransferPreferences;
 
     struct converter_data {
-        void *mFifamCountry;
+        void *mFifamCountry = nullptr;
         UInt mFIFAManagerID = 0;
         UInt mFIFAManagerReplacementID = 0;
         UInt mFIFAID = 0;
