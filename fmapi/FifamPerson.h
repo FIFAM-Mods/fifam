@@ -15,7 +15,7 @@ class FifamStaff;
 class FifamPerson : public FifamDbWriteable, public FifamPropertied {
 public:
     // @since FM07
-    UInt mID;
+    UInt mID = 0;
     // @since FM07
     FifamPersonType mPersonType;
     // @since FM07

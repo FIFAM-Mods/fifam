@@ -55,7 +55,7 @@ void FifamCompetition::Write(FifamWriter &writer, FifamDatabase *database, Fifam
     }
     else
         writer.WriteLine(0);
-    mInstructions.Write(writer, database, GetDbType(), nationId);
+    mInstructions.Write(writer, database, GetDbType(), nationId, mUseEndOfEntry);
 }
 
 String FifamCompetition::GetName() const {

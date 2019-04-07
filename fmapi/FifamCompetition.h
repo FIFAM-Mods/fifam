@@ -41,6 +41,8 @@ public:
     // instructions
     FifamInstructionsList mInstructions;
 
+    Bool mUseEndOfEntry = false;
+
     virtual FifamCompDbType GetDbType() const = 0;
     virtual void Read(FifamReader &reader, FifamDatabase *database, FifamNation nationId);
     virtual void Write(FifamWriter &writer, FifamDatabase *database, FifamNation nationId);

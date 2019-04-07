@@ -31,6 +31,14 @@ FifamVersion FifamFileWorker::GetVersion() {
     return mVersion;
 }
 
+void FifamFileWorker::SetVersion(FifamVersion const & version) {
+    mVersion = version;
+}
+
+void FifamFileWorker::SetVersion(UShort year, UShort number) {
+    mVersion.Set(year, number);
+}
+
 
 FifamWriter::FifamWriter(Path const &filename, UInt gameId, UShort vYear, UShort vNumber, Bool unicode) :
     FifamFileWorker(gameId)
@@ -42,7 +50,8 @@ FifamWriter::FifamWriter(Path const &filename, UInt gameId, UShort vYear, UShort
         fwrite(sign, 3, 1, mFile);
         fclose(mFile);
         mFile = _wfopen(filename.c_str(), L"a");
-        _setmode(_fileno(mFile), _O_U8TEXT);
+        if (mFile)
+            _setmode(_fileno(mFile), _O_U8TEXT);
     }
     mVersion.Set(vYear, vNumber);
 }

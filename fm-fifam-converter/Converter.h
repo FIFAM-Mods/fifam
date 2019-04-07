@@ -108,6 +108,8 @@ public:
     Map<Int, Path> mAvailableBadges;
     AppearanceGenerator appearanceGenerator;
     Map<Int, ClubColor> mClubColorsMap;
+    Map<Int, Int> mPenaltyPointsMap;
+    Map<Int, String> mAbbreviationMap;
     
     Date GetCurrentDate() { return Date(1, 7, CURRENT_YEAR); }
     Date FmEmptyDate() { return Date(1, 1, 1900); }
@@ -115,7 +117,6 @@ public:
     void ReadAdditionalInfo(Path const &infoPath, UInt gameId);
     void Convert(UInt gameId, Bool writeToGameFolder);
     void Convert(UInt gameId, UInt originalGameId, Path const &originalDb, UInt referenceGameId, Path const &referenceDb, Bool writeToGameFolder);
-    ~Converter();
 
     Int ConvertPlayerAttribute(Int attr, UInt gameId = 14);
     void ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt gameId);
@@ -157,8 +158,7 @@ public:
 
     FifamFormation ConvertFormationId(Int id);
 
-    bool GenerateCalendar(FifamNation const &countryId, FifamDatabase *database, Vector<FifamCompLeague *> const &leagues,
-        Vector<FifamCompCup *> const &cups, Int startDate, Int endDate, Int winterBreakStart, Int winterBreakEnd);
+    Bool GenerateCalendar(FifamNation const &countryId, FifamDatabase *database, Vector<FifamCompLeague *> const &leagues, Vector<FifamCompCup *> const &cups);
 
     FifamPlayer *CreateAndConvertFifaPlayer(UInt gameId, FifaPlayer *p, FifamClub *club);
 

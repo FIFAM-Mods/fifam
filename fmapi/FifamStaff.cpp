@@ -482,7 +482,6 @@ void FifamStaff::WriteToPlayer(FifamWriter &writer) {
     player.mAttributes.ShotStopping = 40;
     player.mAttributes.Throwing = 40;
     player.mAttributes.GkCrosses = 40;
-    player.mTalent = 100;
     player.mHeight = 180;
     player.mWeight = 75;
     player.Write(writer);

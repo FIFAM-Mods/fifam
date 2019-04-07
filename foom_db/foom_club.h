@@ -75,10 +75,10 @@ struct club : public team {
 
     struct affiliation {
         club *mAffiliatedClub = 0;
-        Bool mIsMainClub = 0;
         Date mStartDate;
         Date mEndDate;
         Int mAffiliationType = 0;
+        Bool mIsMainClub = false;
         Bool mPlayersMoveFreely = false;
         Bool mSameBoard = false;
     };

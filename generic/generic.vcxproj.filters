@@ -6,7 +6,6 @@
     <ClCompile Include="Quoted.cpp" />
     <ClCompile Include="Color.cpp" />
     <ClCompile Include="Random.cpp" />
-    <ClCompile Include="Json.cpp" />
     <ClCompile Include="IntPtr.cpp" />
     <ClCompile Include="Hexadecimal.cpp" />
     <ClCompile Include="OptionalInt.cpp" />
@@ -18,7 +17,6 @@
     <ClInclude Include="Quoted.h" />
     <ClInclude Include="Color.h" />
     <ClInclude Include="Random.h" />
-    <ClInclude Include="Json.h" />
     <ClInclude Include="IntPtr.h" />
     <ClInclude Include="Hexadecimal.h" />
     <ClInclude Include="OptionalInt.h" />

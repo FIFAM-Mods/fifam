@@ -33,7 +33,7 @@ struct team {
     Color mForegroundColor;
     Color mBackgroundColor;
 
-    Bool mIsNation;
+    Bool mIsNation = false;
 
     Vector<kit> mVecKits;
 

@@ -826,6 +826,7 @@ Vector<FifamPlayerPlayingStyle> FifamPlayerLevel::GetPlayingStylesForPosition(Fi
             FifamPlayerPlayingStyle::DribblerAttack,
             FifamPlayerPlayingStyle::HoldsUp
         };
+        break;
     case FifamPlayerPosition::ST:
         result = {
             FifamPlayerPlayingStyle::TargetMan,
@@ -834,6 +835,7 @@ Vector<FifamPlayerPlayingStyle> FifamPlayerLevel::GetPlayingStylesForPosition(Fi
             FifamPlayerPlayingStyle::DribblerAttack,
             FifamPlayerPlayingStyle::HoldsUp
         };
+        break;
     }
     if (position == FifamPlayerPosition::LB || position == FifamPlayerPosition::LWB || position == FifamPlayerPosition::LM || position == FifamPlayerPosition::LW)
         result.push_back(FifamPlayerPlayingStyle::PullsWideLeft);

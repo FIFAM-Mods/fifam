@@ -12,9 +12,9 @@ std::wstring Utils::TimeDifferenceSting(std::time_t const &timeEnd, std::time_t 
     tm *dt = gmtime(&seconds);
     if (dt->tm_yday > 0)
         return Format(L"%dd %dh %dm %ds", dt->tm_yday, dt->tm_hour, dt->tm_min, dt->tm_sec);
-    if (dt->tm_yday > 0)
+    if (dt->tm_hour > 0)
         return Format(L"%dh %dm %ds", dt->tm_hour, dt->tm_min, dt->tm_sec);
-    if (dt->tm_yday > 0)
+    if (dt->tm_min > 0)
         return Format(L"%dm %ds", dt->tm_min, dt->tm_sec);
     return Format(L"%ds", dt->tm_sec);
 }
@@ -50,7 +50,7 @@ std::vector<std::wstring> Utils::Split(std::wstring const &line, wchar_t delim, 
     bool inQuotes = false;
     for (size_t i = 0; i < line.length(); i++) {
         auto c = line[i];
-        if (c == L'\r' || c == L'\n')
+        if (c == L'\r' || (delim != L'\n' && c == L'\n'))
             break;
         if (!inQuotes) {
             if (c == L'"')
@@ -95,12 +95,19 @@ bool Utils::Compare(std::wstring const &str, size_t index, char c) {
     return str.length() > index && str[index] == c;
 }
 
-bool Utils::IsNumber(std::wstring const &str) {
+bool IsHexadecimalLetter(wchar_t c) {
+    return (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+}
+
+bool Utils::IsNumber(std::wstring const &str, bool hexadecimal) {
     if (str.empty())
         return false;
     for (wchar_t c : str) {
-        if (!isdigit(c))
-            return false;
+        if (isdigit(c))
+            continue;
+        if (hexadecimal && IsHexadecimalLetter(c))
+            continue;
+        return false;
     }
     return true;
 }

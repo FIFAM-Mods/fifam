@@ -354,14 +354,19 @@ bool KitConverter::ConvertFifaClubKit(int fifaId, string const &clubIdStr, int s
         if (!kitType.empty()) {
             shirtFileName = options.CustomKitsPath + clubIdStr + "_j" + kitType + ".png";
             shortsFileName = options.CustomKitsPath + clubIdStr + "_s" + kitType + ".png";
-            crestFileName = options.CustomKitsPath + clubIdStr + "_l" + ".png";
+            crestFileName = options.CustomKitsPath + clubIdStr + "_l" + kitType + ".png";
             if (!exists(shirtFileName) || !exists(shortsFileName)) {
                 shirtFileName.clear();
                 shortsFileName.clear();
                 crestFileName.clear();
             }
-            else if (!exists(crestFileName))
-                crestFileName.clear();
+            else {
+                if (!exists(crestFileName)) {
+                    crestFileName = options.CustomKitsPath + clubIdStr + "_l" + ".png";
+                    if (!exists(crestFileName))
+                        crestFileName.clear();
+                }
+            }
         }
     }
     if (fifaId != 0 && !options.OnlyCustomKits && shirtFileName.empty()) {

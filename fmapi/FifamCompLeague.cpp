@@ -129,21 +129,25 @@ void FifamCompLeague::Write(FifamWriter &writer, FifamDatabase *database, FifamN
     writer.WriteLine(mTransferMarketMp);
     writer.WriteLine(L";");
     writer.WriteStartIndex(L"TEAMS");
-    Vector<UInt> teamIDs;
-    if (mID.mType == FifamCompType::League) {
-        auto teams = FifamUtils::MakeWriteableIDsList(mTeams);
-        UInt numTeams = Utils::Min(mNumTeams, teams.size());
-        for (UInt i = 0; i < numTeams; i++) {
-            if (i != 0)
-                writer.Write(L",");
-            writer.Write(Utils::Format(L"%x", teams[i]));
-        }
-        writer.WriteNewLine();
-    }
+    if (HasProperty(L"teams_override")) // special thing for UCP scripts
+        writer.WriteLine(GetProperty<String>(L"teams_override"));
     else {
-        for (UInt i = 0; i < mNumTeams; i++)
-            teamIDs.push_back(i + 1);
-        writer.WriteLineArray(teamIDs);
+        if (!mTeams.empty()) {
+            auto teams = FifamUtils::MakeWriteableIDsList(mTeams);
+            UInt numTeams = Utils::Min(mNumTeams, teams.size());
+            for (UInt i = 0; i < numTeams; i++) {
+                if (i != 0)
+                    writer.Write(L",");
+                writer.Write(Utils::Format(L"%x", teams[i]));
+            }
+            writer.WriteNewLine();
+        }
+        else {
+            Vector<UInt> teamIDs;
+            for (UInt i = 0; i < mNumTeams; i++)
+                teamIDs.push_back(i + 1);
+            writer.WriteLineArray(teamIDs);
+        }
     }
     writer.WriteEndIndex(L"TEAMS");
     writer.WriteLine(L";");
@@ -250,14 +254,14 @@ const UChar * const fixtureTables[] = {
 };
 
 UInt FifamCompLeague::GetNumMatchesInMatchday() {
-    UInt numTeams = mTeams.size();
+    UInt numTeams = mNumTeams;
     if (numTeams < 2 || numTeams > 24)
         return 0;
     return numTeams / 2;
 }
 
 UInt FifamCompLeague::GetNumMatchdaysInRound() {
-    UInt numTeams = mTeams.size();
+    UInt numTeams = mNumTeams;
     UInt numRounds = mNumRounds;
     if (numRounds < 1 || numTeams < 2 || numTeams > 24)
         return 0;
@@ -269,7 +273,7 @@ UInt FifamCompLeague::GetNumMatchdays() {
 }
 
 UInt FifamCompLeague::GetTotalNumMatches() {
-    UInt numTeams = mTeams.size();
+    UInt numTeams = mNumTeams;
     UInt numRounds = mNumRounds;
     if (numRounds < 1 || numTeams < 2 || numTeams > 24)
         return 0;
@@ -281,7 +285,7 @@ UInt FifamCompLeague::GetTotalNumMatches() {
 
 void FifamCompLeague::GenerateFixtures() {
     mFixtures.clear();
-    UInt numTeams = mTeams.size();
+    UInt numTeams = mNumTeams;
     UInt numRounds = mNumRounds;
     if (numRounds < 1 || numTeams < 2 || numTeams > 24)
         return;
@@ -309,9 +313,9 @@ void FifamCompLeague::GenerateFixtures() {
 
 void FifamCompLeague::GenerateCalendar(UInt startDay, UInt endDay, UInt winterBreakStartDay, UInt winterBreakEndDay) {
     UInt numRounds = mNumRounds;
-    if (mNumRounds < 1 || mTeams.size() < 2 || mTeams.size() > 24)
+    if (mNumRounds < 1 || mNumTeams < 2 || mNumTeams > 24)
         return;
-    UInt numMatchdaysInRound = mTeams.size() - 1 + (mTeams.size() % 2);
+    UInt numMatchdaysInRound = mNumTeams - 1 + (mNumTeams % 2);
     UInt numMatchdays = numMatchdaysInRound * mNumRounds;
     mFirstSeasonMatchdays.resize(numMatchdays);
     UInt matchday = startDay;
@@ -333,16 +337,16 @@ bool FifamCompLeague::ValidateFixtures(String &outErrors) {
         NewLine(L"Fixtures list is empty");
         result = false;
     }
-    UInt numTeams = mTeams.size();
+    UInt numTeams = mNumTeams;
     UInt numRounds = mNumRounds;
     if (numRounds < 1 || numTeams < 2 || numTeams > 24) {
         NewLine(L"Incorrect number of rounds");
         result = false;
     }
-    if (numRounds < 1 || numTeams < 2 || numTeams > 24) {
-        NewLine(L"Incorrect number of teams");
-        result = false;
-    }
+    //if (numRounds < 1 || numTeams < 2 || numTeams > 24) {
+    //    NewLine(L"Incorrect number of teams");
+    //    result = false;
+    //}
     if (!result)
         return false;
     UInt numMatchdaysInRound = numTeams - 1 + (numTeams % 2);
@@ -354,6 +358,7 @@ bool FifamCompLeague::ValidateFixtures(String &outErrors) {
         result = false;
     }
     Vector<Vector<Vector<Pair<UChar, UChar>>>> fixtures;
+    fixtures.resize(mNumRounds);
     UInt matchdayId = 0;
     for (UInt r = 0; r < mNumRounds; r++) {
         for (UInt md = 0; md < numMatchdaysInRound; md++) {
@@ -362,7 +367,6 @@ bool FifamCompLeague::ValidateFixtures(String &outErrors) {
             matchdayId++;
         }
     }
-    fixtures.resize(mNumRounds);
     Vector<Vector<Vector<UChar>>> teamFixtures;
     teamFixtures.resize(mNumRounds);
     matchdayId = 0;

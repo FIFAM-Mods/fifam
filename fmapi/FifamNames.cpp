@@ -64,7 +64,7 @@ String FifamNames::GetClubAbbr(String const &name) {
         if (c != L' ' && !Utils::IsPunctuationMark(c)) {
             abbr += c;
             abbrSize++;
-            if (abbrSize == 4)
+            if (abbrSize == 3)
                 break;
         }
     }

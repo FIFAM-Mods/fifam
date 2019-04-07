@@ -24,6 +24,8 @@ public:
     ~FifamFileWorker();
     UInt GetGameId();
     FifamVersion GetVersion();
+    void SetVersion(FifamVersion const &version);
+    void SetVersion(UShort year, UShort number);
 };
 
 class FifamWriter : public FifamFileWorker {
@@ -291,7 +293,7 @@ public:
         auto endPos = line.find_first_of(L'}');
         if (endPos != String::npos)
             line = substr(0, endPos);
-        auto strArgs = Utils::Split(line, L",");
+        auto strArgs = Utils::Split(line, L',');
         UInt currArg = 0;
         ReadOneArg(strArgs, currArg, std::forward<ArgTypes>(args)...);
     }

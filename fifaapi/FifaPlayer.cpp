@@ -24,6 +24,7 @@ FifaPlayer::FifaPlayer(FifaDataFile::Line &line) {
     m_loanedFrom = nullptr;
     m_inNationalTeam = false;
     m_linkedWithClub = false;
+    m_gameId = 0;
 }
 
 bool FifaPlayer::PlayerInTeam(FifaTeam *team) {

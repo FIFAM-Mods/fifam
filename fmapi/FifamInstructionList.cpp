@@ -301,9 +301,56 @@ void WriteInstruction(FifamWriter &writer, FifamInstructionID instructionID, Ins
                 writer.Write(compIdParam + L", ");
             writer.Write(inlineParams[i]);
         }
+        if (instructionID == FifamInstructionID::ID_GET_NATIONAL_TEAM
+            || instructionID == FifamInstructionID::ID_GET_NATIONAL_TEAM_WITHOUT_HOST
+            || instructionID == FifamInstructionID::ID_GET_NAT_SOUTH_AMERICA
+            || instructionID == FifamInstructionID::ID_GET_INTERNATIONAL_TEAMS)
+        {
+            if (inlineParams[0] >= 1 && inlineParams[0] <= 207) {
+                if (inlineParams[0] >= 100)
+                    writer.Write(L" ; ");
+                else if (inlineParams[0] >= 10)
+                    writer.Write(L"  ; ");
+                else
+                    writer.Write(L"   ; ");
+            #ifdef UCP_EXTENSIONS
+                if (inlineParams[0] == 207)
+                    writer.Write(L"Kosovo");
+                else
+                    writer.Write(FifamNation::MakeFromInt(inlineParams[0]).ToStr());
+            #else
+                writer.Write(FifamNation::MakeFromInt(inlineParams[0]).ToStr());
+            #endif
+            }
+        }
+        else if (instructionID == FifamInstructionID::ID_GET_RANDOM_NATIONAL_TEAM) {
+            if (inlineParams[0] >= 0 && inlineParams[0] <= 5) {
+                writer.Write(L" ; ");
+                writer.Write(FifamContinent::MakeFromInt(inlineParams[0]).ToStr());
+            }
+        }
+        else if (instructionID == FifamInstructionID::ID_CHANGE_TEAM_TYPES) {
+            if ((inlineParams[0] >= 0 && inlineParams[0] <= 2) || inlineParams[0] == 4) {
+                writer.Write(L" ; ");
+                writer.Write(FifamClubTeamType::MakeFromInt(inlineParams[0]).ToStr());
+            }
+        }
     }
-    else if (!compIdParam.empty())
+    else if (!compIdParam.empty()) {
         writer.Write(L", " + compIdParam);
+        if (instructionID == FifamInstructionID::ID_GET_INTERNATIONAL_TAB_LEVEL_X_TO_Y
+            || instructionID == FifamInstructionID::ID_GET_INTERNATIONAL_SPARE)
+        {
+            writer.Write(L" ;");
+            FifamCompID compId;
+            compId.SetFromStr(compIdParam);
+            if (!compId.IsNull() && (compId.mRegion.ToInt() >= 1 && compId.mRegion.ToInt() <= 207)) {
+                writer.Write(L" ");
+                writer.Write(FifamNation::MakeFromInt(compId.mRegion.ToInt()).ToStr());
+            }
+        }
+    }
+    
     writer.WriteNewLine();
     for (UInt param : additionalPparams) {
         if (!writeableData.mWriteable)
@@ -312,7 +359,7 @@ void WriteInstruction(FifamWriter &writer, FifamInstructionID instructionID, Ins
     }
 }
 
-void FifamInstructionsList::Write(FifamWriter &writer, FifamDatabase *database, FifamCompDbType compDbType, FifamNation nationId) {
+void FifamInstructionsList::Write(FifamWriter &writer, FifamDatabase *database, FifamCompDbType compDbType, FifamNation nationId, Bool useEndOfEntry) {
     UInt gameId = writer.GetGameId();
     Vector<InstructionWriteableData> writeableData(Size());
     bool addBuildCounterInstruction = false;
@@ -610,7 +657,10 @@ void FifamInstructionsList::Write(FifamWriter &writer, FifamDatabase *database, 
             numInstructionsToWrite++;
         }
     });
-    writer.WriteLine(numInstructionsToWrite);
+    if (useEndOfEntry)
+        writer.WriteLine(Utils::Max(255u, numInstructionsToWrite));
+    else
+        writer.WriteLine(numInstructionsToWrite);
     assessmentFillTable.clear();
     if (addBuildCounterInstruction)
         writer.WriteLine(L"BUILD_COUNTER, 53");
@@ -838,6 +888,8 @@ void FifamInstructionsList::Write(FifamWriter &writer, FifamDatabase *database, 
             WriteInstruction(writer, id, writeableData[index], {}, {});
         }
     });
+    if (useEndOfEntry)
+        writer.WriteLine(L"END_OF_ENTRY");
 }
 
 void FifamInstructionsList::ForAllCompetitionLinks(Function<void(FifamCompID &, UInt, FifamAbstractInstruction *)> callback) {

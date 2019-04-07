@@ -593,22 +593,40 @@ void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path con
 }
 
 void GraphicsConverter::ConvertPortraits(foom::db *db, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Int minCA) {
+    std::wcout << L"Converting player portraits...  0%";
+    UInt max = db->mPlayers.size();
+    UInt counter = 0;
     for (auto e : db->mPlayers) {
         auto &p = e.second;
         if (p.mCurrentAbility > minCA)
             ConvertPortrait(&p, fmGraphicsPath, contentPath, gameId);
+        std::wcout << Utils::Format(L"\b\b\b\b%3d%%", (Int)((Float)counter / max * 100));
+        counter++;
     }
+    std::wcout << L"\b\b\b\b100%" << std::endl;
     if (gameId >= 10) {
+        max = db->mNonPlayers.size();
+        counter = 0;
+        std::wcout << L"Converting staff portraits...   0%";
         for (auto e : db->mNonPlayers) {
             auto &p = e.second;
             if (p.mCurrentAbility > minCA)
                 ConvertPortrait(&p, fmGraphicsPath, contentPath, gameId);
+            std::wcout << Utils::Format(L"\b\b\b\b%3d%%", (Int)((Float)counter / max * 100));
+            counter++;
         }
+        std::wcout << L"\b\b\b\b100%" << std::endl;
+        max = db->mOfficials.size();
+        counter = 0;
+        std::wcout << L"Converting referee portraits...   0%";
         for (auto e : db->mOfficials) {
             auto &p = e.second;
             if (p.mCurrentAbility > minCA)
                 ConvertRefereePortrait(&p, fmGraphicsPath, contentPath, gameId);
+            std::wcout << Utils::Format(L"\b\b\b\b%3d%%", (Int)((Float)counter / max * 100));
+            counter++;
         }
+        std::wcout << L"\b\b\b\b100%" << std::endl;
     }
 }
 

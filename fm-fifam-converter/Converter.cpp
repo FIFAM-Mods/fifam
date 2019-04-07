@@ -12,13 +12,6 @@
 
 #define DB_SIZE Full
 
-Vector<UInt> trophyPicsToDo = {};
-Vector<UInt> trophyLogosToDo = {};
-
-Converter::~Converter() {
-
-}
-
 void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
     {
         std::wcout << L"Reading fifam_countries.txt..." << std::endl;
@@ -71,6 +64,42 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                 else
                     reader.SkipLine();
             }
+            /*
+            Array<UInt, FifamDatabase::NUM_COUNTRIES> maxUid = {};
+            for (auto[foomId, fifamId] : uidsMap) {
+                if (fifamId > 0) {
+                    UChar region = (fifamId >> 16) & 0xFF;
+                    if (region >= 1 && region <= 207) {
+                        if (fifamId > maxUid[region - 1])
+                            maxUid[region - 1] = fifamId;
+                    }
+                }
+            }
+            for (auto &e : uidsMap) {
+                if (e.second == 0) {
+                    foom::club *c = mFoomDatabase->get<foom::club>(e.first);
+                    if (c) {
+                        foom::nation *n = c->mNation;
+                        if (!n)
+                            n = c->mContinentalCupNation;
+                        if (n) {
+                            UInt countryId = n->mConverterData.mFIFAManagerID;
+                            if (n->mID == 217945)
+                                countryId = 207; // Kosovo
+                            if (countryId > 0 && countryId <= FifamDatabase::NUM_COUNTRIES)
+                                e.second = ++maxUid[countryId - 1];
+                        }
+                    }
+                }
+            }
+            FifamWriter clubsUIDsWriter(L"out_club_uids.txt", 14, 0, 0);
+            for (auto &e : uidsMap) {
+                if (e.second == 0)
+                    clubsUIDsWriter.WriteLine(Utils::Format(L"%u\t", e.first));
+                else
+                    clubsUIDsWriter.WriteLine(Utils::Format(L"%u\t%08X", e.first, e.second));
+            }
+            */
         }
     }
     {
@@ -351,6 +380,42 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
             }
         }
     }
+    {
+        std::wcout << L"Reading fifam_penalty_points..." << std::endl;
+        FifamReader reader(infoPath / L"fifam_penalty_points.txt", 0);
+        if (reader.Available()) {
+            reader.SkipLine();
+            while (!reader.IsEof()) {
+                if (!reader.EmptyLine()) {
+                    Int teamId = -1;
+                    Int points = 0;
+                    reader.ReadLine(teamId, points);
+                    if (teamId != -1 && points < 0)
+                        mPenaltyPointsMap[teamId] = points;
+                }
+                else
+                    reader.SkipLine();
+            }
+        }
+    }
+    {
+        std::wcout << L"Reading fifam_abbreviation..." << std::endl;
+        FifamReader reader(infoPath / L"fifam_abbreviation.txt", 0);
+        if (reader.Available()) {
+            reader.SkipLine();
+            while (!reader.IsEof()) {
+                if (!reader.EmptyLine()) {
+                    Int teamId = -1;
+                    String abbr;
+                    reader.ReadLineWithSeparator(L'\t', teamId, abbr);
+                    if (teamId != -1 && !abbr.empty())
+                        mAbbreviationMap[teamId] = abbr;
+                }
+                else
+                    reader.SkipLine();
+            }
+        }
+    }
 }
 
 void Converter::Convert(UInt gameId, Bool writeToGameFolder) {
@@ -446,8 +511,10 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     }
                     if (child) {
                         if (child->mConverterData.mParentClub) {
+                        #ifdef SHOW_RESERVE_CLUBS_WARNINGS
                             Error(L"Affiliated B/C club has more than 1 parent club\nClub: '%s'\nClubParent1: '%s'\nClubParent2: '%s'",
                                 child->mName.c_str(), child->mConverterData.mParentClub->mName.c_str(), c.mName.c_str());
+                        #endif
                         }
                         else {
                             foom::club::converter_data::child_club childInfo;
@@ -509,8 +576,10 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                 }
                 if (child) {
                     if (child->mConverterData.mParentClub) {
+                    #ifdef SHOW_RESERVE_CLUBS_WARNINGS
                         Error(L"Reserve club has more than 1 parent club\nClub: '%s'\nClubParent1: '%s'\nClubParent2: '%s'",
                             child->mName.c_str(), child->mConverterData.mParentClub->mName.c_str(), c.mName.c_str());
+                    #endif
                     }
                     else {
                         foom::club::converter_data::child_club childInfo;
@@ -545,8 +614,11 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     for (auto &entry : mFoomDatabase->mClubs) {
         auto &c = entry.second;
         // child club has child clubs
-        if (c.mConverterData.mParentClub && !c.mConverterData.mChildClubs.empty())
+        if (c.mConverterData.mParentClub && !c.mConverterData.mChildClubs.empty()) {
+        #ifdef SHOW_RESERVE_CLUBS_WARNINGS
             Error(L"Reserve club has reserve teams\nClub: '%s'", c.mName.c_str());
+        #endif
+        }
     }
 
     std::wcout << L"Processing competitions history..." << std::endl;
@@ -719,6 +791,10 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                         league->SetProperty(L"foom::comp", comp);
                         league->SetProperty(L"foom::id", lg->mID);
                         league->SetProperty(L"foom::reputation", lg->mRep);
+                        league->SetProperty(L"startDate", lg->mStartDate);
+                        league->SetProperty(L"endDate", lg->mEndDate);
+                        league->SetProperty(L"winterBreakStart", lg->mWinterBreakStart);
+                        league->SetProperty(L"winterBreakEnd", lg->mWinterBreakEnd);
                         createdLeagues.push_back(league);
                         mLeaguesSystem[country->mId - 1][league->mLeagueLevel].push_back(league);
 
@@ -749,6 +825,13 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                         Bool hasReserveTeams = lg->mReserveTeamsAllowed == 1;
                         UInt numLeaguePromotedTeams = 0;
                         UInt numLeagueRelegatedTeams = 0;
+
+                        if (comp->mVecTeams.size() != lg->mTeams) {
+                            Error(L"Different number of teams in league: %d / %d\nCompetitionName: %s\nCompetitionID: %d",
+                                comp->mVecTeams.size(), lg->mTeams, lg->mName.c_str(), lg->mID);
+                            continue;
+                        }
+
                         for (auto entry : comp->mVecTeams) {
                             foom::club *team = (foom::club *)entry;
                             if (!team)
@@ -1410,23 +1493,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     }
                 }
             }
-            Int calendarStart = 0;
-            Int calendarEnd = 0;
-            Int calendarWinterBreakStart = 0;
-            Int calendarWinterBreakEnd = 0;
-            if (createdLeagues.size() > 0) {
-                auto it = divLeagues.find(0);
-                if (it != divLeagues.end()) {
-                    if (divLeagues[0].size() > 0) {
-                        calendarStart = divLeagues[0][0]->mStartDate;
-                        calendarEnd = divLeagues[0][0]->mEndDate;
-                        calendarWinterBreakStart = divLeagues[0][0]->mWinterBreakStart;
-                        calendarWinterBreakEnd = divLeagues[0][0]->mWinterBreakEnd;
-                    }
-                }
-            }
-            GenerateCalendar(FifamNation::MakeFromInt(country->mId), mFifamDatabase, createdLeagues, createdCups,
-                calendarStart, calendarEnd, calendarWinterBreakStart, calendarWinterBreakEnd);
+            GenerateCalendar(FifamNation::MakeFromInt(country->mId), mFifamDatabase, createdLeagues, createdCups);
         }
     }
 
@@ -2761,6 +2828,86 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
         }
     }
 
+    //{
+    //    FifamWriter fifaPlayersWriter(L"fm-fifa-players.csv", 14, 0, 0);
+    //    if (fifaPlayersWriter.Available()) {
+    //        fifaPlayersWriter.WriteLine(L"Country,Level,Club,Name,Birthdate,Nationality,Rating,FoomID,FifaID");
+    //        auto WriteOnePlayer = [&](foom::player *_player, foom::club *_club, Int level, FifaTeam *fifaClub) {
+    //            String countryName;
+    //            if (_club && _club->mNation)
+    //                countryName = Quoted(_club->mNation->mShortName)();
+    //            String clubName;
+    //            if (_club)
+    //                clubName = Quoted(_club->mShortName)();
+    //            String fifaIdStr;
+    //            if (_player->mNation && fifaClub) {
+    //                fifaClub->ForAllPlayers([&](FifaPlayer &fifaPlayer) {
+    //                    if (fifaIdStr.empty()) {
+    //                        if (fifaPlayer.internal.nationality == _player->mNation->mConverterData.mFIFAID && fifaPlayer.m_birthDate == _player->mDateOfBirth)
+    //                            fifaIdStr = Utils::Format(L"%d", fifaPlayer.internal.playerid);
+    //                    }
+    //                });
+    //                if (fifaIdStr.empty()) {
+    //                    String foomPlayerName = Utils::GetQuickName(_player->mFirstName, _player->mSecondName, _player->mCommonName);
+    //                    fifaClub->ForAllPlayers([&](FifaPlayer &fifaPlayer) {
+    //                        if (fifaIdStr.empty()) {
+    //                            if (fifaPlayer.m_quickName == foomPlayerName)
+    //                                fifaIdStr = Utils::Format(L"%d", fifaPlayer.internal.playerid);
+    //                        }
+    //                    });
+    //                }
+    //            }
+    //            String playerName;
+    //            if (!_player->mCommonName.empty())
+    //                playerName = _player->mCommonName;
+    //            else {
+    //                if (!_player->mFirstName.empty())
+    //                    playerName = _player->mFirstName;
+    //                if (!_player->mSecondName.empty()) {
+    //                    if (!playerName.empty())
+    //                        playerName += L" ";
+    //                    playerName += _player->mSecondName;
+    //                }
+    //            }
+    //            fifaPlayersWriter.WriteLine(
+    //                countryName,
+    //                level,
+    //                clubName,
+    //                Quoted(playerName),
+    //                _player->mDateOfBirth,
+    //                _player->mNation ? _player->mNation->mThreeLetterName : L"",
+    //                _player->mCurrentAbility / 10,
+    //                _player->mID,
+    //                fifaIdStr);
+    //        };
+    //        for (auto &entry : mFoomDatabase->mClubs) {
+    //            foom::club &team = entry.second;
+    //            if (!team.mExtinct && team.mNation) {
+    //                Int leagueLevel = 99;
+    //                if (team.mDivision && team.mDivision->mCompetitionLevel > 0)
+    //                    leagueLevel = team.mDivision->mCompetitionLevel;
+    //
+    //                FifaTeam *fifaClub = nullptr;
+    //                if (team.mConverterData.mFIFAID != 0)
+    //                    fifaClub = mFifaDatabase->GetTeam(team.mConverterData.mFIFAID);
+    //
+    //                for (foom::player *p : team.mConverterData.mContractedPlayers)
+    //                    WriteOnePlayer(p, &team, leagueLevel, fifaClub);
+    //                for (foom::player *p : team.mConverterData.mLoanedPlayers)
+    //                    WriteOnePlayer(p, &team, leagueLevel, fifaClub);
+    //
+    //            }
+    //        }
+    //        FifaTeam *freeAgentsClub = mFifaDatabase->GetTeam(111592);
+    //        for (auto &entry : mFoomDatabase->mPlayers) {
+    //            foom::player p = entry.second;
+    //            if (!p.mContract.mClub)
+    //                WriteOnePlayer(&p, nullptr, 99, freeAgentsClub);
+    //        }
+    //        fifaPlayersWriter.Close();
+    //    }
+    //}
+
     FifamVersion version = FifamDatabase::GetGameDbVersion(gameId);
     std::wcout << L"Writing database..." << std::endl;
     mFifamDatabase->Write(gameId, version.GetYear(), version.GetNumber(),
@@ -2879,14 +3026,14 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     //graphicsConverter.mOnlyUpdates = true;
     //std::wcout << L"Converting club badges..." << std::endl;
     //graphicsConverter.ConvertClubBadges(mFoomDatabase, mAvailableBadges, graphicsPath, contentPath, gameId, 0);
-    //std::wcout << L"Converting portraits..." << std::endl;
-    //graphicsConverter.ConvertPortraits(mFoomDatabase, graphicsPath, contentPath, gameId, 0);
+    std::wcout << L"Converting portraits..." << std::endl;
+    graphicsConverter.ConvertPortraits(mFoomDatabase, graphicsPath, contentPath, gameId, 0);
     //std::wcout << L"Converting competition badges..." << std::endl;
     //graphicsConverter.ConvertCompBadges(mFifamDatabase, graphicsPath, contentPath, gameId, 0);
     //std::wcout << L"Converting trophies..." << std::endl;
     //graphicsConverter.ConvertTrophies(mFifamDatabase, graphicsPath, contentPath, gameId, 0);
     //graphicsConverter.ConvertCities(mFoomDatabase, L"D:\\Downloads", L"D:\\Games\\FIFA Manager 13", gameId, 0);
-    graphicsConverter.ConvertStadiums(mFoomDatabase, L"D:\\Downloads", L"D:\\Games\\FIFA Manager 13", gameId, 0, false);
+    //graphicsConverter.ConvertStadiums(mFoomDatabase, L"D:\\Downloads", L"D:\\Games\\FIFA Manager 13", gameId, 0, false);
 #endif
 
     delete mReferenceDatabase;
@@ -2928,6 +3075,19 @@ FifamClub *Converter::CreateAndConvertClub(UInt gameId, foom::club *team, foom::
         ConvertReserveClub(gameId, club, team->mIsReserveToCreateClub ? mainTeam : team, mainTeam, country, div);
     else
         ConvertClub(gameId, club, team, mainTeam, country, div);
+
+    {
+        auto it = mPenaltyPointsMap.find(team->mID);
+        if (it != mPenaltyPointsMap.end()) {
+            club->mPenaltyType = FifamClubPenaltyType::Points;
+            club->mPenaltyPoints = (*it).second;
+        }
+    }
+    {
+        auto it = mAbbreviationMap.find(team->mID);
+        if (it != mAbbreviationMap.end())
+            FifamTrSetAll<String>(club->mAbbreviation, (*it).second);
+    }
 
     mFifamDatabase->AddClubToMap(club);
     country->mClubsMap[club->mUniqueID] = club;
@@ -3060,20 +3220,19 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     }
 
     // media pressure
-    // TODO: read from reference file
     dst->mMediaPressure = FifamClubMediaPressure::Normal;
     // capital
     if (team->mBalance > 0 && team->mBalance < 300'000'000) {
-        dst->mInitialCapital = Utils::Clamp(foom::db::convert_money(team->mBalance + team->mBalance / 2), 0, 300'000'000);
+        dst->mInitialCapital = foom::db::convert_money(team->mBalance);
     }
     else
-        dst->mInitialCapital = foom::db::convert_money(team->mBalance);
+        dst->mInitialCapital = Utils::Clamp(foom::db::convert_money(team->mBalance + team->mBalance / 2), 0, 300'000'000);
     // transfer budget
     if (team->mTransferBudget > 0) {
         if (team->mTransferBudget < 300'000'000)
-            dst->mTransferBudget = Utils::Clamp(foom::db::convert_money(team->mTransferBudget + team->mTransferBudget / 2), 0, 500'000'000);
-        else
             dst->mTransferBudget = foom::db::convert_money(team->mTransferBudget);
+        else
+            dst->mTransferBudget = Utils::Clamp(foom::db::convert_money(team->mTransferBudget + team->mTransferBudget / 2), 0, 500'000'000);
     }
     // joint-stock company
     dst->mJointStockCompany = team->mOwnershipType == 2 /*&& team->mReputation >= 5000*/; // Public Limited Company
@@ -4866,7 +5025,7 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
         else if (p->mOriginalPA == -85) // 140-170
             player->mTalent = 7; // 4 stars
         else if (p->mOriginalPA == -8) { // 130-160
-            if (p->mOriginalCA >= 130)
+            if (p->mOriginalCA >= 135)
                 player->mTalent = 7; // 4 stars
             else
                 player->mTalent = 6; // 3.5 stars
@@ -4876,7 +5035,7 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
         else {
             UInt maxTalent = 9;
             UChar *potantialAbilityRanges = nullptr;
-            static UChar potentialAbilityRanges1to10[9] = { 35, 60, 80, 100, 119, 136, 155, 169, 190 };
+            static UChar potentialAbilityRanges1to10[9] = { 35, 60, 80, 100, 119, 136, 155, 170, 190 };
             potantialAbilityRanges = potentialAbilityRanges1to10;
             player->mTalent = 0;
             for (UInt i = 0; i < maxTalent; i++) {
@@ -7222,7 +7381,8 @@ Bool Converter::IsExtrovertPlayer(Int playerId) {
         19024412, // Neymar
         8832853, // Marcelo
         71000324, // Konoplyanka
-        71081391 // Zinchenko
+        71081391, // Zinchenko
+        8085570 // Dzyuba
     };
     return Utils::Contains(playerIDs, playerId);
 }
@@ -7482,7 +7642,7 @@ FifamFormation Converter::ConvertFormationId(Int id) {
     return FifamFormation::None;
 }
 
-bool Converter::GenerateCalendar(FifamNation const & countryId, FifamDatabase * database, Vector<FifamCompLeague*> const & leagues, Vector<FifamCompCup*> const & cups, Int startDate, Int endDate, Int winterBreakStart, Int winterBreakEnd)
+Bool Converter::GenerateCalendar(FifamNation const & countryId, FifamDatabase * database, Vector<FifamCompLeague*> const & leagues, Vector<FifamCompCup*> const & cups)
 {
 
     if (leagues.empty() && cups.empty())
@@ -7662,6 +7822,13 @@ bool Converter::GenerateCalendar(FifamNation const & countryId, FifamDatabase * 
         }
     };
 
+    Int winterBreakStart = 0, winterBreakEnd = 0;
+
+    if (!leagues.empty()) {
+        winterBreakStart = leagues[0]->GetProperty<Int>(L"winterBreakStart", 0);
+        winterBreakEnd = leagues[0]->GetProperty<Int>(L"winterBreakEnd", 0);
+    }
+
     // winter break
     if (winterBreakStart > 0 && winterBreakEnd > 0 && winterBreakStart < winterBreakEnd) {
         for (UInt s = 0; s < 2; s++) {
@@ -7707,22 +7874,48 @@ bool Converter::GenerateCalendar(FifamNation const & countryId, FifamDatabase * 
         }
 
         // play matches in Sunday or Saturday?
-        bool bSunday = l->mLeagueLevel == 0; // play matches for first league on Sunday
+        Bool bSunday = l->mLeagueLevel == 0; // play matches for first league on Sunday
 
         Int startMatchday1 = 48; // End of August
         Int startMatchday2 = 27; // End of July
         Int startMatchday3 = 13; // Middle of July
         Int endMatchday = 315; // May
 
-        if (startDate > 0 && startDate < endDate) {
-            startMatchday3 = startDate;
-            if (startMatchday1 < startDate)
-                startMatchday1 = startDate;
-            if (startMatchday2 < startDate)
-                startMatchday2 = startDate;
+        Int startDate = l->GetProperty<Int>(L"startDate", 0);
+        Int endDate = l->GetProperty<Int>(L"endDate", 0);
+
+        if ((endDate > 0 && endDate < startDate) || startDate > 365 || endDate > 365) {
+            Error(L"Incorrect startDate/endDate in league\nLeague: %s\nstartDate: %d\nendDate: %d", FifamTr(l->mName).c_str(), startDate, endDate);
+            startDate = 0;
+            endDate = 0;
         }
-        if (endDate > 0 && startDate < endDate && endDate < endMatchday)
-            endMatchday = endDate;
+
+        Bool customStartDate = startDate > 0;
+
+        if (customStartDate) {
+            Int dayOfWeek = startDate % 7;
+            if (dayOfWeek != 6) { // Saturday
+                if (dayOfWeek == 0) // Sunday
+                    startDate -= 1;
+                else if (dayOfWeek == 1) // Monday
+                    startDate -= 2;
+                else if (dayOfWeek == 2) // Tuesday
+                    startDate -= 3;
+                else if (dayOfWeek == 5) // Friday
+                    startDate += 1;
+                else if (dayOfWeek == 4) // Thursday
+                    startDate += 2;
+                else if (dayOfWeek == 3) // Wednesday
+                    startDate += 3;
+            }
+            startMatchday1 = startDate;
+            startMatchday2 = startDate;
+            startMatchday3 = startDate;
+        }
+        if (endDate > 0) {
+            if ((!customStartDate || endDate > startDate) && (!l->mLeagueLevel || endDate < endMatchday))
+                endMatchday = endDate;
+        }
 
         matchdayIndex = { 0, 0 };
 
@@ -7736,24 +7929,30 @@ bool Converter::GenerateCalendar(FifamNation const & countryId, FifamDatabase * 
                 MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
 
             // phase 3 - add possible matches in August (reverse direction)
-            for (Int m = startMatchday1 - 7; m >= startMatchday2; m -= 7)
-                MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+            if (!customStartDate) {
+                for (Int m = startMatchday1 - 7; m >= startMatchday2; m -= 7)
+                    MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+            }
 
             // phase 4 - add possible mid-week matches every 2 weeks
             for (Int m = startMatchday2 + 14; m <= endMatchday; m += 14)
                 MarkPossibleMidWeekMatchday(cc, s, m, bSunday, matchdayIndex[s]);
 
             // phase 5 - add possible matches in July (reverse direction)
-            for (Int m = startMatchday2 - 7; m >= startMatchday3; m -= 7)
-                MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+            if (!customStartDate) {
+                for (Int m = startMatchday2 - 7; m >= startMatchday3; m -= 7)
+                    MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+            }
 
             // phase 6 - add possible mid-week matches every week
             for (Int m = startMatchday1; m <= endMatchday; m += 7)
                 MarkPossibleMidWeekMatchday(cc, s, m, bSunday, matchdayIndex[s]);
 
             // phase 7 - add possible mid-week matches every week in July and August (reverse direction)
-            for (Int m = startMatchday1 - 7; m >= startMatchday3; m -= 7)
-                MarkPossibleMidWeekMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+            if (!customStartDate) {
+                for (Int m = startMatchday1 - 7; m >= startMatchday3; m -= 7)
+                    MarkPossibleMidWeekMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+            }
         }
 
         for (UInt s = 0; s < 2; s++) {

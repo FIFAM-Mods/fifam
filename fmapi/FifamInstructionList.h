@@ -27,5 +27,5 @@ public:
     void ForAllAssessmentPositions(Function<void(UInt &, UInt, FifamAbstractInstruction *)> callback);
     void ForAllLeagueLevels(Function<void(UInt &, UInt, FifamAbstractInstruction *)> callback);
     void Read(FifamReader &reader, FifamDatabase *database, FifamNation nationId);
-    void Write(FifamWriter &writer, FifamDatabase *database, FifamCompDbType compDbType, FifamNation nationId);
+    void Write(FifamWriter &writer, FifamDatabase *database, FifamCompDbType compDbType, FifamNation nationId, Bool useEndOfEntry = false);
 };

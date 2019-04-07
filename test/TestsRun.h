@@ -23,7 +23,8 @@
 #include "tests\WritePlayerIDs.h"
 #include "tests\CalendarDatabase.h"
 #include "tests\ExportXML.h"
+#include "tests\ExportCompInfo.h"
 
 void RunTests() {
-    RunTest<ExportXML<FM13>>();
+    RunTest<ExportCompInfo<FM13>>();
 }

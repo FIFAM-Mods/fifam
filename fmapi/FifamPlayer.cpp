@@ -327,7 +327,7 @@ void FifamPlayer::Read(FifamReader &reader) {
             flairAttributes[2] = Utils::Max(mAttributes.TackleSliding, mAttributes.TackleStanding);
             flairAttributes[3] = mAttributes.Passing;
             std::sort(flairAttributes.begin(), flairAttributes.end());
-            mAttributes.Flair = (mAttributes.Vision + (flairAttributes[3] + flairAttributes[4]) / 2) / 2;
+            mAttributes.Flair = (mAttributes.Vision + (flairAttributes[2] + flairAttributes[3]) / 2) / 2;
             mAttributes.Touch = (mAttributes.BallControl + mAttributes.Technique) / 2;
             mAttributes.ForwardRuns = (mAttributes.PosOffensive + (mAttributes.Pace + mAttributes.Acceleration) / 2) / 2;
 
@@ -706,8 +706,11 @@ void FifamPlayer::Write(FifamWriter &writer) {
             // secondary
             for (UInt i = 0; i < 18; i++) {
                 if (bestPositions[i].first >= 96.0f) {
-                    if (SecondaryPositions.size() < 3 && !Utils::Contains(PreferredPositions, bestPositions[i].second))
+                    if (SecondaryPositions.size() < 3 && !Utils::Contains(PreferredPositions, bestPositions[i].second)
+                        && !Utils::Contains(SecondaryPositions, bestPositions[i].second)) // edited
+                    {
                         SecondaryPositions.push_back(bestPositions[i].second);
+                    }
                 }
                 else
                     break;

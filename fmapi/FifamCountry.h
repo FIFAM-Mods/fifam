@@ -219,17 +219,17 @@ public:
         // @since FM07
         struct {
             // @since FM07
-            Bool _1;
+            Bool _1 = false;
             // @since FM07
-            Bool _8;
+            Bool _8 = false;
             // @since FM07
-            Bool _16;
+            Bool _16 = false;
             // @since FM07
-            Bool _32;
+            Bool _32 = false;
             // @since FM07
-            Bool _64;
+            Bool _64 = false;
             // @since FM07
-            Bool _128;
+            Bool _128 = false;
         } flags;
     } Unknown;
 
