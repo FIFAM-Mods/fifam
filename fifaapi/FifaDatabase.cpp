@@ -15,6 +15,7 @@ FifaDatabase::FifaDatabase(std::filesystem::path const &path) {
     bool managersRead = false;
     bool refereesRead = false;
     bool stadiumsRead = false;
+    bool kitsRead = false;
     bool leaguesRead = false;
     std::filesystem::path playerloansPath;
     std::filesystem::path leagueteamlinksPath;
@@ -143,6 +144,13 @@ FifaDatabase::FifaDatabase(std::filesystem::path const &path) {
                         AddEntity(m_stadiums, line);
                     file.Close();
                     stadiumsRead = true;
+                }
+                // read kits
+                if (m_currentGameVersion >= 19 && !kitsRead && file.Open(gamedbpath / strFolder / L"teamkits.txt")) {
+                    for (FifaDataFile::Line line; file.NextLine(line); )
+                        AddEntity(m_kits, line);
+                    file.Close();
+                    kitsRead = true;
                 }
                 if (leagueteamlinksPath.empty() && std::filesystem::exists(gamedbpath / strFolder / L"leagueteamlinks.txt"))
                     leagueteamlinksPath = gamedbpath / strFolder / L"leagueteamlinks.txt";
@@ -315,6 +323,16 @@ FifaDatabase::FifaDatabase(std::filesystem::path const &path) {
     }
     else
         Error(L"Unable to read database/teamstadiumlinks file");
+    // setup kits
+    ForAllKits([&](FifaKit &kit) {
+        unsigned int teamid = kit.internal.teamtechid;
+        FifaTeam *kitTeam = GetTeam(teamid);
+        if (kitTeam) {
+            kit.m_team = kitTeam;
+            kitTeam->m_kits.push_back(&kit);
+        }
+    });
+
     m_currentGameVersion = m_lastSupportedGameVersion;
 }
 
@@ -357,6 +375,10 @@ FifaReferee *FifaDatabase::GetReferee(unsigned int refereeId) {
 
 FifaStadium *FifaDatabase::GetStadium(unsigned int stadiumId) {
     return GetFromList(m_stadiums, stadiumId);
+}
+
+FifaKit *FifaDatabase::GetKit(unsigned int kitId) {
+    return GetFromList(m_kits, kitId);
 }
 
 FifaManager *FifaDatabase::GetManager(unsigned int managerId) {

@@ -79,9 +79,6 @@
     <ClInclude Include="tests\CompetitionsTest.h">
       <Filter>tests</Filter>
     </ClInclude>
-    <ClInclude Include="tests\ClubIDsMap.h">
-      <Filter>tests</Filter>
-    </ClInclude>
     <ClInclude Include="tests\CreateFlagImages.h">
       <Filter>tests</Filter>
     </ClInclude>
@@ -107,6 +104,12 @@
       <Filter>tests</Filter>
     </ClInclude>
     <ClInclude Include="tests\ExportCompInfo.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\GenerateKitColors.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\ExportClubIDs.h">
       <Filter>tests</Filter>
     </ClInclude>
   </ItemGroup>

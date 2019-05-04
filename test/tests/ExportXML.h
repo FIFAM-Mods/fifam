@@ -27,7 +27,7 @@ public:
         FifamWriter writer(L"graphics_db.xml", 14, 0, 0, true);
         writer.SetReplaceQuotes(false);
         if (writer.Available()) {
-            writer.WriteLine(L"<database name=\"Universal Converter Database\" version=\"2019\" update=\"0\" >");
+            writer.WriteLine(L"<database name=\"Universal Converter Database\" version=\"2019\" update=\"2\" >");
             for (auto country : db->mCountries) {
                 if (country) {
                     writer.WriteLine(Utils::Format(L"    <country name=\"%s\" continent=\"%d\" id=\"%d\" >",
@@ -160,13 +160,17 @@ public:
                             writer.Write(Utils::Format(L"        <competition name=\"%s\" id=\"%s\"", FifamTr(comp.second->mName), comp.first.ToHexStr()));
                             if (comp.second->GetDbType() == FifamCompDbType::Cup)
                                 writer.Write(L" type=\"cup\"");
-                            else if (comp.second->GetDbType() == FifamCompDbType::League)
+                            else if (comp.second->GetDbType() == FifamCompDbType::League) {
                                 writer.Write(Utils::Format(L" type=\"league\" level=\"%d\"", comp.second->AsLeague()->mLeagueLevel));
+
+                            }
                             else if (comp.second->GetDbType() == FifamCompDbType::Round)
                                 writer.Write(Utils::Format(L" type=\"round\" round=\"%d\"", comp.second->AsRound()->mRoundType.ToInt()));
                             writer.WriteLine(L" />");
                         }
                     }
+                    for (UInt l = 0; l < country->mLeagueLevelNames.size(); l++)
+                        writer.WriteLine(Utils::Format(L"        <leaguelevel name=\"%s\" level=\"%d\" />", FifamTr(country->mLeagueLevelNames[l]), l));
                     writer.WriteLine(L"    </country>");
                 }
             }

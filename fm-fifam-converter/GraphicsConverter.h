@@ -3,7 +3,7 @@
 
 class GraphicsConverter {
 public:
-    bool mOnlyUpdates = false;
+    Bool mOnlyUpdates = false;
 
     GraphicsConverter();
     void ConvertClubBadges(foom::db *db, Map<Int, Path> const &availableBadges, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Int minRep = 0);
@@ -21,4 +21,7 @@ public:
 
     void ConvertOneStadium(Int foomId, UInt fifamClubId, Path const &inputPath, Path const &outputPath, String const &name, String const &stadName, Int rep, FifamWriter &writer);
     void ConvertStadiums(foom::db *db, Path const &inputPath, Path const &contentPath, UInt gameId, Int minRep, bool overview);
+
+    void ConvertClubBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId);
+    void ConvertCompBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId);
 };

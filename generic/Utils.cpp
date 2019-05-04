@@ -160,11 +160,19 @@ double Utils::SafeConvertDouble(std::wstring const &str) {
 }
 
 std::wstring Utils::AtoW(std::string const &str) {
-    return std::wstring(str.begin(), str.end());
+	std::wstring result;
+	result.resize(str.size());
+	for (unsigned int i = 0; i < str.size(); i++)
+		result[i] = static_cast<wchar_t>(static_cast<unsigned char>(str[i]));
+	return result;
 }
 
 std::string Utils::WtoA(std::wstring const &str) {
-    return std::string(str.begin(), str.end());
+	std::string result;
+	result.resize(str.size());
+	for (unsigned int i = 0; i < str.size(); i++)
+		result[i] = static_cast<char>(static_cast<unsigned char>(str[i]));
+	return result;
 }
 
 void Utils::Replace(std::wstring& str, const std::wstring& from, const std::wstring& to) {

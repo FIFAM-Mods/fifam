@@ -15,7 +15,9 @@ public:
     FifamDatabase *mFifamDatabase = nullptr;
     FifaDatabase *mFifaDatabase = nullptr;
     UInt mCurrentGameId = FifamDatabase::LATEST_GAME_VERSION;
+    Bool mFromFifaDatabase = false;
     foom::db *mFoomDatabase = nullptr;
+    Path mFifaAssetsPath = L"D:\\Projects\\FIFA19";
 
     struct DivisionInfo {
         enum Type {
@@ -116,7 +118,7 @@ public:
 
     void ReadAdditionalInfo(Path const &infoPath, UInt gameId);
     void Convert(UInt gameId, Bool writeToGameFolder);
-    void Convert(UInt gameId, UInt originalGameId, Path const &originalDb, UInt referenceGameId, Path const &referenceDb, Bool writeToGameFolder);
+    void Convert(UInt gameId, UInt originalGameId, Path const &originalDb, UInt referenceGameId, Path const &referenceDb, Bool writeToGameFolder, Bool fromFifaDatabase = false);
 
     Int ConvertPlayerAttribute(Int attr, UInt gameId = 14);
     void ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt gameId);
@@ -129,6 +131,7 @@ public:
         Color const &teamForegroundColor, UInt gameId);
     FifamPlayer *CreateAndConvertPlayer(UInt gameId, foom::player *p, FifamClub *club);
     FifamStaff *CreateAndConvertStaff(foom::non_player *p, FifamClub *club, FifamClubStaffPosition position);
+    void FixPersonName(String &name);
     void ConvertPersonAttributes(FifamPerson *person, foom::person *p);
     void CreateStaffMembersForClub(UInt gameId, foom::team *team, FifamClub *dst, Bool isNationalTeam);
     UChar GetPlayerLevelFromCA(Int ca);

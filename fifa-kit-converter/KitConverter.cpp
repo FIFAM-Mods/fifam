@@ -468,3 +468,53 @@ void KitConverter::ConvertClubKits(string const &clubIdName, int fifaId, int fif
         }
     }
 }
+
+bool KitConverter::ConvertClubArmband(int fifaId, string const &clubIdStr, int set, int variation, string const &outputFile) {
+    string shirtFileName;
+    if ((options.AllowCustomKits || options.OnlyCustomKits) && !clubIdStr.empty()) {
+        string kitType;
+        if (set == 0)
+            kitType = "_h";
+        else if (set == 1)
+            kitType = "_a";
+        else if (set == 2)
+            kitType = "_g";
+        else if (set == 3)
+            kitType = "_t";
+        if (!kitType.empty()) {
+            shirtFileName = options.CustomKitsPath + clubIdStr + "_j" + kitType + ".png";
+            if (!exists(shirtFileName)) {
+                shirtFileName.clear();
+            }
+        }
+    }
+    if (fifaId != 0 && !options.OnlyCustomKits && shirtFileName.empty()) {
+        string kitFileName = "kit_" + to_string(fifaId) + "_" + to_string(set) + "_" + to_string(variation) + ".png";
+        shirtFileName = options.KitsPath + "shirts\\" + kitFileName;
+        if (!exists(shirtFileName))
+            shirtFileName.clear();
+    }
+    if (!shirtFileName.empty()) {
+        printf("Converting armband %s (%d)\n", clubIdStr.c_str(), set);
+        Image img(shirtFileName);
+        if (img.columns() > 1024 && GetSizeMode() == 1)
+            img.resize(ScaledGeometry(1024, 1024));
+        img.crop(Geometry(249, 43, 387, 977));
+        ScaledResize(img, 256, 64);
+        img.write(outputFile + "." + options.OutputFormat);
+    }
+    return false;
+}
+
+void KitConverter::ConvertClubArmbands(string const &clubIdName, int fifaId, int fifaManagerId) {
+    SetSizeMode(1);
+    static char clubIdStr[256];
+    sprintf_s(clubIdStr, "%08X", fifaManagerId);
+    static char gameIdStr[10];
+    sprintf_s(gameIdStr, "%02d", options.OutputGameId);
+    string outputFile = string("D:\\Games\\FIFA Manager ") + gameIdStr + "\\data\\kitarmband\\" + clubIdStr;
+    ConvertClubArmband(fifaId, clubIdStr, 0, 0, outputFile + "_h");
+    ConvertClubArmband(fifaId, clubIdStr, 1, 0, outputFile + "_a");
+    ConvertClubArmband(fifaId, clubIdStr, 3, 0, outputFile + "_t");
+    ConvertClubArmband(fifaId, clubIdStr, 2, 0, outputFile + "_g");
+}

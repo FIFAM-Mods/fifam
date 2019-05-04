@@ -5,6 +5,7 @@
 #include "FifaPlayer.h"
 #include "FifaManager.h"
 #include "FifaStadium.h"
+#include "FifaKit.h"
 #include "FifaDataFile.h"
 
 class FifaLeague;
@@ -130,6 +131,7 @@ public:
         std::wstring m_name;
         FifaStadium *m_stadium;
     } m_linkedStadium;
+    std::vector<FifaKit *> m_kits;
 
     FifaTeam(FifaDataFile::Line &line);
     unsigned int GetId();
@@ -156,5 +158,13 @@ public:
     void ForAllPlayerLinks(T callback) {
         for (LinkedPlayer &linkedPlayer : m_linkedPlayers)
             callback(linkedPlayer);
+    }
+
+    FifaKit *GetKit(int kitType) {
+        for (FifaKit *kit : m_kits) {
+            if (kit->internal.teamkittypetechid == kitType)
+                return kit;
+        }
+        return nullptr;
     }
 };

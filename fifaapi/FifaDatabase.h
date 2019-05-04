@@ -6,6 +6,7 @@
 #include "FifaStadium.h"
 #include "FifaReferee.h"
 #include "FifaManager.h"
+#include "FifaKit.h"
 #include "FifaDataFile.h"
 #include <map>
 #include <functional>
@@ -22,6 +23,7 @@ public:
     std::map<unsigned int, FifaManager *> m_managers;
     std::map<unsigned int, FifaReferee *> m_referees;
     std::map<unsigned int, FifaStadium *> m_stadiums;
+    std::map<unsigned int, FifaKit *> m_kits;
 
     std::filesystem::path m_path;
 
@@ -65,6 +67,7 @@ public:
     FifaManager *GetManager(unsigned int managerId);
     FifaReferee *GetReferee(unsigned int refereeId);
     FifaStadium *GetStadium(unsigned int stadiumId);
+    FifaKit *GetKit(unsigned int kitId);
 
     template <typename T>
     void ForAllLeagues(T callback) {
@@ -115,6 +118,12 @@ public:
     template <typename T>
     void ForAllManagers(T callback) {
         for (auto const &it : m_managers)
+            callback(*it.second);
+    }
+
+    template <typename T>
+    void ForAllKits(T callback) {
+        for (auto const &it : m_kits)
             callback(*it.second);
     }
 };

@@ -44,4 +44,6 @@ public:
     void ScaledResize(Magick::Image &image, int w, int h);
     void ScaledComposite(Magick::Image &dstImage, Magick::Image &inputImg, int x, int y, MagickCore::CompositeOperator mode);
     Magick::Image ScaledImage(std::string const &path);
+    bool ConvertClubArmband(int fifaId, std::string const &clubIdStr, int set, int variation, std::string const &outputFile);
+    void ConvertClubArmbands(std::string const &clubIdName, int fifaId, int fifaManagerId);
 };

@@ -5,11 +5,13 @@
     <ClCompile Include="Converter.cpp" />
     <ClCompile Include="GraphicsConverter.cpp" />
     <ClCompile Include="AppearanceGenerator.cpp" />
+    <ClCompile Include="FifaConverter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Converter.h" />
     <ClInclude Include="ConverterUtil.h" />
     <ClInclude Include="GraphicsConverter.h" />
     <ClInclude Include="AppearanceGenerator.h" />
+    <ClInclude Include="FifaConverter.h" />
   </ItemGroup>
 </Project>

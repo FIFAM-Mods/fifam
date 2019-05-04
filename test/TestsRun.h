@@ -24,7 +24,9 @@
 #include "tests\CalendarDatabase.h"
 #include "tests\ExportXML.h"
 #include "tests\ExportCompInfo.h"
+#include "tests\GenerateKitColors.h"
+#include "tests\ExportClubIDs.h"
 
 void RunTests() {
-    RunTest<ExportCompInfo<FM13>>();
+    RunTest<ExportClubIDs>();
 }

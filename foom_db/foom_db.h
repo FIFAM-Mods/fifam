@@ -102,12 +102,7 @@ struct db {
 
     enum class db_size { Full, Average, Small, Tiny };
 
-    struct cache_entry {
-        String filename;
-
-    };
-
-    db(Path const &dbpath, db_size size = db_size::Full) {
+    db(Path const &dbpath, bool readPersons = true, db_size playersCount = db_size::Full) {
         mDbPath = dbpath;
         std::wcout << L"Reading foom database..." << std::endl;
         // read nations
@@ -238,161 +233,161 @@ struct db {
             reader.ReadLine(clubID, IntPtr(b.mPlayer), IntPtr(b.mFromClub), b.mBuyBackFee);
             map_find(mClubs, clubID).mVecBuyBackClauses.push_back(b);
         });
-    #if 1
-        // TODO
-        // read players
-        String playersFile;
-        if (size == db_size::Tiny)
-            playersFile = L"fm_players_tiny";
-        else if (size == db_size::Small)
-            playersFile = L"fm_players_small";
-        else if (size == db_size::Average)
-            playersFile = L"fm_players_average";
-        else
-            playersFile = L"fm_players";
-        UInt playerCounter = 0;
-        ReaderCallback(playersFile, [&](FifamReader &reader) {
-            player p;
-            if (size == db_size::Full)
-                reader.ReadLine(                    p.mID, p.mFirstName, p.mSecondName, p.mCommonName, p.mFullName, p.mEthnicity, p.mHairColour, p.mHairLength, p.mSkinTone, p.mDateOfBirth, IntPtr(p.mNation), IntPtr(p.mLanguage), p.mAgent, p.mDeclaredForNation, p.mInternationalRetirement, p.mInternationalRetirementDate, p.mInternationalApps, p.mInternationalGoals, p.mAdaptability, p.mAmbition, p.mControversy, p.mLoyalty, p.mPressure, p.mProfessionalism, p.mSportsmanship, p.mTemperament, p.mShirtName, p.mCurrentAbility, p.mRecommendedCurrentAbility, p.mPotentialAbility, p.mOriginalCA, p.mOriginalPA, p.mCurrentReputation, p.mHomeReputation, p.mWorldReputation, p.mHeight, p.mWeight, p.mLeftFoot, p.mRightFoot, p.mPosition, p.mGoalkeeper, p.mDefenderLeft, p.mDefenderCentral, p.mDefenderRight, p.mDefensiveMidfielder, p.mWingBackLeft, p.mWingBackRight, p.mMidfielderLeft, p.mMidfielderCentral, p.mMidfielderRight, p.mAttackingMidfielderLeft, p.mAttackingMidfielderCentral, p.mAttackingMidfielderRight, p.mStriker, p.mAggression, p.mAnticipation, p.mBravery, p.mComposure, p.mConcentration, p.mConsistency, p.mVision, p.mDecisions, p.mDetermination, p.mDirtiness, p.mFlair, p.mImportantMatches, p.mLeadership, p.mMovement, p.mPositioning, p.mTeamWork, p.mWorkRate, p.mAcceleration, p.mAgility, p.mBalance, p.mInjuryProneness, p.mJumpingReach, p.mNaturalFitness, p.mPace, p.mStamina, p.mStrength, p.mCorners, p.mCrossing, p.mDribbling, p.mFinishing, p.mFirstTouch, p.mFreeKicks, p.mHeading, p.mLongShots, p.mLongThrows, p.mMarking, p.mPassing, p.mPenaltyTaking, p.mTackling, p.mTechnique, p.mVersatility, p.mAerialAbility, p.mCommandOfArea, p.mCommunication, p.mEccentricity, p.mHandling, p.mKicking, p.mOneOnOnes, p.mReflexes, p.mRushingOut, p.mTendencyToPunch, p.mThrowing, p.mRunsWithBallDownLeft, p.mRunsWithBallDownRight, p.mRunsWithBallThroughTheCentre, p.mGetsIntoOppositionArea, p.mMovesIntoChannels, p.mGetsForwardWheneverPossible, p.mPlaysShortSimplePasses, p.mTriesKillerBallsOften, p.mShootsFromDistance, p.mShootsWithPower, p.mPlacesShots, p.mCurlsBall, p.mLikesToRoundKeeper, p.mLikesToTryToBreakOffsideTrap, p.mArguesWithOfficials, p.mLikesToLobKeeper, p.mPlaysNoThroughBalls, p.mDwellsOnBall, p.mArrivesLateInOppositionArea, p.mTriesToPlayWayOutOfTrouble, p.mStaysBackAtAllTimes, p.mDivesIntoTackles, p.mDoesNotDiveIntoTackles, p.mHitsFreekicksWithPower, p.mRunsWithBallOften, p.mRunsWithBallRarely, p.mAvoidsUsingWeakerFoot, p.mTriesLongRangeFreeKicks, p.mCutsInsideFromBothWings, p.mPlaysOneTwos, p.mDictatesTempo, p.mAttemptsOverheadKicks, p.mKnocksBallPastOpponent, p.mTriesLongRangePasses, p.mLikesToSwitchBallToOtherFlank, p.mComesDeepToGetBall, p.mHugsLine, p.mLooksForPassRatherThanAttemptingToScore, p.mMarksOpponentTightly, p.mPlaysWithBackToGoal, p.mPossessesLongFlatThrow, p.mStopsPlay, p.mTriesFirstTimeShots, p.mUsesLongThrowToStartCounterAttacks, p.mRefrainsFromTakingLongShots, p.mPenaltyBoxPlayer, p.mCutsInsideFromLeftWing, p.mCutsInsideFromRightWing, p.mCrossesEarly, p.mBringBallOutofDefence, p.mIsBasque);
+        if (readPersons) {
+            // TODO
+            // read players
+            String playersFile;
+            if (playersCount == db_size::Tiny)
+                playersFile = L"fm_players_tiny";
+            else if (playersCount == db_size::Small)
+                playersFile = L"fm_players_small";
+            else if (playersCount == db_size::Average)
+                playersFile = L"fm_players_average";
             else
-                reader.ReadLineWithSeparator(L'\t', p.mID, p.mFirstName, p.mSecondName, p.mCommonName, p.mFullName, p.mEthnicity, p.mHairColour, p.mHairLength, p.mSkinTone, p.mDateOfBirth, IntPtr(p.mNation), IntPtr(p.mLanguage), p.mAgent, p.mDeclaredForNation, p.mInternationalRetirement, p.mInternationalRetirementDate, p.mInternationalApps, p.mInternationalGoals, p.mAdaptability, p.mAmbition, p.mControversy, p.mLoyalty, p.mPressure, p.mProfessionalism, p.mSportsmanship, p.mTemperament, p.mShirtName, p.mCurrentAbility, p.mRecommendedCurrentAbility, p.mPotentialAbility, p.mOriginalCA, p.mOriginalPA, p.mCurrentReputation, p.mHomeReputation, p.mWorldReputation, p.mHeight, p.mWeight, p.mLeftFoot, p.mRightFoot, p.mPosition, p.mGoalkeeper, p.mDefenderLeft, p.mDefenderCentral, p.mDefenderRight, p.mDefensiveMidfielder, p.mWingBackLeft, p.mWingBackRight, p.mMidfielderLeft, p.mMidfielderCentral, p.mMidfielderRight, p.mAttackingMidfielderLeft, p.mAttackingMidfielderCentral, p.mAttackingMidfielderRight, p.mStriker, p.mAggression, p.mAnticipation, p.mBravery, p.mComposure, p.mConcentration, p.mConsistency, p.mVision, p.mDecisions, p.mDetermination, p.mDirtiness, p.mFlair, p.mImportantMatches, p.mLeadership, p.mMovement, p.mPositioning, p.mTeamWork, p.mWorkRate, p.mAcceleration, p.mAgility, p.mBalance, p.mInjuryProneness, p.mJumpingReach, p.mNaturalFitness, p.mPace, p.mStamina, p.mStrength, p.mCorners, p.mCrossing, p.mDribbling, p.mFinishing, p.mFirstTouch, p.mFreeKicks, p.mHeading, p.mLongShots, p.mLongThrows, p.mMarking, p.mPassing, p.mPenaltyTaking, p.mTackling, p.mTechnique, p.mVersatility, p.mAerialAbility, p.mCommandOfArea, p.mCommunication, p.mEccentricity, p.mHandling, p.mKicking, p.mOneOnOnes, p.mReflexes, p.mRushingOut, p.mTendencyToPunch, p.mThrowing, p.mRunsWithBallDownLeft, p.mRunsWithBallDownRight, p.mRunsWithBallThroughTheCentre, p.mGetsIntoOppositionArea, p.mMovesIntoChannels, p.mGetsForwardWheneverPossible, p.mPlaysShortSimplePasses, p.mTriesKillerBallsOften, p.mShootsFromDistance, p.mShootsWithPower, p.mPlacesShots, p.mCurlsBall, p.mLikesToRoundKeeper, p.mLikesToTryToBreakOffsideTrap, p.mArguesWithOfficials, p.mLikesToLobKeeper, p.mPlaysNoThroughBalls, p.mDwellsOnBall, p.mArrivesLateInOppositionArea, p.mTriesToPlayWayOutOfTrouble, p.mStaysBackAtAllTimes, p.mDivesIntoTackles, p.mDoesNotDiveIntoTackles, p.mHitsFreekicksWithPower, p.mRunsWithBallOften, p.mRunsWithBallRarely, p.mAvoidsUsingWeakerFoot, p.mTriesLongRangeFreeKicks, p.mCutsInsideFromBothWings, p.mPlaysOneTwos, p.mDictatesTempo, p.mAttemptsOverheadKicks, p.mKnocksBallPastOpponent, p.mTriesLongRangePasses, p.mLikesToSwitchBallToOtherFlank, p.mComesDeepToGetBall, p.mHugsLine, p.mLooksForPassRatherThanAttemptingToScore, p.mMarksOpponentTightly, p.mPlaysWithBackToGoal, p.mPossessesLongFlatThrow, p.mStopsPlay, p.mTriesFirstTimeShots, p.mUsesLongThrowToStartCounterAttacks, p.mRefrainsFromTakingLongShots, p.mPenaltyBoxPlayer, p.mCutsInsideFromLeftWing, p.mCutsInsideFromRightWing, p.mCrossesEarly, p.mBringBallOutofDefence, p.mIsBasque);
-            if (p.mOriginalCA > 0) // skip unknown players
-                mPlayers[p.mID] = p;
-            playerCounter++;
-            if ((playerCounter % 1000) == 0)
-                std::wcout << playerCounter << L"...";
-        });
-        if (playerCounter >= 1000)
-            std::wcout << std::endl;
-        ReaderCallback(L"fm_player_club_contracts", [&](FifamReader &reader) {
-            Int playerID = -1;
-            player::contract c;
-            reader.ReadLine(playerID, IntPtr(c.mClub), c.mJob, c.mSecondaryJob, c.mDateJoined, c.mContractExpires, c.mContractType, c.mWage, c.mOnRollingContract, c.mSquadNumber, c.mPreferredSquadNumber, c.mAppearanceFee, c.mGoalBonus, c.mCleanSheetBonus, c.mInternationalCapBonus, c.mYearlyWageRise, c.mPromotionWageRise, c.mRelegationWageDrop, c.mOneYearExtensionAfterLeagueGamesFinalSeason, c.mOptionalContractExtensionByClub, c.mMatchHighestEarnerClause, c.mWillLeaveAtEndOfContract, c.mMinimumFeeReleaseClause, c.mMinimumFeeReleaseClauseExpiryDate, c.mSellOnFeePercentage);
-            if (playerID != -1 && c.mClub != (club *)-1)
-                map_find(mPlayers, playerID).mContract = c;
-        });
-        for (UInt i = 0; i < 5; i++) {
-            ReaderCallback(Utils::Format(L"fm_player_playing_history_%d_%d", i * 100'000, (i + 1) * 100'000), [&](FifamReader &reader) {
+                playersFile = L"fm_players";
+            UInt playerCounter = 0;
+            ReaderCallback(playersFile, [&](FifamReader &reader) {
+                player p;
+                if (playersCount == db_size::Full)
+                    reader.ReadLine(p.mID, p.mFirstName, p.mSecondName, p.mCommonName, p.mFullName, p.mEthnicity, p.mHairColour, p.mHairLength, p.mSkinTone, p.mDateOfBirth, IntPtr(p.mNation), IntPtr(p.mLanguage), p.mAgent, p.mDeclaredForNation, p.mInternationalRetirement, p.mInternationalRetirementDate, p.mInternationalApps, p.mInternationalGoals, p.mAdaptability, p.mAmbition, p.mControversy, p.mLoyalty, p.mPressure, p.mProfessionalism, p.mSportsmanship, p.mTemperament, p.mShirtName, p.mCurrentAbility, p.mRecommendedCurrentAbility, p.mPotentialAbility, p.mOriginalCA, p.mOriginalPA, p.mCurrentReputation, p.mHomeReputation, p.mWorldReputation, p.mHeight, p.mWeight, p.mLeftFoot, p.mRightFoot, p.mPosition, p.mGoalkeeper, p.mDefenderLeft, p.mDefenderCentral, p.mDefenderRight, p.mDefensiveMidfielder, p.mWingBackLeft, p.mWingBackRight, p.mMidfielderLeft, p.mMidfielderCentral, p.mMidfielderRight, p.mAttackingMidfielderLeft, p.mAttackingMidfielderCentral, p.mAttackingMidfielderRight, p.mStriker, p.mAggression, p.mAnticipation, p.mBravery, p.mComposure, p.mConcentration, p.mConsistency, p.mVision, p.mDecisions, p.mDetermination, p.mDirtiness, p.mFlair, p.mImportantMatches, p.mLeadership, p.mMovement, p.mPositioning, p.mTeamWork, p.mWorkRate, p.mAcceleration, p.mAgility, p.mBalance, p.mInjuryProneness, p.mJumpingReach, p.mNaturalFitness, p.mPace, p.mStamina, p.mStrength, p.mCorners, p.mCrossing, p.mDribbling, p.mFinishing, p.mFirstTouch, p.mFreeKicks, p.mHeading, p.mLongShots, p.mLongThrows, p.mMarking, p.mPassing, p.mPenaltyTaking, p.mTackling, p.mTechnique, p.mVersatility, p.mAerialAbility, p.mCommandOfArea, p.mCommunication, p.mEccentricity, p.mHandling, p.mKicking, p.mOneOnOnes, p.mReflexes, p.mRushingOut, p.mTendencyToPunch, p.mThrowing, p.mRunsWithBallDownLeft, p.mRunsWithBallDownRight, p.mRunsWithBallThroughTheCentre, p.mGetsIntoOppositionArea, p.mMovesIntoChannels, p.mGetsForwardWheneverPossible, p.mPlaysShortSimplePasses, p.mTriesKillerBallsOften, p.mShootsFromDistance, p.mShootsWithPower, p.mPlacesShots, p.mCurlsBall, p.mLikesToRoundKeeper, p.mLikesToTryToBreakOffsideTrap, p.mArguesWithOfficials, p.mLikesToLobKeeper, p.mPlaysNoThroughBalls, p.mDwellsOnBall, p.mArrivesLateInOppositionArea, p.mTriesToPlayWayOutOfTrouble, p.mStaysBackAtAllTimes, p.mDivesIntoTackles, p.mDoesNotDiveIntoTackles, p.mHitsFreekicksWithPower, p.mRunsWithBallOften, p.mRunsWithBallRarely, p.mAvoidsUsingWeakerFoot, p.mTriesLongRangeFreeKicks, p.mCutsInsideFromBothWings, p.mPlaysOneTwos, p.mDictatesTempo, p.mAttemptsOverheadKicks, p.mKnocksBallPastOpponent, p.mTriesLongRangePasses, p.mLikesToSwitchBallToOtherFlank, p.mComesDeepToGetBall, p.mHugsLine, p.mLooksForPassRatherThanAttemptingToScore, p.mMarksOpponentTightly, p.mPlaysWithBackToGoal, p.mPossessesLongFlatThrow, p.mStopsPlay, p.mTriesFirstTimeShots, p.mUsesLongThrowToStartCounterAttacks, p.mRefrainsFromTakingLongShots, p.mPenaltyBoxPlayer, p.mCutsInsideFromLeftWing, p.mCutsInsideFromRightWing, p.mCrossesEarly, p.mBringBallOutofDefence, p.mIsBasque);
+                else
+                    reader.ReadLineWithSeparator(L'\t', p.mID, p.mFirstName, p.mSecondName, p.mCommonName, p.mFullName, p.mEthnicity, p.mHairColour, p.mHairLength, p.mSkinTone, p.mDateOfBirth, IntPtr(p.mNation), IntPtr(p.mLanguage), p.mAgent, p.mDeclaredForNation, p.mInternationalRetirement, p.mInternationalRetirementDate, p.mInternationalApps, p.mInternationalGoals, p.mAdaptability, p.mAmbition, p.mControversy, p.mLoyalty, p.mPressure, p.mProfessionalism, p.mSportsmanship, p.mTemperament, p.mShirtName, p.mCurrentAbility, p.mRecommendedCurrentAbility, p.mPotentialAbility, p.mOriginalCA, p.mOriginalPA, p.mCurrentReputation, p.mHomeReputation, p.mWorldReputation, p.mHeight, p.mWeight, p.mLeftFoot, p.mRightFoot, p.mPosition, p.mGoalkeeper, p.mDefenderLeft, p.mDefenderCentral, p.mDefenderRight, p.mDefensiveMidfielder, p.mWingBackLeft, p.mWingBackRight, p.mMidfielderLeft, p.mMidfielderCentral, p.mMidfielderRight, p.mAttackingMidfielderLeft, p.mAttackingMidfielderCentral, p.mAttackingMidfielderRight, p.mStriker, p.mAggression, p.mAnticipation, p.mBravery, p.mComposure, p.mConcentration, p.mConsistency, p.mVision, p.mDecisions, p.mDetermination, p.mDirtiness, p.mFlair, p.mImportantMatches, p.mLeadership, p.mMovement, p.mPositioning, p.mTeamWork, p.mWorkRate, p.mAcceleration, p.mAgility, p.mBalance, p.mInjuryProneness, p.mJumpingReach, p.mNaturalFitness, p.mPace, p.mStamina, p.mStrength, p.mCorners, p.mCrossing, p.mDribbling, p.mFinishing, p.mFirstTouch, p.mFreeKicks, p.mHeading, p.mLongShots, p.mLongThrows, p.mMarking, p.mPassing, p.mPenaltyTaking, p.mTackling, p.mTechnique, p.mVersatility, p.mAerialAbility, p.mCommandOfArea, p.mCommunication, p.mEccentricity, p.mHandling, p.mKicking, p.mOneOnOnes, p.mReflexes, p.mRushingOut, p.mTendencyToPunch, p.mThrowing, p.mRunsWithBallDownLeft, p.mRunsWithBallDownRight, p.mRunsWithBallThroughTheCentre, p.mGetsIntoOppositionArea, p.mMovesIntoChannels, p.mGetsForwardWheneverPossible, p.mPlaysShortSimplePasses, p.mTriesKillerBallsOften, p.mShootsFromDistance, p.mShootsWithPower, p.mPlacesShots, p.mCurlsBall, p.mLikesToRoundKeeper, p.mLikesToTryToBreakOffsideTrap, p.mArguesWithOfficials, p.mLikesToLobKeeper, p.mPlaysNoThroughBalls, p.mDwellsOnBall, p.mArrivesLateInOppositionArea, p.mTriesToPlayWayOutOfTrouble, p.mStaysBackAtAllTimes, p.mDivesIntoTackles, p.mDoesNotDiveIntoTackles, p.mHitsFreekicksWithPower, p.mRunsWithBallOften, p.mRunsWithBallRarely, p.mAvoidsUsingWeakerFoot, p.mTriesLongRangeFreeKicks, p.mCutsInsideFromBothWings, p.mPlaysOneTwos, p.mDictatesTempo, p.mAttemptsOverheadKicks, p.mKnocksBallPastOpponent, p.mTriesLongRangePasses, p.mLikesToSwitchBallToOtherFlank, p.mComesDeepToGetBall, p.mHugsLine, p.mLooksForPassRatherThanAttemptingToScore, p.mMarksOpponentTightly, p.mPlaysWithBackToGoal, p.mPossessesLongFlatThrow, p.mStopsPlay, p.mTriesFirstTimeShots, p.mUsesLongThrowToStartCounterAttacks, p.mRefrainsFromTakingLongShots, p.mPenaltyBoxPlayer, p.mCutsInsideFromLeftWing, p.mCutsInsideFromRightWing, p.mCrossesEarly, p.mBringBallOutofDefence, p.mIsBasque);
+                if (p.mOriginalCA > 0) // skip unknown players
+                    mPlayers[p.mID] = p;
+                playerCounter++;
+                if ((playerCounter % 1000) == 0)
+                    std::wcout << playerCounter << L"...";
+            });
+            if (playerCounter >= 1000)
+                std::wcout << std::endl;
+            ReaderCallback(L"fm_player_club_contracts", [&](FifamReader &reader) {
                 Int playerID = -1;
-                player::playing_history h;
-                reader.ReadLine(playerID, h.mYear, h.mOrder, IntPtr(h.mClub), IntPtr(h.mDivision), h.mOnLoan, h.mYouthTeam, h.mApps, h.mGoals, h.mTransferFee);
-                map_find(mPlayers, playerID).mVecPlayingHistory.push_back(h);
+                player::contract c;
+                reader.ReadLine(playerID, IntPtr(c.mClub), c.mJob, c.mSecondaryJob, c.mDateJoined, c.mContractExpires, c.mContractType, c.mWage, c.mOnRollingContract, c.mSquadNumber, c.mPreferredSquadNumber, c.mAppearanceFee, c.mGoalBonus, c.mCleanSheetBonus, c.mInternationalCapBonus, c.mYearlyWageRise, c.mPromotionWageRise, c.mRelegationWageDrop, c.mOneYearExtensionAfterLeagueGamesFinalSeason, c.mOptionalContractExtensionByClub, c.mMatchHighestEarnerClause, c.mWillLeaveAtEndOfContract, c.mMinimumFeeReleaseClause, c.mMinimumFeeReleaseClauseExpiryDate, c.mSellOnFeePercentage);
+                if (playerID != -1 && c.mClub != (club *)-1)
+                    map_find(mPlayers, playerID).mContract = c;
+            });
+            for (UInt i = 0; i < 5; i++) {
+                ReaderCallback(Utils::Format(L"fm_player_playing_history_%d_%d", i * 100'000, (i + 1) * 100'000), [&](FifamReader &reader) {
+                    Int playerID = -1;
+                    player::playing_history h;
+                    reader.ReadLine(playerID, h.mYear, h.mOrder, IntPtr(h.mClub), IntPtr(h.mDivision), h.mOnLoan, h.mYouthTeam, h.mApps, h.mGoals, h.mTransferFee);
+                    map_find(mPlayers, playerID).mVecPlayingHistory.push_back(h);
+                });
+            }
+            ReaderCallback(L"fm_player_languages", [&](FifamReader &reader) {
+                Int playerID = -1;
+                player::language l;
+                reader.ReadLine(playerID, IntPtr(l.mLanguage), l.mProficiency, l.mCannotSpeakLanguage);
+                map_find(mPlayers, playerID).mVecLanguages.push_back(l);
+            });
+            ReaderCallback(L"fm_player_second_nations", [&](FifamReader &reader) {
+                Int playerID = -1;
+                nation *nation = nullptr;
+                reader.ReadLine(playerID, IntPtr(nation));
+                map_find(mPlayers, playerID).mVecSecondNations.push_back(nation);
+            });
+            ReaderCallback(L"fm_player_favourite_clubs", [&](FifamReader &reader) {
+                Int playerID = -1;
+                player::favourite_club f;
+                reader.ReadLine(playerID, IntPtr(f.mClub), f.mReason, f.mLevel);
+                map_find(mPlayers, playerID).mVecFavouriteClubs.push_back(f);
+            });
+            ReaderCallback(L"fm_player_disliked_clubs", [&](FifamReader &reader) {
+                Int playerID = -1;
+                player::disliked_club d;
+                reader.ReadLine(playerID, IntPtr(d.mClub), d.mLevel);
+                map_find(mPlayers, playerID).mVecDislikedClubs.push_back(d);
+            });
+            ReaderCallback(L"fm_player_favourite_people", [&](FifamReader &reader) {
+                Int playerID = -1;
+                player::favourite_people f;
+                reader.ReadLine(playerID, IntPtr(f.mPerson), f.mLevel, f.mReason, f.mPermanent);
+                map_find(mPlayers, playerID).mVecFavouritePeople.push_back(f);
+            });
+            ReaderCallback(L"fm_player_bans", [&](FifamReader &reader) {
+                Int playerID = -1;
+                player::ban b;
+                reader.ReadLine(playerID, b.mBanType, b.mStartDate, b.mEndDate, b.mNumberMatches);
+                map_find(mPlayers, playerID).mVecBans.push_back(b);
+            });
+            for (UInt i = 0; i < 5; i++) {
+                ReaderCallback(Utils::Format(L"fm_player_retirements_%d_%d", i * 100'000, (i + 1) * 100'000), [&](FifamReader &reader) {
+                    Int playerID = -1;
+                    player::retirement r;
+                    reader.ReadLine(playerID, r.mType, r.mDate);
+                    map_find(mPlayers, playerID).mVecRetirements.push_back(r);
+                });
+            }
+            ReaderCallback(L"fm_player_injuries", [&](FifamReader &reader) {
+                Int playerID = -1;
+                player::injury i;
+                reader.ReadLine(playerID, IntPtr(i.mInjury), i.mStartDate, i.mEndDate, i.mFuture, i.mPermanent, i.mSeverity);
+                map_find(mPlayers, playerID).mVecInjuries.push_back(i);
+            });
+            ReaderCallback(L"fm_player_loans", [&](FifamReader &reader) {
+                Int playerID = -1;
+                player::loan l;
+                reader.ReadLine(playerID, IntPtr(l.mClub), l.mStartDate, l.mEndDate, l.mSquadNumber, l.mWage, l.mMonthlyFee, l.mFeeToBuy);
+                map_find(mPlayers, playerID).mLoan = l;
+            });
+            ReaderCallback(L"fm_player_future_transfers", [&](FifamReader &reader) {
+                Int playerID = -1;
+                player::future_transfer f;
+                reader.ReadLine(playerID, IntPtr(f.mClub), f.mTransferDate, f.mContractEndDate, f.mTransferFee, f.mNewJob);
+                map_find(mPlayers, playerID).mFutureTransfer = f;
+            });
+            // read non players
+            ReaderCallback(L"fm_non_players", [&](FifamReader &reader) {
+                non_player n;
+                reader.ReadLine(n.mID, n.mFirstName, n.mSecondName, n.mCommonName, n.mFullName, n.mFemale, n.mDateOfBirth, IntPtr(n.mNation), IntPtr(n.mLanguage), n.mAdaptability, n.mAmbition, n.mControversy, n.mLoyalty, n.mPressure, n.mProfessionalism, n.mSportsmanship, n.mTemperament, n.mJobManager, n.mJobAssistantManager, n.mJobCoach, n.mJobFitnessCoach, n.mJobGkCoach, n.mJobPhysio, n.mJobScout, n.mJobDataAnalyst, n.mJobSportsScientist, n.mJobDirectorOfFootball, n.mJobHeadOfYouth, n.mJobChairman, n.mCurrentAbility, n.mPotentialAbility, n.mOriginalCA, n.mOriginalPA, n.mCurrentReputation, n.mWorldReputation, n.mHomeReputation, n.mPreferredFormation, n.mSecondPreferredFormation, n.mCoachingStyle, n.mAttacking, n.mDetermination, n.mTacticalKnowledge, n.mBuyingPlayers, n.mHardnessOfTraining, n.mJudgingPlayerAbility, n.mJudgingPlayerPotential, n.mJudgingPlayerData, n.mJudgingTeamData, n.mPresentingData, n.mLevelOfDiscipline, n.mManManagement, n.mMindGames, n.mMotivating, n.mVersatility, n.mSquadRotation, n.mWorkingWithYoungsters, n.mCoachingAttacking, n.mCoachingDefending, n.mCoachingFitness, n.mCoachingGKDistribution, n.mCoachingGKHandling, n.mCoachingGKShotStopping, n.mCoachingMental, n.mCoachingTactical, n.mCoachingTechnical, n.mBusiness, n.mInterference, n.mPatience, n.mResources, n.mPhysiotherapy, n.mSportsScience, n.mSignsALotOfYouthPlayers, n.mSignsYoungPlayersForTheFirstTeam, n.mWillMakeEarlyTacticalChanges, n.mWillFitPlayersIntoPreferredTactic, n.mExpectAttackingFootball, n.mExpectYoungSigningsForTheFirstTeam, n.mWillLookToPlayOutOfDefence);
+                mNonPlayers[n.mID] = n;
+            });
+            ReaderCallback(L"fm_nonplayer_languages", [&](FifamReader &reader) {
+                Int nonplayerID = -1;
+                non_player::language l;
+                reader.ReadLine(nonplayerID, IntPtr(l.mLanguage), l.mProficiency, l.mCannotSpeakLanguage);
+                map_find(mNonPlayers, nonplayerID).mVecLanguages.push_back(l);
+            });
+            ReaderCallback(L"fm_nonplayer_second_nations", [&](FifamReader &reader) {
+                Int nonplayerID = -1;
+                nation *nation = nullptr;
+                reader.ReadLine(nonplayerID, IntPtr(nation));
+                map_find(mNonPlayers, nonplayerID).mVecSecondNations.push_back(nation);
+            });
+            ReaderCallback(L"fm_nonplayer_favourite_clubs", [&](FifamReader &reader) {
+                Int nonplayerID = -1;
+                non_player::favourite_club f;
+                reader.ReadLine(nonplayerID, IntPtr(f.mClub), f.mReason, f.mLevel);
+                map_find(mNonPlayers, nonplayerID).mVecFavouriteClubs.push_back(f);
+            });
+            ReaderCallback(L"fm_nonplayer_disliked_clubs", [&](FifamReader &reader) {
+                Int nonplayerID = -1;
+                non_player::disliked_club d;
+                reader.ReadLine(nonplayerID, IntPtr(d.mClub), d.mLevel);
+                map_find(mNonPlayers, nonplayerID).mVecDislikedClubs.push_back(d);
+            });
+            ReaderCallback(L"fm_nonplayer_club_contracts", [&](FifamReader &reader) {
+                Int nonplayerID = -1;
+                non_player::club_contract c;
+                reader.ReadLine(nonplayerID, IntPtr(c.mClub), c.mJob, c.mSecondaryJob, c.mDateJoined, c.mContractExpires, c.mContractType, c.mOnRollingContract);
+                if (nonplayerID != -1 && c.mClub != (club *)-1)
+                    map_find(mNonPlayers, nonplayerID).mClubContract = c;
+            });
+            ReaderCallback(L"fm_nonplayer_nation_contracts", [&](FifamReader &reader) {
+                Int nonplayerID = -1;
+                non_player::nation_contract c;
+                reader.ReadLine(nonplayerID, IntPtr(c.mNation), c.mJob, c.mDateJoined, c.mContractExpires);
+                if (nonplayerID != -1 && c.mNation != (nation *)-1)
+                    map_find(mNonPlayers, nonplayerID).mNationContract = c;
+            });
+            // read officials
+            ReaderCallback(L"fm_officials", [&](FifamReader &reader) {
+                official o;
+                reader.ReadLine(o.mID, o.mFirstName, o.mSecondName, o.mCommonName, o.mFullName, o.mFemale, IntPtr(o.mNation), o.mCurrentAbility, o.mPotentialAbility, o.mReputation, o.mUEFACategory, o.mFIFACategory, o.mContinentalOfficial, o.mAllowingFlow, o.mDiscipline, o.mImportantMatches, o.mPressure, o.mRefereeing, o.mRunningLine, o.mTimeKeeping);
+                mOfficials[o.mID] = o;
             });
         }
-        ReaderCallback(L"fm_player_languages", [&](FifamReader &reader) {
-            Int playerID = -1;
-            player::language l;
-            reader.ReadLine(playerID, IntPtr(l.mLanguage), l.mProficiency, l.mCannotSpeakLanguage);
-            map_find(mPlayers, playerID).mVecLanguages.push_back(l);
-        });
-        ReaderCallback(L"fm_player_second_nations", [&](FifamReader &reader) {
-            Int playerID = -1;
-            nation *nation = nullptr;
-            reader.ReadLine(playerID, IntPtr(nation));
-            map_find(mPlayers, playerID).mVecSecondNations.push_back(nation);
-        });
-        ReaderCallback(L"fm_player_favourite_clubs", [&](FifamReader &reader) {
-            Int playerID = -1;
-            player::favourite_club f;
-            reader.ReadLine(playerID, IntPtr(f.mClub), f.mReason, f.mLevel);
-            map_find(mPlayers, playerID).mVecFavouriteClubs.push_back(f);
-        });
-        ReaderCallback(L"fm_player_disliked_clubs", [&](FifamReader &reader) {
-            Int playerID = -1;
-            player::disliked_club d;
-            reader.ReadLine(playerID, IntPtr(d.mClub), d.mLevel);
-            map_find(mPlayers, playerID).mVecDislikedClubs.push_back(d);
-        });
-        ReaderCallback(L"fm_player_favourite_people", [&](FifamReader &reader) {
-            Int playerID = -1;
-            player::favourite_people f;
-            reader.ReadLine(playerID, IntPtr(f.mPerson), f.mLevel, f.mReason, f.mPermanent);
-            map_find(mPlayers, playerID).mVecFavouritePeople.push_back(f);
-        });
-        ReaderCallback(L"fm_player_bans", [&](FifamReader &reader) {
-            Int playerID = -1;
-            player::ban b;
-            reader.ReadLine(playerID, b.mBanType, b.mStartDate, b.mEndDate, b.mNumberMatches);
-            map_find(mPlayers, playerID).mVecBans.push_back(b);
-        });
-        for (UInt i = 0; i < 5; i++) {
-            ReaderCallback(Utils::Format(L"fm_player_retirements_%d_%d", i * 100'000, (i + 1) * 100'000), [&](FifamReader &reader) {
-                Int playerID = -1;
-                player::retirement r;
-                reader.ReadLine(playerID, r.mType, r.mDate);
-                map_find(mPlayers, playerID).mVecRetirements.push_back(r);
-            });
-        }
-        ReaderCallback(L"fm_player_injuries", [&](FifamReader &reader) {
-            Int playerID = -1;
-            player::injury i;
-            reader.ReadLine(playerID, IntPtr(i.mInjury), i.mStartDate, i.mEndDate, i.mFuture, i.mPermanent, i.mSeverity);
-            map_find(mPlayers, playerID).mVecInjuries.push_back(i);
-        });
-        ReaderCallback(L"fm_player_loans", [&](FifamReader &reader) {
-            Int playerID = -1;
-            player::loan l;
-            reader.ReadLine(playerID, IntPtr(l.mClub), l.mStartDate, l.mEndDate, l.mSquadNumber, l.mWage, l.mMonthlyFee, l.mFeeToBuy);
-            map_find(mPlayers, playerID).mLoan = l;
-        });
-        ReaderCallback(L"fm_player_future_transfers", [&](FifamReader &reader) {
-            Int playerID = -1;
-            player::future_transfer f;
-            reader.ReadLine(playerID, IntPtr(f.mClub), f.mTransferDate, f.mContractEndDate, f.mTransferFee, f.mNewJob);
-            map_find(mPlayers, playerID).mFutureTransfer = f;
-        });
-        // read non players
-        ReaderCallback(L"fm_non_players", [&](FifamReader &reader) {
-            non_player n;
-            reader.ReadLine(n.mID, n.mFirstName, n.mSecondName, n.mCommonName, n.mFullName, n.mFemale, n.mDateOfBirth, IntPtr(n.mNation), IntPtr(n.mLanguage), n.mAdaptability, n.mAmbition, n.mControversy, n.mLoyalty, n.mPressure, n.mProfessionalism, n.mSportsmanship, n.mTemperament, n.mJobManager, n.mJobAssistantManager, n.mJobCoach, n.mJobFitnessCoach, n.mJobGkCoach, n.mJobPhysio, n.mJobScout, n.mJobDataAnalyst, n.mJobSportsScientist, n.mJobDirectorOfFootball, n.mJobHeadOfYouth, n.mJobChairman, n.mCurrentAbility, n.mPotentialAbility, n.mOriginalCA, n.mOriginalPA, n.mCurrentReputation, n.mWorldReputation, n.mHomeReputation, n.mPreferredFormation, n.mSecondPreferredFormation, n.mCoachingStyle, n.mAttacking, n.mDetermination, n.mTacticalKnowledge, n.mBuyingPlayers, n.mHardnessOfTraining, n.mJudgingPlayerAbility, n.mJudgingPlayerPotential, n.mJudgingPlayerData, n.mJudgingTeamData, n.mPresentingData, n.mLevelOfDiscipline, n.mManManagement, n.mMindGames, n.mMotivating, n.mVersatility, n.mSquadRotation, n.mWorkingWithYoungsters, n.mCoachingAttacking, n.mCoachingDefending, n.mCoachingFitness, n.mCoachingGKDistribution, n.mCoachingGKHandling, n.mCoachingGKShotStopping, n.mCoachingMental, n.mCoachingTactical, n.mCoachingTechnical, n.mBusiness, n.mInterference, n.mPatience, n.mResources, n.mPhysiotherapy, n.mSportsScience, n.mSignsALotOfYouthPlayers, n.mSignsYoungPlayersForTheFirstTeam, n.mWillMakeEarlyTacticalChanges, n.mWillFitPlayersIntoPreferredTactic, n.mExpectAttackingFootball, n.mExpectYoungSigningsForTheFirstTeam, n.mWillLookToPlayOutOfDefence);
-            mNonPlayers[n.mID] = n;
-        });
-        ReaderCallback(L"fm_nonplayer_languages", [&](FifamReader &reader) {
-            Int nonplayerID = -1;
-            non_player::language l;
-            reader.ReadLine(nonplayerID, IntPtr(l.mLanguage), l.mProficiency, l.mCannotSpeakLanguage);
-            map_find(mNonPlayers, nonplayerID).mVecLanguages.push_back(l);
-        });
-        ReaderCallback(L"fm_nonplayer_second_nations", [&](FifamReader &reader) {
-            Int nonplayerID = -1;
-            nation *nation = nullptr;
-            reader.ReadLine(nonplayerID, IntPtr(nation));
-            map_find(mNonPlayers, nonplayerID).mVecSecondNations.push_back(nation);
-        });
-        ReaderCallback(L"fm_nonplayer_favourite_clubs", [&](FifamReader &reader) {
-            Int nonplayerID = -1;
-            non_player::favourite_club f;
-            reader.ReadLine(nonplayerID, IntPtr(f.mClub), f.mReason, f.mLevel);
-            map_find(mNonPlayers, nonplayerID).mVecFavouriteClubs.push_back(f);
-        });
-        ReaderCallback(L"fm_nonplayer_disliked_clubs", [&](FifamReader &reader) {
-            Int nonplayerID = -1;
-            non_player::disliked_club d;
-            reader.ReadLine(nonplayerID, IntPtr(d.mClub), d.mLevel);
-            map_find(mNonPlayers, nonplayerID).mVecDislikedClubs.push_back(d);
-        });
-        ReaderCallback(L"fm_nonplayer_club_contracts", [&](FifamReader &reader) {
-            Int nonplayerID = -1;
-            non_player::club_contract c;
-            reader.ReadLine(nonplayerID, IntPtr(c.mClub), c.mJob, c.mSecondaryJob, c.mDateJoined, c.mContractExpires, c.mContractType, c.mOnRollingContract);
-            if (nonplayerID != -1 && c.mClub != (club *)-1)
-                map_find(mNonPlayers, nonplayerID).mClubContract = c;
-        });
-        ReaderCallback(L"fm_nonplayer_nation_contracts", [&](FifamReader &reader) {
-            Int nonplayerID = -1;
-            non_player::nation_contract c;
-            reader.ReadLine(nonplayerID, IntPtr(c.mNation), c.mJob, c.mDateJoined, c.mContractExpires);
-            if (nonplayerID != -1 && c.mNation != (nation *)-1)
-                map_find(mNonPlayers, nonplayerID).mNationContract = c;
-        });
-    #endif
-        // read officials
-        ReaderCallback(L"fm_officials", [&](FifamReader &reader) {
-            official o;
-            reader.ReadLine(o.mID, o.mFirstName, o.mSecondName, o.mCommonName, o.mFullName, o.mFemale, IntPtr(o.mNation), o.mCurrentAbility, o.mPotentialAbility, o.mReputation, o.mUEFACategory, o.mFIFACategory, o.mContinentalOfficial, o.mAllowingFlow, o.mDiscipline, o.mImportantMatches, o.mPressure, o.mRefereeing, o.mRunningLine, o.mTimeKeeping);
-            mOfficials[o.mID] = o;
-        });
         // read regions
         ReaderCallback(L"fm_regions", [&](FifamReader &reader) {
             region r;

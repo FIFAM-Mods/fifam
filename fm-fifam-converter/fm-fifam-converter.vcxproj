@@ -92,6 +92,7 @@
   <ItemGroup>
     <ClCompile Include="AppearanceGenerator.cpp" />
     <ClCompile Include="Converter.cpp" />
+    <ClCompile Include="FifaConverter.cpp" />
     <ClCompile Include="GraphicsConverter.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
@@ -99,6 +100,7 @@
     <ClInclude Include="AppearanceGenerator.h" />
     <ClInclude Include="Converter.h" />
     <ClInclude Include="ConverterUtil.h" />
+    <ClInclude Include="FifaConverter.h" />
     <ClInclude Include="GraphicsConverter.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

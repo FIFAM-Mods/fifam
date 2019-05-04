@@ -89,6 +89,7 @@
     <ClCompile Include="FifaDatabase.cpp" />
     <ClCompile Include="FifaDataFile.cpp" />
     <ClCompile Include="FifaDate.cpp" />
+    <ClCompile Include="FifaKit.cpp" />
     <ClCompile Include="FifaLeague.cpp" />
     <ClCompile Include="FifaManager.cpp" />
     <ClCompile Include="FifaPlayer.cpp" />
@@ -101,6 +102,7 @@
     <ClInclude Include="FifaDatabase.h" />
     <ClInclude Include="FifaDataFile.h" />
     <ClInclude Include="FifaDate.h" />
+    <ClInclude Include="FifaKit.h" />
     <ClInclude Include="FifaLeague.h" />
     <ClInclude Include="FifaManager.h" />
     <ClInclude Include="FifaPlayer.h" />

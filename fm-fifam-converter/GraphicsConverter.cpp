@@ -5,6 +5,7 @@
 using namespace Magick;
 
 const wchar_t *countryLeagueNames[208] = { L"Germany",L"Albanien",L"Andorra",L"Armenien",L"Austria",L"Aserbaidschan",L"Belarus",L"Belgium",L"Bosnienherzegowina",L"Bulgarien",L"Kroatien",L"Zypern",L"Tschechien",L"Denmark",L"England",L"Estland",L"Faroeislands",L"Finnland",L"France",L"Mazedonien",L"Georgien",L"Germany",L"Griechenland",L"Ungarn",L"Island",L"Ireland",L"Israel",L"Italy",L"Latvia",L"Liechtenstein",L"Lithuania",L"Luxemburg",L"Malta",L"Moldawien",L"Netherland",L"Nordirland",L"Norway",L"Polen",L"Portugal",L"Rumaenien",L"Russland",L"Sanmarino",L"Scotland",L"Slowakei",L"Slowenien",L"Spain",L"Sweden",L"Switzerland",L"Tuerkei",L"Ukraine",L"Wales",L"Serbia",L"Argentinien",L"Bolivien",L"Brazil",L"Chile",L"Kolumbien",L"Ecuador",L"Paraguay",L"Peru",L"Uruguay",L"Venezuela",L"Anguilla",L"Antigua",L"Aruba",L"Bahamas",L"Barbados",L"Belize",L"Bermuda",L"Britishvirginisles",L"Kanada",L"Caymanisles-Blue",L"Costarica",L"Kuba",L"Dominica",L"Dominikanischerep",L"Elsalvador",L"Grenada",L"Guatemala",L"Guyana",L"Haiti",L"Honduras",L"Jamaika",L"Mexiko",L"Montseratsm",L"Netherlands",L"Nicaragua",L"Panama",L"Puertorico",L"Stkittsnevi",L"SaIntlucia",L"SaIntvincent",L"Surinam",L"Trinidad",L"Turks",L"Usa",L"Us-Virginis",L"Algerien",L"Angola",L"Benin",L"Botswana",L"Burkinafaso",L"Burundi",L"Kamerun",L"Kapverde",L"Centafrepublic",L"Chad",L"Kongobr",L"Cotedivoire",L"Dschibuti",L"Congo",L"Aegypten",L"Equatorialguinea",L"Eritrea",L"Ethiopia",L"Gabun",L"Gambia",L"Ghana",L"Guinea",L"Guinbissau",L"Kenia",L"Lesotho",L"Liberia",L"Libyen",L"Madagaskar",L"Malawi",L"Mali",L"Mauretanien",L"Mauritius",L"Marokko",L"Mosambik",L"Namibia",L"Niger",L"Nigeria",L"Rwanda",L"Saotome",L"Senegal",L"Seychellen",L"Sierraleone",L"Somalia",L"Suedafrika",L"Sudan",L"Swasiland",L"Tansania",L"Togo",L"Tunesien",L"Uganda",L"Sambia",L"Simbabwe",L"Afghanistan",L"Bahrain",L"Bangladesch",L"Bhutan",L"Brunei",L"Cambodia",L"China",L"Taiwan",L"Guam",L"Hongkong",L"Indien",L"Indonesien",L"Iran",L"Irak",L"Japan",L"Jordan",L"Kasachstan",L"Korea",L"Korea",L"Kuwait",L"Kyrgystan",L"Laos",L"Libanon",L"Macau",L"Malaysia",L"Maldives",L"Mongolei",L"Myanmar",L"Nepal",L"Oman",L"Pakistan",L"Palestines",L"Philippinen",L"Qatar",L"Saudiarabien",L"Singapur",L"Srilanka",L"Syrien",L"Tadschikistan",L"Thailand",L"Turkmenistan",L"Vereinigtearabischeemirate",L"Usbekistan",L"Vietnam",L"Yemen",L"Americasamoa",L"Australien",L"Cookislands",L"Fiji",L"Neuseeland",L"Papuanewguinea",L"Samoa",L"Solomon",L"Tahiti",L"Tonga",L"Vanuatu",L"Gibralter",L"Montenegro",L"Greenlands" };
+
 GraphicsConverter::GraphicsConverter() {
     InitializeMagick(NULL);
 }
@@ -764,4 +765,250 @@ void GraphicsConverter::ConvertStadiums(foom::db *db, Path const &inputPath, Pat
     //        ConvertOneStadium(stadId, fifamCountry->mNationalTeam.mUniqueID, inputImagesFolder, outputPath, country.mName, FifamTr(fifamCountry->mNationalTeam.mStadiumName), country.mReputation, writer);
     //    }
     //}
+}
+
+void WriteTextModeBadge(Image &img, Image &mask, Path const &outputPath, String const &fileName) {
+    Image tmImg = img;
+    tmImg.resize(Geometry("168x168"));
+    tmImg.extent(Geometry("114x168"), GravityType::CenterGravity);
+    tmImg.composite(mask, 0, 0, CopyAlphaCompositeOp);
+    tmImg.write(Path(outputPath / fileName).string());
+}
+
+void GraphicsConverter::ConvertClubBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId) {
+    String gameFolder = Utils::Format(L"fm%02d", gameId);
+    Path outputPath = contentPath / gameFolder / L"badges" / L"badges" / L"clubs";
+    for (auto [clubId, club] : db->mClubsMap) {
+        if (club->mFifaID != 0) {
+            Path badgePath = fifaAssetsPath / L"crest" / Utils::Format(L"%d.png", club->mFifaID);
+            if (!exists(badgePath))
+                badgePath = fifaAssetsPath / L"crest" / Utils::Format(L"l%d.dds", club->mFifaID);
+            if (exists(badgePath)) {
+                Image badgeImg(badgePath.string());
+                if (badgeImg.isValid() && badgeImg.baseRows() == 256)
+                    WriteOneBadge(badgeImg, outputPath, Utils::Format(L"%08X.tga", club->mUniqueID), gameId);
+            }
+        }
+    }
+    if (gameId <= 9) {
+        Path logoPath = fifaAssetsPath / L"league" / L"l365.dds";
+        if (exists(logoPath)) {
+            Image badgeImg(logoPath.string());
+            if (badgeImg.isValid() && badgeImg.baseRows() == 256) {
+                Path genericPath = contentPath / gameFolder / L"badges" / L"badges" / L"generic";
+                badgeImg.resize(Geometry(256, 256));
+                SafeWriteImage(badgeImg, (Path(genericPath / L"Badge256" / L"generic256.tga").string()));
+                badgeImg.resize(Geometry(128, 128));
+                SafeWriteImage(badgeImg, (Path(genericPath / L"Badge128" / L"generic128.tga").string()));
+                badgeImg.resize(Geometry(64, 64));
+                SafeWriteImage(badgeImg, (Path(genericPath / L"Badge64" / L"generic64.tga").string()));
+                badgeImg.resize(Geometry(32, 32));
+                SafeWriteImage(badgeImg, (Path(genericPath / L"Badge32" / L"generic32.tga").string()));
+            }
+        }
+    }
+}
+
+void GraphicsConverter::ConvertCompBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId) {
+    String gameFolder = Utils::Format(L"fm%02d", gameId);
+    Path outputPath = contentPath / gameFolder / L"badges" / L"badges" / L"Leagues";
+    Image tmMask(Path(contentPath / L"templates" / L"textmode_mask.png").string());
+    for (auto [compId, comp] : db->mCompMap) {
+        if (comp->GetDbType() == FifamCompDbType::League) {
+            Int logoId = -1;
+            switch (compId.mRegion.ToInt()) {
+            case FifamCompRegion::Denmark:
+                if (compId.mIndex == 0)
+                    logoId = 1;
+                break;
+            case FifamCompRegion::Belgium:
+                if (compId.mIndex == 0)
+                    logoId = 4;
+                break;
+            case FifamCompRegion::Brazil:
+                if (compId.mIndex == 0)
+                    logoId = 7;
+                break;
+            case FifamCompRegion::Netherlands:
+                if (compId.mIndex == 0)
+                    logoId = 10;
+                break;
+            case FifamCompRegion::England:
+                if (compId.mIndex == 0)
+                    logoId = 13;
+                else if (compId.mIndex == 1)
+                    logoId = 14;
+                else if (compId.mIndex == 3)
+                    logoId = 60;
+                else if (compId.mIndex == 4)
+                    logoId = 61;
+                break;
+            case FifamCompRegion::France:
+                if (compId.mIndex == 0)
+                    logoId = 16;
+                else if (compId.mIndex == 1)
+                    logoId = 17;
+                break;
+            case FifamCompRegion::Germany:
+                if (compId.mIndex == 0)
+                    logoId = 19;
+                else if (compId.mIndex == 1)
+                    logoId = 20;
+                else if (compId.mIndex == 2)
+                    logoId = 2076;
+                break;
+            case FifamCompRegion::Italy:
+                if (compId.mIndex == 0)
+                    logoId = 31;
+                else if (compId.mIndex == 1)
+                    logoId = 32;
+                break;
+            case FifamCompRegion::United_States:
+                if (compId.mIndex == 0)
+                    logoId = 39;
+                break;
+            case FifamCompRegion::Norway:
+                if (compId.mIndex == 0)
+                    logoId = 41;
+                break;
+            case FifamCompRegion::Scotland:
+                if (compId.mIndex == 0)
+                    logoId = 50;
+                break;
+            case FifamCompRegion::Spain:
+                if (compId.mIndex == 0)
+                    logoId = 53;
+                else if (compId.mIndex == 1)
+                    logoId = 54;
+                break;
+            case FifamCompRegion::Sweden:
+                if (compId.mIndex == 0)
+                    logoId = 56;
+                break;
+            case FifamCompRegion::Greece:
+                if (compId.mIndex == 0)
+                    logoId = 63;
+                break;
+            case FifamCompRegion::Ireland:
+                if (compId.mIndex == 0)
+                    logoId = 65;
+                break;
+            case FifamCompRegion::Poland:
+                if (compId.mIndex == 0)
+                    logoId = 66;
+                break;
+            case FifamCompRegion::Turkey:
+                if (compId.mIndex == 0)
+                    logoId = 68;
+                break;
+            case FifamCompRegion::Austria:
+                if (compId.mIndex == 0)
+                    logoId = 80;
+                break;
+            case FifamCompRegion::Korea_Republic:
+                if (compId.mIndex == 0)
+                    logoId = 83;
+                break;
+            case FifamCompRegion::Switzerland:
+                if (compId.mIndex == 0)
+                    logoId = 189;
+                break;
+            case FifamCompRegion::Portugal:
+                if (compId.mIndex == 0)
+                    logoId = 308;
+                break;
+            case FifamCompRegion::Croatia:
+                if (compId.mIndex == 0)
+                    logoId = 317;
+                break;
+            case FifamCompRegion::Czech_Republic:
+                if (compId.mIndex == 0)
+                    logoId = 319;
+                break;
+            case FifamCompRegion::Finland:
+                if (compId.mIndex == 0)
+                    logoId = 322;
+                break;
+            case FifamCompRegion::Ukraine:
+                if (compId.mIndex == 0)
+                    logoId = 332;
+                break;
+            case FifamCompRegion::Chile:
+                if (compId.mIndex == 0)
+                    logoId = 335;
+                break;
+            case FifamCompRegion::Colombia:
+                if (compId.mIndex == 0)
+                    logoId = 336;
+                break;
+            case FifamCompRegion::Mexico:
+                if (compId.mIndex == 0)
+                    logoId = 341;
+                break;
+            case FifamCompRegion::South_Africa:
+                if (compId.mIndex == 0)
+                    logoId = 347;
+                break;
+            case FifamCompRegion::Japan:
+                if (compId.mIndex == 0)
+                    logoId = 349;
+                break;
+            case FifamCompRegion::Saudi_Arabia:
+                if (compId.mIndex == 0)
+                    logoId = 350;
+                break;
+            case FifamCompRegion::Australia:
+                if (compId.mIndex == 0)
+                    logoId = 351;
+                break;
+            case FifamCompRegion::Argentina:
+                if (compId.mIndex == 0)
+                    logoId = 353;
+                break;
+            case FifamCompRegion::China_PR:
+                if (compId.mIndex == 0)
+                    logoId = 2012;
+                break;
+            case FifamCompRegion::Russia:
+                if (compId.mIndex == 0)
+                    logoId = 3006;
+                break;
+            }
+            if (logoId != -1) {
+                Path logoPath = fifaAssetsPath / L"league" / Utils::Format(L"%d.png", logoId);
+                if (!exists(logoPath))
+                    logoPath = fifaAssetsPath / L"league" / Utils::Format(L"l%d.dds", logoId);
+                if (exists(logoPath)) {
+                    String badgeName;
+                    if (gameId >= 10)
+                        badgeName = Utils::Format(L"%08X.tga", compId);
+                    else if (compId.mRegion.ToInt() > 0 && compId.mRegion.ToInt() <= 207)
+                        badgeName = Utils::Format(L"%s%d.tga", countryLeagueNames[compId.mRegion.ToInt()], comp->mCompetitionLevel + 1);
+                    else
+                        continue;
+                    Image badgeImg(logoPath.string());
+                    if (badgeImg.isValid() && badgeImg.baseRows() == 256) {
+                        if (gameId <= 8)
+                            WriteTextModeBadge(badgeImg, tmMask, outputPath / L"TextMode", badgeName);
+                        WriteOneBadge(badgeImg, outputPath, badgeName, gameId, true);
+                    }
+                }
+            }
+        }
+    }
+    if (gameId <= 9) {
+        Path logoPath = fifaAssetsPath / L"league" / L"l76.dds";
+        if (exists(logoPath)) {
+            Image badgeImg(logoPath.string());
+            if (badgeImg.isValid() && badgeImg.baseRows() == 256) {
+                for (UInt i = 1; i <= 10; i++) {
+                    String badgeName = Utils::Format(L"Generics%d.tga", i);
+                    Image genImg = badgeImg;
+                    WriteOneBadge(genImg, outputPath, badgeName, gameId, true);
+                    if (gameId <= 8)
+                        WriteTextModeBadge(badgeImg, tmMask, outputPath / L"TextMode", badgeName);
+                }
+            }
+        }
+    }
 }
