@@ -12,7 +12,7 @@
 #include "FifaConverter.h"
 
 #define DB_SIZE Full
-const bool FIFA_DATABASE = true;
+const Bool READ_FOOM_PERSONS = true;
 
 void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
     {
@@ -409,17 +409,24 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
         }
     }
     {
-        std::wcout << L"Reading fifam_abbreviation..." << std::endl;
-        FifamReader reader(infoPath / L"fifam_abbreviation.txt", 0);
+        std::wcout << L"Reading fifam_names..." << std::endl;
+        FifamReader reader(infoPath / L"fifam_names.txt", 0);
         if (reader.Available()) {
             reader.SkipLine();
             while (!reader.IsEof()) {
                 if (!reader.EmptyLine()) {
                     Int teamId = -1;
-                    String abbr;
-                    reader.ReadLineWithSeparator(L'\t', teamId, abbr);
-                    if (teamId != -1 && !abbr.empty())
-                        mAbbreviationMap[teamId] = abbr;
+                    String longName, shortName, abbr;
+                    String d;
+                    reader.ReadLineWithSeparator(L'\t', d, d, d, d, d, d, d, teamId, longName, shortName, abbr);
+                    if (teamId != -1) {
+                        if (!longName.empty())
+                            mNamesMap[teamId] = longName;
+                        if (!shortName.empty())
+                            mShortNamesMap[teamId] = shortName;
+                        if (!abbr.empty())
+                            mAbbreviationMap[teamId] = abbr;
+                    }
                 }
                 else
                     reader.SkipLine();
@@ -449,7 +456,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     mReferenceDatabase = new FifamDatabase(referenceGameId, referenceDb);
 
     mFifaDatabase = new FifaDatabase(L"D:\\Projects\\fifam\\db\\fifa");
-    mFoomDatabase = new foom::db(L"D:\\Projects\\fifam\\db\\foom", fromFifaDatabase? false : true, foom::db::db_size::DB_SIZE);
+    mFoomDatabase = new foom::db(L"D:\\Projects\\fifam\\db\\foom", fromFifaDatabase? false : READ_FOOM_PERSONS, foom::db::db_size::DB_SIZE);
 
     Path infoPath = L"D:\\Projects\\fifam\\db";
     Path graphicsPath = L"D:\\Documents\\Sports Interactive\\Football Manager 2019\\graphics";
@@ -673,7 +680,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     UInt MAX_LEAGUE_NAME_LENGTH = 63;
     UInt MAX_CUP_NAME_LENGTH = 63;
     UInt MAX_POOL_NAME_LENGTH = 58;
-    UInt MAX_COMP_NAME_LENGTH = 60;
+    UInt MAX_COMP_NAME_LENGTH = 29;
 
     if (gameId <= 7) {
         MAX_LEAGUE_NAME_LENGTH = 29;
@@ -775,7 +782,9 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
 
                         // rounds (auto-calculation)
 
-                        if (league->mNumTeams >= 15)
+                        if (lg->mRounds > 0)
+                            league->mNumRounds = lg->mRounds;
+                        else if (league->mNumTeams >= 15)
                             league->mNumRounds = 2;
                         else if (league->mNumTeams >= 11)
                             league->mNumRounds = 3;
@@ -940,7 +949,9 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                                         team->mConverterData.mParentClub->mName.c_str(), team->mName.c_str(), lg->mName.c_str());
                                 }
                                 else {
-                                    if (!team->mConverterData.mParentClub->mConverterData.mMainChildClubInDB) {
+                                    if (!team->mConverterData.mParentClub->mConverterData.mMainChildClubInDB
+                                        && team->mConverterData.mParentClub->mNation == &nation)
+                                    {
                                         club = (FifamClub *)team->mConverterData.mParentClub->mConverterData.mFifamClub;
                                         teamType = FifamClubTeamType::Reserve;
                                         team->mConverterData.mParentClub->mConverterData.mMainChildClubInDB = team;
@@ -1208,15 +1219,21 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                 country->mLeagueLevels[0].mEqualPointsSorting = FifamEqualPointsSorting::GoalDiff;
                 country->mLeagueLevels[0].mNumNonEUPlayersAllowed = 0;
                 country->mLeagueLevels[0].mNumRelegatedTeams = 0;
+                country->mLeagueLevels[0].mRating = 0;
                 
-                // TODO: calculate rating for countires without league system
+                Int levelRep = -1;
 
-                //country->mLeagueLevels[0].mRating = (UChar)(roundf((
-                //    (Float)levelRep / 370.0f +
-                //    (Float)nation.mYouthRating / 1200.0f +
-                //    0.15f) * 100.0f));
-                //
-                //country->mAveragePlayerRating = country->mLeagueLevels[i].mRating;
+                for (auto &divInfo : mDivisions) {
+                    if (divInfo.mNationID == nation.mID && divInfo.mType == DivisionInfo::League && divInfo.mRep > levelRep)
+                        levelRep = divInfo.mRep;
+                }
+
+                if (levelRep > 0) {
+                    country->mAveragePlayerRating = (UChar)(roundf((
+                        (Float)levelRep / 370.0f +
+                        (Float)nation.mYouthRating / 1200.0f +
+                        0.15f) * 100.0f));
+                }
             }
 
             for (auto &e : mLeaguesSystem[country->mId - 1]) {
@@ -3146,6 +3163,20 @@ FifamClub *Converter::CreateAndConvertClub(UInt gameId, foom::club *team, foom::
         }
     }
     {
+        auto it = mNamesMap.find(team->mID);
+        if (it != mNamesMap.end()) {
+            FifamTrSetAll<String>(club->mName, (*it).second);
+            FifamTrSetAll<String>(club->mName2, (*it).second);
+        }
+    }
+    {
+        auto it = mShortNamesMap.find(team->mID);
+        if (it != mShortNamesMap.end()) {
+            FifamTrSetAll<String>(club->mShortName, (*it).second);
+            FifamTrSetAll<String>(club->mShortName2, (*it).second);
+        }
+    }
+    {
         auto it = mAbbreviationMap.find(team->mID);
         if (it != mAbbreviationMap.end())
             FifamTrSetAll<String>(club->mAbbreviation, (*it).second);
@@ -3606,8 +3637,10 @@ void Converter::ConvertReserveClub(UInt gameId, FifamClub *dst, foom::club *team
     // city and settlement
     if (team->mCity)
         FifamTrSetAll(dst->mCityName, FifamNames::LimitName(team->mCity->mName, 29));
-    else
+    else if (country)
         dst->mCityName = country->mNationalTeam.mCityName;
+    else
+        FifamTrSetAll<String>(dst->mCityName, L"City");
     // latitude/longitude
     if (team->mLatitude != 0 && team->mLongitude != 0)
         dst->mGeoCoords.SetFromFloat(team->mLatitude, team->mLongitude);
@@ -4879,6 +4912,39 @@ Int Converter::ConvertPlayerAttribute(Int attr, UInt gameId) {
     }
 }
 
+Int Converter::LinearConvertPlayerAttribute(Int attr, UInt gameId) {
+    Int originalAttr = OriginalAttrValue(attr);
+    if (originalAttr <= 0)
+        originalAttr = 1;
+    if (originalAttr > 20)
+        originalAttr = 20;
+    static Pair<Int, Int> fmRatingAry[20] = {
+        {  0,  4 }, // 1
+        {  5,  9 }, // 2
+        { 10, 14 }, // 3
+        { 15, 19 }, // 4
+        { 20, 24 }, // 5
+        { 25, 29 }, // 6
+        { 30, 34 }, // 7
+        { 35, 39 }, // 8
+        { 40, 44 }, // 9
+        { 45, 49 }, // 10
+        { 50, 54 }, // 11
+        { 55, 59 }, // 12
+        { 60, 64 }, // 13
+        { 65, 69 }, // 14
+        { 70, 74 }, // 15
+        { 75, 79 }, // 16
+        { 80, 84 }, // 17
+        { 85, 89 }, // 18
+        { 90, 94 }, // 19
+        { 95, 99 }  // 20
+    };
+    if (fmRatingAry[originalAttr - 1].first == fmRatingAry[originalAttr - 1].second)
+        return fmRatingAry[originalAttr - 1].first;
+    return Random::Get(fmRatingAry[originalAttr - 1].first, fmRatingAry[originalAttr - 1].second);
+}
+
 FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, FifamClub *club) {
     if (!p->mNation) {
         Error(L"Player without nation\nPlayerId: %d\nPlayerName: %s", p->mID, p->mFullName.c_str());
@@ -5073,14 +5139,41 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
                 totalExperiencePoints += h.mApps;
         }
     }
-    if (totalExperiencePoints == 0) {
-        if (age > 34)
-            totalExperiencePoints = 500;
-        else if (age > 30)
-            totalExperiencePoints = 375;
-        else if (age > 26)
-            totalExperiencePoints = 200;
-    }
+    UInt minExperiencePoints = 0;
+    //if (totalExperiencePoints == 0) {
+        if (age >= 35)
+            minExperiencePoints = 2500; // 18 | 3
+        else if (age >= 34)
+            minExperiencePoints = 2150; // 15 | 2
+        else if (age >= 33)
+            minExperiencePoints = 2000; // 14 | 1
+        else if (age >= 32)
+            minExperiencePoints = 1850; // 13 | 1
+        else if (age >= 31)
+            minExperiencePoints = 1700; // 12 | 1
+        else if (age >= 30)
+            minExperiencePoints = 1550; // 11 | 0
+        else if (age >= 29)
+            minExperiencePoints = 1400; // 10 | 0
+        else if (age >= 28)
+            minExperiencePoints = 1250; // 9 | 0
+        else if (age >= 27)
+            minExperiencePoints = 950; // 7 | -1
+        else if (age >= 26)
+            minExperiencePoints = 800; // 6 | -1
+        else if (age >= 25)
+            minExperiencePoints = 700; // 5 | -2
+        else if (age >= 24)
+            minExperiencePoints = 550; // 4 | -2
+        else if (age >= 23)
+            minExperiencePoints = 400; // 3 | -2
+        else if (age >= 22)
+            minExperiencePoints = 250; // 2 | -4
+        else if (age >= 21)
+            minExperiencePoints = 100; // 1 | -4
+    //}
+    if (totalExperiencePoints < minExperiencePoints)
+        totalExperiencePoints = minExperiencePoints;
     player->mGeneralExperience = Utils::MapTo(totalExperiencePoints, 0, 2500, 0, 18);
 
     // potential
@@ -5356,7 +5449,7 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player *p, Fif
     attr.mDirtiness = ConvertPlayerAttribute(p->mDirtiness, gameId);
     attr.mFlair = ConvertPlayerAttribute(p->mFlair, gameId);
     attr.mImportantMatches = ConvertPlayerAttribute(p->mImportantMatches, gameId);
-    attr.mLeadership = ConvertPlayerAttribute(p->mLeadership, gameId);
+    attr.mLeadership = LinearConvertPlayerAttribute(p->mLeadership, gameId);
     attr.mMovement = ConvertPlayerAttribute(p->mMovement, gameId);
     attr.mPositioning = ConvertPlayerAttribute(p->mPositioning, gameId);
     attr.mTeamWork = ConvertPlayerAttribute(p->mTeamWork, gameId);

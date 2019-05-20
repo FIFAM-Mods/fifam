@@ -18,3 +18,12 @@ int Random::Select(std::vector<int> const &vec) {
         return vec[0];
     return vec[Get(0, vec.size() - 1)];
 }
+
+unsigned int Random::GetIndex(std::vector<double> const &dist) {
+    std::discrete_distribution<> d(dist.begin(), dist.end());
+    return d(GetEngine());
+}
+
+void Random::Shuffle(std::vector<int> &vec) {
+    std::shuffle(vec.begin(), vec.end(), GetEngine());
+}

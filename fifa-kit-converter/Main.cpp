@@ -15,13 +15,13 @@ int main() {
     FifamDatabase *db = new FifamDatabase(gameId, Utils::Format(L"D:\\Games\\FIFA Manager %02d\\database", gameId));
 
     kitConverter.options.OutputGameId = gameId;
-    kitConverter.options.ConvertHomeKit = false;
-    kitConverter.options.ConverAwayKit = false;
+    kitConverter.options.ConvertHomeKit = true;
+    kitConverter.options.ConverAwayKit = true;
     kitConverter.options.ConvertGkKit = true;
-    kitConverter.options.ConvertThirdKit = false;
+    kitConverter.options.ConvertThirdKit = true;
     kitConverter.options.SaveLocation = KitConverter::User;
-    kitConverter.options.ConvertMinikits = false;
-    kitConverter.options.OnlyCustomKits = false;
+    kitConverter.options.ConvertMinikits = true;
+    kitConverter.options.OnlyCustomKits = true;
     kitConverter.options.AllowCustomKits = true;
     kitConverter.options.Allow2xSize = false;
 

@@ -112,6 +112,8 @@ public:
     Map<Int, ClubColor> mClubColorsMap;
     Map<Int, Int> mPenaltyPointsMap;
     Map<Int, String> mAbbreviationMap;
+    Map<Int, String> mShortNamesMap;
+    Map<Int, String> mNamesMap;
     
     Date GetCurrentDate() { return Date(1, 7, CURRENT_YEAR); }
     Date FmEmptyDate() { return Date(1, 1, 1900); }
@@ -121,6 +123,7 @@ public:
     void Convert(UInt gameId, UInt originalGameId, Path const &originalDb, UInt referenceGameId, Path const &referenceDb, Bool writeToGameFolder, Bool fromFifaDatabase = false);
 
     Int ConvertPlayerAttribute(Int attr, UInt gameId = 14);
+    Int LinearConvertPlayerAttribute(Int attr, UInt gameId = 14);
     void ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt gameId);
     void ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);
     void ConvertReserveClub(UInt gameId, FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);

@@ -7,8 +7,8 @@ FifamCompDbType FifamCompCup::GetDbType() const {
 
 void FifamCompCup::Read(FifamReader &reader, FifamDatabase *database, FifamNation nationId) {
     reader.ReadLineTranslationArray(mName);
-    reader.ReadLine(mCupTemplate);
     if (reader.IsVersionGreaterOrEqual(0, 0x1)) {
+        reader.ReadLine(mCupTemplate);
         reader.ReadLine(mDrawPeriodInWeeks);
         reader.SkipLine();
     }
@@ -83,11 +83,11 @@ void FifamCompCup::Write(FifamWriter &writer, FifamDatabase *database, FifamNati
         writer.WriteLine(FifamTr(mName));
     else
         writer.WriteLineTranslationArray(mName);
-    if (writer.GetGameId() >= 11)
-        writer.WriteLine(0);
-    else
-        writer.WriteLine(mCupTemplate);
     if (writer.IsVersionGreaterOrEqual(0, 0x1)) {
+        if (writer.GetGameId() >= 11)
+            writer.WriteLine(0);
+        else
+            writer.WriteLine(mCupTemplate);
         writer.WriteLine(mDrawPeriodInWeeks);
         if (writer.GetGameId() >= 11)
             writer.WriteLine(mRounds.size());
