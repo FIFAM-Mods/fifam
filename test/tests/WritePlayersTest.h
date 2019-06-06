@@ -8,7 +8,7 @@ public:
     WritePlayersTest() {
         FifamDatabase *db = GetEnvironment<FifamDbEnvironment<Game, DbType>>().GetDatabase();
 
-        FifamWriter writer(Utils::Format(L"players_%02d.csv", Game::id()), Game::id(), Game::year(), Game::vernum(), Game::unicode());
+        FifamWriter writer(Utils::Format(L"players_%02d.csv", Game::id()), Game::id(), FifamVersion(Game::year(), Game::vernum()), Game::unicode());
         if (writer.Available()) {
             writer.WriteLine(
                 L"Country",

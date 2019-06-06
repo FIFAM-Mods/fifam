@@ -26,7 +26,9 @@
 #include "tests\ExportCompInfo.h"
 #include "tests\GenerateKitColors.h"
 #include "tests\ExportClubIDs.h"
+#include "tests\GenerateKitConfig.h"
+#include "tests\CopyPortraitsLight.h"
 
 void RunTests() {
-    RunTest<ExportClubIDs>();
+    RunTest<ColorsTest>();
 }

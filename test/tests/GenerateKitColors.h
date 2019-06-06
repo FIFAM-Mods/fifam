@@ -13,10 +13,8 @@ public:
     }
 
     GenerateKitColors() {
-        FifamDatabase::mReadingOptions.mReadCountryCompetitions = false;
         FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
         FifamDatabase::mReadingOptions.mReadPersons = false;
-        //FifamDatabase::mReadingOptions.mReadClubs = false;
         FifamDatabase *db = GetEnvironment<FifamDbEnvironment<FM13, Default>>().GetDatabase();
         FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
 
@@ -196,8 +194,30 @@ public:
             }
         };
         for (auto c : db->mCountries) {
-            if (c)
+            if (c) {
                 GenerateForClub(&c->mNationalTeam);
+
+                auto countryComps = c->GetCompetitions(true);
+                for (auto comp : countryComps) {
+                    if (comp.second->GetDbType() == FifamCompDbType::League) {
+                        FifamCompLeague *league = comp.second->AsLeague();
+                        for (auto club : league->mTeams) {
+                            if (club.IsValid()) {
+                                if (club.IsFirstTeam()) {
+                                    auto clubLeague = club.mPtr->GetProperty<FifamCompLeague *>(L"league", nullptr);
+                                    if (!clubLeague)
+                                        club.mPtr->SetProperty<FifamCompLeague *>(L"league", league);
+                                }
+                                else if (club.IsReserveTeam()) {
+                                    auto clubLeague = club.mPtr->GetProperty<FifamCompLeague *>(L"reserveleague", nullptr);
+                                    if (!clubLeague)
+                                        club.mPtr->SetProperty<FifamCompLeague *>(L"reserveleague", league);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
         for (auto c : db->mClubs)
             GenerateForClub(c);

@@ -18,7 +18,7 @@ public:
     CreateFlagImages() {
         FifamDatabase *db = GetEnvironment<FifamDbEnvironment<FM14, External>>().GetDatabase();
 
-        FifamWriter writer("countries.txt", 14, 0, 0, true);
+        FifamWriter writer("countries.txt", 14, FifamVersion(), true);
         for (UInt i = 0; i < FifamDatabase::NUM_COUNTRIES; i++) {
             writer.WriteLine(L"|-");
             writer.WriteLine(Utils::Format(L"| %d", i + 1));

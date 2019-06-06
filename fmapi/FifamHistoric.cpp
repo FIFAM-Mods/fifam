@@ -41,11 +41,11 @@ void FifamHistoric::Read(Path &historicFolder, UInt gameId) {
     }
 }
 
-void FifamHistoric::Write(Path &historicFolder, UInt gameId, UShort vYear, UShort vNumber) {
+void FifamHistoric::Write(Path &historicFolder, UInt gameId, FifamVersion const &version) {
     Bool unicode = gameId >= 8;
 
     if (gameId >= 9) {
-        FifamWriter worstStartingStreakWriter(historicFolder / L"WorstStartingStreak.txt", gameId, vYear, vNumber, unicode);
+        FifamWriter worstStartingStreakWriter(historicFolder / L"WorstStartingStreak.txt", gameId, version, unicode);
         if (worstStartingStreakWriter.Available()) {
             for (auto const &entry : mWorstStartingStreaks) {
                 UInt compIDInt = FifamUtils::GetWriteableID(entry.mCompetition, gameId);
@@ -56,7 +56,7 @@ void FifamHistoric::Write(Path &historicFolder, UInt gameId, UShort vYear, UShor
     }
 
     if (gameId >= 13) {
-        FifamWriter fifaWorldPlayersWriter(historicFolder / L"FifaWorldPlayers.txt", gameId, vYear, vNumber, unicode);
+        FifamWriter fifaWorldPlayersWriter(historicFolder / L"FifaWorldPlayers.txt", gameId, version, unicode);
         if (fifaWorldPlayersWriter.Available()) {
             fifaWorldPlayersWriter.WriteLine(L"Saison	Nat.	Verein	Alter	ID	Name/Pseudonym	Vorname");
             for (auto const &entry : mFifaWorldPlayers) {

@@ -24,7 +24,7 @@ public:
     ExportXML() {
         FifamDatabase *db = GetEnvironment<FifamDbEnvironment<Game, Default>>().GetDatabase();
 
-        FifamWriter writer(L"graphics_db.xml", 14, 0, 0, true);
+        FifamWriter writer(L"graphics_db.xml", 14, FifamVersion(), true);
         writer.SetReplaceQuotes(false);
         if (writer.Available()) {
             writer.WriteLine(L"<database name=\"Universal Converter Database\" version=\"2019\" update=\"2\" >");

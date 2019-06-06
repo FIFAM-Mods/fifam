@@ -3,8 +3,12 @@
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="KitConverter.cpp" />
+    <ClCompile Include="Renderer.cpp" />
+    <ClCompile Include="ModelReader.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="KitConverter.h" />
+    <ClInclude Include="Renderer.h" />
+    <ClInclude Include="ModelReader.h" />
   </ItemGroup>
 </Project>

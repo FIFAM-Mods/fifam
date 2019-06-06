@@ -46,10 +46,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)output\converters\</OutDir>
     <IntDir>$(SolutionDir)output\obj\$(ProjectName)\$(Configuration)\</IntDir>
+    <IncludePath>$(DIRECTX9_SDK_DIR)/Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(DIRECTX9_SDK_DIR)/Lib/x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Qt|Win32'">
     <OutDir>$(SolutionDir)output\converters\</OutDir>
     <IntDir>$(SolutionDir)output\obj\$(ProjectName)\$(Configuration)\</IntDir>
+    <IncludePath>$(DIRECTX9_SDK_DIR)/Include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(DIRECTX9_SDK_DIR)/Lib/x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -66,7 +70,7 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>CORE_RL_Magick++_.lib;CORE_RL_MagickCore_.lib;CORE_RL_MagickWand_.lib;generic.lib;fmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d9.lib;d3dx9.lib;CORE_RL_Magick++_.lib;CORE_RL_MagickCore_.lib;CORE_RL_MagickWand_.lib;generic.lib;fmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Program Files (x86)\ImageMagick-7.0.8-Q8\lib;$(SolutionDir)output\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
@@ -85,15 +89,19 @@
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalDependencies>CORE_RL_Magick++_.lib;CORE_RL_MagickCore_.lib;CORE_RL_MagickWand_.lib;generic.lib;fmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d9.lib;d3dx9.lib;CORE_RL_Magick++_.lib;CORE_RL_MagickCore_.lib;CORE_RL_MagickWand_.lib;generic.lib;fmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalLibraryDirectories>C:\Program Files (x86)\ImageMagick-7.0.8-Q8\lib;$(SolutionDir)output\libs;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="ModelReader.cpp" />
+    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="KitConverter.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ModelReader.h" />
+    <ClInclude Include="Renderer.h" />
     <ClInclude Include="KitConverter.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,4 +1,4 @@
-#include "Converter.h"
+﻿#include "Converter.h"
 #include "FifamCompLeague.h"
 #include "FifamCompPool.h"
 #include "FifamCompCup.h"
@@ -1617,9 +1617,9 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     UInt maxAllowedPlayers = 80;
     UInt maxAllowedPlayersWithYouth = 180;
     UInt minPlayersForFirstTeam = 25;
-    UInt maxPlayersForFirstTeam = 30;
-    UInt minPlayersForReserveTeam1 = 20;
-    UInt minPlayersForReserveTeam2 = 30;
+    UInt maxPlayersForFirstTeam = 29;
+    UInt minPlayersForReserveTeam1 = 15;
+    UInt minPlayersForReserveTeam2 = 20;
     if (gameId <= 7) {
         maxAllowedPlayers = 40;
         maxAllowedPlayersWithYouth = 40;
@@ -1632,9 +1632,9 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
         maxAllowedPlayers = 75;
         maxAllowedPlayersWithYouth = 75;
         minPlayersForFirstTeam = 25;
-        maxPlayersForFirstTeam = 30;
-        minPlayersForReserveTeam1 = 20;
-        minPlayersForReserveTeam2 = 30;
+        maxPlayersForFirstTeam = 29;
+        minPlayersForReserveTeam1 = 15;
+        minPlayersForReserveTeam2 = 20;
     }
 
     for (auto &entry : mFoomDatabase->mPlayers) {
@@ -1948,7 +1948,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                 if (p->mConverterData.mFitsIntoDbLimit) {
                     FifamPlayer *player = CreateAndConvertPlayer(gameId, p, dst);
                     if (p->mConverterData.mTeamType == 1) {
-                        player->mInReserveTeam = true;
+                        player->SetProperty(L"from_res", true);
                         if (p->mContract.mSquadNumber > 0)
                             player->mShirtNumberReserveTeam = p->mContract.mSquadNumber;
                     }
@@ -1956,7 +1956,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                         if (player->GetAge(GetCurrentDate()) <= 18)
                             player->mInYouthTeam = true;
                         else {
-                            player->mInReserveTeam = true;
+                            player->SetProperty(L"from_res", true);
                             if (p->mContract.mSquadNumber > 0)
                                 player->mShirtNumberReserveTeam = p->mContract.mSquadNumber;
                         }
@@ -1984,7 +1984,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                         if (howManyPlayersCanIAdditionalyCreate > 0) {
                             FifamPlayer *player = CreateAndConvertPlayer(gameId, p, dst);
                             if (p->mConverterData.mTeamType == 1 || p->mConverterData.mTeamType == 2) {
-                                player->mInReserveTeam = true;
+                                player->SetProperty(L"from_res", true);
                                 if (p->mContract.mSquadNumber > 0)
                                     player->mShirtNumberReserveTeam = p->mContract.mSquadNumber;
                             }
@@ -2007,7 +2007,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                 if (p->mConverterData.mFitsIntoDbLimit && p->mConverterData.mTeamType != 2) {
                     FifamPlayer *player = CreateAndConvertPlayer(gameId, p, dst);
                     if (p->mConverterData.mTeamType == 1) {
-                        player->mInReserveTeam = true;
+                        player->SetProperty(L"from_res", true);
                         if (p->mLoan.mSquadNumber > 0)
                             player->mShirtNumberReserveTeam = p->mLoan.mSquadNumber;
                     }
@@ -2038,7 +2038,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     FifamPlayer *player = CreateAndConvertPlayer(gameId, p, dst);
                     player->mStartingConditions.mFutureJoin.Setup(GetDateAlignedToSeasonEnd(p->mFutureTransfer.mTransferDate, true, true));
                     if (p->mConverterData.mTeamType == 1)
-                        player->mInReserveTeam = true;
+                        player->SetProperty(L"from_res", true);
                     else if (p->mConverterData.mTeamType == 2)
                         player->mInYouthTeam = true;
                     if (player->mContract.mValidUntil <= player->mStartingConditions.mFutureJoin.mDate)
@@ -2061,9 +2061,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                 UInt numYouthPlayers = std::count_if(dst->mPlayers.begin(), dst->mPlayers.end(), [](FifamPlayer *a) {
                     return a->mInYouthTeam;
                 });
-                UInt numReservePlayers = std::count_if(dst->mPlayers.begin(), dst->mPlayers.end(), [](FifamPlayer *a) {
-                    return a->mInReserveTeam;
-                });
+                UInt numReservePlayers = 0;
                 UInt numFirstTeamPlayers = 0;
 
                 UChar minFirstTeamRating = GetPlayerLevel(dst->mPlayers[minPlayersForFirstTeam], true, gameId);
@@ -2071,10 +2069,11 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     minFirstTeamRating -= 1;
 
                 for (FifamPlayer *a : dst->mPlayers) {
+                    Bool fromReserve = a->GetProperty<Bool>(L"from_res", false);
                     if (!a->mInReserveTeam && !a->mInYouthTeam) {
-                        if (numFirstTeamPlayers < minPlayersForFirstTeam)
+                        if (!fromReserve && numFirstTeamPlayers < minPlayersForFirstTeam)
                             numFirstTeamPlayers++;
-                        else if (numFirstTeamPlayers < maxPlayersForFirstTeam && GetPlayerLevel(a, true, gameId) >= minFirstTeamRating)
+                        else if (!fromReserve && numFirstTeamPlayers < maxPlayersForFirstTeam && GetPlayerLevel(a, true, gameId) >= minFirstTeamRating)
                             numFirstTeamPlayers++;
                         else {
                             if (numReservePlayers > minPlayersForReserveTeam2) {
@@ -2596,6 +2595,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     c->mFanMembers = ref->mFanMembers;
                     c->mAiStrategy = ref->mAiStrategy;
                     c->mLandscape = ref->mLandscape;
+                    c->mSettlement = ref->mSettlement;
                     c->mTransfersCountry = ref->mTransfersCountry;
                     c->mMascotName = ref->mMascotName;
                     c->mPlayerInText = ref->mPlayerInText;
@@ -2977,9 +2977,8 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     //    }
     //}
 
-    FifamVersion version = FifamDatabase::GetGameDbVersion(gameId);
     std::wcout << L"Writing database..." << std::endl;
-    mFifamDatabase->Write(gameId, version.GetYear(), version.GetNumber(),
+    mFifamDatabase->Write(gameId, FifamDatabase::GetGameDbVersion(gameId),
         Utils::Format(writeToGameFolder ?
             L"D:\\Games\\FIFA Manager %02d\\database" :
             L"fm_test\\database",
@@ -3025,7 +3024,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                 return a.reputation > b.reputation;
             });
             FifamWriter derbiesWriter(Utils::Format(L"D:\\Games\\FIFA Manager %02d\\fmdata\\Parameter File - Derbies.txt", gameId),
-                gameId, 0, false);
+                gameId, FifamVersion(), false);
             if (derbiesWriter.Available()) {
                 derbiesWriter.WriteLine(L"BEGIN( DERBIES )");
                 derbiesWriter.WriteNewLine();
@@ -3053,7 +3052,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                 derbiesWriter.Close();
             }
             FifamWriter derbyNamesWriter(Utils::Format(L"D:\\Games\\FIFA Manager %02d\\plugins\\derbies.tr", gameId),
-                gameId, 0, true);
+                gameId, FifamVersion(), true);
             Set<String> writtenDerbyNames;
             if (derbyNamesWriter.Available()) {
                 for (UInt i = 0; i < derbies.size(); i++) {
@@ -3070,7 +3069,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
 
         std::wcout << L"Writing female persons..." << std::endl;
 
-        FifamWriter femaleStaffWriter(Utils::Format(L"D:\\Games\\FIFA Manager %02d\\database\\FemaleStaff.sav", gameId), gameId, 0, true);
+        FifamWriter femaleStaffWriter(Utils::Format(L"D:\\Games\\FIFA Manager %02d\\database\\FemaleStaff.sav", gameId), gameId, FifamVersion(), true);
         femaleStaffWriter.WriteLine(L"FirstName,LastName,Pseudonym,Birthdate,Nationality,Job,ID");
         for (FifamStaff *staff : mFifamDatabase->mStaffs) {
             auto fmstaff = staff->GetProperty<foom::non_player *>(L"foom::non_player");
@@ -3081,7 +3080,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
             }
         }
 
-        FifamWriter femaleRefereeWriter(Utils::Format(L"D:\\Games\\FIFA Manager %02d\\database\\FemaleReferee.sav", gameId), gameId, 0, true);
+        FifamWriter femaleRefereeWriter(Utils::Format(L"D:\\Games\\FIFA Manager %02d\\database\\FemaleReferee.sav", gameId), gameId, FifamVersion(), true);
         femaleRefereeWriter.WriteLine(L"FirstName,LastName,Pseudonym,Birthdate,Nationality,Job,ID");
         for (FifamReferee *ref : mFifamDatabase->mReferees) {
             auto fmofficial = ref->GetProperty<foom::official *>(L"foom::official");
@@ -4457,8 +4456,11 @@ void Converter::FixPersonName(String &name) {
     String originalName = name;
     name.clear();
     for (auto c : originalName) {
-        if (c != L',' && c != '|')
+        if (c != L',' && c != '|') {
+            if (c == L'ș')
+                c = L's';
             name += c;
+        }
     }
 }
 

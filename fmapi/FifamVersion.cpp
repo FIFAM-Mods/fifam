@@ -5,6 +5,10 @@ FifamVersion::FifamVersion() {
     mIntValue = 0;
 }
 
+FifamVersion::FifamVersion(UShort year, UShort number) {
+    Set(year, number);
+}
+
 void FifamVersion::Set(UShort year, UShort number) {
     mYear = year;
     mNumber = number;

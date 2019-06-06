@@ -662,7 +662,7 @@ void GraphicsConverter::ConvertCities(foom::db *db, Path const &inputPath, Path 
     Path outputPath = contentPath / L"cities" / L"615x461";
     if (!exists(outputPath))
         create_directories(outputPath);
-    FifamWriter writer(outputPath / "_missed.csv", 14, 0, 0);
+    FifamWriter writer(outputPath / "_missed.csv", 14, FifamVersion());
     writer.WriteLine(L"Name", L"ID", L"Reputation", L"Exists", L"DimX", L"DimY");
     for (auto[id, club] : db->mClubs) {
         if (club.mReputation >= minRep && club.mConverterData.mFifamClub)
@@ -742,7 +742,7 @@ void GraphicsConverter::ConvertStadiums(foom::db *db, Path const &inputPath, Pat
         create_directories(outputPath / L"800x600");
     if (!exists(outputPath / L"200x150"))
         create_directories(outputPath / L"200x150");
-    FifamWriter writer(outputPath / (overview ? L"_missed_overview2.csv" : L"_missed2.csv"), 14, 0, 0);
+    FifamWriter writer(outputPath / (overview ? L"_missed_overview2.csv" : L"_missed2.csv"), 14, FifamVersion());
     writer.WriteLine(L"Name", L"StadiumName", L"ID", L"Reputation", L"FifamID", L"Type", L"Exists", L"DimX", L"DimY");
     for (auto &[id, club] : db->mClubs) {
         if (club.mReputation >= minRep && club.mConverterData.mFifamClub) {

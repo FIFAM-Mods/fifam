@@ -133,7 +133,7 @@ Int wmain(Int argc, WideChar **argv) {
 
     try {
         if (!nolog) {
-            logwriter = new FifamWriter(log, 14, 0, 0, true);
+            logwriter = new FifamWriter(log, 14, FifamVersion(), true);
             logwriter->SetReplaceQuotes(false);
             logwriter->WriteLine(L"FileName", L"FilePath", L"DimX", L"DimY", L"Result");
         }

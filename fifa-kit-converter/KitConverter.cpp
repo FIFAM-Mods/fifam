@@ -1,5 +1,7 @@
 #include "KitConverter.h"
 #include <filesystem>
+#include "Utils.h"
+#include "Error.h"
 
 using namespace std;
 using namespace std::filesystem;
@@ -39,6 +41,20 @@ Image KitConverter::ScaledImage(string const &path) {
 
 KitConverter::KitConverter() {
     InitializeMagick(NULL);
+    if (options.V2) {
+        mRenderer = new Renderer();
+        if (!mRenderer->Available()) {
+            ::Error("Failed to initialize V2 Renderer");
+        }
+        ReadObjModel(mSourceModel, Utils::AtoW(options.KitsPath + "model_source.obj").c_str());
+        ReadObjModel(mEditedModel, Utils::AtoW(options.KitsPath + "model_edited.obj").c_str());
+    }
+    else
+        mRenderer = nullptr;
+}
+
+KitConverter::~KitConverter() {
+    delete mRenderer;
 }
 
 void KitConverter::SetSizeMode(int mode) {
@@ -384,7 +400,11 @@ bool KitConverter::ConvertFifaClubKit(int fifaId, string const &clubIdStr, int s
     }
     if (!shirtFileName.empty() && !shortsFileName.empty()) {
         printf("Converting club %s (%d)", clubIdStr.c_str(), set);
-        bool result = ConvertKit(shirtFileName, shortsFileName, crestFileName, outputFile);
+        bool result = false;
+        if (options.V2)
+            result = ConvertKitV2(shirtFileName, shortsFileName, crestFileName, outputFile);
+        else
+            result = ConvertKit(shirtFileName, shortsFileName, crestFileName, outputFile);
         if (result) {
             printf(" - done\n");
             return true;
@@ -517,4 +537,223 @@ void KitConverter::ConvertClubArmbands(string const &clubIdName, int fifaId, int
     ConvertClubArmband(fifaId, clubIdStr, 1, 0, outputFile + "_a");
     ConvertClubArmband(fifaId, clubIdStr, 3, 0, outputFile + "_t");
     ConvertClubArmband(fifaId, clubIdStr, 2, 0, outputFile + "_g");
+}
+
+bool KitConverter::ConvertClubKitNumbersSet(int fifaId, string const &clubIdStr, int tournament, int type, bool jersey, string const &outputFile) {
+    string fileNameBase = options.KitNumbersPath + "specifickitnumbers_" + to_string(fifaId) + "_"
+        + to_string(jersey ? 1 : 2) + "_" + to_string(tournament) + "_" + to_string(type) + "_";
+    string fileName = fileNameBase + "1.png";
+    if (!exists(fileName))
+        return false;
+    static unsigned int j_numbers[] = { 2, 6, 4, 0, 8, 3, 7, 5, 1, 9 };
+    static unsigned int s_numbers[] = { 1, 2, 8, 3, 9, 4, 7, 6, 5, 0 };
+    const unsigned int size = 128;
+    Image finalImg(ScaledGeometry(size * 10, size), "transparent");
+    for (unsigned int i = 0; i < 10; i++) {
+        fileName = fileNameBase + to_string((jersey ? j_numbers[i] : s_numbers[i]) + 1) + ".png";
+        if (!exists(fileName))
+            return false;
+        Image img(fileName);
+        if (!img.isValid())
+            return false;
+        ScaledComposite(finalImg, img, size * i, 0, OverCompositeOp);
+    }
+    ScaledResize(finalImg, jersey ? 1024 : 256, jersey ? 128 : 32);
+    finalImg.write(outputFile + "." + options.OutputFormat);
+    return true;
+}
+
+void KitConverter::ConvertClubKitNumbers(string const &clubIdName, int fifaId, int fifaManagerId) {
+    if (fifaId > 0) {
+        SetSizeMode(1);
+        static char clubIdStr[256];
+        sprintf_s(clubIdStr, "%08X", fifaManagerId);
+        static char gameIdStr[10];
+        sprintf_s(gameIdStr, "%02d", options.OutputGameId);
+        string outputFile = string("D:\\Games\\FIFA Manager ") + gameIdStr + "\\data\\kitnumbers\\jersey\\" + clubIdStr;
+        ConvertClubKitNumbersSet(fifaId, clubIdStr, 0, 0, true, outputFile + "_h");
+        ConvertClubKitNumbersSet(fifaId, clubIdStr, 0, 1, true, outputFile + "_a");
+        ConvertClubKitNumbersSet(fifaId, clubIdStr, 0, 3, true, outputFile + "_t");
+        ConvertClubKitNumbersSet(fifaId, clubIdStr, 0, 2, true, outputFile + "_g");
+        string outputFileShorts = string("D:\\Games\\FIFA Manager ") + gameIdStr + "\\data\\kitnumbers\\shorts\\" + clubIdStr;
+        ConvertClubKitNumbersSet(fifaId, clubIdStr, 0, 0, false, outputFileShorts + "_h");
+        ConvertClubKitNumbersSet(fifaId, clubIdStr, 0, 1, false, outputFileShorts + "_a");
+        ConvertClubKitNumbersSet(fifaId, clubIdStr, 0, 3, false, outputFileShorts + "_t");
+        ConvertClubKitNumbersSet(fifaId, clubIdStr, 0, 2, false, outputFileShorts + "_g");
+    }
+}
+
+bool KitConverter::ConvertClubKitNumbersSetCustom(string const &dirPath, string const &dirName, bool jersey) {
+    if (dirPath.empty())
+        return false;
+    string dir = dirPath;
+    if (dir.back() != '\\' && dir.back() != '/')
+        dir += '\\';
+    string fileName = dir + "0.png";
+    if (!exists(fileName))
+        return false;
+    static unsigned int j_numbers[] = { 2, 6, 4, 0, 8, 3, 7, 5, 1, 9 };
+    static unsigned int s_numbers[] = { 1, 2, 8, 3, 9, 4, 7, 6, 5, 0 };
+    unsigned int size = 128;
+    Image finalImg(ScaledGeometry(size * 10, size), "transparent");
+    for (unsigned int i = 0; i < 10; i++) {
+        fileName = dir + to_string(jersey ? j_numbers[i] : s_numbers[i]) + ".png";
+        if (!exists(fileName))
+            return false;
+        Image img(fileName);
+        if (!img.isValid())
+            return false;
+        ScaledResize(img, size, size);
+        ScaledComposite(finalImg, img, size * i, 0, OverCompositeOp);
+    }
+    ScaledResize(finalImg, jersey ? 1024 : 256, jersey ? 128 : 32);
+    string finalDir = jersey ? "jersey\\" : "shorts\\";
+    finalImg.write("D:\\Games\\FIFA Manager 13\\data\\kitnumbers_custom\\" + finalDir + dirName + "." + options.OutputFormat);
+    return true;
+}
+
+void KitConverter::ConvertClubKitNumbersCustom() {
+    path customDir = "D:\\Projects\\FIFA19\\custom_kitnumbers\\";
+    for (auto const &p : directory_iterator(customDir)) {
+        string folderPath = p.path().string();
+        string folderName = p.path().filename().string();
+        ConvertClubKitNumbersSetCustom(folderPath, folderName, true);
+        ConvertClubKitNumbersSetCustom(folderPath, folderName, false);
+    }
+}
+
+bool KitConverter::ConvertKitV2(string const &inputShirt, string const &inputShorts, string const &inputCrest, string const &outputFile) {
+    SetSizeMode(1);
+    if (options.OutputGameId >= 9) {
+
+        Image fifaKitAllInOneImg(ScaledGeometry(1024, 1536), "red");
+
+        Image fifaKitShirt(inputShirt);
+        if (fifaKitShirt.columns() > 1024) {
+            SetSizeMode(2);
+            if (GetSizeMode() == 1)
+                fifaKitShirt.resize(ScaledGeometry(1024, 1024));
+        }
+
+        ScaledComposite(fifaKitAllInOneImg, fifaKitShirt, 0, 0, OverCompositeOp);
+
+        Image fifaKitShorts(inputShorts);
+        if (fifaKitShorts.columns() > 1024) {
+            SetSizeMode(2);
+            if (GetSizeMode() == 1)
+                fifaKitShorts.resize(ScaledGeometry(1024, 512));
+        }
+
+        ScaledComposite(fifaKitAllInOneImg, fifaKitShorts, 0, 1024, OverCompositeOp);
+
+        fifaKitAllInOneImg.write(options.KitsPath + "tmpFifaKit.tga");
+
+        IDirect3DTexture9 *tex = mRenderer->CreateTexture(Utils::AtoW(options.KitsPath + "tmpFifaKit.tga").c_str());
+
+        if (!tex)
+            ::Error(L"Failed to create tex");
+
+        mRenderer->Begin();
+        mRenderer->SetSourceTexture(tex);
+        mRenderer->Interface()->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
+
+        float positions[2 * 3];
+        float uvs[2 * 3];
+
+        positions[0] = 0; // 1 x
+        positions[1] = 0; // 1 y
+
+        positions[2] = 512; // 2 x
+        positions[3] = 0; // 2 y
+
+        positions[4] = 0; // 3 x
+        positions[5] = 1024; // 3 y
+
+        uvs[0] = 0; // 1 u
+        uvs[1] = 0; // 1 v
+
+        uvs[2] = 1; // 2 u
+        uvs[3] = 0; // 2 v
+
+        uvs[4] = 0; // 3 u
+        uvs[5] = 1; // 3 v
+
+        //mRenderer->RenderTriangle(positions, uvs);
+
+        // for all triangles in edited model
+        //     find this triangle in source model by its xyz position
+        //     if found
+        //         draw triangle with vertex data:
+        //             position x : transformed u from source model ([0,1]>[0,512])
+        //             position y : transformed v from source model ([0,1]>[0,1024])
+        //             tex u : u from edited model
+        //             tex v : v from edited model
+
+        // find tri in model
+        auto findTri = [](Model::Triangle & out, Model::Triangle const &in, Model const &model) {
+            for (auto &p : model.parts) {
+                for (auto &t : p.tris) {
+                    if (in.v[0].x == t.v[0].x && in.v[0].y == t.v[0].y && in.v[0].z == t.v[0].z
+                        && in.v[1].x == t.v[1].x && in.v[1].y == t.v[1].y && in.v[1].z == t.v[1].z
+                        && in.v[2].x == t.v[2].x && in.v[2].y == t.v[2].y && in.v[2].z == t.v[2].z)
+                    {
+                        out = t;
+                        return true;
+                    }
+                }
+            }
+            return false;
+        };
+
+        std::vector<std::wstring> usedParts = {
+            L"jersey_part_52", L"frontnumber_part_58", L"name_bottom_part_53", L"name_part_54", L"backnumber_part_55",
+            L"shorts_back_l_part_56", L"shorts_back_r_part_57", L"shorts_l_part_59", L"shorts_r_part_60",
+            L"socks_m2_part_20", L"collar_g_part_28"
+        };
+
+        unsigned int foundCount = 0;
+        for (auto &p : mEditedModel.parts) {
+
+            if (!Utils::Contains(usedParts, p.name))
+                continue;
+
+            for (auto &t : p.tris) {
+
+                //::Error(L"%f %f %f - %f %f %f - %f %f %f", t.v[0].x, t.v[0].y, t.v[0].z, t.v[1].x, t.v[1].y, t.v[1].z, t.v[2].x, t.v[2].y, t.v[2].z);
+
+                Model::Triangle tri;
+                if (findTri(tri, t, mSourceModel)) {
+
+                    positions[0] = tri.v[0].u * 512; // 1 x
+                    positions[1] = 1024.0f - tri.v[0].v * 1024; // 1 y
+
+                    positions[2] = tri.v[1].u * 512; // 2 x
+                    positions[3] = 1024.0f - tri.v[1].v * 1024; // 2 y
+
+                    positions[4] = tri.v[2].u * 512; // 3 x
+                    positions[5] = 1024.0f - tri.v[2].v * 1024; // 3 y
+
+                    uvs[0] = t.v[0].u; // 1 u
+                    uvs[1] = 1.0f - t.v[0].v; // 1 v
+
+                    uvs[2] = t.v[1].u; // 2 u
+                    uvs[3] = 1.0f - t.v[1].v; // 2 v
+
+                    uvs[4] = t.v[2].u; // 3 u
+                    uvs[5] = 1.0f - t.v[2].v; // 3 v
+
+                    mRenderer->RenderTriangle(positions, uvs);
+
+                    foundCount++;
+                }
+            }
+        }
+
+        //::Error("found: %d", foundCount);
+
+        mRenderer->End();
+        mRenderer->SaveRT(Utils::AtoW(options.KitsPath + "tmpRT.png").c_str());
+    }
+
+    return true;
 }

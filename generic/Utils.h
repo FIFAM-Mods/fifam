@@ -25,7 +25,7 @@ namespace Utils {
         return buf;
     }
 
-    std::vector<std::wstring> Split(std::wstring const &str, wchar_t delim, bool trim = true, bool skipEmpty = false);
+    std::vector<std::wstring> Split(std::wstring const &str, wchar_t delim, bool trim = true, bool skipEmpty = false, bool quotesHavePriority = true);
     std::wstring Join(std::vector<std::wstring> const &strList, wchar_t delim);
     std::wstring Join(std::vector<std::wstring> const &strList, std::wstring const &delim);
     bool StartsWith(std::wstring const &str, std::wstring const &what);

@@ -17,7 +17,7 @@ public:
             if (compId.mRegion.ToInt() > 0 && compId.mRegion.ToInt() <= 207 &&
                 (comp->GetDbType() == FifamCompDbType::League || comp->GetDbType() == FifamCompDbType::Cup))
             {
-                FifamWriter writer(L"data\\" + compId.ToHexStr() + L".txt", 13, 0, 0);
+                FifamWriter writer(L"data\\" + compId.ToHexStr() + L".txt", 13, FifamVersion());
                 writer.WriteLine(L"name", Quoted(FifamTr(comp->mName)));
                 if (comp->GetDbType() == FifamCompDbType::League) {
                     FifamCompLeague *lg = comp->AsLeague();

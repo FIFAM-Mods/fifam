@@ -254,7 +254,7 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
     }
 }
 
-void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const &dbPath) {
+void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &dbPath) {
     if (!exists(dbPath))
         create_directories(dbPath);
     if (gameId >= 11) {
@@ -349,7 +349,7 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
         WriteExternalScriptFile(scriptPath / L"EC.txt", L"EURO_CUP", gameId, compsEC, 1);
     }
 
-    FifamWriter countriesWriter(dbPath / L"Countries.sav", gameId, 0, 0, unicode);
+    FifamWriter countriesWriter(dbPath / L"Countries.sav", gameId, FifamVersion(), unicode);
     if (countriesWriter.Available()) {
         auto &writer = countriesWriter;
         UInt countriesVer = (gameId <= 7) ? 2 : 3;
@@ -381,17 +381,17 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
                 countryDataPath = dbPath / Utils::Format(L"Country%d.sav", countryFileId);
             else
                 countryDataPath = dbPath / L"data" / Utils::Format(L"CountryData%d.sav", countryFileId);
-            FifamWriter writer(countryDataPath, gameId, vYear, vNumber, unicode);
+            FifamWriter writer(countryDataPath, gameId, version, unicode);
             if (writer.Available()) {
                 country->Write(writer);
                 writer.Close();
                 if (gameId >= 11) {
-                    FifamWriter fixturesWriter(dbPath / L"fixture" / Utils::Format(L"CountryFixture%d.sav", countryFileId), gameId, vYear, vNumber, unicode);
+                    FifamWriter fixturesWriter(dbPath / L"fixture" / Utils::Format(L"CountryFixture%d.sav", countryFileId), gameId, version, unicode);
                     if (fixturesWriter.Available()) {
                         country->WriteFixtures(fixturesWriter);
                         fixturesWriter.Close();
                     }
-                    FifamWriter scriptWriter(dbPath / L"script" / Utils::Format(L"CountryScript%d.sav", countryFileId), gameId, vYear, vNumber, unicode);
+                    FifamWriter scriptWriter(dbPath / L"script" / Utils::Format(L"CountryScript%d.sav", countryFileId), gameId, version, unicode);
                     if (scriptWriter.Available()) {
                         country->WriteScript(scriptWriter);
                         scriptWriter.Close();
@@ -401,7 +401,7 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
         }
     }
 
-    FifamWriter assessmentWriter(dbPath / L"Assessment.sav", gameId, vYear, vNumber, unicode);
+    FifamWriter assessmentWriter(dbPath / L"Assessment.sav", gameId, version, unicode);
     if (assessmentWriter.Available()) {
         if (gameId > 7)
             assessmentWriter.WriteLine(L"Index\t[English]\t[French]\t[German]\t[Italian]\t[Spanish]\t[Polish]\tYear -6\tYear -5\tYear -4\tYear -3\tYear -2\tYear -1");
@@ -427,7 +427,7 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
         assessmentWriter.Close();
     }
 
-    FifamWriter withoutWriter(dbPath / L"Without.sav", gameId, vYear, vNumber, unicode);
+    FifamWriter withoutWriter(dbPath / L"Without.sav", gameId, version, unicode);
     if (withoutWriter.Available()) {
         if (withoutWriter.GetGameId() >= 11)
             withoutWriter.WriteVersion();
@@ -452,7 +452,7 @@ void FifamDatabase::Write(UInt gameId, UShort vYear, UShort vNumber, Path const 
     if (gameId >= 13)
         WritePlayerRelations(dbPath / L"PlayerRelations.sav", gameId);
 
-    FifamWriter rulesWriter(dbPath / L"Rules.sav", gameId, vYear, vNumber, unicode);
+    FifamWriter rulesWriter(dbPath / L"Rules.sav", gameId, version, unicode);
     if (rulesWriter.Available()) {
         mRules.Write(rulesWriter);
         rulesWriter.Close();
@@ -890,7 +890,7 @@ void FifamDatabase::WriteNamesFile(Path const &filepath, UInt gameId, NamesMap &
         }
     };
     Bool unicode = gameId >= 8;
-    FifamWriter writer(filepath, gameId, 0, 0, unicode);
+    FifamWriter writer(filepath, gameId, FifamVersion(), unicode);
     if (writer.Available()) {
         Bool firstLine = true;
         for (UInt i = 1; i <= 62; i++)
@@ -1026,7 +1026,7 @@ void WriteRelationsLists(FifamWriter &writer, Vector<Set<FifamPlayer *>> &lists,
 }
 
 void FifamDatabase::WritePlayerRelations(Path const &filepath, UInt gameId) {
-    FifamWriter writer(filepath, gameId, 0, 0, gameId > 7);
+    FifamWriter writer(filepath, gameId, FifamVersion(), gameId > 7);
     if (writer.Available()) {
         std::wcout << L"Writing player relations" << std::endl;
         writer.WriteLine(L"#Relation, Player1, Player2");
@@ -1088,7 +1088,7 @@ void FifamDatabase::ReadExternalScriptFile(Path const &filepath, String const &c
 void FifamDatabase::WriteExternalScriptFile(Path const &filepath, String const &compKeyName, UInt gameId,
     Vector<FifamCompEntry> const &comps, UInt startIndex)
 {
-    FifamWriter writer(filepath, gameId, 0, 0, gameId > 7);
+    FifamWriter writer(filepath, gameId, FifamVersion(), gameId > 7);
     if (writer.Available()) {
         std::wcout << L"Writing script file \"" << filepath.filename() << L"\"" << std::endl;
         writer.WriteLine(comps.size() + startIndex);

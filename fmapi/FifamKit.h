@@ -125,9 +125,7 @@ public:
         { 3, { 255, 255, 0 }},
         { 4, { 255, 0, 0 }},
         { 5, { 0, 255, 0 }},
-        { 6, { 0, 0, 255 }},
-        // added for better color detection
-        { FifamShirtNumberColor::Blue, { 0, 144, 144 }}
+        { 6, { 0, 0, 255 }}
     };
 
     static Color GetShirtBackColor(UInt shirtId, Color const &firstColor, Color const &secondColor, Color const &thirdColor);

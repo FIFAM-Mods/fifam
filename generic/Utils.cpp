@@ -37,7 +37,7 @@ std::wstring Utils::GetQuickName(std::wstring const &firstName, std::wstring con
     return std::wstring();
 }
 
-std::vector<std::wstring> Utils::Split(std::wstring const &line, wchar_t delim, bool trim, bool skipEmpty) {
+std::vector<std::wstring> Utils::Split(std::wstring const &line, wchar_t delim, bool trim, bool skipEmpty, bool quotesHavePriority) {
     std::vector<std::wstring> result;
     std::wstring currStr;
     auto AddStr = [&,trim,skipEmpty]() {
@@ -53,7 +53,7 @@ std::vector<std::wstring> Utils::Split(std::wstring const &line, wchar_t delim, 
         if (c == L'\r' || (delim != L'\n' && c == L'\n'))
             break;
         if (!inQuotes) {
-            if (c == L'"')
+            if (quotesHavePriority && c == L'"')
                 inQuotes = true;
             else if (c == delim)
                 AddStr();

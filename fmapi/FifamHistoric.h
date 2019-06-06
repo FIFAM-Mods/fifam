@@ -9,5 +9,5 @@ public:
     Vector<FifamWorstStartingStreak> mWorstStartingStreaks;
 
     void Read(Path &historicFolder, UInt gameId);
-    void Write(Path &historicFolder, UInt gameId, UShort vYear, UShort vNumber);
+    void Write(Path &historicFolder, UInt gameId, FifamVersion const &version);
 };

@@ -11,6 +11,7 @@ class FifamVersion {
     };
 public:
     FifamVersion();
+    FifamVersion(UShort year, UShort number);
     void Set(UShort year, UShort number);
     void Set(UInt intValue);
     UShort GetYear();

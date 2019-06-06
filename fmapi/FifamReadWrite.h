@@ -34,8 +34,8 @@ class FifamWriter : public FifamFileWorker {
     Bool mUnicode = true;
     Bool mReplaceQuotes = true;
 public:
-    FifamWriter(Path const &filename, UInt gameId, UShort vYear, UShort vNumber, Bool unicode = true);
-    FifamWriter(String *outputString, UInt gameId, UShort vYear, UShort vNumber, Bool unicode = true);
+    FifamWriter(Path const &filename, UInt gameId, FifamVersion const &version, Bool unicode = true);
+    FifamWriter(String *outputString, UInt gameId, FifamVersion const &version, Bool unicode = true);
     void SetReplaceQuotes(bool replace);
     ~FifamWriter();
     void Close();
@@ -188,6 +188,7 @@ public:
 class FifamReader : public FifamFileWorker {
     UInt mCurrentLine = 0;
     Vector<String> mLines;
+    Bool mRemoveQuotes = true;
 public:
     void Close();
     Bool Available();
@@ -195,24 +196,24 @@ public:
     UInt GetPosition();
     void SetPosition(UInt pos);
     UInt GetSize();
-    FifamReader(Path const &filename, UInt gameId, Bool linesWithComments = true);
-    FifamReader(Path const &filename, UInt gameId, UShort vYear, UShort vNumber, Bool linesWithComments = true);
-    FifamReader(String *inputString, UInt gameId, Bool linesWithComments = true);
-    FifamReader(String *inputString, UInt gameId, UShort vYear, UShort vNumber, Bool linesWithComments = true);
-    void Open(Path const &filename, UInt gameId, Bool linesWithComments = true);
-    void Open(Path const &filename, UInt gameId, UShort vYear, UShort vNumber, Bool linesWithComments = true);
-    void Open(String *inputString, UInt gameId, Bool linesWithComments = true);
-    void Open(String *inputString, UInt gameId, UShort vYear, UShort vNumber, Bool linesWithComments = true);
+    FifamReader(Path const &filename, UInt gameId, Bool linesWithComments = true, Bool removeQuotes = true);
+    FifamReader(Path const &filename, UInt gameId, FifamVersion const &version, Bool linesWithComments = true, Bool removeQuotes = true);
+    FifamReader(String *inputString, UInt gameId, Bool linesWithComments = true, Bool removeQuotes = true);
+    FifamReader(String *inputString, UInt gameId, FifamVersion const &version, Bool linesWithComments = true, Bool removeQuotes = true);
+    void Open(Path const &filename, UInt gameId, Bool linesWithComments = true, Bool removeQuotes = true);
+    void Open(Path const &filename, UInt gameId, FifamVersion const &version, Bool linesWithComments = true, Bool removeQuotes = true);
+    void Open(String *inputString, UInt gameId, Bool linesWithComments = true, Bool removeQuotes = true);
+    void Open(String *inputString, UInt gameId, FifamVersion const &version, Bool linesWithComments = true, Bool removeQuotes = true);
     ~FifamReader();
 private:
     WideChar const *GetLine();
-    bool GetLine(String &out);
+    Bool GetLine(String &out);
 public:
     Bool CheckLine(String const &str, Bool skipIfTrue = false);
     Bool FindLine(String const &str, Bool skipIfFound = false, Bool moveToEofIfNotFound = false);
     void SkipLines(UInt count);
     void SkipLine();
-    bool EmptyLine();
+    Bool EmptyLine();
     Bool ReadStartIndex(String const &name, Bool moveToEofIfNotFound = false);
     Bool ReadEndIndex(String const &name, Bool moveToEofIfNotFound = true);
     void ReadLine(FifamDate &date);

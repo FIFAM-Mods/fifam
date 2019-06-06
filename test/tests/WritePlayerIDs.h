@@ -12,7 +12,7 @@ public:
         for (auto player : db->mPlayers)
             playerStrIDsMap[player->GetStringUniqueId(Game::id(), false)].push_back(player);
 
-        FifamWriter writer(Utils::Format(L"players_ids_%02d.csv", Game::id()), Game::id(), Game::year(), Game::vernum(), Game::unicode());
+        FifamWriter writer(Utils::Format(L"players_ids_%02d.csv", Game::id()), Game::id(), FifamVersion(Game::year(), Game::vernum()), Game::unicode());
         if (writer.Available()) {
             writer.WriteLine(
                 L"Country",

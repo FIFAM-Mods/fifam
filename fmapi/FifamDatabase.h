@@ -60,7 +60,7 @@ public:
     UInt GetInternalGameCountryId(UInt gameId, UChar nationId);
     Bool IsCountryPresent(UInt gameId, UChar nationId);
     void Read(UInt gameId, Path const &dbPath);
-    void Write(UInt gameId, UShort vYear, UShort vNumber, Path const &dbPath);
+    void Write(UInt gameId, FifamVersion const &version, Path const &dbPath);
     void Clear();
     ~FifamDatabase();
     FifamCountry *CreateCountry(UInt id);

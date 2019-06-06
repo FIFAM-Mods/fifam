@@ -40,7 +40,7 @@ void FifamFileWorker::SetVersion(UShort year, UShort number) {
 }
 
 
-FifamWriter::FifamWriter(Path const &filename, UInt gameId, UShort vYear, UShort vNumber, Bool unicode) :
+FifamWriter::FifamWriter(Path const &filename, UInt gameId, FifamVersion const &version, Bool unicode) :
     FifamFileWorker(gameId)
 {
     mFile = _wfopen(filename.c_str(), unicode ? L"wb" : L"wt");
@@ -53,14 +53,14 @@ FifamWriter::FifamWriter(Path const &filename, UInt gameId, UShort vYear, UShort
         if (mFile)
             _setmode(_fileno(mFile), _O_U8TEXT);
     }
-    mVersion.Set(vYear, vNumber);
+    mVersion = version;
 }
 
-FifamWriter::FifamWriter(String *outputString, UInt gameId, UShort vYear, UShort vNumber, Bool unicode) :
+FifamWriter::FifamWriter(String *outputString, UInt gameId, FifamVersion const &version, Bool unicode) :
     FifamFileWorker(gameId)
 {
     mOutputStr = outputString;
-    mVersion.Set(vYear, vNumber);
+    mVersion = version;
 }
 
 void FifamWriter::SetReplaceQuotes(bool replace) {
@@ -289,8 +289,9 @@ void FifamWriter::WriteNewLine() {
     WriteOne(L"\n");
 }
 
-void FifamReader::Open(Path const &filename, UInt gameId, Bool linesWithComments) {
+void FifamReader::Open(Path const &filename, UInt gameId, Bool linesWithComments, Bool removeQuotes) {
     mGameId = gameId;
+    mRemoveQuotes = removeQuotes;
     FILE *file = _wfopen(filename.c_str(), L"rb");
     if (file) {
         fseek(file, 0, SEEK_END);
@@ -403,13 +404,14 @@ void FifamReader::Open(Path const &filename, UInt gameId, Bool linesWithComments
     }
 }
 
-void FifamReader::Open(Path const &filename, UInt gameId, UShort vYear, UShort vNumber, Bool linesWithComments) {
-    Open(filename, gameId, linesWithComments);
-    mVersion.Set(vYear, vNumber);
+void FifamReader::Open(Path const &filename, UInt gameId, FifamVersion const &version, Bool linesWithComments, Bool removeQuotes) {
+    Open(filename, gameId, linesWithComments, removeQuotes);
+    mVersion = version;
 }
 
-void FifamReader::Open(String *inputString, UInt gameId, Bool linesWithComments) {
+void FifamReader::Open(String *inputString, UInt gameId, Bool linesWithComments, Bool removeQuotes) {
     mGameId = gameId;
+    mRemoveQuotes = removeQuotes;
     String currentLine;
     Bool inComment = false;
     for (UInt i = 0; i < inputString->length(); i++) {
@@ -447,25 +449,25 @@ void FifamReader::Open(String *inputString, UInt gameId, Bool linesWithComments)
         mLines.push_back(currentLine);
 }
 
-void FifamReader::Open(String *inputString, UInt gameId, UShort vYear, UShort vNumber, Bool linesWithComments) {
-    Open(inputString, gameId, linesWithComments);
-    mVersion.Set(vYear, vNumber);
+void FifamReader::Open(String *inputString, UInt gameId, FifamVersion const &version, Bool linesWithComments, Bool removeQuotes) {
+    Open(inputString, gameId, linesWithComments, removeQuotes);
+    mVersion = version;
 }
 
-FifamReader::FifamReader(Path const &filename, UInt gameId, Bool linesWithComments) {
-    Open(filename, gameId, linesWithComments);
+FifamReader::FifamReader(Path const &filename, UInt gameId, Bool linesWithComments, Bool removeQuotes) {
+    Open(filename, gameId, linesWithComments, removeQuotes);
 }
 
-FifamReader::FifamReader(Path const &filename, UInt gameId, UShort vYear, UShort vNumber, Bool linesWithComments) {
-    Open(filename, gameId, vYear, vNumber, linesWithComments);
+FifamReader::FifamReader(Path const &filename, UInt gameId, FifamVersion const &version, Bool linesWithComments, Bool removeQuotes) {
+    Open(filename, gameId, version, linesWithComments, removeQuotes);
 }
 
-FifamReader::FifamReader(String *inputString, UInt gameId, Bool linesWithComments) {
-    Open(inputString, gameId, linesWithComments);
+FifamReader::FifamReader(String *inputString, UInt gameId, Bool linesWithComments, Bool removeQuotes) {
+    Open(inputString, gameId, linesWithComments, removeQuotes);
 }
 
-FifamReader::FifamReader(String *inputString, UInt gameId, UShort vYear, UShort vNumber, Bool linesWithComments) {
-    Open(inputString, gameId, vYear, vNumber, linesWithComments);
+FifamReader::FifamReader(String *inputString, UInt gameId, FifamVersion const &version, Bool linesWithComments, Bool removeQuotes) {
+    Open(inputString, gameId, version, linesWithComments, removeQuotes);
 }
 
 FifamReader::~FifamReader() {
@@ -503,7 +505,7 @@ WideChar const *FifamReader::GetLine() {
     return nullptr;
 }
 
-bool FifamReader::GetLine(String &out) {
+Bool FifamReader::GetLine(String &out) {
     auto line = GetLine();
     if (line) {
         out = line;
@@ -513,7 +515,7 @@ bool FifamReader::GetLine(String &out) {
     return false;
 }
 
-bool FifamReader::EmptyLine() {
+Bool FifamReader::EmptyLine() {
     if (mCurrentLine < mLines.size())
         return mLines[mCurrentLine].empty();
     return true;
@@ -660,7 +662,8 @@ void FifamReader::StrToArg(String const &str, Hexadecimal arg) {
 
 void FifamReader::StrToArg(String const &str, Quoted arg) {
     String modstr = str;
-    RemoveQuotes(modstr);
+    if (mRemoveQuotes)
+        RemoveQuotes(modstr);
     arg = modstr;
 }
 

@@ -4,7 +4,7 @@
 class ReadWriteTest {
 public:
     ReadWriteTest() {
-        FifamWriter writer(L"test.sav", 7, 0x2007, 0xC);
+        FifamWriter writer(L"test.sav", 7, FifamVersion(0x2007, 0xC));
         writer.WriteVersion();
         writer.WriteLine(L"Test");
         writer.WriteLine(Quoted(L"Quoted"));

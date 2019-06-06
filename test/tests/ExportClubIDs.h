@@ -10,7 +10,7 @@ public:
         FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
         FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
         FifamDatabase *db = GetEnvironment<FifamDbEnvironment<FM13, Default>>().GetDatabase();
-        FifamWriter writer(L"clubIDs.txt", 14, 0, 0);
+        FifamWriter writer(L"clubIDs.txt", 14, FifamVersion());
         writer.SetReplaceQuotes(false);
         if (writer.Available()) {
             writer.WriteLine(L"{| class=\"wikitable\"");

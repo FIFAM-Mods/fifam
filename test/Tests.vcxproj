@@ -104,6 +104,7 @@
     <ClInclude Include="TestsRun.h" />
     <ClInclude Include="tests\BadgeTest.h" />
     <ClInclude Include="tests\CalendarDatabase.h" />
+    <ClInclude Include="tests\CopyPortraitsLight.h" />
     <ClInclude Include="tests\ExportClubIDs.h" />
     <ClInclude Include="tests\CompetitionsTest.h" />
     <ClInclude Include="tests\CompIDTest.h" />
@@ -113,6 +114,7 @@
     <ClInclude Include="tests\FifaConverter.h" />
     <ClInclude Include="tests\FoomBasicTest.h" />
     <ClInclude Include="tests\GenerateKitColors.h" />
+    <ClInclude Include="tests\GenerateKitConfig.h" />
     <ClInclude Include="tests\HistoricTest.h" />
     <ClInclude Include="tests\FlagsTest.h" />
     <ClInclude Include="tests\ColorsTest.h" />

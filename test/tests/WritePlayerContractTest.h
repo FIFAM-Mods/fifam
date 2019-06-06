@@ -7,7 +7,7 @@ public:
     WritePlayerContractTest() {
         FifamDatabase *db = GetEnvironment<FifamDbEnvironment<Game, DbType>>().GetDatabase();
 
-        FifamWriter writer(Utils::Format(L"player_contract_%02d.csv", Game::id()), Game::id(), Game::year(), Game::vernum(), Game::unicode());
+        FifamWriter writer(Utils::Format(L"player_contract_%02d.csv", Game::id()), Game::id(), FifamVersion(Game::year(), Game::vernum()), Game::unicode());
         if (writer.Available()) {
             writer.WriteLine(
                 L"Country",

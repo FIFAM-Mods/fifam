@@ -112,6 +112,12 @@
     <ClInclude Include="tests\ExportClubIDs.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\GenerateKitConfig.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\CopyPortraitsLight.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">
