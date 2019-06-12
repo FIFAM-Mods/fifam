@@ -28,7 +28,8 @@
 #include "tests\ExportClubIDs.h"
 #include "tests\GenerateKitConfig.h"
 #include "tests\CopyPortraitsLight.h"
+#include "tests\ExportPlayerAccessories.h"
 
 void RunTests() {
-    RunTest<ColorsTest>();
+    RunTest<ExportPlayerAccessories>();
 }

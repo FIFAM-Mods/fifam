@@ -118,6 +118,9 @@
     <ClInclude Include="tests\CopyPortraitsLight.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\ExportPlayerAccessories.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

@@ -21,7 +21,7 @@ int main() {
     kitConverter.options.ConvertThirdKit = false;
     kitConverter.options.SaveLocation = KitConverter::Documents;
     kitConverter.options.ConvertMinikits = false;
-    kitConverter.options.OnlyCustomKits = true;
+    kitConverter.options.OnlyCustomKits = false;
     kitConverter.options.AllowCustomKits = true;
     kitConverter.options.Allow2xSize = false;
     kitConverter.options.V2 = true;
@@ -49,7 +49,7 @@ int main() {
         return result;
     };
 
-    kitConverter.ConvertClubKits("", 0, 0x150006);
+    kitConverter.ConvertClubKits("", 1898, 0);
 
     //for (auto country : db->mCountries) {
     //    if (country) {

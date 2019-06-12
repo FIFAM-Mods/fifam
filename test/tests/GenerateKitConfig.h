@@ -88,22 +88,22 @@ public:
         FifamDatabase *db = GetEnvironment<FifamDbEnvironment<FM13, Default>>().GetDatabase();
         FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
         FifamWriter writer("D:\\Games\\FIFA Manager 13\\plugins\\ucp\\kits.csv", 14, FifamVersion());
-        writer.WriteLine(L"country,league,team,teamid,kittype,collar,nameplacement,frontnumber,jerseynumbercolor,jerseynamecolor,shortsnumbercolor,shortsnumberhotspotid,namecase,canusecompbadges");
+        writer.WriteLine(L"country,league,team,teamid,kittype,collar,nameplacement,frontnumber,jerseynumbercolor,jerseynamecolor,jerseynumbersize,jerseynumberoffset,canusecompbadges,canusesponsorlogo");
         
         struct team_kit_desc {
             unsigned char collar : 4;
             unsigned char nameplacement : 2;
-            unsigned char namecase : 2;
+            unsigned char frontnumber : 1;
+            unsigned char used : 1;
 
             unsigned char jerseynumbercolor : 4; // 15 - unset
-            unsigned char shortsnumbercolor : 4; // 15 - unset
+            unsigned char jerseynumbersize : 4; // 0 - default (max), 1 - min, 10 - max
 
             unsigned char jerseynamecolor : 7; // 127 - unset
-            unsigned char frontnumber : 1;
-
-            unsigned char shortsnumberhotspotid : 4; // 15 - unset
             unsigned char canusecompbadges : 1;
-            unsigned char used : 1;
+
+            unsigned char jerseynumberoffset : 4; // 0 - min, 15 - max
+            unsigned char canusesponsorlogo : 1;
         };
 
         auto GenerateForClub = [&](FifamClub *club, FifamWriter &writer) {
@@ -163,6 +163,9 @@ public:
                         if (namecase > 2)
                             namecase = 0;
                         UChar canusecompbadges = 0;
+                        UChar canusesponsorlogo = 0;
+                        UChar jerseynumbersize = 0;
+                        UChar jerseynumberoffset = 0;
 
                         String countryName;
                         if (club->mCountry)
@@ -181,7 +184,7 @@ public:
                             writer.WriteLine(
                                 Quoted(countryName), Quoted(leagueName), Quoted(teamName),
                                 teamid, fifaKit->internal.teamkittypetechid, collar, nameplacement, frontnumber, jerseynumbercolor,
-                                jerseynamecolor, shortsnumbercolor, shortsnumberhotspotid, namecase, canusecompbadges);
+                                jerseynamecolor, jerseynumbersize, jerseynumberoffset, canusecompbadges, canusesponsorlogo);
                     }
                 }
             }

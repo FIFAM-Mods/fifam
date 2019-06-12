@@ -317,13 +317,13 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                     reader.ReadLineWithSeparator(L'\t', dummy, dummy, dummy, dummy, dummy, dummy, dummy,
                         foomId, fifaId, editorSkin, editorFace, editorHair, editorBeard, editorEye);
                     if (!foomId.empty()) {
-                        UInt playerId = Utils::SafeConvertInt<Int>(foomId);
+                        Int playerId = Utils::SafeConvertInt<Int>(foomId);
                         if (playerId != -1) {
                             foom::player *foomPlayer = mFoomDatabase->get<foom::player>(playerId);
                             if (foomPlayer) {
                                 auto SetPlayerParameter = [](auto &param, String const &str) {
                                     if (!str.empty()) {
-                                        UInt paramId = Utils::SafeConvertInt<Int>(str);
+                                        Int paramId = Utils::SafeConvertInt<Int>(str);
                                         if (paramId != -1)
                                             param = paramId;
                                     }

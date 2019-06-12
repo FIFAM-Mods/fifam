@@ -110,6 +110,7 @@
     <ClInclude Include="tests\CompIDTest.h" />
     <ClInclude Include="tests\CreateFlagImages.h" />
     <ClInclude Include="tests\ExportCompInfo.h" />
+    <ClInclude Include="tests\ExportPlayerAccessories.h" />
     <ClInclude Include="tests\ExportXML.h" />
     <ClInclude Include="tests\FifaConverter.h" />
     <ClInclude Include="tests\FoomBasicTest.h" />

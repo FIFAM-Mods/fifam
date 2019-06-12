@@ -206,7 +206,7 @@ void FifamCompLeague::Write(FifamWriter &writer, FifamDatabase *database, FifamN
 const UChar fixture2[] = { 1,2 };
 const UChar fixture3[] = { 1,2, 2,3, 3,1 };
 const UChar fixture4[] = { 1,2,3,4, 2,3,4,1, 1,3,2,4 };
-const UChar fixture5[] = { 1,2,3,4, 2,3,4,5, 3,4,5,1, 4,5,1,2, 5,1,2,3 };
+const UChar fixture5[] = { 2,1,3,4, 1,3,5,2, 1,4,3,5, 5,1,4,2, 2,3,4,5 };
 const UChar fixture6[] = { 1,2,3,4,5,6, 3,1,6,4,5,2, 1,4,2,6,3,5, 5,1,4,2,6,3, 1,6,2,3,4,5 };
 const UChar fixture7[] = { 2,1,4,3,6,5, 1,3,5,2,7,4, 5,1,3,7,4,6, 1,7,6,3,4,2, 7,6,5,4,3,2, 1,6,2,7,3,5, 4,1,6,2,7,5 };
 const UChar fixture8[] = { 2,1,4,3,6,5,8,7, 1,3,5,2,7,4,8,6, 5,1,3,7,2,8,4,6, 1,7,8,5,6,3,4,2, 8,1,7,6,5,4,3,2, 1,6,4,8,2,7,3,5, 4,1,6,2,8,3,7,5 };
