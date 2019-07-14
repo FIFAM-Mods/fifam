@@ -62,6 +62,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)generic;$(SolutionDir)fmapi;$(SolutionDir)foom_db;$(SolutionDir)fifaapi;C:\Program Files (x86)\ImageMagick-7.0.8-Q8\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -81,6 +82,7 @@
       <AdditionalIncludeDirectories>$(SolutionDir)generic;$(SolutionDir)fmapi;$(SolutionDir)foom_db;$(SolutionDir)fifaapi;C:\Program Files (x86)\ImageMagick-7.0.8-Q8\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -91,10 +93,20 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AppearanceGenerator.cpp" />
+    <ClCompile Include="ClubConverter.cpp" />
+    <ClCompile Include="CompConverter.cpp" />
     <ClCompile Include="Converter.cpp" />
+    <ClCompile Include="ConverterExtraFiles.cpp" />
+    <ClCompile Include="ConverterUtil.cpp" />
+    <ClCompile Include="CountryConverter.cpp" />
     <ClCompile Include="FifaConverter.cpp" />
     <ClCompile Include="GraphicsConverter.cpp" />
+    <ClCompile Include="LeagueConverter.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="PersonConverter.cpp" />
+    <ClCompile Include="PlayerConverter.cpp" />
+    <ClCompile Include="RefereeConverter.cpp" />
+    <ClCompile Include="StaffConverter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppearanceGenerator.h" />

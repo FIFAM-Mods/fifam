@@ -54,7 +54,15 @@ struct nation : public team {
         Vector<comp *> mMainCups;
         Vector<comp *> mLeagueCups;
         Vector<comp *> mSuperCups;
-
+        struct {
+            void *league = nullptr; // div ptr
+            void *cup = nullptr; // cup ptr
+            void *leagueCup = nullptr; // cup ptr
+            void *supercup = nullptr; // cup ptr
+            foom::team *cupWinner = nullptr;
+            foom::team *cupRunnerUp = nullptr;
+            foom::team *leagueWinner = nullptr;
+        } mDomesticComps;
         Vector<city *> mCities;
     } mConverterData;
 

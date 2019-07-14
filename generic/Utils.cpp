@@ -102,7 +102,12 @@ bool IsHexadecimalLetter(wchar_t c) {
 bool Utils::IsNumber(std::wstring const &str, bool hexadecimal) {
     if (str.empty())
         return false;
-    for (wchar_t c : str) {
+    std::wstring cmpStr;
+    if (hexadecimal && (StartsWith(str, L"0x") || StartsWith(str, L"0X")))
+        cmpStr = str.substr(2);
+    else
+        cmpStr = str;
+    for (wchar_t c : cmpStr) {
         if (isdigit(c))
             continue;
         if (hexadecimal && IsHexadecimalLetter(c))
@@ -115,7 +120,7 @@ bool Utils::IsNumber(std::wstring const &str, bool hexadecimal) {
 int Utils::ToNumber(std::wstring const &str) {
     std::wstring trimmed = str;
     Trim(trimmed);
-    return (StartsWith(trimmed, L"0x") ? wcstol(trimmed.substr(2).c_str(), nullptr, 16) : wcstol(trimmed.c_str(), nullptr, 10));
+    return ((StartsWith(trimmed, L"0x") || StartsWith(trimmed, L"0X")) ? wcstol(trimmed.substr(2).c_str(), nullptr, 16) : wcstol(trimmed.c_str(), nullptr, 10));
 }
 
 void Utils::Trim(std::wstring &str) {

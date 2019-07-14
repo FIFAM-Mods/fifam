@@ -7,7 +7,7 @@
 #include "FifamCompCup.h"
 #include "FifamCompRound.h"
 
-const UShort CURRENT_YEAR = 2018;
+const UShort CURRENT_YEAR = 2019;
 
 class Converter {
 public:
@@ -55,6 +55,7 @@ public:
         Int mAttendanceMp = 0;
         Int mTransfersMp = 0;
         FifamCompID mCompID;
+        Bool mOneYearCalendar = false;
     };
 
     struct CupInfo {
@@ -80,6 +81,7 @@ public:
         Int mTvBonus = 0;
         Int mStartDate = 0;
         Int mEndDate = 0;
+        Bool mOneYearCalendar = false;
     };
 
     struct FixtureInfo {
@@ -167,6 +169,8 @@ public:
     Bool GenerateCalendar(FifamNation const &countryId, FifamDatabase *database, Vector<FifamCompLeague *> const &leagues, Vector<FifamCompCup *> const &cups);
 
     FifamPlayer *CreateAndConvertFifaPlayer(UInt gameId, FifaPlayer *p, FifamClub *club);
+
+    void ConvertLeagues(UInt gameId);
 
     /*
     void GenerateMaleFemaleNames() {

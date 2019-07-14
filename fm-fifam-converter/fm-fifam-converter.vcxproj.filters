@@ -6,6 +6,16 @@
     <ClCompile Include="GraphicsConverter.cpp" />
     <ClCompile Include="AppearanceGenerator.cpp" />
     <ClCompile Include="FifaConverter.cpp" />
+    <ClCompile Include="RefereeConverter.cpp" />
+    <ClCompile Include="PlayerConverter.cpp" />
+    <ClCompile Include="StaffConverter.cpp" />
+    <ClCompile Include="ClubConverter.cpp" />
+    <ClCompile Include="CountryConverter.cpp" />
+    <ClCompile Include="ConverterUtil.cpp" />
+    <ClCompile Include="ConverterExtraFiles.cpp" />
+    <ClCompile Include="CompConverter.cpp" />
+    <ClCompile Include="LeagueConverter.cpp" />
+    <ClCompile Include="PersonConverter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Converter.h" />

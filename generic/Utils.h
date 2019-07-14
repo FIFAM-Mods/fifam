@@ -131,7 +131,7 @@ namespace Utils {
 
     template<typename ValueType>
     ValueType GetMaxElement(std::vector<ValueType> const &elements) {
-        ValueType result;
+        ValueType result = {};
         if (!elements.empty()) {
             result = elements[0];
             for (size_t i = 1; i < elements.size(); i++) {

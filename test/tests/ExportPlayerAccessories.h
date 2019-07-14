@@ -95,14 +95,14 @@ public:
 
                 auto ConvertType = [](Int type) {
                     switch (type) {
-                    case 6:
-                    case 8:
-                    case 24:
-                        return 7;
-                    case 7:
-                    case 9:
-                    case 25:
-                        return 8;
+                    //case 6:
+                    //case 8:
+                    //case 24:
+                    //    return 7;
+                    //case 7:
+                    //case 9:
+                    //case 25:
+                    //    return 8;
                     //case 16:
                     //    return 4;
                     case 22:

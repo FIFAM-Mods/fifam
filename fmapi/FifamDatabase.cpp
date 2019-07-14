@@ -79,8 +79,28 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
             ReadExternalScriptFile(scriptPath / L"EuropeanChampionship.txt", L"EURO_CUP", gameId);
             ReadExternalScriptFile(scriptPath / L"WorldCupU20.txt", L"U20_WORLD_CUP", gameId);
             ReadExternalScriptFile(scriptPath / L"ConfedCup.txt", L"CONFED_CUP", gameId);
-            if (gameId >= 11)
+            if (gameId >= 11) {
                 ReadExternalScriptFile(scriptPath / L"CopaAmerica.txt", L"COPA_AMERICA", gameId);
+
+                ReadExternalScriptFile(scriptPath / L"Continental - Europe.txt", L"YOUTH", gameId);
+                ReadExternalScriptFile(scriptPath / L"Continental - South America.txt", L"YOUTH", gameId);
+                ReadExternalScriptFile(scriptPath / L"EuropeanChampionship.txt", L"EURO_NL", gameId);
+                ReadExternalScriptFile(scriptPath / L"EuropeanChampionship.txt", L"Q_EURO_NL", gameId);
+                ReadExternalScriptFile(scriptPath / L"AsiaCup.txt", L"ASIA_CUP", gameId);
+                ReadExternalScriptFile(scriptPath / L"AsiaCup.txt", L"Q_ASIA_CUP", gameId);
+                ReadExternalScriptFile(scriptPath / L"OFCCup.txt", L"OFC_CUP", gameId);
+                ReadExternalScriptFile(scriptPath / L"OFCCup.txt", L"Q_OFC_CUP", gameId);
+                ReadExternalScriptFile(scriptPath / L"NorthAmericaCup.txt", L"NAM_CUP", gameId);
+                ReadExternalScriptFile(scriptPath / L"NorthAmericaCup.txt", L"NAM_NL", gameId);
+                ReadExternalScriptFile(scriptPath / L"NorthAmericaCup.txt", L"Q_NAM_NL", gameId);
+                ReadExternalScriptFile(scriptPath / L"AfricaCup.txt", L"AFRICA_CUP", gameId);
+                ReadExternalScriptFile(scriptPath / L"AfricaCup.txt", L"Q_AFRICA_CUP", gameId);
+                ReadExternalScriptFile(scriptPath / L"WorldCupU17.txt", L"U17_WORLD_CUP", gameId);
+                ReadExternalScriptFile(scriptPath / L"EuropeanChampionshipU21.txt", L"U21_EC", gameId);
+                ReadExternalScriptFile(scriptPath / L"EuropeanChampionshipU19.txt", L"U19_EC", gameId);
+                ReadExternalScriptFile(scriptPath / L"EuropeanChampionshipU17.txt", L"U17_EC", gameId);
+                ReadExternalScriptFile(scriptPath / L"OlympicGames.txt", L"OLYMPIC", gameId);
+            }
         }
         else {
             ReadExternalScriptFile(scriptPath / L"EuropeanCup.txt", L"EURO", gameId);
@@ -281,17 +301,28 @@ void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &
     //WriteNamesFile(dbPath / L"Surnames.txt", gameId, mSurnames);
 
     Vector<FifamCompEntry> compsEurope, compsSouthAmerica, compsNorthAmerica, compsAfrica, compsAsia, compsOceania,
-        compsQualiWC, compsWC, compsQualiEC, compsEC, compsU20WC, compsConfedCup, compsCopaAmerica;
+        compsQualiWC, compsWC, compsQualiEC, compsEC, compsU20WC, compsConfedCup, compsCopaAmerica,
+        compsEuropeYouth, compsSouthAmericaYouth, compsEuroNL, compsEuroNLQ, compsNorthAmericaCup, compsNorthAmericaNL,
+        compsNorthAmericaNLQ, compsAfricaCup, compsAfricaCupQ, compsAsiaCup, compsAsiaCupQ, compsOFCCup, compsOFCCupQ,
+        compsU17WC, compsU21EC, compsU19EC, compsU17EC, compsOlympicGames;
     for (auto const &compEntry : mCompMap) {
         FifamCompetition *comp = compEntry.second;
         if (FifamUtils::GetWriteableID(comp->mID, gameId)) {
             if (comp->GetDbType() == FifamCompDbType::League || comp->GetDbType() == FifamCompDbType::Cup ||
                 comp->GetDbType() == FifamCompDbType::Round || comp->GetDbType() == FifamCompDbType::Pool)
             {
-                if (comp->mID.mRegion == FifamCompRegion::Europe)
-                    compsEurope.push_back(compEntry);
-                else if (comp->mID.mRegion == FifamCompRegion::SouthAmerica)
-                    compsSouthAmerica.push_back(compEntry);
+                if (comp->mID.mRegion == FifamCompRegion::Europe) {
+                    if (comp->mID.mType == FifamCompType::YouthChampionsLeague)
+                        compsEuropeYouth.push_back(compEntry);
+                    else
+                        compsEurope.push_back(compEntry);
+                }
+                else if (comp->mID.mRegion == FifamCompRegion::SouthAmerica) {
+                    if (comp->mID.mType == FifamCompType::YouthChampionsLeague)
+                        compsSouthAmericaYouth.push_back(compEntry);
+                    else
+                        compsSouthAmerica.push_back(compEntry);
+                }
                 else if (comp->mID.mRegion == FifamCompRegion::NorthAmerica)
                     compsNorthAmerica.push_back(compEntry);
                 else if (comp->mID.mRegion == FifamCompRegion::Africa)
@@ -309,12 +340,45 @@ void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &
                         compsQualiEC.push_back(compEntry);
                     else if (comp->mID.mType == FifamCompType::EuroCup)
                         compsEC.push_back(compEntry);
-                    else if (comp->mID.mType == FifamCompType::U20WorldCup)
+                    else if (comp->mID.mType == FifamCompType::U20WorldCup || comp->mID.mType == FifamCompType::U20WCQ)
                         compsU20WC.push_back(compEntry);
                     else if (comp->mID.mType == FifamCompType::ConfedCup)
                         compsConfedCup.push_back(compEntry);
                     else if (comp->mID.mType == FifamCompType::CopaAmerica)
                         compsCopaAmerica.push_back(compEntry);
+
+                    else if (comp->mID.mType == FifamCompType::EuroNL)
+                        compsEuroNL.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::EuroNLQ)
+                        compsEuroNLQ.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::NamCup)
+                        compsNorthAmericaCup.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::NamNL)
+                        compsNorthAmericaNL.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::NamNLQ)
+                        compsNorthAmericaNLQ.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::AfricaCup)
+                        compsAfricaCup.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::AfricaCupQ)
+                        compsAfricaCupQ.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::AsiaCup)
+                        compsAsiaCup.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::AsiaCupQ)
+                        compsAsiaCupQ.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::OfcCup)
+                        compsOFCCup.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::OfcCupQ)
+                        compsOFCCupQ.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::U17WC || comp->mID.mType == FifamCompType::U17WCQ)
+                        compsU17WC.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::U21EC || comp->mID.mType == FifamCompType::U21ECQ)
+                        compsU21EC.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::U19EC || comp->mID.mType == FifamCompType::U19ECQ)
+                        compsU19EC.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::U17EC || comp->mID.mType == FifamCompType::U17ECQ)
+                        compsU17EC.push_back(compEntry);
+                    else if (comp->mID.mType == FifamCompType::Olympic || comp->mID.mType == FifamCompType::OlympicQ)
+                        compsOlympicGames.push_back(compEntry);
                 }
             }
         }
@@ -333,8 +397,13 @@ void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &
         WriteExternalScriptFile(scriptPath / L"EuropeanChampionship.txt", L"EURO_CUP", gameId, compsEC, 1);
         WriteExternalScriptFile(scriptPath / L"WorldCupU20.txt", L"U20_WORLD_CUP", gameId, compsU20WC, 1);
         WriteExternalScriptFile(scriptPath / L"ConfedCup.txt", L"CONFED_CUP", gameId, compsConfedCup, 1);
-        if (gameId >= 11)
+        if (gameId >= 11) {
             WriteExternalScriptFile(scriptPath / L"CopaAmerica.txt", L"COPA_AMERICA", gameId, compsCopaAmerica, 1);
+
+            /*
+            Writing of custom competition types is not implemented
+            */
+        }
     }
     else {
         WriteExternalScriptFile(scriptPath / L"EuropeanCup.txt", L"EURO", gameId, compsEurope, 0);
@@ -922,7 +991,10 @@ FifamCompetition *FifamDatabase::ReadCompetition(FifamReader &reader, FifamNatio
 
 void FifamDatabase::WriteCompetition(FifamWriter &writer, FifamCompetition *comp, FifamNation nationId) {
     writer.WriteLine(comp->GetDbType().ToStr());
-    writer.WriteLine(FifamCompID(FifamUtils::GetWriteableID(comp->mID, writer.GetGameId())).ToStr());
+    if (comp->HasProperty(L"customType"))
+        writer.WriteLine(Utils::Format(L"{ %u, %s, %u }", comp->mID.mRegion.ToInt(), comp->GetProperty<String>(L"customType"), comp->mID.mIndex));
+    else
+        writer.WriteLine(FifamCompID(FifamUtils::GetWriteableID(comp->mID, writer.GetGameId())).ToStr());
     comp->Write(writer, this, nationId);
 }
 

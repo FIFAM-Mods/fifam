@@ -38,6 +38,7 @@ struct comp {
     Vector<team *> mVecTeams;
 
     struct converter_data {
+        Bool mUsesTableData = false;
         void *mDivInfo = nullptr;
         void *mLeague = nullptr;
         void *mCup = nullptr;

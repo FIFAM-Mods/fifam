@@ -182,6 +182,10 @@ struct club : public team {
 
         Int mAdditionalHistoryReserveTeamType = -1;
         club *mAdditionalHistoryParentTeam = nullptr;
+        Bool mTablePromoted = false;
+        Bool mTableRelegated = false;
+        Bool mTableCupWinner = false;
+        Bool mTableCupRunnerUp = false;
     } mConverterData;
 
     club () {

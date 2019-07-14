@@ -22,6 +22,13 @@ double Color::Distance(Color const &e1, Color const &e2) {
     return sqrt((((512 + rmean)*r*r) >> 8) + 4 * g*g + (((767 - rmean)*b*b) >> 8));
 }
 
+Color &Color::operator=(Color const &rhs) {
+    r = rhs.r;
+    g = rhs.g;
+    b = rhs.b;
+    return *this;
+}
+
 bool Color::operator== (Color const &rhs) const {
     return r == rhs.r && g == rhs.g && b == rhs.b;
 }
@@ -92,6 +99,12 @@ double ColorPair::Distance(ColorPair const &e1, ColorPair const &e2) {
     auto dist1 = (Color::Distance(e1.first, e2.first) + Color::Distance(e1.second, e2.second)) / 2.0;
     auto dist2 = (Color::Distance(e1.first, e2.second) + Color::Distance(e1.second, e2.first)) / 2.0;
     return fmin(dist1, dist2);
+}
+
+ColorPair &ColorPair::operator=(ColorPair const &rhs) {
+    first = rhs.first;
+    second = rhs.second;
+    return *this;
 }
 
 bool ColorPair::operator== (ColorPair const &rhs) const {

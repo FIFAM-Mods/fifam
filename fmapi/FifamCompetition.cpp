@@ -77,19 +77,29 @@ void FifamCompetition::SetName(FifamTrArray<String> const &names) {
 bool FifamCompetition::TakesPlaceInSeason(UShort year) const {
     switch (mID.mType.ToInt()) {
     case FifamCompType::QualiWC:
-        return !(year % 4); // 2013, 2017
-    case FifamCompType::QualiEC:
-        return (year % 4) == 2; // 2015, 2019
-    case FifamCompType::WorldCup:
-        return (year % 4) == 1; // 2014, 2018
-    case FifamCompType::EuroCup:
-        return (year % 4) == 3; // 2016
-    case FifamCompType::U20WorldCup:
-        return (year % 2) == 1; // 2014, 2016, 2018
     case FifamCompType::ConfedCup:
-        return !(year % 4); // 2013, 2017
+        return !(year % 4); // 16/17, 20/21
+    case FifamCompType::QualiEC:
+    case FifamCompType::AsiaCup:
+    case FifamCompType::AsiaCupQ:
+        return (year % 4) == 2; // 14/15, 18/19
+    case FifamCompType::WorldCup:
+        return (year % 4) == 1; // 13/14, 17/18
+    case FifamCompType::EuroCup:
+    case FifamCompType::OfcCup:
     case FifamCompType::CopaAmerica:
-        return (year % 4) == 2; // 2015, 2019
+        return (year % 4) == 3; // 19/20, 23/24
+    case FifamCompType::U20WorldCup:
+        return (year % 2) == 1; // 17/18, 19/20
+    case FifamCompType::EuroNL:
+    case FifamCompType::EuroNLQ:
+    case FifamCompType::AfricaCup:
+    case FifamCompType::AfricaCupQ:
+    case FifamCompType::NamCup:
+        return !(year % 2); // 16/17, 18/19
+    case FifamCompType::NamNL:
+    case FifamCompType::NamNLQ:
+        return (year % 2) == 1; // 17/18, 19/20
     }
     return true;
 }
