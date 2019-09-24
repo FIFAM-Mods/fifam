@@ -2,29 +2,34 @@
 #include "FifamNames.h"
 #include "FifamPlayerGenerator.h"
 
-void Converter::FixPersonName(String &name) {
-    String originalName = name;
-    name.clear();
-    for (auto c : originalName) {
+String Converter::FixPersonName(String const &name) {
+    String result;
+    for (auto c : name) {
         if (c != L',' && c != '|') {
             if (c == L'ș')
-                c = L's';
-            name += c;
+                result += L"s";
+            if (c == L'þ')
+                result += L"th";
+            else if (c == L'Ț')
+                result += L"T";
+            else if (c == L'ț')
+                result += L"t";
+            else
+                result += c;
         }
     }
+    return result;
 }
 
 void Converter::ConvertPersonAttributes(FifamPerson * person, foom::person * p) {
     p->mConverterData.mFifamPerson = person;
     FifamCountry *personCountry = mFifamDatabase->GetCountry(p->mNation->mConverterData.mFIFAManagerReplacementID);
     // names
-    person->mFirstName = FifamNames::LimitPersonName(p->mFirstName, 15);
-    person->mLastName = FifamNames::LimitPersonName(p->mSecondName, 19);
+    person->mFirstName = FifamNames::LimitPersonName(FixPersonName(p->mFirstName), 15);
+    person->mLastName = FifamNames::LimitPersonName(FixPersonName(p->mSecondName), 19);
     if (!p->mCommonName.empty())
-        person->mPseudonym = FifamNames::LimitPersonName(p->mCommonName, (mCurrentGameId > 7) ? 29 : 19);
-    FixPersonName(person->mFirstName);
-    FixPersonName(person->mLastName);
-    FixPersonName(person->mPseudonym);
+        person->mPseudonym = FifamNames::LimitPersonName(FixPersonName(p->mCommonName), (mCurrentGameId > 7) ? 29 : 19);
+    
     // nationality
     Vector<UInt> playerNations;
     if (p->mNation)

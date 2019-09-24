@@ -81,6 +81,11 @@ public:
         int hascenteradboard;
         int playsurfacetype;
         int tifo;
+        // @since FIFA20
+        int issmallsided;
+        int stadiumgoalpoststyle;
+        int supportsunlicensedbanners;
+        int supportsunlicensedtifos;
 
         void Read(FifaDataFile::Line &line);
     } internal;

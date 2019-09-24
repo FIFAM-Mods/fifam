@@ -5,18 +5,26 @@
 FifamCompetition::~FifamCompetition() {}
 
 FifamCompLeague *FifamCompetition::AsLeague() {
+    if (!this)
+        return nullptr;
     return GetDbType() == FifamCompDbType::League ? reinterpret_cast<FifamCompLeague *>(this) : nullptr;
 }
 
 FifamCompRound *FifamCompetition::AsRound() {
+    if (!this)
+        return nullptr;
     return GetDbType() == FifamCompDbType::Round ? reinterpret_cast<FifamCompRound *>(this) : nullptr;
 }
 
 FifamCompCup *FifamCompetition::AsCup() {
+    if (!this)
+        return nullptr;
     return GetDbType() == FifamCompDbType::Cup ? reinterpret_cast<FifamCompCup *>(this) : nullptr;
 }
 
 FifamCompPool *FifamCompetition::AsPool() {
+    if (!this)
+        return nullptr;
     return GetDbType() == FifamCompDbType::Pool ? reinterpret_cast<FifamCompPool *>(this) : nullptr;
 }
 

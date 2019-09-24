@@ -53,9 +53,9 @@ public:
     // bonuses
     Array<UInt, 4> mBonuses = {};
     // @since FM07
-    Bool mFreeAgentsCanBeTranferredAtAnyTime = false;
+    Bool mFreeAgentsCanBeTranferredAtAnyTime = true;
     // @since FM07
-    Bool mForeignFreeAgentsCanBeTransferredAtAnyTime = false;
+    Bool mForeignFreeAgentsCanBeTransferredAtAnyTime = true;
     // @since FM07
     Bool mPlayerLoansCanBeCancelledAtAnyTime = false;
     // @since FM07
@@ -66,40 +66,40 @@ public:
     UChar mAgeLimitForNonEUSigns = 18;
     // @since FM07
     // @range 0-15
-    UChar mShortTermLoansTotalLimit = 0;
+    UChar mShortTermLoansTotalLimit = 15;
     // @since FM07
     // @range 0-15
-    UChar mShortTermLoansSimultaneosLimit = 0;
+    UChar mShortTermLoansSimultaneosLimit = 15;
     // @since FM07
     // @range 0-15
-    UChar mLongTermLoansTotalLimit = 0;
+    UChar mLongTermLoansTotalLimit = 15;
     // @since FM07
     // @range 0-15
-    UChar mLongTermLoansSimultaneosLimit = 0;
+    UChar mLongTermLoansSimultaneosLimit = 15;
     // @since FM07
     // @range 0-15
-    UChar mOverallTotalLoansLimit = 0;
+    UChar mOverallTotalLoansLimit = 15;
     // @since FM07
     // @range 0-15
-    UChar mOverallTotalSimultaneosLoansLimit = 0;
+    UChar mOverallTotalSimultaneosLoansLimit = 15;
     // @since FM07
     // @range 0-15
-    UChar mLoanedPlayersPerSeason = 0;
+    UChar mLoanedPlayersPerSeason = 15;
     // @since FM07
     // @range 0-15
-    UChar mLoanPlayerPerSquad = 0;
+    UChar mLoanPlayerPerSquad = 15;
     // @since FM07
     // @range 0-15
-    UChar mSimLoanOtherLeague = 0;
+    UChar mSimLoanOtherLeague = 15;
     // @since FM07
     // @range 0-15
-    UChar mSimLoanSameLeague = 0;
+    UChar mSimLoanSameLeague = 15;
     // @since FM07
     // @range 0-15
-    UChar mLoanOtherLeagueCount = 0;
+    UChar mLoanOtherLeagueCount = 15;
     // @since FM07
     // @range 0-15
-    UChar mLoanSameLeagueCount = 0;
+    UChar mLoanSameLeagueCount = 15;
     // @since FM07
     // @range 0-31
     UChar mMinDomesticPlayerCount = 0;

@@ -1,6 +1,8 @@
 #include "Converter.h"
 #include "FifamNames.h"
 
+const Bool CONVERT_ASSESSMENT = false;
+
 Int StadNationalTeamUsagePriority(foom::stadium *stad) {
     switch (stad->mUsedByNationalTeam) {
     case 1:
@@ -23,12 +25,29 @@ void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt 
 
     nation->mConverterData.mFifamCountry = dst;
 
-    dst->mAssessmentData[5] = nation->mEuroCoeff6;
-    dst->mAssessmentData[4] = nation->mEuroCoeff7;
-    dst->mAssessmentData[3] = nation->mEuroCoeff8;
-    dst->mAssessmentData[2] = nation->mEuroCoeff9;
-    dst->mAssessmentData[1] = nation->mEuroCoeff10;
-    dst->mAssessmentData[0] = nation->mEuroCoeff11;
+    if (CONVERT_ASSESSMENT) {
+        dst->mAssessmentData[0] = nation->mEuroCoeff6;
+        dst->mAssessmentData[1] = nation->mEuroCoeff7;
+        dst->mAssessmentData[2] = nation->mEuroCoeff8;
+        dst->mAssessmentData[3] = nation->mEuroCoeff9;
+        dst->mAssessmentData[4] = nation->mEuroCoeff10;
+        dst->mAssessmentData[5] = nation->mEuroCoeff11;
+    }
+    else {
+        dst->mAssessmentData[0] = Float(dst->mAssessmentInfo[0] * 100);
+        dst->mAssessmentData[1] = Float(dst->mAssessmentInfo[1] * 100);
+        dst->mAssessmentData[2] = Float(dst->mAssessmentInfo[2] * 100);
+        dst->mAssessmentData[3] = Float(dst->mAssessmentInfo[3] * 100);
+        dst->mAssessmentData[4] = Float(dst->mAssessmentInfo[4] * 100);
+        dst->mAssessmentData[5] = Float(dst->mAssessmentInfo[5] * 100);
+    }
+    dst->mAssessmentInfo[0] = UShort(dst->mAssessmentData[0] / 100.0f);
+    dst->mAssessmentInfo[1] = UShort(dst->mAssessmentData[1] / 100.0f);
+    dst->mAssessmentInfo[2] = UShort(dst->mAssessmentData[2] / 100.0f);
+    dst->mAssessmentInfo[3] = UShort(dst->mAssessmentData[3] / 100.0f);
+    dst->mAssessmentInfo[4] = UShort(dst->mAssessmentData[4] / 100.0f);
+    dst->mAssessmentInfo[5] = UShort(dst->mAssessmentData[5] / 100.0f);
+
     dst->mFifaRanking = nation->mRankingPoints;
     dst->mYearsForNaturalization = Utils::Clamp(nation->mYearsToGainNationality, 0, 9);
     // national team

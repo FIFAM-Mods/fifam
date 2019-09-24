@@ -4,10 +4,8 @@
 void Converter::ConvertReferee(FifamReferee *dst, foom::official *official) {
     official->mConverterData.mFifamReferee = dst;
     dst->SetProperty(L"foom::official", official);
-    dst->mFirstName = FifamNames::LimitPersonName(official->mFirstName, 19);
-    dst->mLastName = FifamNames::LimitPersonName(official->mSecondName, 19);
-    FixPersonName(dst->mFirstName);
-    FixPersonName(dst->mLastName);
+    dst->mFirstName = FifamNames::LimitPersonName(FixPersonName(official->mFirstName), 19);
+    dst->mLastName = FifamNames::LimitPersonName(FixPersonName(official->mSecondName), 19);
     if (official->mFIFACategory && official->mContinentalOfficial && official->mCurrentAbility > 140)
         dst->mType = FifamRefereeType::WorldClassReferee;
     else {

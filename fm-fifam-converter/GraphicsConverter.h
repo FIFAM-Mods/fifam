@@ -22,6 +22,9 @@ public:
     void ConvertOneStadium(Int foomId, UInt fifamClubId, Path const &inputPath, Path const &outputPath, String const &name, String const &stadName, Int rep, FifamWriter &writer);
     void ConvertStadiums(foom::db *db, Path const &inputPath, Path const &contentPath, UInt gameId, Int minRep, bool overview);
 
+    void ConvertPlayerPortraitsFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId);
     void ConvertClubBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId);
     void ConvertCompBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId);
+
+    void CopyLeagueSplitAndRelegationBadges(FifamDatabase *db, Path const &outputPath, Path const &contentPath, UInt gameId);
 };

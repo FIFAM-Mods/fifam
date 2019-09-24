@@ -270,7 +270,11 @@ void FifamStaff::WriteManager(FifamWriter &writer) {
     writer.WriteLine(mLanguages[1]);
     writer.WriteLine(mLanguages[2]);
     writer.WriteLine(mLanguages[3]);
-    writer.WriteLine(mManagerFavouriteFormation);
+    Int customFormation = GetProperty<Int>(L"custom_formation", -1);
+    if (customFormation != -1)
+        writer.WriteLine(customFormation);
+    else
+        writer.WriteLine(mManagerFavouriteFormation);
     writer.WriteLine(Unknown._2);
     writer.WriteLine(mChairmanStability);
 }
@@ -367,7 +371,11 @@ void FifamStaff::WriteWorker(FifamWriter &writer) {
     if (mHasCoachJobData) {
         writer.WriteLine(1);
         writer.WriteLine(0);
-        writer.WriteLine(mManagerFavouriteFormation);
+        Int customFormation = GetProperty<Int>(L"custom_formation", -1);
+        if (customFormation != -1)
+            writer.WriteLine(customFormation);
+        else
+            writer.WriteLine(mManagerFavouriteFormation);
         writer.WriteLine(mCoachPlayingOrientation);
     }
     if (mHasNoneJobData) {

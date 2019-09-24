@@ -384,8 +384,7 @@ Bool FifamCountry::Write(FifamWriter &writer) {
             else if (compEntry.first.mType == FifamCompType::SuperCup)
                 compSupercups.push_back(compEntry);
         }
-        writer.WriteLine(compLeagues.size() + compRelegations.size() + compPools.size(), compFACups.size(),
-            compLECups.size(), compSupercups.size());
+        writer.WriteLine(compLeagues.size() + compRelegations.size() + compPools.size() + compFACups.size() + compLECups.size() + compSupercups.size());
         UInt compIndex = 0;
         auto WriteComps = [&](Vector<FifamCompEntry> const &compPairs) {
             for (UInt i = 0; i < compPairs.size(); i++) {
@@ -771,7 +770,7 @@ Bool FifamCountry::IsCompetitionSystemCorrect() {
     if (!compLeague || compLeague->AsLeague()->mNumTeams < 8)
         return false;
     // check competition errors
-    return false;
+    return true;
 }
 
 Vector<FifamCompEntry> FifamCountry::GetCompetitions(bool onlyWriteable) {

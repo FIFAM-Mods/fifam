@@ -19,6 +19,54 @@ public:
     foom::db *mFoomDatabase = nullptr;
     Path mFifaAssetsPath = L"D:\\Projects\\FIFA19";
 
+    FifamDatabase *mPreviousDb = nullptr;
+    Map<UInt, FifamPlayer *> mPreviousPlayers;
+
+    FifamClub *GetPreviousClub(UInt id);
+    FifamPlayer *GetPreviousPlayer(UInt id);
+    void UpdateDataFromPreviousDb();
+
+    struct PlayOffInfo {
+        struct TeamEntry {
+            UChar mLevel = 0;
+            UChar mPositionIndex = 0;
+            UChar mTablePosition = 0;
+            UShort mLeagueIndex = 0;
+            FifamCompLeague *mLeague = nullptr;
+        };
+
+        struct Round {
+            enum class ShuffleType { None, AllTeams, HalfTeams };
+            UChar mLegs = 1;
+            ShuffleType mShuffle = ShuffleType::None;
+            Bool mLosersRound = false;
+            UShort mNewTeams = 0;
+            FifamCompRound *mFifamRound = nullptr;
+            Vector<TeamEntry> mTeamEntries;
+        };
+
+        struct League {
+            FifamCompLeague *mFifamLeague = nullptr;
+            UShort mTotalTeams = 0;
+            UShort mNumWinners = 0;
+            UShort mNumLosers = 0;
+            Vector<TeamEntry> mTeamEntries;
+        };
+
+        Int mNationID = -1;
+        Int mID = 0;
+        String mName;
+        Vector<Round> mRounds;
+        League mLeague;
+        Bool mIsLeague = false;
+        Int mSubs = 3;
+
+        Int mMinLeagueLevel = -1;
+        Int mMaxLeagueLevel = -1;
+        Int mPromotionLevel = -1;
+        Int mRelegationLevel = -1;
+    };
+
     struct DivisionInfo {
         enum Type {
             League,
@@ -36,8 +84,16 @@ public:
         Int mOrder = 0;
         Int mPriority = 0;
         Int mRounds = -1;
-        Int mPromoted = 0;
-        Int mRelegated = 0;
+        UInt mPromoted = 0;
+        UInt mRelegated = 0;
+        Pair<Int, Int> mSplit = { 0, 0 };
+        Pair<Int, Int> mSplitRounds = { 1, 1 };
+        Vector<UInt> mPromotionPlayoff;
+        Vector<UInt> mRelegationPlayoff;
+        UInt mTotalTeamsPromotionPlayoff = 0;
+        UInt mTotalTeamsRelegationPlayoff = 0;
+        Int mPromotionID = 0;
+        Int mRelegationID = 0;
         Int mStartDate = 0;
         Int mEndDate = 0;
         Int mWinterBreakStart = 0;
@@ -56,6 +112,8 @@ public:
         Int mTransfersMp = 0;
         FifamCompID mCompID;
         Bool mOneYearCalendar = false;
+        PlayOffInfo *mPromotionInfo = nullptr;
+        PlayOffInfo *mRelegationInfo = nullptr;
     };
 
     struct CupInfo {
@@ -102,6 +160,7 @@ public:
     };
 
     Vector<DivisionInfo> mDivisions;
+    Vector<PlayOffInfo> mPlayOffs;
     Vector<CupInfo> mCups;
     Map<UInt, Vector<FixtureInfo>> mFixturesPerLeague;
     Array<UInt, FifamDatabase::NUM_COUNTRIES> mNextFreeUID = {};
@@ -116,6 +175,8 @@ public:
     Map<Int, String> mAbbreviationMap;
     Map<Int, String> mShortNamesMap;
     Map<Int, String> mNamesMap;
+    Map<UInt, Vector<UShort>> mCalendarsFirstSeason;
+    Map<UInt, Vector<UShort>> mCalendarsSecondSeason;
     
     Date GetCurrentDate() { return Date(1, 7, CURRENT_YEAR); }
     Date FmEmptyDate() { return Date(1, 1, 1900); }
@@ -136,7 +197,7 @@ public:
         Color const &teamForegroundColor, UInt gameId);
     FifamPlayer *CreateAndConvertPlayer(UInt gameId, foom::player *p, FifamClub *club);
     FifamStaff *CreateAndConvertStaff(foom::non_player *p, FifamClub *club, FifamClubStaffPosition position);
-    void FixPersonName(String &name);
+    String FixPersonName(String const &name);
     void ConvertPersonAttributes(FifamPerson *person, foom::person *p);
     void CreateStaffMembersForClub(UInt gameId, foom::team *team, FifamClub *dst, Bool isNationalTeam);
     UChar GetPlayerLevelFromCA(Int ca);
@@ -165,12 +226,14 @@ public:
     Map<UShort, foom::team *> GetWinnersList(Vector<foom::comp *> const &inputComps, bool isSupercup = false);
 
     FifamFormation ConvertFormationId(Int id);
+    Int ConvertFormationIdToCustom(Int id);
 
-    Bool GenerateCalendar(FifamNation const &countryId, FifamDatabase *database, Vector<FifamCompLeague *> const &leagues, Vector<FifamCompCup *> const &cups);
+    Bool GenerateCalendar(FifamNation const &countryId, FifamDatabase *database, Vector<FifamCompLeague *> const &leagues, Vector<FifamCompCup *> const &cups, Pair<FifamCompLeague *, FifamCompLeague *> const &split, Vector<PlayOffInfo *> const &playOffs);
 
     FifamPlayer *CreateAndConvertFifaPlayer(UInt gameId, FifaPlayer *p, FifamClub *club);
 
     void ConvertLeagues(UInt gameId);
+    Bool ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<FifamCompLeague *> &leagues, Vector<FifamCompCup *> &cups, Pair<FifamCompLeague *, FifamCompLeague *> &split, Vector<PlayOffInfo *> &playOffs);
 
     /*
     void GenerateMaleFemaleNames() {

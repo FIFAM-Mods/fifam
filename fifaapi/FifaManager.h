@@ -25,12 +25,32 @@ public:
         int bodytypecode;
         // @since FIFA19
         int faceposerpreset;
+        // @since FIFA20
+        std::wstring commonname;
+        int skintypecode;
+        int haircolorcode;
+        int facialhairtypecode;
+        int hairtypecode;
+        int headtypecode;
+        int seasonaloutfitid;
+        int weight;
+        int headassetid;
+        int ethnicity;
+        int eyebrowcode;
+        int personalityid;
+        int nationality;
+        int sideburnscode;
+        int headvariation;
+        int outfitid;
+        int hairstylecode;
+        int facialhaircolorcode;
 
         void Read(FifaDataFile::Line &line);
     } internal;
 
     std::wstring m_firstName;
     std::wstring m_lastName;
+    std::wstring m_commonName;
     std::wstring m_quickName;
     FifaTeam *m_team;
 

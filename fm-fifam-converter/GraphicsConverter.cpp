@@ -284,6 +284,7 @@ void GraphicsConverter::ConvertCompBadges(FifamDatabase *db, Path const &fmGraph
         ConvertOneCompBadge(foomBadgesPath / L"317567_conmebol.png", outputPath, L"FA0A.tga", gameId); // South America Europa League
         ConvertOneCompBadge(foomBadgesPath / L"102418_conmebol.png", outputPath, L"FA0C.tga", gameId); // South America Super Cup
         ConvertOneCompBadge(foomBadgesPath / L"51002641_concacaf.png", outputPath, L"FB09.tga", gameId); // North America Champions League
+        ConvertOneCompBadge(foomBadgesPath / L"222987_concacaf.png", outputPath, L"FB0C.tga", gameId); // North America Super Cup
         ConvertOneCompBadge(foomBadgesPath / L"127299_caf.png", outputPath, L"FC09.tga", gameId); // Africa Champions League
         ConvertOneCompBadge(foomBadgesPath / L"12017574_caf.png", outputPath, L"FC0A.tga", gameId); // Africa Europa League
         ConvertOneCompBadge(foomBadgesPath / L"131273_caf.png", outputPath, L"FC0C.tga", gameId); // Africa Super Cup
@@ -809,9 +810,63 @@ void GraphicsConverter::ConvertClubBadgesFIFA(FifamDatabase *db, Path const &fif
     }
 }
 
+void GraphicsConverter::ConvertPlayerPortraitsFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId) {
+    Path picPath;
+    if (gameId >= 9) {
+        Path assetsDir = fifaAssetsPath / L"minifaces";
+        Path outputPath = contentPath / Utils::Format(L"fm%02d", gameId) / L"portraits" / L"club" / L"160x160";
+        create_directories(outputPath);
+        for (auto c : db->mCountries) {
+            if (c) {
+                std::wcout << FifamTr(c->mName) << std::endl;
+                for (auto b : c->mClubs) {
+                    for (auto p : b->mPlayers) {
+                        try {
+                            if (p->mEmpicsId != 0) {
+                                picPath = assetsDir / Utils::Format(L"p%d.dds", p->mEmpicsId);
+                                if (exists(picPath)) {
+                                    Image pic(picPath.string());
+                                    pic.resize(Geometry(160, 160));
+                                    Path outputPic = outputPath / (p->mWriteableStringID + L".tga");
+                                    pic.write(outputPic.string());
+                                }
+                            }
+                        }
+                        catch (std::exception &e) {
+                            ::Error(e.what() + std::string("\n") + picPath.string());
+                        }
+                    }
+                }
+            }
+        }
+        std::wcout << L"Free agents" << std::endl;
+        for (auto p : db->mPlayers) {
+            try {
+                if (!p->mClub && p->mEmpicsId != 0) {
+                    picPath = assetsDir / Utils::Format(L"p%d.dds", p->mEmpicsId);
+                    if (exists(picPath)) {
+                        Image pic(picPath.string());
+                        pic.resize(Geometry(160, 160));
+                        Path outputPic = outputPath / (p->mWriteableStringID + L".tga");
+                        pic.write(outputPic.string());
+                    }
+                }
+            }
+            catch (std::exception &e) {
+                ::Error(e.what() + std::string("\n") + picPath.string());
+            }
+        }
+    }
+}
+
+
 void GraphicsConverter::ConvertCompBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId) {
     String gameFolder = Utils::Format(L"fm%02d", gameId);
     Path outputPath = contentPath / gameFolder / L"badges" / L"badges" / L"Leagues";
+    create_directories(outputPath / L"256x256");
+    create_directories(outputPath / L"128x128");
+    create_directories(outputPath / L"64x64");
+    create_directories(outputPath / L"32x32");
     Image tmMask(Path(contentPath / L"templates" / L"textmode_mask.png").string());
     for (auto [compId, comp] : db->mCompMap) {
         if (comp->GetDbType() == FifamCompDbType::League) {
@@ -981,7 +1036,7 @@ void GraphicsConverter::ConvertCompBadgesFIFA(FifamDatabase *db, Path const &fif
                 if (exists(logoPath)) {
                     String badgeName;
                     if (gameId >= 10)
-                        badgeName = Utils::Format(L"%08X.tga", compId);
+                        badgeName = Utils::Format(L"%08X.tga", compId.ToInt());
                     else if (compId.mRegion.ToInt() > 0 && compId.mRegion.ToInt() <= 207)
                         badgeName = Utils::Format(L"%s%d.tga", countryLeagueNames[compId.mRegion.ToInt()], comp->mCompetitionLevel + 1);
                     else
@@ -1010,5 +1065,30 @@ void GraphicsConverter::ConvertCompBadgesFIFA(FifamDatabase *db, Path const &fif
                 }
             }
         }
+    }
+}
+
+void GraphicsConverter::CopyLeagueSplitAndRelegationBadges(FifamDatabase *db, Path const &outputPath, Path const &contentPath, UInt gameId) {
+    String gameFolder = Utils::Format(L"fm%02d", gameId);
+    Path badgesPath = contentPath / gameFolder / L"badges" / L"badges" / L"Leagues";
+    Path badgesOutputPath = outputPath / L"badges" / L"Leagues";
+    for (auto const &[compId, comp] : db->mCompMap) {
+        if (compId.mRegion.ToInt() > 0 && compId.mRegion.ToInt() <= FifamDatabase::NUM_COUNTRIES
+            && compId.mType == FifamCompType::Relegation
+            && comp->GetDbType() == FifamCompDbType::League
+            && comp->mCompetitionLevel == 0
+            && comp->AsLeague()->mTakePoints == true)
+        {
+            std::error_code ec;
+            UInt res[] = { 256, 128, 64, 32 };
+            for (UInt i = 0; i < std::size(res); i++) {
+                String badgesResFolder = Utils::Format(L"%ux%u", res[i], res[i]);
+                Path srcFilePath = badgesPath / badgesResFolder / (FifamCompID(compId.mRegion, FifamCompType::League, 0).ToHexStr() + L".tga");
+                if (exists(srcFilePath, ec))
+                    copy(srcFilePath, badgesOutputPath / badgesResFolder / (compId.ToHexStr() + L".tga"), copy_options::overwrite_existing, ec);
+            }
+        }
+        else if (compId.mType == FifamCompType::Relegation)
+            ConvertOneCompBadge(contentPath / L"playoff.tga", badgesOutputPath, compId.ToHexStr() + L".tga", gameId);
     }
 }

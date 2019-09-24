@@ -629,7 +629,11 @@ void FifamPlayer::Write(FifamWriter &writer) {
         mHistory.Write(writer);
         mContract.Write(writer);
         writer.WriteLine(mManagerMotivationSkills, mManagerCoachingSkills, mManagerGoalkeepersTraining, mManagerNegotiationSkills);
-        writer.WriteLine(mManagerFavouriteFormation);
+        Int customFormation = GetProperty<Int>(L"custom_formation", -1);
+        if (customFormation != -1)
+            writer.WriteLine(customFormation);
+        else
+            writer.WriteLine(mManagerFavouriteFormation);
         writer.WriteLine(mChairmanStability);
         writer.WriteLine(mComment);
     }
@@ -814,7 +818,11 @@ void FifamPlayer::Write(FifamWriter &writer) {
             writer.WriteLine(FifamUtils::GetWriteableID(mManagerFavouritePlayer));
         else
             writer.WriteLine(0);
-        writer.WriteLine(mManagerFavouriteFormation);
+        Int customFormation = GetProperty<Int>(L"custom_formation", -1);
+        if (customFormation != -1)
+            writer.WriteLine(customFormation);
+        else
+            writer.WriteLine(mManagerFavouriteFormation);
         writer.WriteLine(mChairmanStability);
         writer.WriteLine(mTacticalEducation);
         UInt contractFlags = 0;

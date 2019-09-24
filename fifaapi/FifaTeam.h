@@ -14,7 +14,7 @@ class FifaTeam {
 public:
     struct Internal {
         int assetid;
-        int balltype;
+        int ballid;
         int teamcolor1g;
         int teamcolor1r;
         int clubworth;
@@ -110,6 +110,11 @@ public:
         int playersinboxcross;
         int prev_el_champ;
         int offensivewidth;
+        // @since FIFA20
+        int hasstandingcrowd;
+        int favoriteteamsheetid;
+        int uefa_consecutive_wins;
+        int iscompetitioncrowdcardsenabled;
 
         void Read(FifaDataFile::Line &line);
     } internal;

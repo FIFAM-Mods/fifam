@@ -125,6 +125,47 @@ Bool ConvertOneTrophy(Path const &trophyPath, Path const &outputPath, Path const
 }
 
 Int wmain(Int argc, WideChar **argv) {
+
+    auto Copy = [](Path const &dst, Path const &src) {
+        if (exists(src))
+            copy(src, dst, copy_options::overwrite_existing);
+    };
+
+    Path kits = L".output";
+    Path mini = L".output\\mini";
+    create_directories(L".output\\mini");
+    for (auto &p : directory_iterator(current_path())) {
+        if (p.is_directory() && p.path().c_str()[0] != '.') {
+            String dir = p.path().filename().c_str();
+            UInt id = Utils::SafeConvertInt<UInt>(dir, true);
+            if (id != 0) {
+                std::wcout << Utils::Format(L"Processing %08X", id) << std::endl;
+
+                Copy(mini / (dir + L"_h.png"), p.path() / L"mini0.png");
+                Copy(mini / (dir + L"_a.png"), p.path() / L"mini1.png");
+
+                Copy(kits / (dir + L"_j_h.png"), p.path() / L"H1.png");
+                Copy(kits / (dir + L"_s_h.png"), p.path() / L"H2.png");
+
+                Copy(kits / (dir + L"_j_a.png"), p.path() / L"A1.png");
+                Copy(kits / (dir + L"_s_a.png"), p.path() / L"A2.png");
+
+                Copy(kits / (dir + L"_j_t.png"), p.path() / L"T1.png");
+                Copy(kits / (dir + L"_s_t.png"), p.path() / L"T2.png");
+
+                Copy(kits / (dir + L"_j_g.png"), p.path() / L"G1.png");
+                Copy(kits / (dir + L"_s_g.png"), p.path() / L"G2.png");
+
+                Copy(kits / (dir + L"_l.png"), p.path() / L"L.png");
+                Copy(kits / (dir + L"_l_h.png"), p.path() / L"L1.png");
+                Copy(kits / (dir + L"_l_a.png"), p.path() / L"L2.png");
+                Copy(kits / (dir + L"_l_t.png"), p.path() / L"L3.png");
+                Copy(kits / (dir + L"_l_g.png"), p.path() / L"L4.png");
+            }
+        }
+    }
+
+    return 0;
     
     SetConsoleTitleW(L"Logos Tool by Dmitry v1.0");
 
@@ -171,7 +212,7 @@ Int wmain(Int argc, WideChar **argv) {
                 Image badgeImg(p.path().string());
                 if (badgeImg.isValid()) {
                     badgeImg.resize(Geometry(248, 248));
-                    badgeImg.stroke
+                    //badgeImg.stroke
                     badgeImg.extent(Geometry(256, 256), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
                     WriteOneBadge(badgeImg, isCompBadge ? outputLeagues : outputClubs, badgeName + L".tga", 14);
                 }

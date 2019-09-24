@@ -1,7 +1,534 @@
-#include "Converter.h"
+﻿#include "Converter.h"
 #include "ConverterUtil.h"
 #include "FifamNames.h"
 #include "FifamCompPool.h"
+
+Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<FifamCompLeague *> &leagues,
+    Vector<FifamCompCup *> &cups, Pair<FifamCompLeague *, FifamCompLeague *> &split, Vector<PlayOffInfo *> &playOffs)
+{
+    if (!mFifamDatabase || !country)
+        return false;
+    auto countryId = country->mId;
+    auto ErrorMsg = [&](String const &message) {
+        Error(L"Error while creating special competition format:\n" + message + L"\nin " + FifamTr(country->mName));
+        return false;
+    };
+    auto GetNextLeagueCupIndex = [&]() {
+        UInt result = 9999;
+        for (auto &[compId, comp] : mFifamDatabase->mCompMap) {
+            if (compId.mRegion.ToInt() == countryId && comp->GetDbType() == FifamCompDbType::Cup && compId.mType == FifamCompType::LeagueCup) {
+                if (result == 9999 || compId.mIndex > result)
+                    result = compId.mIndex;
+            }
+        }
+        return result == 9999 ? 0 : result + 1;
+    };
+    auto CreateRound = [&](UShort index, String const &name, UInt level, UInt teams, Vector<FifamCompID> const &predecessors = {},
+        Vector<FifamCompID> const &successors = {}, Vector<FifamAbstractInstruction *> const &instructions = {}, Array<UInt, 4> const &bonuses = {},
+        UInt legs = 2, UInt subs = 3)
+    {
+        FifamCompID compRelID = FifamCompID(country->mId, FifamCompType::Relegation, index);
+        FifamCompRound *rel = mFifamDatabase->CreateCompetition(FifamCompDbType::Round, compRelID, name)->AsRound();
+        rel->mCompetitionLevel = level;
+        rel->mNumSubsAllowed = subs;
+        rel->mNumTeams = teams;
+        rel->mRoundType = FifamRoundID::Final;
+        if (legs == 2) {
+            rel->m1stLegFlags.Set(FifamBeg::_2ndLeg, true);
+            rel->m2ndLegFlags.Set(FifamBeg::WithExtraTime, true);
+            rel->m2ndLegFlags.Set(FifamBeg::WithPenalty, true);
+            rel->m2ndLegFlags.Set(FifamBeg::_2ndLeg, true);
+        }
+        else {
+            rel->m1stLegFlags.Set(FifamBeg::WithExtraTime, true);
+            rel->m1stLegFlags.Set(FifamBeg::WithPenalty, true);
+            rel->m1stLegFlags.Set(FifamBeg::_1stLeg, true);
+        }
+        for (auto const &i : predecessors) {
+            if (!Utils::Contains(rel->mPredecessors, i))
+                rel->mPredecessors.push_back(i);
+            auto c = mFifamDatabase->GetCompetition(i);
+            if (c && !Utils::Contains(c->mSuccessors, rel->mID))
+                c->mSuccessors.push_back(rel->mID);
+        }
+        for (auto const &i : successors) {
+            if (!Utils::Contains(rel->mSuccessors, i))
+                rel->mSuccessors.push_back(i);
+            auto c = mFifamDatabase->GetCompetition(i);
+            if (c && !Utils::Contains(c->mPredecessors, rel->mID))
+                c->mPredecessors.push_back(rel->mID);
+        }
+        for (auto const &i : instructions)
+            rel->mInstructions.PushBack(i);
+        rel->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
+        rel->mBonuses = bonuses;
+        return rel;
+    };
+    auto League = [&](UShort index) { return FifamCompID(countryId, FifamCompType::League, index); };
+    auto Pool = [&](UShort index) { return FifamCompID(countryId, FifamCompType::Pool, index); };
+    auto Relegation = [&](UShort index) { return FifamCompID(countryId, FifamCompType::Relegation, index); };
+    auto DivInfo = [&](FifamCompLeague *league) {
+        auto div = league->GetProperty<DivisionInfo *>(L"divInfo", nullptr);
+        if (!div) {
+            static DivisionInfo dummy;
+            ErrorMsg(L"DivInfo is not set for the league (" + league->mID.ToStr() + L")");
+            return &dummy;
+        }
+        return div;
+    };
+    if (countryId == FifamCompRegion::Germany) {
+        UInt nextCupIndex = GetNextLeagueCupIndex();
+        if (nextCupIndex > 1)
+            ErrorMsg(L"Not enough free league cups (next free index is " + Utils::Format(L"%d", nextCupIndex) + L")");
+        else {
+            FifamCompID youthCupId = FifamCompID(countryId, FifamCompType::LeagueCup, nextCupIndex);
+            FifamCompCup *youthCup = mFifamDatabase->CreateCompetition(FifamCompDbType::Cup, youthCupId, L"DFB-Junioren-Vereinspokal")->AsCup();
+            youthCup->mRounds.resize(5);
+            youthCup->mNumTeams = 21;
+            youthCup->mRounds[0].mRoundID = FifamRoundID::_1;
+            youthCup->mRounds[0].mTeamsRound = 10;
+            youthCup->mRounds[0].mNewTeamsRound = 10;
+            youthCup->mRounds[0].mStartBeg = 0;
+            youthCup->mRounds[0].mEndBeg = 5;
+            youthCup->mRounds[1].mRoundID = FifamRoundID::Last16;
+            youthCup->mRounds[1].mTeamsRound = 16;
+            youthCup->mRounds[1].mNewTeamsRound = 11;
+            youthCup->mRounds[1].mStartBeg = 5;
+            youthCup->mRounds[1].mEndBeg = 13;
+            youthCup->mRounds[2].mRoundID = FifamRoundID::Quarterfinal;
+            youthCup->mRounds[2].mTeamsRound = 8;
+            youthCup->mRounds[2].mStartBeg = 13;
+            youthCup->mRounds[2].mEndBeg = 17;
+            youthCup->mRounds[3].mRoundID = FifamRoundID::Semifinal;
+            youthCup->mRounds[3].mTeamsRound = 4;
+            youthCup->mRounds[3].mStartBeg = 17;
+            youthCup->mRounds[3].mEndBeg = 19;
+            youthCup->mRounds[4].mRoundID = FifamRoundID::Final;
+            youthCup->mRounds[4].mTeamsRound = 2;
+            youthCup->mRounds[4].mStartBeg = 19;
+            youthCup->mRounds[4].mEndBeg = 20;
+            youthCup->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(FifamCompID(countryId, FifamCompType::League, 0), 1, 18));
+            youthCup->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(FifamCompID(countryId, FifamCompType::League, 1), 1, 3));
+            youthCup->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
+            youthCup->mInstructions.PushBack(new FifamInstruction::CHANGE_TEAM_TYPES(FifamClubTeamType::YouthA));
+            youthCup->SetProperty<UChar>(L"min_level", 255);
+        }
+
+        FifamCompLeague *bundesliga2 = mFifamDatabase->GetCompetition(League(1))->AsLeague();
+        if (!bundesliga2)
+            return ErrorMsg(L"Bundesliga 2 is not available");
+        FifamCompLeague *liga3 = mFifamDatabase->GetCompetition(League(2))->AsLeague();
+        if (!liga3)
+            return ErrorMsg(L"Liga 3 is not available");
+        Array<FifamCompLeague *, 5> regionalliga;
+        enum eRegionalliga { Nord = 0, Nordost = 1, West = 2, Sudwest = 3, Bayern = 4 };
+        for (UInt i = 0; i < std::size(regionalliga); i++) {
+            regionalliga[i] = mFifamDatabase->GetCompetition(League(3 + i))->AsLeague();
+            if (!regionalliga[i])
+                return ErrorMsg(L"Regionalliga is not available");
+        }
+        FifamCompRound *prom3 = mFifamDatabase->GetCompetition(Relegation(2))->AsRound();
+        if (!prom3)
+            return ErrorMsg(L"Promotion to Liga 3 is not available");
+        FifamCompPool *liga3pool = mFifamDatabase->GetCompetition(Pool(2))->AsPool();
+        if (!liga3pool)
+            return ErrorMsg(L"Liga 3 pool is not available");
+        FifamCompPool *regionalligaPool = mFifamDatabase->GetCompetition(Pool(3))->AsPool();
+        if (!regionalligaPool)
+            return ErrorMsg(L"Regionalliga pool is not available");
+
+        liga3pool->mInstructions.Clear();
+        liga3pool->mInstructions.PushBack(new FifamInstruction::GET_LOSER(Relegation(1)));
+        liga3pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(1), bundesliga2->mNumTeams - DivInfo(bundesliga2)->mRelegated + 1, DivInfo(bundesliga2)->mRelegated));
+        liga3pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(2), DivInfo(liga3)->mPromoted + DivInfo(liga3)->mTotalTeamsPromotionPlayoff + 1, liga3->mNumTeams - (DivInfo(liga3)->mPromoted + DivInfo(liga3)->mTotalTeamsPromotionPlayoff + DivInfo(liga3)->mRelegated + DivInfo(liga3)->mTotalTeamsRelegationPlayoff)));
+        liga3pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(6), 1, 1));
+        liga3pool->mInstructions.PushBack(new FifamInstruction::GET_CC_SPARE()); // get directly promoted 3 teams from 3 leagues
+        liga3pool->mInstructions.PushBack(new FifamInstruction::GET_WINNER(Relegation(2)));
+        liga3pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
+
+        // promotion to liga 3 round
+
+        prom3->mName[FifamTranslation::German] = L"Aufstieg zur 3. Liga";
+        prom3->mPredecessors.clear();
+        for (UInt i = 0; i < std::size(regionalliga); i++) {
+            prom3->mPredecessors.push_back(League(3 + i));
+            if (!Utils::Contains(regionalliga[i]->mSuccessors, Relegation(2)))
+                regionalliga[i]->mSuccessors.push_back(Relegation(2));
+        }
+        prom3->mInstructions.Clear();
+        prom3->mInstructions.PushBack(new FifamInstruction::GET_CC_SPARE());
+        prom3->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
+    }
+    else if (countryId == FifamCompRegion::Spain) {
+        FifamCompLeague *laliga = mFifamDatabase->GetCompetition(League(0))->AsLeague();
+        if (!laliga)
+            return ErrorMsg(L"LaLiga is not available");
+        FifamCompLeague *segunda = mFifamDatabase->GetCompetition(League(1))->AsLeague();
+        if (!segunda)
+            return ErrorMsg(L"Segunda is not available");
+        Array<FifamCompLeague *, 4> segundaB = {};
+        for (UInt i = 0; i < std::size(segundaB); i++) {
+            segundaB[i] = mFifamDatabase->GetCompetition(League(2 + i))->AsLeague();
+            if (!segundaB[i])
+                return ErrorMsg(L"Segunda B is not available");
+        }
+        Array<FifamCompLeague *, 18> tercera = {};
+        for (UInt i = 0; i < std::size(tercera); i++) {
+            tercera[i] = mFifamDatabase->GetCompetition(League(6 + i))->AsLeague();
+            if (!tercera[i])
+                return ErrorMsg(L"Tercera is not available");
+        }
+        FifamCompPool *segundaPool = mFifamDatabase->GetCompetition(Pool(1))->AsPool();
+        if (!segundaPool)
+            return ErrorMsg(L"Segunda pool is not availablee");
+        FifamCompPool *segundaBPool = mFifamDatabase->GetCompetition(Pool(2))->AsPool();
+        if (!segundaBPool)
+            return ErrorMsg(L"Segunda B pool is not availablee");
+        FifamCompPool *terceraPool = mFifamDatabase->GetCompetition(Pool(3))->AsPool();
+        if (!terceraPool)
+            return ErrorMsg(L"Tercera pool is not availablee");
+
+        enum { LEVEL_3 = 2, LEVEL_4 };
+        Vector<FifamCompID> level3leagues;
+        for (UInt i = 0; i < 4; i++)
+            level3leagues.push_back(League(i + 2));
+
+        // level 2 > level 3
+        auto _2bchamp = CreateRound(2, L"2ªB Group Winners Play-Off", LEVEL_3, 4,
+            level3leagues,
+            { Relegation(3), Relegation(7) },
+            {
+                new FifamInstruction::GET_TAB_X_TO_Y(League(5), 1, 1),
+                new FifamInstruction::GET_TAB_X_TO_Y(League(4), 1, 1),
+                new FifamInstruction::GET_TAB_X_TO_Y(League(2), 1, 1),
+                new FifamInstruction::GET_TAB_X_TO_Y(League(3), 1, 1)
+            });
+        auto _2bfinal = CreateRound(3, L"2ª División B Final", LEVEL_3, 2,
+            { Relegation(2) },
+            {},
+            {
+                new FifamInstruction::GET_WINNER(Relegation(2))
+            });
+        auto _2bnonchamp1 = CreateRound(4, L"2ªB Non-champions Play-Off 1", LEVEL_3, 4,
+            level3leagues,
+            { Relegation(7) },
+            {
+                new FifamInstruction::GET_TAB_X_TO_Y(League(4), 4, 1),
+                new FifamInstruction::GET_TAB_X_TO_Y(League(3), 3, 1),
+                new FifamInstruction::GET_TAB_X_TO_Y(League(5), 2, 1),
+                new FifamInstruction::GET_TAB_X_TO_Y(League(2), 3, 1)
+            });
+        auto _2bnonchamp2 = CreateRound(5, L"2ªB Non-champions Play-Off 2", LEVEL_3, 4,
+            level3leagues,
+            { Relegation(7) },
+            {
+                new FifamInstruction::GET_TAB_X_TO_Y(League(3), 4, 1),
+                new FifamInstruction::GET_TAB_X_TO_Y(League(4), 3, 1),
+                new FifamInstruction::GET_TAB_X_TO_Y(League(2), 2, 1),
+                new FifamInstruction::GET_TAB_X_TO_Y(League(5), 3, 1)
+            });
+        auto _2bnonchamp3 = CreateRound(6, L"2ªB Non-champions Play-Off 3", LEVEL_3, 4,
+            level3leagues,
+            { Relegation(7) },
+            {
+                new FifamInstruction::GET_TAB_X_TO_Y(League(5), 4, 1),
+                new FifamInstruction::GET_TAB_X_TO_Y(League(2), 4, 1),
+                new FifamInstruction::GET_TAB_X_TO_Y(League(4), 2, 1),
+                new FifamInstruction::GET_TAB_X_TO_Y(League(3), 2, 1)
+            });
+        auto _2b_r1 = CreateRound(7, L"2ªB Play-Off R1", LEVEL_3, 8,
+            {
+                 Relegation(2), Relegation(4),
+                 Relegation(5), Relegation(6)
+            },
+            { Relegation(8) },
+            {
+                new FifamInstruction::GET_WINNER(Relegation(4)),
+                new FifamInstruction::GET_WINNER(Relegation(5)),
+                new FifamInstruction::GET_WINNER(Relegation(6)),
+                new FifamInstruction::GET_LOSER(Relegation(2)),
+            });
+        auto _2b_r2 = CreateRound(8, L"2ªB Play-Off R2", LEVEL_3, 4,
+            { Relegation(7) },
+            {},
+            {
+                new FifamInstruction::GET_WINNER(Relegation(7)),
+            });
+
+        // level 3 > level 2
+
+        auto _2b_relegation = CreateRound(9, L"2ªB Relegation Play-Off", LEVEL_3, 4,
+            level3leagues,
+            {},
+            {
+                new FifamInstruction::GET_TAB_X_TO_Y(League(2), segundaB[0]->mNumTeams - 4, 1),
+                new FifamInstruction::GET_TAB_X_TO_Y(League(5), segundaB[3]->mNumTeams - 4, 1),
+                new FifamInstruction::GET_TAB_X_TO_Y(League(3), segundaB[1]->mNumTeams - 4, 1),
+                new FifamInstruction::GET_TAB_X_TO_Y(League(4), segundaB[2]->mNumTeams - 4, 1)
+            });
+
+        // level 4 > level 3
+
+        auto _3champ = CreateRound(10, L"3ª Group Winners Play-Off", LEVEL_4, 18,
+            { Pool(16) },
+            { Relegation(12) },
+            {
+                new FifamInstruction::GET_POOL(Pool(16), 0, 18)
+            });
+        auto _3nonchamp = CreateRound(11, L"3ª Non-champions Play-Off", LEVEL_4, 54,
+            { Pool(17), Pool(18), Pool(19) },
+            { Relegation(12) },
+            {
+                new FifamInstruction::GET_POOL(Pool(17), 0, 18),
+                new FifamInstruction::GET_POOL(Pool(19), 0, 18),
+                new FifamInstruction::GET_POOL(Pool(18), 0, 18)
+            });
+        auto _3_r1 = CreateRound(12, L"3ª Play-Off R1", LEVEL_4, 36,
+            { Relegation(10), Relegation(11) },
+            { Relegation(13) },
+            {
+                new FifamInstruction::GET_WINNER(Relegation(11)),
+                new FifamInstruction::GET_LOSER(Relegation(10)),
+            });
+        auto _3_r2 = CreateRound(13, L"3ª Play-Off R2", LEVEL_4, 18,
+            { Relegation(12) },
+            {},
+            {
+                new FifamInstruction::GET_WINNER(Relegation(12))
+            });
+
+        Array<FifamCompPool *, 4> pools = {};
+        for (UInt i = 0; i < std::size(pools); i++) {
+            pools[i] = mFifamDatabase->CreateCompetition(FifamCompDbType::Pool, Pool(16 + i))->AsPool();
+            pools[i]->mReserveTeamsAllowed = true;
+            pools[i]->mSorting = FifamPoolSorting::Random;
+            pools[i]->mNumTeams = 18;
+            pools[i]->mSuccessors.push_back(Relegation(i == 0 ? 10 : 11));
+            pools[i]->mNumSubsAllowed = 0;
+            pools[i]->mCompetitionLevel = 3;
+            for (UInt ins = 0; ins < 18; ins++)
+                pools[i]->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(ins + 6), i + 1, 1));
+        }
+
+        // original pools
+
+        // segunda
+
+        segundaPool->mInstructions.Clear();
+        segundaPool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(0), laliga->mNumTeams - 3 + 1, 3));
+        segundaPool->mInstructions.PushBack(new FifamInstruction::GET_LOSER(Relegation(0)));
+        segundaPool->mInstructions.PushBack(new FifamInstruction::GET_LOSER(Relegation(1)));
+        segundaPool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(1), 7, segunda->mNumTeams - (6 + 4)));
+        segundaPool->mInstructions.PushBack(new FifamInstruction::GET_WINNER(Relegation(2)));
+        segundaPool->mInstructions.PushBack(new FifamInstruction::GET_WINNER(Relegation(8)));
+        segundaPool->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
+
+        // segunda b
+        segundaBPool->mCompConstraints.clear();
+        for (UInt i = 0; i < 2; i++)
+            segundaBPool->mCompConstraints.push_back(Pool(i));
+        segundaBPool->mInstructions.Clear();
+        segundaBPool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(1), segunda->mNumTeams - 4 + 1, 4));
+        for (UInt i = 0; i < 5; i++)
+            segundaBPool->mInstructions.PushBack(new FifamInstruction::GET_LOSER(Relegation(4 + i)));
+        for (UInt i = 0; i < 4; i++)
+            segundaBPool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(2 + i), 5, segundaB[i]->mNumTeams - (4 + 5)));
+        segundaBPool->mInstructions.PushBack(new FifamInstruction::GET_WINNER(Relegation(9)));
+        segundaBPool->mInstructions.PushBack(new FifamInstruction::GET_WINNER(Relegation(10)));
+        segundaBPool->mInstructions.PushBack(new FifamInstruction::GET_WINNER(Relegation(13)));
+        segundaBPool->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
+
+        // tercera
+        terceraPool->mCompConstraints.clear();
+        for (UInt i = 0; i < 3; i++)
+            terceraPool->mCompConstraints.push_back(Pool(i));
+        terceraPool->mSuccessors.clear();
+        for (UInt i = 0; i < 5; i++)
+            terceraPool->mSuccessors.push_back(League(6 + i));
+        terceraPool->mInstructions.Clear();
+        for (UInt i = 0; i < 4; i++)
+            terceraPool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(2 + i), segundaB[i]->mNumTeams - 4 + 1, 4));
+        terceraPool->mInstructions.PushBack(new FifamInstruction::GET_LOSER(Relegation(9)));
+        terceraPool->mInstructions.PushBack(new FifamInstruction::GET_LOSER(Relegation(11)));
+        terceraPool->mInstructions.PushBack(new FifamInstruction::GET_LOSER(Relegation(12)));
+        terceraPool->mInstructions.PushBack(new FifamInstruction::GET_LOSER(Relegation(13)));
+        for (UInt i = 0; i < 18; i++)
+            terceraPool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(6 + i), 5, tercera[i]->mNumTeams - 4 - DivInfo(tercera[i])->mRelegated));
+        terceraPool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(24), 1, 1));
+        terceraPool->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
+
+        FifamCompCup *cup = mFifamDatabase->GetCompetition(FifamCompID(countryId, FifamCompType::FaCup, 0))->AsCup();
+        if (cup) {
+            cup->mInstructions.Clear();
+            cup->mInstructions.PushBack(new FifamInstruction::GET_CHAMP(FifamCompID(countryId, FifamCompType::FaCup, 0)));
+            cup->mInstructions.PushBack(new FifamInstruction::GET_CHAMP(FifamCompID(countryId, FifamCompType::League, 0)));
+            cup->mInstructions.PushBack(new FifamInstruction::GET_RUNNER_UP(FifamCompID(countryId, FifamCompType::FaCup, 0)));
+            cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_LEVEL_X_TO_Y(0, 1, 24));
+            cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_LEVEL_X_TO_Y(1, 1, 24));
+            cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_LEVEL_X_TO_Y(2, 1, 7));
+            cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_LEVEL_X_TO_Y(3, 1, 2));
+            cup->mInstructions.PushBack(new FifamInstruction::GET_CC_FA_WINNER(FifamCompID(countryId, FifamCompType::FaCup, 1)));
+            cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_LEVEL_X_TO_Y(4, 1, 24));
+            cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
+        }
+    }
+    else if (countryId == FifamCompRegion::United_States) {
+        FifamCompLeague *league = mFifamDatabase->GetCompetition(League(0))->AsLeague();
+        if (!league)
+            return ErrorMsg(L"First league is not available");
+        FifamCompLeague *east = mFifamDatabase->GetCompetition(Relegation(0))->AsLeague();
+        if (!east)
+            return ErrorMsg(L"First relegation league is not available");
+        FifamCompLeague *west = mFifamDatabase->GetCompetition(Relegation(1))->AsLeague();
+        if (!west)
+            return ErrorMsg(L"Second relegation league is not available");
+        UInt nextCupIndex = GetNextLeagueCupIndex();
+        if (nextCupIndex > 3)
+            return ErrorMsg(L"Not enough free league cups (next free index is " + Utils::Format(L"%d", nextCupIndex) + L")");
+        FifamCompID mlsCupId = FifamCompID(countryId, FifamCompType::LeagueCup, nextCupIndex);
+        league->SetName(L"MLS Supporters' Shield");
+        east->SetName(L"MLS Eastern Conference");
+        west->SetName(L"MLS Western Conference");
+        east->mSuccessors.push_back(Relegation(2));
+        west->mSuccessors.push_back(Relegation(3));
+        east->mBonuses = { 2000000, 170000, 0, 2000000 };
+        west->mBonuses = { 2000000, 170000, 0, 2000000 };
+        Array<Array<FifamCompRound *, 3>, 2> playOff = {};
+
+        for (UInt i = 0; i < 2; i++) {
+            String cupName = i == 0 ? L"MLS East. Conf. Play-Off" : L"MLS West. Conf. Play-Off";
+            playOff[i][0] = CreateRound(i + 2, cupName + L" Round 1", 0, 4,
+                { Relegation(i) },
+                { Relegation(i + 4) },
+                {
+                    new FifamInstruction::GET_TAB_X_TO_Y(Relegation(i), 3, 1),
+                    new FifamInstruction::GET_TAB_X_TO_Y(Relegation(i), 4, 1),
+                    new FifamInstruction::GET_TAB_X_TO_Y(Relegation(i), 6, 1),
+                    new FifamInstruction::GET_TAB_X_TO_Y(Relegation(i), 5, 1)
+                }, 
+                { 0, 0, 0, 500000 },
+                1
+            );
+            playOff[i][1] = CreateRound(i + 4, cupName + L" Semi", 0, 4,
+                { Relegation(i + 2) },
+                { Relegation(i + 6) },
+                {
+                    new FifamInstruction::GET_TAB_X_TO_Y(Relegation(i), 1, 1),
+                    new FifamInstruction::GET_TAB_X_TO_Y(Relegation(i), 2, 1),
+                    new FifamInstruction::GET_WINNER(Relegation(i + 2))
+                },
+                { 0, 0, 0, 650000 },
+                2
+            );
+            playOff[i][2] = CreateRound(i + 6, cupName + L" Final", 0, 2,
+                { Relegation(i + 4) },
+                { mlsCupId },
+                {
+                    new FifamInstruction::GET_WINNER(Relegation(i + 4))
+                },
+                { 0, 0, 0, 850000 },
+                2
+            );
+            playOff[i][0]->SetProperty<UChar>(L"max_level", 0);
+            playOff[i][1]->SetProperty<UChar>(L"max_level", 0);
+            playOff[i][2]->SetProperty<UChar>(L"max_level", 0);
+        }
+        FifamCompCup *mlsCup = mFifamDatabase->CreateCompetition(FifamCompDbType::Cup, mlsCupId, L"MLS Cup")->AsCup();
+        mlsCup->mPredecessors.push_back(Relegation(6));
+        mlsCup->mPredecessors.push_back(Relegation(7));
+        mlsCup->mRounds.resize(1);
+        mlsCup->mNumTeams = 2;
+        mlsCup->mRounds[0].mRoundID = FifamRoundID::Final;
+        mlsCup->mRounds[0].mTeamsRound = 2;
+        mlsCup->mRounds[0].mNewTeamsRound = 2;
+        mlsCup->mRounds[0].mStartBeg = 0;
+        mlsCup->mRounds[0].mEndBeg = 1;
+        mlsCup->mRounds[0].mBonuses = { 0, 2000000, 0, 1000000 };
+        mlsCup->mInstructions.PushBack(new FifamInstruction::GET_WINNER(Relegation(6)));
+        mlsCup->mInstructions.PushBack(new FifamInstruction::GET_WINNER(Relegation(7)));
+        mlsCup->mInstructions.PushBack(new FifamInstruction::SHUFFLE_TEAMS());
+        mlsCup->SetProperty<UChar>(L"max_level", 0);
+        cups.push_back(mlsCup);
+    }
+    else if (countryId == FifamCompRegion::Russia) {
+        UInt nextCupIndex = GetNextLeagueCupIndex();
+        if (nextCupIndex > 1)
+            return ErrorMsg(L"Not enough free league cups (next free index is " + Utils::Format(L"%d", nextCupIndex) + L")");
+        FifamCompID fnlCupId = FifamCompID(countryId, FifamCompType::LeagueCup, nextCupIndex);
+        FifamCompID matchPremierCupId = FifamCompID(countryId, FifamCompType::LeagueCup, nextCupIndex + 1);
+        FifamCompID pariMatchCupId = FifamCompID(countryId, FifamCompType::LeagueCup, nextCupIndex + 2);
+        FifamCompCup *fnlCup = mFifamDatabase->CreateCompetition(FifamCompDbType::Cup, fnlCupId, L"Olimp Kubok FNL")->AsCup();
+        fnlCup->mRounds.resize(4);
+        fnlCup->mNumTeams = 16;
+        fnlCup->mRounds[0].mRoundID = FifamRoundID::Last16;
+        fnlCup->mRounds[0].mTeamsRound = 16;
+        fnlCup->mRounds[0].mNewTeamsRound = 16;
+        fnlCup->mRounds[0].mStartBeg = 0;
+        fnlCup->mRounds[0].mEndBeg = 8;
+        fnlCup->mRounds[0].mBonuses = { 0, 8000, 0, 0 };
+        fnlCup->mRounds[1].mRoundID = FifamRoundID::Quarterfinal;
+        fnlCup->mRounds[1].mTeamsRound = 8;
+        fnlCup->mRounds[1].mNewTeamsRound = 0;
+        fnlCup->mRounds[1].mStartBeg = 8;
+        fnlCup->mRounds[1].mEndBeg = 12;
+        fnlCup->mRounds[1].mBonuses = { 0, 16000, 0, 0 };
+        fnlCup->mRounds[2].mRoundID = FifamRoundID::Semifinal;
+        fnlCup->mRounds[2].mTeamsRound = 4;
+        fnlCup->mRounds[2].mNewTeamsRound = 0;
+        fnlCup->mRounds[2].mStartBeg = 12;
+        fnlCup->mRounds[2].mEndBeg = 14;
+        fnlCup->mRounds[2].mBonuses = { 0, 32500, 0, 0 };
+        fnlCup->mRounds[3].mRoundID = FifamRoundID::Final;
+        fnlCup->mRounds[3].mTeamsRound = 2;
+        fnlCup->mRounds[3].mNewTeamsRound = 0;
+        fnlCup->mRounds[3].mStartBeg = 14;
+        fnlCup->mRounds[3].mEndBeg = 15;
+        fnlCup->mRounds[3].mBonuses = { 0, 75000, 0, 10000 };
+        fnlCup->mInstructions.PushBack(new FifamInstruction::GET_TAB_LEVEL_X_TO_Y(1, 1, 24));
+        fnlCup->SetProperty<UChar>(L"min_level", 1);
+        fnlCup->SetProperty<UChar>(L"max_level", 1);
+        FifamCompCup *matchPremierCup = mFifamDatabase->CreateCompetition(FifamCompDbType::Cup, matchPremierCupId, L"Fonbet Kubok Match Premier")->AsCup();
+        matchPremierCup->mRounds.resize(2);
+        matchPremierCup->mNumTeams = 4;
+        matchPremierCup->mRounds[0].mRoundID = FifamRoundID::Semifinal;
+        matchPremierCup->mRounds[0].mTeamsRound = 4;
+        matchPremierCup->mRounds[0].mNewTeamsRound = 4;
+        matchPremierCup->mRounds[0].mStartBeg = 0;
+        matchPremierCup->mRounds[0].mEndBeg = 2;
+        matchPremierCup->mRounds[0].mBonuses = { 0, 0, 0, 40000 };
+        matchPremierCup->mRounds[1].mRoundID = FifamRoundID::Final;
+        matchPremierCup->mRounds[1].mTeamsRound = 2;
+        matchPremierCup->mRounds[1].mNewTeamsRound = 0;
+        matchPremierCup->mRounds[1].mStartBeg = 2;
+        matchPremierCup->mRounds[1].mEndBeg = 3;
+        matchPremierCup->mRounds[1].mBonuses = { 0, 30000, 0, 10000 };
+        matchPremierCup->mInstructions.PushBack(new FifamInstruction::GET_INTERNATIONAL_TEAMS(FifamNation::Russia, 4));
+        matchPremierCup->SetProperty<UChar>(L"min_level", 0);
+        matchPremierCup->SetProperty<UChar>(L"max_level", 0);
+        FifamCompCup *pariMatchCup = mFifamDatabase->CreateCompetition(FifamCompDbType::Cup, pariMatchCupId, L"Kubor Parimatch Premier")->AsCup();
+        pariMatchCup->mRounds.resize(2);
+        pariMatchCup->mNumTeams = 4;
+        pariMatchCup->mRounds[0].mRoundID = FifamRoundID::Semifinal;
+        pariMatchCup->mRounds[0].mTeamsRound = 4;
+        pariMatchCup->mRounds[0].mNewTeamsRound = 4;
+        pariMatchCup->mRounds[0].mStartBeg = 0;
+        pariMatchCup->mRounds[0].mEndBeg = 2;
+        pariMatchCup->mRounds[0].mBonuses = { 0, 0, 0, 20000 };
+        pariMatchCup->mRounds[1].mRoundID = FifamRoundID::Final;
+        pariMatchCup->mRounds[1].mTeamsRound = 2;
+        pariMatchCup->mRounds[1].mNewTeamsRound = 0;
+        pariMatchCup->mRounds[1].mStartBeg = 2;
+        pariMatchCup->mRounds[1].mEndBeg = 3;
+        pariMatchCup->mRounds[1].mBonuses = { 0, 15000, 0, 5000 };
+        pariMatchCup->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(FifamCompID(FifamCompRegion::Russia, FifamCompType::League, 0), 1, 24));
+        pariMatchCup->SetProperty<UChar>(L"min_level", 0);
+        pariMatchCup->SetProperty<UChar>(L"max_level", 0);
+        cups.push_back(fnlCup);
+        cups.push_back(matchPremierCup);
+        cups.push_back(pariMatchCup);
+    }
+    return true;
+}
 
 void Converter::ConvertLeagues(UInt gameId) {
 
@@ -28,14 +555,15 @@ void Converter::ConvertLeagues(UInt gameId) {
 
             Map<UInt, DivisionInfo *> divLeagueLevels;
             Map<UInt, Vector<DivisionInfo *>> divLeagues;
+            Vector<PlayOffInfo *> vecPlayOffs;
+            Map<UInt, PlayOffInfo *> playOffs;
 
             // find all division competitions for this country
             Int maxLevel = -1;
             Bool simulateLeague = false;
-            for (auto &divInfo : mDivisions) {
+            for (DivisionInfo &divInfo : mDivisions) {
                 if (divInfo.mNationID == nation.mID) {
-                    Int minPriority = (gameId <= 7) ? 4 : 1;
-                    if (divInfo.mPriority >= minPriority) {
+                    if (divInfo.mPriority >= 1) {
                         simulateLeague = true;
                         if (divInfo.mType == DivisionInfo::League)
                             divLeagues[divInfo.mLevel].push_back(&divInfo);
@@ -44,32 +572,36 @@ void Converter::ConvertLeagues(UInt gameId) {
                         if (divInfo.mLevel > maxLevel)
                             maxLevel = divInfo.mLevel;
                     }
-                    else if (divInfo.mPriority >= 1)
-                        simulateLeague = true;
                 }
             }
+
+            for (auto &po : mPlayOffs) {
+                if (po.mNationID == nation.mID) {
+                    vecPlayOffs.push_back(&po);
+                    playOffs[po.mID] = &po;
+                }
+            }
+
+            std::sort(vecPlayOffs.begin(), vecPlayOffs.end(), [](PlayOffInfo *a, PlayOffInfo *b) {
+                return a->mID < b->mID;
+            });
 
             country->SetProperty<Bool>(L"SimulateLeague", simulateLeague);
 
             Vector<FifamCompLeague *> createdLeagues;
             Vector<FifamCompPool *> createdPools;
             Vector<FifamCompCup *> createdCups;
+            FifamCompLeague *relLeague[2] = { nullptr, nullptr };
 
             if (maxLevel >= 0) {
 
                 //create_directories(L"leagues");
                 //FifamWriter leagueWriter(L"leagues\\" + FifamTr(country->mName) + L".txt", 14, FifamVersion());
 
-                bool countryUsesSpecialScript =
-                    country->mId == FifamNation::England ||
-                    country->mId == FifamNation::Germany ||
-                    country->mId == FifamNation::Scotland ||
-                    country->mId == FifamNation::Spain;
-
                 // sort leagues
                 for (auto &e : divLeagues) {
                     if (e.second.size() > 1) {
-                        std::sort(e.second.begin(), e.second.end(), [](DivisionInfo * a, DivisionInfo * b) {
+                        std::sort(e.second.begin(), e.second.end(), [](DivisionInfo *a, DivisionInfo *b) {
                             return a->mOrder < b->mOrder;
                             });
                     }
@@ -80,6 +612,20 @@ void Converter::ConvertLeagues(UInt gameId) {
                 mNextFreeUID[country->mId - 1] = 0x4001;
                 mNumTeamsInLeagueSystem[country->mId - 1] = 0;
                 Int minLevelWithReserveTeams = -1;
+                Bool customLeagues = false;
+                Bool leagueSplit = false;
+
+                if (!customLeagues && !mFromFifaDatabase) {
+                    for (auto &leagues : divLeagues) {
+                        for (DivisionInfo *lg : leagues.second) {
+                            Bool leagueCustomFormat = lg->mSplit.first > 0 || lg->mTotalTeamsPromotionPlayoff > 0 || lg->mTotalTeamsRelegationPlayoff > 0;
+                            if (!customLeagues && leagueCustomFormat) {
+                                customLeagues = true;
+                                break;
+                            }
+                        }
+                    }
+                }
 
                 UInt leagueIndex = 0;
                 for (auto &leagues : divLeagues) {
@@ -93,13 +639,14 @@ void Converter::ConvertLeagues(UInt gameId) {
                             compName = lg->mName;
                         else
                             compName = FifamNames::LimitName(lg->mShortName, MAX_LEAGUE_NAME_LENGTH);
-                        FifamCompLeague * league = mFifamDatabase->CreateCompetition(FifamCompDbType::League, leagueID, compName)->AsLeague();
+                        FifamCompLeague *league = mFifamDatabase->CreateCompetition(FifamCompDbType::League, leagueID, compName)->AsLeague();
 
                         lg->mCompID = leagueID;
+                        league->SetProperty<DivisionInfo *>(L"divInfo", lg);
 
                         // convert - old
 
-                        foom::comp * comp = mFoomDatabase->get<foom::comp>(lg->mID);
+                        foom::comp *comp = mFoomDatabase->get<foom::comp>(lg->mID);
                         if (!comp) {
                             Error(L"Competition is not available\nCompetitionName: %s\nCompetitionID: %d", lg->mName.c_str(), lg->mID);
                             continue;
@@ -109,7 +656,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                         league->mLeagueLevel = lg->mLevel;
                         league->mNumSubsAllowed = 3;
                         league->mNumTeams = lg->mTeams;
-                        league->mNumRelegatedTeams = lg->mRelegated;
+                        league->mNumRelegatedTeams = customLeagues ? 0 : lg->mRelegated;
 
                         // rounds (auto-calculation)
 
@@ -139,20 +686,6 @@ void Converter::ConvertLeagues(UInt gameId) {
                             league->mTransferMarketMp = Utils::Min(200, (Int)((Float)(comp->mReputation - 20) * 1.3f));
                             league->mAttendanceMp = Utils::Min(120, (Int)((Float)(comp->mReputation - 20) * 0.69f));
                         }
-                        league->mFreeAgentsCanBeTranferredAtAnyTime = true;
-                        league->mForeignFreeAgentsCanBeTransferredAtAnyTime = true;
-                        league->mShortTermLoansTotalLimit = 15;
-                        league->mShortTermLoansSimultaneosLimit = 15;
-                        league->mLongTermLoansTotalLimit = 15;
-                        league->mLongTermLoansSimultaneosLimit = 15;
-                        league->mOverallTotalLoansLimit = 15;
-                        league->mOverallTotalSimultaneosLoansLimit = 15;
-                        league->mLoanedPlayersPerSeason = 15;
-                        league->mLoanPlayerPerSquad = 15;
-                        league->mSimLoanOtherLeague = 15;
-                        league->mSimLoanSameLeague = 15;
-                        league->mLoanOtherLeagueCount = 15;
-                        league->mLoanSameLeagueCount = 15;
 
                         comp->mConverterData.mLeague = league;
                         league->SetProperty(L"foom::comp", comp);
@@ -184,6 +717,203 @@ void Converter::ConvertLeagues(UInt gameId) {
                             league->mMinU21PlayerCount = lg->mU21Players;
                         if (lg->mNonEuSigns > 0)
                             league->mMaxNumberOfNonEUSigns = lg->mNonEuSigns;
+
+                        if (customLeagues)
+                            league->mPredecessors.push_back(FifamCompID(country->mId, FifamCompType::Pool, leagues.first));
+
+                        if (lg->mSplit.first > 0) {
+                            if (!leagueSplit)
+                                leagueSplit = true;
+
+                            league->mSuccessors.push_back(FifamCompID(country->mId, FifamCompType::Relegation, 0));
+                            league->mSuccessors.push_back(FifamCompID(country->mId, FifamCompType::Relegation, 1));
+
+                            if (lg->mSplit.second <= 0 && lg->mSplit.first + lg->mSplit.second != lg->mTeams) {
+                                Error(L"Incorrect league split format (%s (%d)) - total teams: %d, split: %d/%d",
+                                    lg->mName.c_str(), lg->mID, lg->mTeams, lg->mSplit.first, lg->mSplit.second);
+                            }
+                            else if (lg->mLevel != 0)
+                                Error(L"League split is possible only on first league level (%s (%d))", lg->mName.c_str(), lg->mID);
+                            else {
+                                String roundNames[2] = { L" Top " + Utils::Format(L"%u", lg->mSplit.first),
+                                    L" Bottom " + Utils::Format(L"%u", lg->mSplit.second) };
+                                String roundNamesGer[2] = { L" Beste " + Utils::Format(L"%u", lg->mSplit.first),
+                                    L" Letzte " + Utils::Format(L"%u", lg->mSplit.second) };
+                                for (UInt relId = 0; relId < 2; relId++) {
+                                    FifamCompID compRelID = FifamCompID(country->mId, FifamCompType::Relegation, relId);
+                                    String relName;
+                                    if (lg->mName.length() <= MAX_LEAGUE_NAME_LENGTH - roundNames[relId].size())
+                                        relName = lg->mName + roundNames[relId];
+                                    else
+                                        relName = FifamNames::LimitName(lg->mShortName + roundNames[relId], MAX_LEAGUE_NAME_LENGTH);
+                                    relLeague[relId] = mFifamDatabase->CreateCompetition(FifamCompDbType::League, compRelID, relName)->AsLeague();
+                                    String relNameGer;
+                                    if (lg->mName.length() <= MAX_LEAGUE_NAME_LENGTH - roundNamesGer[relId].size())
+                                        relNameGer = lg->mName + roundNamesGer[relId];
+                                    else
+                                        relNameGer = FifamNames::LimitName(lg->mShortName + roundNamesGer[relId], MAX_LEAGUE_NAME_LENGTH);
+                                    relLeague[relId]->mName[FifamTranslation::German] = relNameGer;
+                                    relLeague[relId]->mCompetitionLevel = league->mCompetitionLevel;
+                                    relLeague[relId]->mLeagueLevel = league->mLeagueLevel;
+                                    relLeague[relId]->mNumSubsAllowed = league->mNumSubsAllowed;
+                                    relLeague[relId]->mNumTeams = relId == 0 ? lg->mSplit.first : lg->mSplit.second;
+                                    relLeague[relId]->mNumRelegatedTeams = 0;
+                                    relLeague[relId]->mNumRounds = relId == 0 ? lg->mSplitRounds.first : lg->mSplitRounds.second;
+                                    relLeague[relId]->mRoundType = FifamRoundID::Group1;
+                                    relLeague[relId]->mTransferMarketMp = 100;
+                                    relLeague[relId]->mAttendanceMp = 100;
+                                    relLeague[relId]->mTakePoints = true;
+                                    relLeague[relId]->mEqualPointsSorting = league->mEqualPointsSorting;
+                                    String teamsOverride;
+                                    for (UInt to = 0; to < relLeague[relId]->mNumTeams; to++) {
+                                        if (to != 0)
+                                            teamsOverride += L",";
+                                        teamsOverride += Utils::Format(L"%02X%04X", country->mId, to + 1);
+                                    }
+                                    relLeague[relId]->SetProperty<String>(L"teams_override", teamsOverride);
+                                    relLeague[relId]->mPredecessors.push_back(FifamCompID(country->mId, FifamCompType::League, 0));
+                                    relLeague[relId]->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(
+                                        FifamCompID(country->mId, FifamCompType::League, 0), relId == 1 ? lg->mSplit.first + 1 : 1, relLeague[relId]->mNumTeams));
+                                    relLeague[relId]->GenerateFixtures();
+                                }
+                            }
+                        }
+
+                        if (lg->mTotalTeamsPromotionPlayoff > 0) {
+                            if (league->mCompetitionLevel == 0)
+                                Error(L"League promotion play-off is not possible at first league level (%s (%d))", lg->mName.c_str(), lg->mID);
+                            else {
+                                if ((lg->mPromoted + lg->mRelegated + lg->mTotalTeamsPromotionPlayoff + lg->mTotalTeamsRelegationPlayoff) > league->mNumTeams)
+                                    Error(L"Not enough teams in league for promotion/relegation play-off (%s (%d))", lg->mName.c_str(), lg->mID);
+                                else {
+                                    auto it = playOffs.find(lg->mPromotionID);
+                                    if (it == playOffs.end())
+                                        Error(L"Incorrect league promotion play-off ID (%s (%d)) - %d", lg->mName.c_str(), lg->mID, lg->mPromotionID);
+                                    else {
+                                        auto &po = (*it).second;
+                                        Bool promotionError = false;
+                                        if (po->mIsLeague) {
+                                            if (lg->mPromotionPlayoff.size() != 1) {
+                                                Error(L"League promotion play-off should have only 1 play-off group (%s (%d))", lg->mName.c_str(), lg->mID);
+                                                promotionError = true;
+                                            }
+                                            else {
+                                                lg->mPromotionInfo = po;
+                                                UChar tablePos = lg->mPromoted + 1;
+                                                for (UInt tpo = 0; tpo < lg->mPromotionPlayoff[0]; tpo++) {
+                                                    PlayOffInfo::TeamEntry entry;
+                                                    entry.mLevel = league->mCompetitionLevel;
+                                                    entry.mPositionIndex = tpo;
+                                                    entry.mLeagueIndex = league->mID.mIndex;
+                                                    entry.mTablePosition = tablePos++;
+                                                    entry.mLeague = league;
+                                                    po->mLeague.mTeamEntries.push_back(entry);
+                                                }
+                                            }
+                                        }
+                                        else {
+                                            if (po->mRounds.size() < lg->mPromotionPlayoff.size()) {
+                                                Error(L"Too many teams in promotion play-off (%s (%d))", lg->mName.c_str(), lg->mID);
+                                                promotionError = true;
+                                            }
+                                            else {
+                                                lg->mPromotionInfo = po;
+                                                UChar tablePos = lg->mPromoted + 1;
+                                                for (UInt rpo = 0; rpo < lg->mPromotionPlayoff.size(); rpo++) {
+                                                    for (UInt tpo = 0; tpo < lg->mPromotionPlayoff[rpo]; tpo++) {
+                                                        PlayOffInfo::TeamEntry entry;
+                                                        entry.mLevel = league->mCompetitionLevel;
+                                                        entry.mPositionIndex = tpo;
+                                                        entry.mLeagueIndex = league->mID.mIndex;
+                                                        entry.mTablePosition = tablePos++;
+                                                        entry.mLeague = league;
+                                                        po->mRounds[lg->mPromotionPlayoff.size() - 1 - rpo].mTeamEntries.push_back(entry);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        if (!promotionError) {
+                                            if (po->mMinLeagueLevel == -1 || po->mMinLeagueLevel > league->mCompetitionLevel)
+                                                po->mMinLeagueLevel = league->mCompetitionLevel;
+                                            if (po->mMaxLeagueLevel == -1 || po->mMaxLeagueLevel < league->mCompetitionLevel)
+                                                po->mMaxLeagueLevel = league->mCompetitionLevel;
+                                            if (po->mPromotionLevel == -1)
+                                                po->mPromotionLevel = league->mCompetitionLevel;
+                                            else if (po->mPromotionLevel != league->mCompetitionLevel)
+                                                Error(L"League promotion play-off is present more than one level (%s (%d))", lg->mName.c_str(), lg->mID);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        if (lg->mTotalTeamsRelegationPlayoff > 0) {
+                            FifamCompLeague *targetLeague = (league->mCompetitionLevel == 0 && relLeague[1]) ? relLeague[1] : league;
+                            UInt totalTeamsInPromotionRelegation = lg->mPromoted + lg->mRelegated + lg->mTotalTeamsPromotionPlayoff + lg->mTotalTeamsRelegationPlayoff;
+                            if (totalTeamsInPromotionRelegation > targetLeague->mNumTeams) {
+                                Error(L"Not enough teams in league for promotion/relegation play-off - %d/%d (in %s (%d))",
+                                    totalTeamsInPromotionRelegation, targetLeague->mNumTeams, lg->mName.c_str(), lg->mID);
+                            }
+                            else {
+                                auto it = playOffs.find(lg->mRelegationID);
+                                if (it == playOffs.end())
+                                    Error(L"Incorrect league relegation play-off ID (%s (%d)) - %d", lg->mName.c_str(), lg->mID, lg->mRelegationID);
+                                else {
+                                    auto &po = (*it).second;
+                                    Bool relegationError = false;
+                                    if (po->mIsLeague) {
+                                        if (lg->mRelegationPlayoff.size() != 1) {
+                                            Error(L"League relegation play-off should have only 1 play-off group (%s (%d))", lg->mName.c_str(), lg->mID);
+                                            relegationError = true;
+                                        }
+                                        else {
+                                            lg->mRelegationInfo = po;
+                                            UChar tablePos = targetLeague->mNumTeams + 1 - lg->mRelegated - lg->mTotalTeamsRelegationPlayoff;
+                                            for (UInt tpo = 0; tpo < lg->mRelegationPlayoff[0]; tpo++) {
+                                                PlayOffInfo::TeamEntry entry;
+                                                entry.mLevel = league->mCompetitionLevel;
+                                                entry.mPositionIndex = tpo;
+                                                entry.mLeagueIndex = league->mID.mIndex;
+                                                entry.mTablePosition = tablePos++;
+                                                entry.mLeague = targetLeague;
+                                                po->mLeague.mTeamEntries.push_back(entry);
+                                            }
+                                        }
+                                    }
+                                    else {
+                                        if (po->mRounds.size() < lg->mRelegationPlayoff.size()) {
+                                            Error(L"Too many teams in relegation play-off (%s (%d))", lg->mName.c_str(), lg->mID);
+                                            relegationError = true;
+                                        }
+                                        else {
+                                            lg->mRelegationInfo = po;
+                                            UChar tablePos = targetLeague->mNumTeams + 1 - lg->mRelegated - lg->mTotalTeamsRelegationPlayoff;
+                                            for (UInt rpo = 0; rpo < lg->mRelegationPlayoff.size(); rpo++) {
+                                                for (UInt tpo = 0; tpo < lg->mRelegationPlayoff[rpo]; tpo++) {
+                                                    PlayOffInfo::TeamEntry entry;
+                                                    entry.mLevel = league->mCompetitionLevel;
+                                                    entry.mPositionIndex = tpo;
+                                                    entry.mLeagueIndex = league->mID.mIndex;
+                                                    entry.mTablePosition = tablePos++;
+                                                    entry.mLeague = targetLeague;
+                                                    po->mRounds[lg->mRelegationPlayoff.size() - 1 - rpo].mTeamEntries.push_back(entry);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    if (!relegationError) {
+                                        if (po->mMinLeagueLevel == -1 || po->mMinLeagueLevel > league->mCompetitionLevel)
+                                            po->mMinLeagueLevel = league->mCompetitionLevel;
+                                        if (po->mMaxLeagueLevel == -1 || po->mMaxLeagueLevel < league->mCompetitionLevel)
+                                            po->mMaxLeagueLevel = league->mCompetitionLevel;
+                                        if (po->mRelegationLevel == -1)
+                                            po->mRelegationLevel = league->mCompetitionLevel;
+                                        else if (po->mRelegationLevel != league->mCompetitionLevel)
+                                            Error(L"League relegation play-off is present more than one level (%s (%d))", lg->mName.c_str(), lg->mID);
+                                    }
+                                }
+                            }
+                        }
 
                         league->mInstructions.PushBack(new FifamInstruction::GET_POOL(
                             FifamCompID(country->mId, FifamCompType::Pool, leagues.first), teamCounter, lg->mTeams));
@@ -245,24 +975,24 @@ void Converter::ConvertLeagues(UInt gameId) {
                             }
                         }
                         UInt leagueClubCounter = 0;
-                        std::sort(comp->mVecTeams.begin(), comp->mVecTeams.end(), [](foom::team * a, foom::team * b) {
+                        std::sort(comp->mVecTeams.begin(), comp->mVecTeams.end(), [](foom::team *a, foom::team *b) {
                             if (!a) return false;
                             if (!b) return true;
                             return ((foom::club *)a)->mConverterData.mLeaguePos < ((foom::club *)b)->mConverterData.mLeaguePos;
-                        });
+                            });
 
-                        //if (leagueWriter.Available()) {
-                        //    leagueWriter.WriteLine(L";----------------------------------------------------------------------------------------");
-                        //    leagueWriter.WriteLine(Utils::Format(L"LEAGUE %d - %s (%d teams)", lg->mID, lg->mName, lg->mTeams));
-                        //    leagueWriter.WriteLine(L";----------------------------------------------------------------------------------------");
-                        //    for (auto entry : comp->mVecTeams) {
-                        //        foom::club *team = (foom::club *)entry;
-                        //        String teamLine = Utils::Format(L"%-10d - %s", team->mID, team->mName);
-                        //        if (team->mConverterData.mParentClub)
-                        //            teamLine += L" (RES)";
-                        //        leagueWriter.WriteLine(teamLine);
-                        //    }
-                        //}
+                            //if (leagueWriter.Available()) {
+                            //    leagueWriter.WriteLine(L";----------------------------------------------------------------------------------------");
+                            //    leagueWriter.WriteLine(Utils::Format(L"LEAGUE %d - %s (%d teams)", lg->mID, lg->mName, lg->mTeams));
+                            //    leagueWriter.WriteLine(L";----------------------------------------------------------------------------------------");
+                            //    for (auto entry : comp->mVecTeams) {
+                            //        foom::club *team = (foom::club *)entry;
+                            //        String teamLine = Utils::Format(L"%-10d - %s", team->mID, team->mName);
+                            //        if (team->mConverterData.mParentClub)
+                            //            teamLine += L" (RES)";
+                            //        leagueWriter.WriteLine(teamLine);
+                            //    }
+                            //}
 
                         for (auto entry : comp->mVecTeams) {
                             foom::club *team = (foom::club *)entry;
@@ -443,6 +1173,173 @@ void Converter::ConvertLeagues(UInt gameId) {
                     }
                 }
 
+                Int relIndex = leagueSplit ? 2 : 0;
+
+                // create relegation rounds
+                for (auto &po : vecPlayOffs) {
+                    if (!po->mIsLeague && po->mRounds.empty())
+                        Error(L"Play-Off without rounds (%d in %s)", po->mID, FifamTr(country->mName).c_str());
+                    else if ((po->mPromotionLevel == -1 && po->mRelegationLevel == -1) || po->mMinLeagueLevel == -1 || po->mMaxLeagueLevel == -1)
+                        Error(L"Play-Off is not prepared for generation (%d in %s)", po->mID, FifamTr(country->mName).c_str());
+                    else if ((!po->mIsLeague && po->mRounds[0].mNewTeams == 0) || (po->mIsLeague && po->mLeague.mTotalTeams == 0))
+                        Error(L"Play-Off without teams (%d in %s)", po->mID, FifamTr(country->mName).c_str());
+                    else if (po->mMaxLeagueLevel - po->mMinLeagueLevel > 1)
+                        Error(L"Play-Off is shared between more than 2 levels (%d in %s)", po->mID, FifamTr(country->mName).c_str());
+                    else if (po->mPromotionLevel == po->mRelegationLevel)
+                        Error(L"Play-Off is a promotion and a relegation on the same level (%d in %s)", po->mID, FifamTr(country->mName).c_str());
+                    else {
+                        if (po->mIsLeague) {
+                            if (po->mLeague.mTotalTeams != po->mLeague.mTeamEntries.size())
+                                Error(L"Number of teams in Play-Off is not the same with number added teams - %d/%d (Play-Off %d in %s)", po->mLeague.mTotalTeams, po->mLeague.mTeamEntries.size(), po->mID, FifamTr(country->mName).c_str());
+                            else {
+                                Vector<FifamCompID> seenLeagues;
+                                FifamCompID compRelID = FifamCompID(country->mId, FifamCompType::Relegation, relIndex++);
+                                FifamCompLeague *rel = mFifamDatabase->CreateCompetition(FifamCompDbType::League, compRelID, FifamNames::LimitName(po->mName, MAX_COMP_NAME_LENGTH))->AsLeague();
+                                rel->mCompetitionLevel = po->mMaxLeagueLevel;
+                                rel->mNumSubsAllowed = po->mSubs;
+                                rel->mNumTeams = po->mLeague.mTotalTeams;
+                                rel->mNumRounds = 1;
+                                rel->mNumRelegatedTeams = 0;
+                                rel->mLeagueLevel = rel->mCompetitionLevel;
+                                rel->mAttendanceMp = 100;
+                                rel->mTransferMarketMp = 100;
+                                String teamsOverride;
+                                for (UInt to = 0; to < rel->mNumTeams; to++) {
+                                    if (to != 0)
+                                        teamsOverride += L",";
+                                    teamsOverride += Utils::Format(L"%02X%04X", country->mId, to + 1);
+                                }
+                                rel->SetProperty<String>(L"teams_override", teamsOverride);
+                                rel->GenerateFixtures();
+                                for (UInt ei = 0; ei < po->mLeague.mTeamEntries.size(); ei++) {
+                                    auto const &e = po->mLeague.mTeamEntries[ei];
+                                    if (!Utils::Contains(seenLeagues, e.mLeague->mID)) {
+                                        seenLeagues.push_back(e.mLeague->mID);
+                                        if (!Utils::Contains(rel->mPredecessors, e.mLeague->mID))
+                                            rel->mPredecessors.push_back(e.mLeague->mID);
+                                        if (!Utils::Contains(e.mLeague->mSuccessors, rel->mID))
+                                            e.mLeague->mSuccessors.push_back(rel->mID);
+                                    }
+                                    rel->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(e.mLeague->mID, e.mTablePosition, 1));
+                                }
+                                rel->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
+                                rel->mInstructions.PushBack(new FifamInstruction::SHUFFLE_TEAMS());
+                                rel->SetProperty<UChar>(L"min_level", po->mMinLeagueLevel);
+                                rel->SetProperty<UChar>(L"max_level", po->mMaxLeagueLevel);
+                                po->mLeague.mFifamLeague = rel;
+                            }
+                        }
+                        else {
+                            Int roundTeams = po->mRounds[0].mNewTeams;
+                            Bool first = true;
+                            Bool previousLosersRound = false;
+                            UInt teamsInPreviousRound = 0;
+                            Vector<FifamCompID> seenLeagues;
+                            for (UInt ir = 0; ir < po->mRounds.size(); ir++) {
+                                auto &pr = po->mRounds[ir];
+                                if (ir != 0) {
+                                    roundTeams /= 2;
+                                    roundTeams += pr.mNewTeams;
+                                }
+                                if (roundTeams % 2 != 0) {
+                                    Error(L"Play-Off with incorrect teams count - %d (in %s)", roundTeams, FifamTr(country->mName).c_str());
+                                    continue;
+                                }
+                                if (pr.mNewTeams != pr.mTeamEntries.size()) {
+                                    Error(L"Number of teams in Play-Off is not the same with number added teams - %d/%d (Play-Off %d in %s)", roundTeams, pr.mTeamEntries.size(), po->mID, FifamTr(country->mName).c_str());
+                                    continue;
+                                }
+
+                                FifamRoundID roundType = FifamRoundID::None;
+                                if (ir == 0)
+                                    roundType = FifamRoundID::_1;
+                                else if (ir == 1)
+                                    roundType = FifamRoundID::_2;
+                                else if (ir == 2)
+                                    roundType = FifamRoundID::_3;
+                                else if (ir == 3)
+                                    roundType = FifamRoundID::_4;
+                                else if (ir == 4)
+                                    roundType = FifamRoundID::_5;
+                                String roundName = po->mName;
+                                String roundStageName;
+                                if (po->mRounds.size() > 1)
+                                    roundStageName = L"Rd " + Utils::Format(L"%u", ir + 1);
+                                if (ir == po->mRounds.size() - 1 && roundTeams == 2) {
+                                    roundType = FifamRoundID::Final;
+                                    if (po->mRounds.size() > 1)
+                                        roundStageName = L"Final";
+                                }
+                                else if (po->mRounds.size() > 1 && ir == po->mRounds.size() - 2 && roundTeams == 4 && po->mRounds[ir + 1].mNewTeams == 0) {
+                                    roundType = FifamRoundID::Semifinal;
+                                    if (po->mRounds.size() > 1)
+                                        roundStageName = L"Semi";
+                                }
+                                if (!roundStageName.empty())
+                                    roundName += L" " + roundStageName;
+                                FifamCompID compRelID = FifamCompID(country->mId, FifamCompType::Relegation, relIndex++);
+                                FifamCompRound *rel = mFifamDatabase->CreateCompetition(FifamCompDbType::Round, compRelID, FifamNames::LimitName(roundName, MAX_COMP_NAME_LENGTH))->AsRound();
+                                rel->mCompetitionLevel = po->mMaxLeagueLevel;
+                                rel->mNumSubsAllowed = po->mSubs;
+                                rel->mNumTeams = roundTeams;
+                                rel->mRoundType = FifamRoundID::Final;/*roundType*/;
+                                if (pr.mLegs == 2) {
+                                    rel->m1stLegFlags.Set(FifamBeg::_2ndLeg, true);
+                                    rel->m2ndLegFlags.Set(FifamBeg::WithExtraTime, true);
+                                    rel->m2ndLegFlags.Set(FifamBeg::WithPenalty, true);
+                                    rel->m2ndLegFlags.Set(FifamBeg::_2ndLeg, true);
+                                }
+                                else {
+                                    rel->m1stLegFlags.Set(FifamBeg::WithExtraTime, true);
+                                    rel->m1stLegFlags.Set(FifamBeg::WithPenalty, true);
+                                    rel->m1stLegFlags.Set(FifamBeg::_1stLeg, true);
+                                }
+                                if (ir != po->mRounds.size() - 1)
+                                    rel->mSuccessors.push_back(FifamCompID(country->mId, FifamCompType::Relegation, relIndex));
+                                // sort all entries
+                                std::sort(pr.mTeamEntries.begin(), pr.mTeamEntries.end(), [](PlayOffInfo::TeamEntry const &a, PlayOffInfo::TeamEntry const &b) {
+                                    if (a.mLevel < b.mLevel) return true;
+                                    if (a.mLevel > b.mLevel) return false;
+                                    if (a.mPositionIndex < b.mPositionIndex) return true;
+                                    if (a.mPositionIndex > b.mPositionIndex) return false;
+                                    return a.mLeagueIndex <= b.mLeagueIndex;
+                                    });
+                                if (ir == 0 && pr.mShuffle == PlayOffInfo::Round::ShuffleType::None) // first (entering) round - reverse second part
+                                    std::reverse(pr.mTeamEntries.begin() + pr.mTeamEntries.size() / 2, pr.mTeamEntries.end());
+                                for (UInt ei = 0; ei < pr.mTeamEntries.size(); ei++) {
+                                    auto const &e = pr.mTeamEntries[ei];
+                                    if (!Utils::Contains(seenLeagues, e.mLeague->mID)) {
+                                        seenLeagues.push_back(e.mLeague->mID);
+                                        if (!Utils::Contains(rel->mPredecessors, e.mLeague->mID))
+                                            rel->mPredecessors.push_back(e.mLeague->mID);
+                                        if (!Utils::Contains(e.mLeague->mSuccessors, rel->mID))
+                                            e.mLeague->mSuccessors.push_back(rel->mID);
+                                    }
+                                    rel->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(e.mLeague->mID, e.mTablePosition, 1));
+                                    if (pr.mShuffle == PlayOffInfo::Round::ShuffleType::HalfTeams && ei == (pr.mTeamEntries.size() / 2 - 1))
+                                        rel->mInstructions.PushBack(new FifamInstruction::SHUFFLE_TEAMS());
+                                }
+                                if (ir != 0) {
+                                    FifamCompID prevRoundID = FifamCompID(country->mId, FifamCompType::Relegation, relIndex - 2);
+                                    rel->mPredecessors.push_back(prevRoundID);
+                                    if (previousLosersRound)
+                                        rel->mInstructions.PushBack(new FifamInstruction::GET_LOSER(prevRoundID));
+                                    else
+                                        rel->mInstructions.PushBack(new FifamInstruction::GET_WINNER(prevRoundID));
+                                }
+                                rel->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
+                                if (pr.mShuffle == PlayOffInfo::Round::ShuffleType::AllTeams)
+                                    rel->mInstructions.PushBack(new FifamInstruction::SHUFFLE_TEAMS());
+                                rel->SetProperty<UChar>(L"min_level", po->mMinLeagueLevel);
+                                rel->SetProperty<UChar>(L"max_level", po->mMaxLeagueLevel);
+                                previousLosersRound = pr.mLosersRound;
+                                teamsInPreviousRound = roundTeams;
+                                pr.mFifamRound = rel;
+                            }
+                        }
+                    }
+                }
+
                 // create league levels
                 for (Int i = 0; i <= maxLevel; i++) {
                     DivisionInfo *level = nullptr;
@@ -485,7 +1382,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                     if (firstDivOnLevel) {
                         country->mLeagueLevels[i].mEqualPointsSorting = firstDivOnLevel->mSorting;
                         country->mLeagueLevels[i].mNumNonEUPlayersAllowed = firstDivOnLevel->mForeignersLimit;
-                        country->mLeagueLevels[i].mNumRelegatedTeams = firstDivOnLevel->mRelegated;
+                        country->mLeagueLevels[i].mNumRelegatedTeams = customLeagues ? 0 : firstDivOnLevel->mRelegated;
                     }
                     else {
                         country->mLeagueLevels[i].mEqualPointsSorting = FifamEqualPointsSorting::GoalDiff;
@@ -504,7 +1401,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                     // setup pool
 
                     FifamCompID poolID = FifamCompID(country->mId, FifamCompType::Pool, i);
-                    FifamCompPool * pool = mFifamDatabase->CreateCompetition(FifamCompDbType::Pool, poolID, FifamNames::LimitName(levelName, MAX_POOL_NAME_LENGTH) + L" Pool")->AsPool();
+                    FifamCompPool *pool = mFifamDatabase->CreateCompetition(FifamCompDbType::Pool, poolID, FifamNames::LimitName(levelName, MAX_POOL_NAME_LENGTH) + L" Pool")->AsPool();
                     pool->mCompetitionLevel = i;
 
                     createdPools.push_back(pool);
@@ -515,9 +1412,66 @@ void Converter::ConvertLeagues(UInt gameId) {
                     if (i > 0)
                         pool->mCompConstraints.push_back(FifamCompID(country->mId, FifamCompType::Pool, i - 1));
 
-                    // higher level - relegated teams
+
                     if (i > 0) {
                         UInt higherLevel = i - 1;
+                        // higher level - losers of relegation play-off
+                        for (auto &po : vecPlayOffs) {
+                            if (po->mRelegationLevel == higherLevel && po->mPromotionLevel == -1) {
+                                if (po->mIsLeague) {
+                                    if (po->mLeague.mFifamLeague) {
+                                        if (po->mLeague.mNumLosers > 0)
+                                            pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(po->mLeague.mFifamLeague->mID, po->mLeague.mNumWinners + 1, po->mLeague.mNumLosers));
+                                    }
+                                    else
+                                        Error(L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                }
+                                else {
+                                    if (!po->mRounds.empty()) {
+                                        for (UInt r = 0; r < po->mRounds.size(); r++) {
+                                            FifamCompRound *round = po->mRounds[r].mFifamRound;
+                                            if (round) {
+                                                if (!po->mRounds[r].mLosersRound)
+                                                    pool->mInstructions.PushBack(new FifamInstruction::GET_LOSER(round->mID));
+                                            }
+                                            else
+                                                Error(L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                        }
+                                    }
+                                    else
+                                        Error(L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
+                                }
+                            }
+                        }
+                        // relegated from mixed play-off
+                        for (auto &po : vecPlayOffs) {
+                            if (po->mRelegationLevel == higherLevel && po->mPromotionLevel == i) {
+                                if (po->mIsLeague) {
+                                    if (po->mLeague.mFifamLeague) {
+                                        if (po->mLeague.mNumLosers > 0)
+                                            pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(po->mLeague.mFifamLeague->mID, po->mLeague.mNumWinners + 1, po->mLeague.mNumLosers));
+                                    }
+                                    else
+                                        Error(L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                }
+                                else {
+                                    if (!po->mRounds.empty()) {
+                                        for (UInt r = 0; r < po->mRounds.size(); r++) {
+                                            FifamCompRound *round = po->mRounds[r].mFifamRound;
+                                            if (round) {
+                                                if (!po->mRounds[r].mLosersRound)
+                                                    pool->mInstructions.PushBack(new FifamInstruction::GET_LOSER(round->mID));
+                                            }
+                                            else
+                                                Error(L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                        }
+                                    }
+                                    else
+                                        Error(L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
+                                }
+                            }
+                        }
+                        // higher level - relegated teams
                         if (divLeagues.find(higherLevel) != divLeagues.end()) {
                             for (DivisionInfo *l : divLeagues[higherLevel]) {
                                 if (l->mRelegated > 0) {
@@ -528,6 +1482,34 @@ void Converter::ConvertLeagues(UInt gameId) {
                         }
                         else
                             Error(L"No leagues at level %d\nCountry: %s", higherLevel, FifamTr(country->mName).c_str());
+                        // promotion losers from this level
+                        for (auto &po : vecPlayOffs) {
+                            if (po->mRelegationLevel == -1 && po->mPromotionLevel == i) {
+                                if (po->mIsLeague) {
+                                    if (po->mLeague.mFifamLeague) {
+                                        if (po->mLeague.mNumLosers > 0)
+                                            pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(po->mLeague.mFifamLeague->mID, po->mLeague.mNumWinners + 1, po->mLeague.mNumLosers));
+                                    }
+                                    else
+                                        Error(L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                }
+                                else {
+                                    if (!po->mRounds.empty()) {
+                                        for (UInt r = 0; r < po->mRounds.size(); r++) {
+                                            FifamCompRound *round = po->mRounds[r].mFifamRound;
+                                            if (round) {
+                                                if (!po->mRounds[r].mLosersRound)
+                                                    pool->mInstructions.PushBack(new FifamInstruction::GET_LOSER(round->mID));
+                                            }
+                                            else
+                                                Error(L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                        }
+                                    }
+                                    else
+                                        Error(L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
+                                }
+                            }
+                        }
                     }
 
                     // this level
@@ -537,19 +1519,54 @@ void Converter::ConvertLeagues(UInt gameId) {
                             pool->mSorting = FifamPoolSorting::MapLeague;
 
                         for (DivisionInfo *l : divLeagues[i]) {
+                            if (customLeagues)
+                                pool->mSuccessors.push_back(l->mCompID);
                             pool->mNumTeams += l->mTeams;
-                            Int numTeamsFromThisLeague = l->mTeams - (l->mPromoted + l->mRelegated);
-                            if (numTeamsFromThisLeague > 0) {
-                                pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(
-                                    l->mCompID, l->mPromoted + 1, numTeamsFromThisLeague));
+                            if (i == 0 && relLeague[0]) {
+                                Int numTeamsFromThisLeague = relLeague[0]->mNumTeams;
+                                pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(relLeague[0]->mID, 1, numTeamsFromThisLeague));
+                                numTeamsFromThisLeague = relLeague[1]->mNumTeams - (l->mRelegated + l->mTotalTeamsRelegationPlayoff);
+                                if (numTeamsFromThisLeague > 0)
+                                    pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(relLeague[1]->mID, 1, numTeamsFromThisLeague));
+                            }
+                            else {
+                                Int numTeamsFromThisLeague = l->mTeams - (l->mPromoted + l->mRelegated + l->mTotalTeamsPromotionPlayoff + l->mTotalTeamsRelegationPlayoff);
+                                if (numTeamsFromThisLeague > 0) {
+                                    pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(
+                                        l->mCompID, l->mPromoted + l->mTotalTeamsPromotionPlayoff + 1, numTeamsFromThisLeague));
+                                }
                             }
                         }
                     }
                     else
                         Error(L"No leagues at level %d\nCountry: %s", i, FifamTr(country->mName).c_str());
 
-                    // next level - promoted teams
+                    // relegation winners from this level
+                    for (auto &po : vecPlayOffs) {
+                        if (po->mRelegationLevel == i && po->mPromotionLevel == -1) {
+                            if (po->mIsLeague) {
+                                if (po->mLeague.mFifamLeague) {
+                                    if (po->mLeague.mNumWinners > 0)
+                                        pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(po->mLeague.mFifamLeague->mID, 1, po->mLeague.mNumWinners));
+                                }
+                                else
+                                    Error(L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
+                            }
+                            else {
+                                if (!po->mRounds.empty()) {
+                                    FifamCompRound *round = po->mRounds.back().mFifamRound;
+                                    if (round)
+                                        pool->mInstructions.PushBack(new FifamInstruction::GET_WINNER(round->mID));
+                                    else
+                                        Error(L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                }
+                                else
+                                    Error(L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
+                            }
+                        }
+                    }
                     if (i != maxLevel) {
+                        // next level - promoted teams
                         UInt lowerLevel = i + 1;
                         if (divLeagues.find(lowerLevel) != divLeagues.end()) {
                             for (DivisionInfo *l : divLeagues[lowerLevel]) {
@@ -560,12 +1577,64 @@ void Converter::ConvertLeagues(UInt gameId) {
                         }
                         else
                             Error(L"No leagues at level %d\nCountry: %s", lowerLevel, FifamTr(country->mName).c_str());
+                        // relegation winners from mixed levels play-off
+                        for (auto &po : vecPlayOffs) {
+                            if (po->mRelegationLevel == i && po->mPromotionLevel == lowerLevel) {
+                                if (po->mIsLeague) {
+                                    if (po->mLeague.mFifamLeague) {
+                                        if (po->mLeague.mNumWinners > 0)
+                                            pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(po->mLeague.mFifamLeague->mID, 1, po->mLeague.mNumWinners));
+                                    }
+                                    else
+                                        Error(L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                }
+                                else {
+                                    if (!po->mRounds.empty()) {
+                                        for (UInt r = 0; r < po->mRounds.size(); r++) {
+                                            FifamCompRound *round = po->mRounds[r].mFifamRound;
+                                            if (round) {
+                                                if (po->mRounds[r].mLosersRound || r == (po->mRounds.size() - 1))
+                                                    pool->mInstructions.PushBack(new FifamInstruction::GET_WINNER(round->mID));
+                                            }
+                                            else
+                                                Error(L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                        }
+                                    }
+                                    else
+                                        Error(L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
+                                }
+                            }
+                        }
+                        // promotion winners from next level
+                        for (auto &po : vecPlayOffs) {
+                            if (po->mRelegationLevel == -1 && po->mPromotionLevel == lowerLevel) {
+                                if (po->mIsLeague) {
+                                    if (po->mLeague.mFifamLeague) {
+                                        if (po->mLeague.mNumWinners > 0)
+                                            pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(po->mLeague.mFifamLeague->mID, 1, po->mLeague.mNumWinners));
+                                    }
+                                    else
+                                        Error(L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                }
+                                else {
+                                    if (!po->mRounds.empty()) {
+                                        FifamCompRound *round = po->mRounds.back().mFifamRound;
+                                        if (round)
+                                            pool->mInstructions.PushBack(new FifamInstruction::GET_WINNER(round->mID));
+                                        else
+                                            Error(L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                    }
+                                    else
+                                        Error(L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
+                                }
+                            }
+                        }
                     }
                     else { // CaC league & spare
                         pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(
                             FifamCompID(country->mId, FifamCompType::League, leagueIndex), 1, 1));
-                        pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
                     }
+                    pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
                 }
 
                 if (minLevelWithReserveTeams >= 0) {
@@ -681,7 +1750,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                 cupName = cupInfo.mName;
                             else
                                 cupName = FifamNames::LimitName(cupInfo.mShortName, MAX_CUP_NAME_LENGTH);
-                            FifamCompCup * cup = mFifamDatabase->CreateCompetition(FifamCompDbType::Cup, cupID, cupName)->AsCup();
+                            FifamCompCup *cup = mFifamDatabase->CreateCompetition(FifamCompDbType::Cup, cupID, cupName)->AsCup();
                             createdCups.push_back(cup);
                             cup->SetProperty(L"foom::id", cupInfo.mID);
                             cup->SetProperty(L"foom::reputation", cupInfo.mReputation);
@@ -922,8 +1991,107 @@ void Converter::ConvertLeagues(UInt gameId) {
                     }
                 }
             }
-            GenerateCalendar(FifamNation::MakeFromInt(country->mId), mFifamDatabase, createdLeagues, createdCups);
+
+            Pair<FifamCompLeague *, FifamCompLeague *> splitLeagues = { relLeague[0], relLeague[1] };
+
+            if (!mFromFifaDatabase) {
+                ProcessScriptWithSpecialFormat(country, createdLeagues, createdCups, splitLeagues, vecPlayOffs);
+
+                auto ProcessCustomCalendars = [&](Map<UInt, Vector<UShort>> const &calendars, UChar season) {
+                    for (auto const &[compId, comp] : mFifamDatabase->mCompMap) {
+                        auto it = calendars.find(compId.ToInt());
+                        if (it != calendars.end()) {
+                            auto const &calendar = (*it).second;
+                            UInt i = 0, numMatches = 0;
+                            switch (comp->GetDbType().ToInt()) {
+                            case FifamCompDbType::League:
+                                if (comp->AsLeague()->GetNumMatchdays() == calendar.size()) {
+                                    if (season == 0)
+                                        comp->AsLeague()->mFirstSeasonMatchdays = calendar;
+                                    comp->AsLeague()->mSecondSeasonMatchdays = calendar;
+                                    comp->SetProperty<Bool>(L"custom_calendar", true);
+                                }
+                                else
+                                    Error(L"Unable to assign calendar to league %08X - different matchdays count (%u/%u)", compId.ToInt(), calendar.size(), comp->AsLeague()->GetNumMatchdays());
+                                break;
+                            case FifamCompDbType::Cup:
+                                for (i = 0; i < comp->AsCup()->mRounds.size(); i++)
+                                    numMatches += (comp->AsCup()->mRounds[i].mFlags.Check(FifamBeg::_2ndLeg) || comp->AsCup()->mRounds[i].mFlags.Check(FifamBeg::WithReplay)) ? 2 : 1;
+                                if (numMatches == calendar.size()) {
+                                    if (season == 0)
+                                        comp->AsCup()->mFirstSeasonMatchdays = calendar;
+                                    comp->AsCup()->mSecondSeasonMatchdays = calendar;
+                                    comp->SetProperty<Bool>(L"custom_calendar", true);
+                                }
+                                else
+                                    Error(L"Unable to assign calendar to league %08X - different matchdays count (%u/%u)", compId.ToInt(), calendar.size(), numMatches);
+                                break;
+                            case FifamCompDbType::Round:
+                                numMatches = comp->AsRound()->m1stLegFlags.Check(FifamBeg::_2ndLeg) ? 2 : 1;
+                                if (numMatches == calendar.size()) {
+                                    if (season == 0) {
+                                        if (numMatches == 2)
+                                            comp->AsRound()->mFirstSeasonMatchdays = { calendar[0], calendar[1] };
+                                        else
+                                            comp->AsRound()->mFirstSeasonMatchdays = { calendar[0], 0 };
+                                        comp->AsRound()->mSecondSeasonMatchdays = comp->AsRound()->mFirstSeasonMatchdays;
+                                    }
+                                    else {
+                                        if (numMatches == 2)
+                                            comp->AsRound()->mSecondSeasonMatchdays = { calendar[0], calendar[1] };
+                                        else
+                                            comp->AsRound()->mSecondSeasonMatchdays = { calendar[0], 0 };
+                                    }
+                                    comp->SetProperty<Bool>(L"custom_calendar", true);
+                                }
+                                else
+                                    Error(L"Unable to assign calendar to league %08X - different matchdays count (%u/%u)", compId.ToInt(), calendar.size(), numMatches);
+                                break;
+                            }
+                        }
+                    }
+                };
+
+                ProcessCustomCalendars(mCalendarsFirstSeason, 0);
+                ProcessCustomCalendars(mCalendarsSecondSeason, 1);
+            }
+
+            GenerateCalendar(FifamNation::MakeFromInt(country->mId), mFifamDatabase, createdLeagues, createdCups, splitLeagues, vecPlayOffs);
         }
     }
 
+    if (!mFromFifaDatabase) {
+    // verify calendars
+        for (auto const &[id, data] : mCalendarsFirstSeason) {
+            if (!mFifamDatabase->GetCompetition(id))
+                Error(L"Unable to assign calendar to competition %08X - competition was not found", id);
+        }
+        for (auto const &[id, data] : mCalendarsSecondSeason) {
+            if (!mFifamDatabase->GetCompetition(id))
+                Error(L"Unable to assign calendar to competition %08X - competition was not found", id);
+        }
+    }
+
+    for (auto const &[compId, comp] : mFifamDatabase->mCompMap) {
+        UInt i = 0, numMatches = 0;
+        switch (comp->GetDbType().ToInt()) {
+        case FifamCompDbType::League:
+            if (comp->AsLeague()->mFirstSeasonMatchdays.size() != comp->AsLeague()->GetNumMatchdays() || comp->AsLeague()->mSecondSeasonMatchdays.size() != comp->AsLeague()->GetNumMatchdays())
+                Error(L"Incorrect calendar in league %08X", compId.ToInt());
+            break;
+        case FifamCompDbType::Cup:
+            for (i = 0; i < comp->AsCup()->mRounds.size(); i++)
+                numMatches += (comp->AsCup()->mRounds[i].mFlags.Check(FifamBeg::_2ndLeg) || comp->AsCup()->mRounds[i].mFlags.Check(FifamBeg::WithReplay)) ? 2 : 1;
+            if (comp->AsCup()->mFirstSeasonMatchdays.size() != numMatches || comp->AsCup()->mSecondSeasonMatchdays.size() != numMatches)
+                Error(L"Incorrect calendar in cup %08X", compId.ToInt());
+            break;
+        case FifamCompDbType::Round:
+            numMatches = comp->AsRound()->m1stLegFlags.Check(FifamBeg::_2ndLeg) ? 2 : 1;
+            if (comp->AsRound()->mFirstSeasonMatchdays[0] == 0 || comp->AsRound()->mSecondSeasonMatchdays[0] == 0)
+                Error(L"Incorrect calendar in round %08X", compId.ToInt());
+            else if (numMatches == 2 && (comp->AsRound()->mFirstSeasonMatchdays[1] == 0 || comp->AsRound()->mSecondSeasonMatchdays[1] == 0))
+                Error(L"Incorrect calendar in round %08X", compId.ToInt());
+            break;
+        }
+    }
 }

@@ -43,6 +43,7 @@ public:
         Bool mReadInternationalCompetitions = true;
         Bool mReadClubs = true;
         Bool mReadPersons = true;
+        UInt mGameVersionForScripts = 0;
     } mReadingOptions;
 
     struct {

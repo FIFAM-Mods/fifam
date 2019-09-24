@@ -7,6 +7,8 @@ using namespace std;
 using namespace std::filesystem;
 using namespace Magick;
 
+KitConverter::GlobalOptions KitConverter::options;
+
 void KitConverter::resizeImage_noAspect(Image & image, int w, int h) {
     Geometry geom(w, h);
     geom.aspect(true);
@@ -42,7 +44,7 @@ Image KitConverter::ScaledImage(string const &path) {
 KitConverter::KitConverter() {
     InitializeMagick(NULL);
     if (options.V2) {
-        mRenderer = new Renderer();
+        mRenderer = new Renderer(options.Force2x ? 1024 : 512, options.Force2x ? 2048 : 1024);
         if (!mRenderer->Available()) {
             ::Error("Failed to initialize V2 Renderer");
         }
@@ -85,10 +87,10 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
                 inputShortsImg.resize(ScaledGeometry(1024, 512));
         }
 
-        Image outputFileImg(ScaledGeometry(512, 1024), "red");
+        Image outputFileImg(ScaledGeometry(512, 1024), options.Overlay ? "transparent" : "red");
 
         Image leftSockImg(inputShortsImg, ScaledGeometry(356, 174, 142, 5));
-        Image leftSockImg2(ScaledGeometry(356, 174 * 2), "black");
+        Image leftSockImg2(ScaledGeometry(356, 174 * 2), options.Overlay ? "transparent" : "black");
         ScaledComposite(leftSockImg2, leftSockImg, 0, 0, OverCompositeOp);
         ScaledComposite(leftSockImg2, leftSockImg, 0, 174, OverCompositeOp);
         ScaledResize(leftSockImg2, 101, 284);
@@ -96,7 +98,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
         ScaledComposite(outputFileImg, leftSockImg2, -12, 593, OverCompositeOp);
 
         Image rightSockImg(inputShortsImg, ScaledGeometry(356, 174, 1024 - 142 - 356, 5));
-        Image rightSockImg2(ScaledGeometry(356, 174 * 2), "black");
+        Image rightSockImg2(ScaledGeometry(356, 174 * 2), options.Overlay ? "transparent" : "black");
         ScaledComposite(rightSockImg2, rightSockImg, 0, 0, OverCompositeOp);
         ScaledComposite(rightSockImg2, rightSockImg, 0, 174, OverCompositeOp);
         ScaledResize(rightSockImg2, 101, 284);
@@ -108,7 +110,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
             inputShirtImg.resize(ScaledGeometry(1024, 1024));
 
         // left short sleeve
-        Image slMask(options.KitsPath + "kit_sleeve_mask.png");
+        Image slMask(options.KitsPath + (options.Overlay ? "kit_sleeve_mask_empty.png" : "kit_sleeve_mask.png"));
         {
             Image tmpSL1(inputShirtImg, ScaledGeometry(182, 318, 188, 20));
             ScaledComposite(tmpSL1, slMask, 0, 0, CopyAlphaCompositeOp);
@@ -116,7 +118,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
             Image tmpSL2(inputShirtImg, ScaledGeometry(210, 318, 188, 351));
             ScaledComposite(tmpSL2, tmpSL1, 0, 0, OverCompositeOp);
 
-            Image shortSleeveLeft(ScaledGeometry(210, 425), "black");
+            Image shortSleeveLeft(ScaledGeometry(210, 425), options.Overlay? "transparent" : "black");
             ScaledComposite(shortSleeveLeft, tmpSL2, 0, 114, OverCompositeOp);
             ScaledComposite(shortSleeveLeft, tmpSL2, 0, -204, OverCompositeOp);
             shortSleeveLeft.rotate(-90);
@@ -133,7 +135,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
             Image tmpSR2(inputShirtImg, ScaledGeometry(210, 318, 1024 - 188 - 210, 351));
             ScaledComposite(tmpSR2, tmpSR1, 210 - 182, 0, OverCompositeOp);
 
-            Image shortSleeveRight(ScaledGeometry(210, 425), "black");
+            Image shortSleeveRight(ScaledGeometry(210, 425), options.Overlay ? "transparent" : "black");
             ScaledComposite(shortSleeveRight, tmpSR2, 0, 114, OverCompositeOp);
             ScaledComposite(shortSleeveRight, tmpSR2, 0, -204, OverCompositeOp);
             shortSleeveRight.rotate(90);
@@ -143,7 +145,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
         }
 
         Image sleeveLeftSource(inputShirtImg, ScaledGeometry(415, 322, 0, 352));
-        Image sleeveLeft(ScaledGeometry(415, 582), "black");
+        Image sleeveLeft(ScaledGeometry(415, 582), options.Overlay ? "transparent" : "black");
         ScaledComposite(sleeveLeft, sleeveLeftSource, 0, 0, OverCompositeOp);
         ScaledComposite(sleeveLeft, sleeveLeftSource, 0, 260, OverCompositeOp);
         sleeveLeft.rotate(-90);
@@ -151,7 +153,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
         ScaledComposite(outputFileImg, sleeveLeft, -63, 330, OverCompositeOp);
 
         Image sleeveRightSource(inputShirtImg, ScaledGeometry(415, 322, 1024 - 415, 352));
-        Image sleeveRight(ScaledGeometry(415, 582), "black");
+        Image sleeveRight(ScaledGeometry(415, 582), options.Overlay ? "transparent" : "black");
         ScaledComposite(sleeveRight, sleeveRightSource, 0, 0, OverCompositeOp);
         ScaledComposite(sleeveRight, sleeveRightSource, 0, 260, OverCompositeOp);
         sleeveRight.rotate(90);
@@ -160,7 +162,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
 
         Image shirtMainImg(inputShirtImg, ScaledGeometry(412, 900, 306, 62));
         ScaledResize(shirtMainImg, 492, 664);
-        Image kitShirtMask(options.KitsPath + "kit_shirt_mask.png");
+        Image kitShirtMask(options.KitsPath + (options.Overlay ? "kit_shirt_mask_empty.png" : "kit_shirt_mask.png"));
         ScaledComposite(shirtMainImg, kitShirtMask, 0, 0, CopyAlphaCompositeOp);
         ScaledComposite(outputFileImg, shirtMainImg, 10, 348, OverCompositeOp);
 
@@ -188,14 +190,14 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
             ScaledComposite(outputFileImg, inputCrestImg, 302, 728, OverCompositeOp);
         }
 
-        if (options.AddKitOverlay) {
+        if (!options.Overlay && options.AddKitOverlay) {
             Image kitOverlayImg(options.KitsPath + "kit_overlay.png");
             ScaledComposite(outputFileImg, kitOverlayImg, 0, 0, OverCompositeOp);
         }
 
         outputFileImg.fillColor("white");
 
-        if (options.AddWatermarkText) {
+        if (!options.Overlay && options.AddWatermarkText) {
             outputFileImg.fontPointsize(14);
             outputFileImg.fontWeight(550);
             outputFileImg.annotate("FIFAM Universal Converter Project", ScaledGeometry(1024, 1024, 3, 1012), NorthWestGravity, -90);
@@ -389,7 +391,8 @@ bool KitConverter::ConvertFifaClubKit(int fifaId, string const &clubIdStr, int s
         string kitFileName = "kit_" + to_string(fifaId) + "_" + to_string(set) + "_" + to_string(variation) + ".png";
         shirtFileName = options.KitsPath + "shirts\\" + kitFileName;
         shortsFileName = options.KitsPath + "shorts\\" + kitFileName;
-        crestFileName = options.KitsPath + "crest\\" + kitFileName;
+        if (set != 5)
+            crestFileName = options.KitsPath + "crest\\" + kitFileName;
         if (!exists(shirtFileName) || !exists(shortsFileName)) {
             shirtFileName.clear();
             shortsFileName.clear();
@@ -487,6 +490,10 @@ void KitConverter::ConvertClubKits(string const &clubIdName, int fifaId, int fif
                 ConvertFifaClubMiniKit(fifaId, clubIdStr, 2, 0, outputFile + "_g");
         }
     }
+}
+
+void KitConverter::ConvertRefereeKit(int fifaId) {
+    ConvertFifaClubKit(fifaId, std::to_string(fifaId), 5, 0, "D:\\Projects\\FIFA19\\ref_kits\\t75__5_0_" + std::to_string(fifaId));
 }
 
 bool KitConverter::ConvertClubArmband(int fifaId, string const &clubIdStr, int set, int variation, string const &outputFile) {
@@ -623,32 +630,27 @@ void KitConverter::ConvertClubKitNumbersCustom() {
 }
 
 bool KitConverter::ConvertKitV2(string const &inputShirt, string const &inputShorts, string const &inputCrest, string const &outputFile) {
-    SetSizeMode(1);
+    SetSizeMode(options.Force2x ? 2 : 1);
     if (options.OutputGameId >= 9) {
 
-        Image fifaKitAllInOneImg(ScaledGeometry(1024, 1536), "red");
+        int texW = 512 * GetSizeMode();
+        int texH = 1024 * GetSizeMode();
+
+        Image fifaKitAllInOneImg(ScaledGeometry(1024, 1024 + 512), "red");
 
         Image fifaKitShirt(inputShirt);
-        if (fifaKitShirt.columns() > 1024) {
-            SetSizeMode(2);
-            if (GetSizeMode() == 1)
-                fifaKitShirt.resize(ScaledGeometry(1024, 1024));
-        }
+        fifaKitShirt.resize(ScaledGeometry(1024, 1024));
 
         ScaledComposite(fifaKitAllInOneImg, fifaKitShirt, 0, 0, OverCompositeOp);
 
         Image fifaKitShorts(inputShorts);
-        if (fifaKitShorts.columns() > 1024) {
-            SetSizeMode(2);
-            if (GetSizeMode() == 1)
-                fifaKitShorts.resize(ScaledGeometry(1024, 512));
-        }
+        fifaKitShorts.resize(ScaledGeometry(1024, 512));
 
         ScaledComposite(fifaKitAllInOneImg, fifaKitShorts, 0, 1024, OverCompositeOp);
 
-        fifaKitAllInOneImg.write(options.KitsPath + "tmpFifaKit.tga");
+        fifaKitAllInOneImg.write(options.KitsPath + "tmpFifaKit.bmp");
 
-        IDirect3DTexture9 *tex = mRenderer->CreateTexture(Utils::AtoW(options.KitsPath + "tmpFifaKit.tga").c_str());
+        IDirect3DTexture9 *tex = mRenderer->CreateTexture(Utils::AtoW(options.KitsPath + "tmpFifaKit.bmp").c_str());
 
         if (!tex)
             ::Error(L"Failed to create tex");
@@ -663,11 +665,11 @@ bool KitConverter::ConvertKitV2(string const &inputShirt, string const &inputSho
         positions[0] = 0; // 1 x
         positions[1] = 0; // 1 y
 
-        positions[2] = 512; // 2 x
+        positions[2] = texW; // 2 x
         positions[3] = 0; // 2 y
 
         positions[4] = 0; // 3 x
-        positions[5] = 1024; // 3 y
+        positions[5] = texH; // 3 y
 
         uvs[0] = 0; // 1 u
         uvs[1] = 0; // 1 v
@@ -708,7 +710,7 @@ bool KitConverter::ConvertKitV2(string const &inputShirt, string const &inputSho
         std::vector<std::wstring> usedParts = {
             L"jersey_part_52", L"frontnumber_part_58", L"name_bottom_part_53", L"name_part_54", L"backnumber_part_55",
             L"shorts_back_l_part_56", L"shorts_back_r_part_57", L"shorts_l_part_59", L"shorts_r_part_60",
-            L"socks_m2_part_20", L"collar_g_part_28"
+            L"socks_m2_part_20", L"collar_g_part_28", L"sleeve_short_l_part_3", L"sleeve_short_r_part_1", L"sleeve_long_l_part_2", L"sleeve_long_r_part_0"
         };
 
         unsigned int foundCount = 0;
@@ -724,14 +726,14 @@ bool KitConverter::ConvertKitV2(string const &inputShirt, string const &inputSho
                 Model::Triangle tri;
                 if (findTri(tri, t, mSourceModel)) {
 
-                    positions[0] = tri.v[0].u * 512; // 1 x
-                    positions[1] = 1024.0f - tri.v[0].v * 1024; // 1 y
+                    positions[0] = tri.v[0].u * texW; // 1 x
+                    positions[1] = float(texH) - tri.v[0].v * texH; // 1 y
 
-                    positions[2] = tri.v[1].u * 512; // 2 x
-                    positions[3] = 1024.0f - tri.v[1].v * 1024; // 2 y
+                    positions[2] = tri.v[1].u * texW; // 2 x
+                    positions[3] = float(texH) - tri.v[1].v * texH; // 2 y
 
-                    positions[4] = tri.v[2].u * 512; // 3 x
-                    positions[5] = 1024.0f - tri.v[2].v * 1024; // 3 y
+                    positions[4] = tri.v[2].u * texW; // 3 x
+                    positions[5] = float(texH) - tri.v[2].v * texH; // 3 y
 
                     uvs[0] = t.v[0].u; // 1 u
                     uvs[1] = 1.0f - t.v[0].v; // 1 v
@@ -752,7 +754,44 @@ bool KitConverter::ConvertKitV2(string const &inputShirt, string const &inputSho
         //::Error("found: %d", foundCount);
 
         mRenderer->End();
-        mRenderer->SaveRT(Utils::AtoW(options.KitsPath + "tmpRT.png").c_str());
+        mRenderer->SaveRT(Utils::AtoW(options.KitsPath + "tmpFifaKit2.png").c_str());
+        mRenderer->DestroyTexture(tex);
+
+        Image finalImg(options.KitsPath + "tmpFifaKit2.png");
+
+        Image resultImg(Geometry(texW, texH), "black");
+        int offset = 2;
+        ScaledComposite(resultImg, finalImg, -offset, -offset, MagickCore::OverCompositeOp);
+        ScaledComposite(resultImg, finalImg, offset, offset, MagickCore::OverCompositeOp);
+        ScaledComposite(resultImg, finalImg, -offset, offset, MagickCore::OverCompositeOp);
+        ScaledComposite(resultImg, finalImg, offset, -offset, MagickCore::OverCompositeOp);
+        ScaledComposite(resultImg, finalImg, -offset, 0, MagickCore::OverCompositeOp);
+        ScaledComposite(resultImg, finalImg, offset, 0, MagickCore::OverCompositeOp);
+        ScaledComposite(resultImg, finalImg, 0, -offset, MagickCore::OverCompositeOp);
+        ScaledComposite(resultImg, finalImg, 0, offset, MagickCore::OverCompositeOp);
+        ScaledComposite(resultImg, finalImg, 0, 0, MagickCore::OverCompositeOp);
+
+        if (!inputCrest.empty()) {
+            Image inputCrestImg(inputCrest);
+            ScaledResize(inputCrestImg, 56, 56);
+            ScaledComposite(resultImg, inputCrestImg, 298, 739, OverCompositeOp);
+        }
+
+        //if (!options.Force2x && !options.Overlay && options.AddKitOverlay) {
+        //    Image kitOverlayImg(options.KitsPath + "kit_overlay.png");
+        //    ScaledComposite(resultImg, kitOverlayImg, 0, 0, OverCompositeOp);
+        //}
+
+        resultImg.fillColor("white");
+
+        if (!options.Overlay && options.AddWatermarkText) {
+            resultImg.fontPointsize(14 * GetSizeMode());
+            resultImg.fontWeight(550);
+            resultImg.annotate("FIFAM Universal Converter Project", ScaledGeometry(1024, 1024, 3, 1012), NorthWestGravity, -90);
+            resultImg.annotate("converted from EA SPORTS FIFA 20", ScaledGeometry(1024, 1024, 512 - 12, 1012), NorthWestGravity, -90);
+        }
+
+        resultImg.write(outputFile + ".tga");
     }
 
     return true;

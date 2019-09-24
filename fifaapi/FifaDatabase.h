@@ -12,7 +12,7 @@
 #include <functional>
 #include <filesystem>
 
-#define FIFA_DATABASE_LATEST_GAME_VERSION 19
+#define FIFA_DATABASE_LATEST_GAME_VERSION 20
 
 class FifaDatabase {
 public:

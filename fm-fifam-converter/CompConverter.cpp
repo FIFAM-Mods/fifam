@@ -149,7 +149,8 @@ Bool IsArabCountry(FifamNation const &nationId) {
         || nationId == FifamNation::Somalia;
 }
 
-Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * database, Vector<FifamCompLeague *> const &leagues, Vector<FifamCompCup *> const &cups)
+Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * database, Vector<FifamCompLeague *> const &leagues,
+    Vector<FifamCompCup *> const &cups, Pair<FifamCompLeague *, FifamCompLeague *> const &split, Vector<PlayOffInfo *> const &playOffs)
 {
 
     if (leagues.empty() && cups.empty())
@@ -167,35 +168,35 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
 
     Bool veryDifficultCalendar = country->mId == FifamNation::England;
 
-    auto PutOneMatch = [](Array<Array<UInt, 366>, 2> & c, Bool season, UShort matchdayId) {
-        if (matchdayId >= 1 && matchdayId <= 365) {
-            if (c[season][matchdayId] < 1002)
-                c[season][matchdayId] = 1002;
-            if (matchdayId >= 2) {
-                if (c[season][matchdayId - 1] < 1001)
-                    c[season][matchdayId - 1] = 1001;
+    auto PutOneMatch = [](Array<Array<UInt, 366>, 2> & c, Bool season, UShort matchdayId, UShort days = 1) {
+        auto MarkMatch = [](Array<Array<UInt, 366>, 2> & _c, Bool _season, Short _matchdayId, UInt _value) {
+            if (_matchdayId >= 1 && _matchdayId <= 365) {
+                if (_c[_season][_matchdayId] < _value)
+                    _c[_season][_matchdayId] = _value;
             }
-            if (matchdayId <= 364) {
-                if (c[season][matchdayId + 1] < 1001)
-                    c[season][matchdayId + 1] = 1001;
-            }
+        };
+        Short m = (Short)matchdayId;
+        MarkMatch(c, season, m, 1002);
+        for (UShort d = 1; d <= days; d++) {
+            MarkMatch(c, season, m + d, 1001);
+            MarkMatch(c, season, m - d, 1001);
         }
     };
 
-    auto MarkPossibleMatchday = [&](Array<Array<UInt, 366>, 2> & c, Bool season, UShort matchdayId, UInt & index) {
+    auto MarkPossibleMatchday = [&](Array<Array<UInt, 366>, 2> & c, Bool season, UShort matchdayId, UInt & index, UShort days = 1) {
         if (matchdayId >= 1 && matchdayId <= 365 && c[season][matchdayId] == 0) {
-            PutOneMatch(c, season, matchdayId);
+            PutOneMatch(c, season, matchdayId, days);
             c[season][matchdayId] = ++index;
         }
     };
 
-    auto MarkPossibleWeekEndMatchday = [&](Array<Array<UInt, 366>, 2> & c, Bool season, UShort matchdayId, Bool bSunday, UInt & index) {
+    auto MarkPossibleWeekEndMatchday = [&](Array<Array<UInt, 366>, 2> & c, Bool season, UShort matchdayId, Bool bSunday, UInt & index, UShort days = 1) {
         if (matchdayId >= 1) {
             if (bSunday)
                 matchdayId++;
             if (matchdayId <= 365) {
                 if (c[season][matchdayId] == 0 && (!bSunday || c[season][matchdayId - 1] == 0)) {
-                    PutOneMatch(c, season, matchdayId);
+                    PutOneMatch(c, season, matchdayId, days);
                     c[season][matchdayId] = ++index;
                 }
             }
@@ -215,16 +216,16 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
         }
     };
 
-    auto MarkPossibleWeekEndMatchdayForCup = [&](Array<Array<UInt, 366>, 2> & c, Bool season, UShort matchdayId, UInt & index) {
+    auto MarkPossibleWeekEndMatchdayForCup = [&](Array<Array<UInt, 366>, 2> & c, Bool season, UShort matchdayId, UInt & index, UShort days = 1) {
         if (matchdayId >= 1) {
             if (matchdayId <= 365) {
                 if (c[season][matchdayId] == 0) {
-                    PutOneMatch(c, season, matchdayId);
+                    PutOneMatch(c, season, matchdayId, days);
                     c[season][matchdayId] = ++index;
                 }
                 else {
                     if (matchdayId <= 364 && c[season][matchdayId + 1] == 0) {
-                        PutOneMatch(c, season, matchdayId + 1);
+                        PutOneMatch(c, season, matchdayId + 1, days);
                         c[season][matchdayId + 1] = ++index;
                     }
                 }
@@ -232,35 +233,35 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
         }
     };
 
-    auto MarkPossibleMidWeekMatchday = [&](Array<Array<UInt, 366>, 2> & c, Bool season, UShort matchdayId, Bool bSunday, UInt & index) {
+    auto MarkPossibleMidWeekMatchday = [&](Array<Array<UInt, 366>, 2> & c, Bool season, UShort matchdayId, Bool bSunday, UInt & index, UShort days = 1) {
         matchdayId += 3;
         if (matchdayId >= 1) {
             if (bSunday)
                 matchdayId++;
             if (matchdayId <= 365) {
                 if (c[season][matchdayId] == 0) {
-                    PutOneMatch(c, season, matchdayId);
+                    PutOneMatch(c, season, matchdayId, days);
                     c[season][matchdayId] = ++index;
                 }
             }
         }
     };
 
-    auto MarkPossibleMidWeekMatchdayForCup = [&](Array<Array<UInt, 366>, 2> & c, Bool season, UShort matchdayId, UInt & index) {
+    auto MarkPossibleMidWeekMatchdayForCup = [&](Array<Array<UInt, 366>, 2> & c, Bool season, UShort matchdayId, UInt & index, UShort days = 1) {
         if (veryDifficultCalendar) {
-            MarkPossibleMatchday(c, season, matchdayId + 3, index);
-            MarkPossibleMatchday(c, season, matchdayId + 5, index);
+            MarkPossibleMatchday(c, season, matchdayId + 3, index, days);
+            MarkPossibleMatchday(c, season, matchdayId + 5, index, days);
         }
         matchdayId += 4;
         if (matchdayId >= 1) {
             if (matchdayId <= 365) {
                 if (c[season][matchdayId] == 0) {
-                    PutOneMatch(c, season, matchdayId);
+                    PutOneMatch(c, season, matchdayId, days);
                     c[season][matchdayId] = ++index;
                 }
                 else {
                     if (matchdayId <= 364 && c[season][matchdayId + 1] == 0) {
-                        PutOneMatch(c, season, matchdayId + 1);
+                        PutOneMatch(c, season, matchdayId + 1, days);
                         c[season][matchdayId + 1] = ++index;
                     }
                 }
@@ -269,58 +270,71 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
     };
 
     auto PutCompToCalendar = [&](Array<Array<UInt, 366>, 2> & c, FifamCompetition * comp) {
-        bool isInternational = comp->mID.mRegion == FifamCompRegion::International;
-        bool firstSeason = comp->TakesPlaceInSeason(2018) || comp->TakesPlaceInSeason(2020);
-        bool secondSeason = comp->TakesPlaceInSeason(2019) || comp->TakesPlaceInSeason(2021);
+        Bool isInternational = comp->mID.mRegion == FifamCompRegion::International;
+        Bool firstSeason = comp->TakesPlaceInSeason(2018) || comp->TakesPlaceInSeason(2020);
+        Bool secondSeason = comp->TakesPlaceInSeason(2019) || comp->TakesPlaceInSeason(2021);
+        UShort days = isInternational ? 3 : 1;
         if (comp->GetDbType() == FifamCompDbType::League) {
             if (firstSeason) {
                 for (auto &m : comp->AsLeague()->mFirstSeasonMatchdays) {
                     if (m <= 365)
-                        PutOneMatch(c, 0, m);
+                        PutOneMatch(c, 0, m, days);
                     else
-                        PutOneMatch(c, 1, m - 365);
+                        PutOneMatch(c, 1, m - 365, days);
                 }
             }
             if (secondSeason) {
                 if (isInternational) {
                     for (auto &m : comp->AsLeague()->mFirstSeasonMatchdays) {
                         if (m <= 365)
-                            PutOneMatch(c, 1, m);
+                            PutOneMatch(c, 1, m, days);
                         else
-                            PutOneMatch(c, 0, m - 365);
+                            PutOneMatch(c, 0, m - 365, days);
                     }
                 }
                 else {
                     for (auto &m : comp->AsLeague()->mSecondSeasonMatchdays) {
                         if (m <= 365)
-                            PutOneMatch(c, 1, m);
+                            PutOneMatch(c, 1, m, days);
                         else
-                            PutOneMatch(c, 0, m - 365);
+                            PutOneMatch(c, 0, m - 365, days);
                     }
                 }
             }
         }
         else if (comp->GetDbType() == FifamCompDbType::Round) {
             if (firstSeason) {
-                for (auto &m : comp->AsRound()->mFirstSeasonMatchdays)
-                    PutOneMatch(c, 0, m);
+                for (auto &m : comp->AsRound()->mFirstSeasonMatchdays) {
+                    if (m <= 365)
+                        PutOneMatch(c, 0, m, days);
+                    else
+                        PutOneMatch(c, 1, m - 365, days);
+                }
             }
             if (secondSeason) {
                 if (isInternational) {
-                    for (auto &m : comp->AsRound()->mFirstSeasonMatchdays)
-                        PutOneMatch(c, 1, m);
+                    for (auto &m : comp->AsRound()->mFirstSeasonMatchdays) {
+                        if (m <= 365)
+                            PutOneMatch(c, 1, m, days);
+                        else
+                            PutOneMatch(c, 0, m - 365, days);
+                    }
                 }
                 else {
-                    for (auto &m : comp->AsRound()->mSecondSeasonMatchdays)
-                        PutOneMatch(c, 1, m);
+                    for (auto &m : comp->AsRound()->mSecondSeasonMatchdays) {
+                        if (m <= 365)
+                            PutOneMatch(c, 1, m, days);
+                        else
+                            PutOneMatch(c, 0, m - 365, days);
+                    }
                 }
             }
         }
         else if (comp->GetDbType() == FifamCompDbType::Cup) {
             for (auto &m : comp->AsCup()->mFirstSeasonMatchdays)
-                PutOneMatch(c, 0, m);
+                PutOneMatch(c, 0, m, days);
             for (auto &m : comp->AsCup()->mSecondSeasonMatchdays)
-                PutOneMatch(c, 1, m);
+                PutOneMatch(c, 1, m, days);
         }
     };
 
@@ -350,229 +364,314 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
 
     for (FifamCompLeague *l : leagues) {
 
-        auto cc = calendar;
+        if (!l->GetProperty<Bool>(L"custom_calendar", false)) {
 
-        if (l->mLeagueLevel == 0) {
-            // put international matches to calendar (for highest league level only)
-            for (auto &m : database->mRules.mInternationalFriendliesFirstSeason)
-                PutOneMatch(cc, 0, m);
-            for (auto &m : database->mRules.mInternationalFriendliesSecondSeason)
-                PutOneMatch(cc, 1, m);
-        }
+            auto cc = calendar;
 
-        for (auto [compID, comp] : database->mCompMap) {
-            if (compID.mType == FifamCompType::WorldCup || compID.mType == FifamCompType::QualiWC || compID.mType == FifamCompType::ConfedCup) {
-                if (l->mLeagueLevel == 0)
-                    PutCompToCalendar(cc, comp);
+            if (l->mLeagueLevel == 0) {
+                // put international matches to calendar (for highest league level only)
+                for (auto &m : database->mRules.mInternationalFriendliesFirstSeason)
+                    PutOneMatch(cc, 0, m);
+                for (auto &m : database->mRules.mInternationalFriendliesSecondSeason)
+                    PutOneMatch(cc, 1, m);
             }
-            else if (compID.mType == FifamCompType::WorldClubChamp && compID.mRegion == FifamCompRegion::Europe)
-                PutCompToCalendar(cc, comp);
-            else {
-                switch (country->mContinent.ToInt()) {
-                case FifamContinent::Europe:
-                    if (compID.mType == FifamCompType::EuroCup || compID.mType == FifamCompType::QualiEC
-                        || compID.mType == FifamCompType::EuroNL || compID.mType == FifamCompType::EuroNLQ)
-                    {
-                        if (l->mLeagueLevel == 0)
-                            PutCompToCalendar(cc, comp);
-                    }
-                    else if (compID.mRegion == FifamCompRegion::Europe
-                            && (compID.mType == FifamCompType::ChampionsLeague || compID.mType == FifamCompType::UefaCup
-                                || compID.mType == FifamCompType::EuroSuperCup || compID.mType == FifamCompType::Continental1
-                                || compID.mType == FifamCompType::Continental2))
-                    {
+
+            for (auto [compID, comp] : database->mCompMap) {
+                if (compID.mType == FifamCompType::WorldCup || compID.mType == FifamCompType::QualiWC || compID.mType == FifamCompType::ConfedCup) {
+                    if (l->mLeagueLevel == 0)
                         PutCompToCalendar(cc, comp);
-                    }
-                    break;
-                case FifamContinent::SouthAmerica:
-                    if (compID.mType == FifamCompType::CopaAmerica) {
-                        if (l->mLeagueLevel == 0)
-                            PutCompToCalendar(cc, comp);
-                    }
-                    else if (compID.mRegion == FifamCompRegion::SouthAmerica
-                            && (compID.mType == FifamCompType::ChampionsLeague || compID.mType == FifamCompType::UefaCup
-                                || compID.mType == FifamCompType::EuroSuperCup || compID.mType == FifamCompType::Continental1
-                                || compID.mType == FifamCompType::Continental2)
-                        || (compID.mRegion == FifamCompRegion::Asia && compID.mType == FifamCompType::Continental1))
-                    {
-                        PutCompToCalendar(cc, comp);
-                    }
-                    break;
-                case FifamContinent::NorthAmerica:
-                    if (compID.mType == FifamCompType::NamCup || compID.mType == FifamCompType::NamNL || compID.mType == FifamCompType::NamNLQ) {
-                        if (l->mLeagueLevel == 0)
-                            PutCompToCalendar(cc, comp);
-                    }
-                    else if (compID.mRegion == FifamCompRegion::NorthAmerica
-                            && (compID.mType == FifamCompType::ChampionsLeague || compID.mType == FifamCompType::UefaCup
-                                || compID.mType == FifamCompType::EuroSuperCup || compID.mType == FifamCompType::Continental1
-                                || compID.mType == FifamCompType::Continental2))
-                    {
-                        PutCompToCalendar(cc, comp);
-                    }
-                    break;
-                case FifamContinent::Africa:
-                    if (compID.mType == FifamCompType::AfricaCup || compID.mType == FifamCompType::AfricaCupQ) {
-                        if (l->mLeagueLevel == 0)
-                            PutCompToCalendar(cc, comp);
-                    }
-                    else if (compID.mRegion == FifamCompRegion::Africa
-                            && (compID.mType == FifamCompType::ChampionsLeague || compID.mType == FifamCompType::UefaCup
-                                || compID.mType == FifamCompType::EuroSuperCup || compID.mType == FifamCompType::Continental1
-                                || compID.mType == FifamCompType::Continental2))
-                    {
-                        PutCompToCalendar(cc, comp);
-                    }
-                    break;
-                case FifamContinent::Asia:
-                    if (compID.mType == FifamCompType::AsiaCup || compID.mType == FifamCompType::AsiaCupQ) {
-                        if (l->mLeagueLevel == 0)
-                            PutCompToCalendar(cc, comp);
-                    }
-                    else if (compID.mRegion == FifamCompRegion::Asia
-                            && (compID.mType == FifamCompType::ChampionsLeague || compID.mType == FifamCompType::UefaCup
-                                || compID.mType == FifamCompType::EuroSuperCup || compID.mType == FifamCompType::Continental1
-                                || compID.mType == FifamCompType::Continental2)
-                        || (IsArabCountry(countryId) && compID.mRegion == FifamCompRegion::Africa && compID.mType == FifamCompType::Continental1))
-                    {
-                        PutCompToCalendar(cc, comp);
-                    }
-                    break;
-                case FifamContinent::Oceania:
-                    if (compID.mType == FifamCompType::OfcCup) {
-                        if (l->mLeagueLevel == 0)
-                            PutCompToCalendar(cc, comp);
-                    }
-                    else if (compID.mRegion == FifamCompRegion::Oceania
-                            && (compID.mType == FifamCompType::ChampionsLeague || compID.mType == FifamCompType::UefaCup
-                                || compID.mType == FifamCompType::EuroSuperCup || compID.mType == FifamCompType::Continental1
-                                || compID.mType == FifamCompType::Continental2))
-                    {
-                        PutCompToCalendar(cc, comp);
-                    }
-                    break;
                 }
-            }
-        }
-
-        create_directories(L"calendars");
-        FifamWriter calendarWriter(L"calendars\\calendar" + Utils::Format(L"%d", countryId.ToInt()) + L".csv", 14, FifamVersion());
-        for (auto const &wc : cc) {
-            calendarWriter.WriteLine(L"SEASON");
-            UInt wday = 0;
-            for (auto const &wd : wc) {
-                calendarWriter.WriteLine(Utils::Format(L"%d. %d", wday++, wd));
-            }
-        }
-
-        // play matches in Sunday or Saturday?
-        Bool bSunday = l->mLeagueLevel == 0; // play matches for first league on Sunday
-
-        Int startMatchday1 = 48; // End of August
-        Int startMatchday2 = 27; // End of July
-        Int startMatchday3 = 13; // Middle of July
-        Int endMatchday = 315; // May
-
-        Int startDate = l->GetProperty<Int>(L"startDate", 0);
-        Int endDate = l->GetProperty<Int>(L"endDate", 0);
-
-        if ((endDate > 0 && endDate < startDate) || startDate > 365 || endDate > 365) {
-            Error(L"Incorrect startDate/endDate in league\nLeague: %s\nstartDate: %d\nendDate: %d", FifamTr(l->mName).c_str(), startDate, endDate);
-            startDate = 0;
-            endDate = 0;
-        }
-
-        Bool customStartDate = startDate > 0;
-
-        if (customStartDate) {
-            Int dayOfWeek = startDate % 7;
-            if (dayOfWeek != 6) { // Saturday
-                if (dayOfWeek == 0) // Sunday
-                    startDate -= 1;
-                else if (dayOfWeek == 1) // Monday
-                    startDate -= 2;
-                else if (dayOfWeek == 2) // Tuesday
-                    startDate -= 3;
-                else if (dayOfWeek == 5) // Friday
-                    startDate += 1;
-                else if (dayOfWeek == 4) // Thursday
-                    startDate += 2;
-                else if (dayOfWeek == 3) // Wednesday
-                    startDate += 3;
-            }
-            startMatchday1 = startDate;
-            startMatchday2 = startDate;
-            startMatchday3 = startDate;
-        }
-        if (endDate > 0) {
-            if ((!customStartDate || endDate > startDate) && (!l->mLeagueLevel || endDate < endMatchday))
-                endMatchday = endDate;
-        }
-
-        matchdayIndex = { 0, 0 };
-
-        for (UInt s = 0; s < 2; s++) {
-            // phase 1 - add possible match every 2 weeks
-            for (Int m = startMatchday1; m <= endMatchday; m += 14)
-                MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
-
-            // phase 2 - add possible match every week
-            for (Int m = startMatchday1; m <= endMatchday; m += 7)
-                MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
-
-            // phase 3 - add possible matches in August (reverse direction)
-            if (!customStartDate) {
-                for (Int m = startMatchday1 - 7; m >= startMatchday2; m -= 7)
-                    MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
-            }
-
-            // phase 4 - add possible mid-week matches every 2 weeks
-            for (Int m = startMatchday2 + 14; m <= endMatchday; m += 14)
-                MarkPossibleMidWeekMatchday(cc, s, m, bSunday, matchdayIndex[s]);
-
-            // phase 5 - add possible matches in July (reverse direction)
-            if (!customStartDate) {
-                for (Int m = startMatchday2 - 7; m >= startMatchday3; m -= 7)
-                    MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
-            }
-
-            // phase 6 - add possible mid-week matches every week
-            for (Int m = startMatchday1; m <= endMatchday; m += 7)
-                MarkPossibleMidWeekMatchday(cc, s, m, bSunday, matchdayIndex[s]);
-
-            // phase 7 - add possible mid-week matches every week in July and August (reverse direction)
-            if (!customStartDate) {
-                for (Int m = startMatchday1 - 7; m >= startMatchday3; m -= 7)
-                    MarkPossibleMidWeekMatchday(cc, s, m, bSunday, matchdayIndex[s]);
-            }
-        }
-
-        for (UInt s = 0; s < 2; s++) {
-            Vector<Pair<UInt, UInt>> availableMatchdays;
-            for (UInt i = 1; i < cc[s].size(); i++) {
-                if (cc[s][i] > 0 && cc[s][i] < 1000)
-                    availableMatchdays.emplace_back(cc[s][i], i);
-            }
-            UInt requiredMatchdays = l->GetNumMatchdays();
-            if (availableMatchdays.size() < requiredMatchdays) {
-                Error(L"Not enough available matches in calendar for league\nLeague: %s\nSeason: %d\nRequired matches: %d\nAvailable matches: %d",
-                    FifamTr(l->mName).c_str(), s + 1, requiredMatchdays, availableMatchdays.size());
-            }
-            else {
-                std::sort(availableMatchdays.begin(), availableMatchdays.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
-                    return a.first < b.first;
-                    });
-                if (s == 0) {
-                    l->mFirstSeasonMatchdays.resize(requiredMatchdays);
-                    for (UInt i = 0; i < requiredMatchdays; i++)
-                        l->mFirstSeasonMatchdays[i] = availableMatchdays[i].second;
-                    std::sort(l->mFirstSeasonMatchdays.begin(), l->mFirstSeasonMatchdays.end());
+                else if (compID.mType == FifamCompType::WorldClubChamp && compID.mRegion == FifamCompRegion::Europe) {
+                    if (comp->GetDbType() != FifamCompDbType::Round || (comp->AsRound()->mRoundType == FifamRoundID::Final
+                        || comp->AsRound()->mRoundType == FifamRoundID::Final3rdPlace || comp->AsRound()->mRoundType == FifamRoundID::Semifinal)
+                        || (country->mContinent != FifamContinent::Europe && country->mContinent != FifamContinent::SouthAmerica))
+                    {
+                        PutCompToCalendar(cc, comp);
+                    }
                 }
                 else {
-                    l->mSecondSeasonMatchdays.resize(requiredMatchdays);
-                    for (UInt i = 0; i < requiredMatchdays; i++)
-                        l->mSecondSeasonMatchdays[i] = availableMatchdays[i].second;
-                    std::sort(l->mSecondSeasonMatchdays.begin(), l->mSecondSeasonMatchdays.end());
+                    switch (country->mContinent.ToInt()) {
+                    case FifamContinent::Europe:
+                        if (compID.mType == FifamCompType::EuroCup || compID.mType == FifamCompType::QualiEC
+                            || compID.mType == FifamCompType::EuroNL || compID.mType == FifamCompType::EuroNLQ)
+                        {
+                            if (l->mLeagueLevel == 0)
+                                PutCompToCalendar(cc, comp);
+                        }
+                        else if (compID.mRegion == FifamCompRegion::Europe
+                            && (compID.mType == FifamCompType::ChampionsLeague || compID.mType == FifamCompType::UefaCup
+                                || compID.mType == FifamCompType::EuroSuperCup || compID.mType == FifamCompType::Continental1
+                                || compID.mType == FifamCompType::Continental2))
+                        {
+                            PutCompToCalendar(cc, comp);
+                        }
+                        break;
+                    case FifamContinent::SouthAmerica:
+                        if (compID.mType == FifamCompType::CopaAmerica) {
+                            if (l->mLeagueLevel == 0)
+                                PutCompToCalendar(cc, comp);
+                        }
+                        else if (compID.mRegion == FifamCompRegion::SouthAmerica
+                            && (compID.mType == FifamCompType::ChampionsLeague || compID.mType == FifamCompType::UefaCup
+                                || compID.mType == FifamCompType::EuroSuperCup || compID.mType == FifamCompType::Continental1
+                                || compID.mType == FifamCompType::Continental2)
+                            || (compID.mRegion == FifamCompRegion::Asia && compID.mType == FifamCompType::Continental1))
+                        {
+                            PutCompToCalendar(cc, comp);
+                        }
+                        break;
+                    case FifamContinent::NorthAmerica:
+                        if (compID.mType == FifamCompType::NamCup || compID.mType == FifamCompType::NamNL || compID.mType == FifamCompType::NamNLQ) {
+                            if (l->mLeagueLevel == 0)
+                                PutCompToCalendar(cc, comp);
+                        }
+                        else if (compID.mRegion == FifamCompRegion::NorthAmerica
+                            && (compID.mType == FifamCompType::ChampionsLeague || compID.mType == FifamCompType::UefaCup
+                                || compID.mType == FifamCompType::EuroSuperCup || compID.mType == FifamCompType::Continental1
+                                || compID.mType == FifamCompType::Continental2))
+                        {
+                            PutCompToCalendar(cc, comp);
+                        }
+                        break;
+                    case FifamContinent::Africa:
+                        if (compID.mType == FifamCompType::AfricaCup || compID.mType == FifamCompType::AfricaCupQ) {
+                            if (l->mLeagueLevel == 0)
+                                PutCompToCalendar(cc, comp);
+                        }
+                        else if (compID.mRegion == FifamCompRegion::Africa
+                            && (compID.mType == FifamCompType::ChampionsLeague || compID.mType == FifamCompType::UefaCup
+                                || compID.mType == FifamCompType::EuroSuperCup || compID.mType == FifamCompType::Continental1
+                                || compID.mType == FifamCompType::Continental2))
+                        {
+                            PutCompToCalendar(cc, comp);
+                        }
+                        break;
+                    case FifamContinent::Asia:
+                        if (compID.mType == FifamCompType::AsiaCup || compID.mType == FifamCompType::AsiaCupQ) {
+                            if (l->mLeagueLevel == 0)
+                                PutCompToCalendar(cc, comp);
+                        }
+                        else if (compID.mRegion == FifamCompRegion::Asia
+                            && (compID.mType == FifamCompType::ChampionsLeague || compID.mType == FifamCompType::UefaCup
+                                || compID.mType == FifamCompType::EuroSuperCup || compID.mType == FifamCompType::Continental1
+                                || compID.mType == FifamCompType::Continental2)
+                            || (IsArabCountry(countryId) && compID.mRegion == FifamCompRegion::Africa && compID.mType == FifamCompType::Continental1))
+                        {
+                            PutCompToCalendar(cc, comp);
+                        }
+                        break;
+                    case FifamContinent::Oceania:
+                        if (compID.mType == FifamCompType::OfcCup) {
+                            if (l->mLeagueLevel == 0)
+                                PutCompToCalendar(cc, comp);
+                        }
+                        else if (compID.mRegion == FifamCompRegion::Oceania
+                            && (compID.mType == FifamCompType::ChampionsLeague || compID.mType == FifamCompType::UefaCup
+                                || compID.mType == FifamCompType::EuroSuperCup || compID.mType == FifamCompType::Continental1
+                                || compID.mType == FifamCompType::Continental2))
+                        {
+                            PutCompToCalendar(cc, comp);
+                        }
+                        break;
+                    default:
+                        if (compID.mType != FifamCompType::League
+                            && comp->GetProperty<Bool>(L"custom_calendar", false)
+                            && comp->GetProperty<UChar>(L"min_level", 0) <= l->mLeagueLevel
+                            && comp->GetProperty<UChar>(L"max_level", 255) >= l->mLeagueLevel)
+                        {
+                            if (comp->GetDbType() == FifamCompDbType::League && compID.mType == FifamCompType::Relegation && comp->mCompetitionLevel == 0) {
+                                if (l->mLeagueLevel == 0)
+                                    PutCompToCalendar(cc, comp);
+                            }
+                            else
+                                PutCompToCalendar(cc, comp);
+                        }
+                        break;
+                    }
+                }
+            }
+
+            create_directories(L"calendars");
+            FifamWriter calendarWriter(L"calendars\\calendar" + Utils::Format(L"%d", countryId.ToInt()) + L".csv", 14, FifamVersion());
+            for (auto const &wc : cc) {
+                calendarWriter.WriteLine(L"SEASON");
+                UInt wday = 0;
+                for (auto const &wd : wc) {
+                    calendarWriter.WriteLine(Utils::Format(L"%d. %d", wday++, wd));
+                }
+            }
+
+            // play matches in Sunday or Saturday?
+            Bool bSunday = l->mLeagueLevel == 0; // play matches for first league on Sunday
+
+            Int startMatchday1 = 48; // End of August
+            Int startMatchday2 = 27; // End of July
+            Int startMatchday3 = 13; // Middle of July
+            Int endMatchday = 315; // May
+
+            Int startDate = l->GetProperty<Int>(L"startDate", 0);
+            Int endDate = l->GetProperty<Int>(L"endDate", 0);
+
+            if ((endDate > 0 && endDate < startDate) || startDate > 365 || endDate > 365) {
+                Error(L"Incorrect startDate/endDate in league\nLeague: %s\nstartDate: %d\nendDate: %d", FifamTr(l->mName).c_str(), startDate, endDate);
+                startDate = 0;
+                endDate = 0;
+            }
+
+            Bool customStartDate = startDate > 0;
+
+            if (customStartDate) {
+                Int dayOfWeek = startDate % 7;
+                if (dayOfWeek != 6) { // Saturday
+                    if (dayOfWeek == 0) // Sunday
+                        startDate -= 1;
+                    else if (dayOfWeek == 1) // Monday
+                        startDate -= 2;
+                    else if (dayOfWeek == 2) // Tuesday
+                        startDate -= 3;
+                    else if (dayOfWeek == 5) // Friday
+                        startDate += 1;
+                    else if (dayOfWeek == 4) // Thursday
+                        startDate += 2;
+                    else if (dayOfWeek == 3) // Wednesday
+                        startDate += 3;
+                }
+                startMatchday1 = startDate;
+                startMatchday2 = startDate;
+                startMatchday3 = startDate;
+            }
+            if (endDate > 0) {
+                if ((!customStartDate || endDate > startDate) && (!l->mLeagueLevel || endDate < endMatchday))
+                    endMatchday = endDate;
+            }
+
+            matchdayIndex = { 0, 0 };
+
+            for (UInt s = 0; s < 2; s++) {
+                // phase 1 - add possible match every 2 weeks
+                for (Int m = startMatchday1; m <= endMatchday; m += 14)
+                    MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+
+                // phase 2 - add possible match every week
+                for (Int m = startMatchday1; m <= endMatchday; m += 7)
+                    MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+
+                // phase 3 - add possible matches in August (reverse direction)
+                if (!customStartDate) {
+                    for (Int m = startMatchday1 - 7; m >= startMatchday2; m -= 7)
+                        MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+                }
+
+                // phase 4 - add possible mid-week matches every 2 weeks
+                for (Int m = startMatchday2 + 14; m <= endMatchday; m += 14)
+                    MarkPossibleMidWeekMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+
+                // phase 5 - add possible matches in July (reverse direction)
+                if (!customStartDate) {
+                    for (Int m = startMatchday2 - 7; m >= startMatchday3; m -= 7)
+                        MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+                }
+
+                // phase 6 - add possible mid-week matches every week
+                for (Int m = startMatchday1; m <= endMatchday; m += 7)
+                    MarkPossibleMidWeekMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+
+                // phase 7 - add possible mid-week matches every week in July and August (reverse direction)
+                if (!customStartDate) {
+                    for (Int m = startMatchday1 - 7; m >= startMatchday3; m -= 7)
+                        MarkPossibleMidWeekMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+                }
+            }
+
+            for (UInt s = 0; s < 2; s++) {
+                Vector<Pair<UInt, UInt>> availableMatchdays;
+                for (UInt i = 1; i < cc[s].size(); i++) {
+                    if (cc[s][i] > 0 && cc[s][i] < 1000)
+                        availableMatchdays.emplace_back(cc[s][i], i);
+                }
+                UInt requiredMatchdaysForLeague = l->GetNumMatchdays();
+                UInt requiredMatchdaysForSplit = (split.first && l->mLeagueLevel == 0) ? Utils::Max(split.first->GetNumMatchdays(), split.second->GetNumMatchdays()) : 0;
+                UInt requiredMatchdays = requiredMatchdaysForLeague + requiredMatchdaysForSplit;
+                if (availableMatchdays.size() < requiredMatchdays) {
+                    Error(L"Not enough available matches in calendar for league\nLeague: %s\nSeason: %d\nRequired matches: %d\nAvailable matches: %d",
+                        FifamTr(l->mName).c_str(), s + 1, requiredMatchdays, availableMatchdays.size());
+                }
+                else {
+                    std::sort(availableMatchdays.begin(), availableMatchdays.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
+                        return a.first < b.first;
+                        });
+                    availableMatchdays.resize(requiredMatchdays);
+                    std::sort(availableMatchdays.begin(), availableMatchdays.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
+                        return a.second < b.second;
+                        });
+                    if (s == 0) {
+                        l->mFirstSeasonMatchdays.resize(requiredMatchdaysForLeague);
+                        for (UInt i = 0; i < requiredMatchdaysForLeague; i++)
+                            l->mFirstSeasonMatchdays[i] = availableMatchdays[i].second;
+                        if (split.first && l->mLeagueLevel == 0) {
+                            Vector<Pair<UInt, UInt>> matchdaysForFirstSplit(availableMatchdays.begin() + requiredMatchdaysForLeague, availableMatchdays.end());
+                            if (matchdaysForFirstSplit.size() > split.first->GetNumMatchdays()) {
+                                std::sort(matchdaysForFirstSplit.begin(), matchdaysForFirstSplit.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
+                                    return a.first < b.first;
+                                    });
+                                matchdaysForFirstSplit.resize(split.first->GetNumMatchdays());
+                                std::sort(matchdaysForFirstSplit.begin(), matchdaysForFirstSplit.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
+                                    return a.second < b.second;
+                                    });
+                            }
+                            split.first->mFirstSeasonMatchdays.resize(split.first->GetNumMatchdays());
+                            for (UInt i = 0; i < split.first->GetNumMatchdays(); i++)
+                                split.first->mFirstSeasonMatchdays[i] = matchdaysForFirstSplit[i].second;
+
+                            Vector<Pair<UInt, UInt>> matchdaysForSecondSplit(availableMatchdays.begin() + requiredMatchdaysForLeague, availableMatchdays.end());
+                            if (matchdaysForSecondSplit.size() > split.second->GetNumMatchdays()) {
+                                std::sort(matchdaysForSecondSplit.begin(), matchdaysForSecondSplit.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
+                                    return a.first < b.first;
+                                    });
+                                matchdaysForSecondSplit.resize(split.second->GetNumMatchdays());
+                                std::sort(matchdaysForSecondSplit.begin(), matchdaysForSecondSplit.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
+                                    return a.second < b.second;
+                                    });
+                            }
+                            split.second->mFirstSeasonMatchdays.resize(split.second->GetNumMatchdays());
+                            for (UInt i = 0; i < split.second->GetNumMatchdays(); i++)
+                                split.second->mFirstSeasonMatchdays[i] = matchdaysForSecondSplit[i].second;
+                        }
+                    }
+                    else {
+                        l->mSecondSeasonMatchdays.resize(requiredMatchdaysForLeague);
+                        for (UInt i = 0; i < requiredMatchdaysForLeague; i++)
+                            l->mSecondSeasonMatchdays[i] = availableMatchdays[i].second;
+                        if (split.first && l->mLeagueLevel == 0) {
+                            Vector<Pair<UInt, UInt>> matchdaysForFirstSplit(availableMatchdays.begin() + requiredMatchdaysForLeague, availableMatchdays.end());
+                            if (matchdaysForFirstSplit.size() > split.first->GetNumMatchdays()) {
+                                std::sort(matchdaysForFirstSplit.begin(), matchdaysForFirstSplit.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
+                                    return a.first < b.first;
+                                    });
+                                matchdaysForFirstSplit.resize(split.first->GetNumMatchdays());
+                                std::sort(matchdaysForFirstSplit.begin(), matchdaysForFirstSplit.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
+                                    return a.second < b.second;
+                                    });
+                            }
+                            split.first->mSecondSeasonMatchdays.resize(split.first->GetNumMatchdays());
+                            for (UInt i = 0; i < split.first->GetNumMatchdays(); i++)
+                                split.first->mSecondSeasonMatchdays[i] = matchdaysForFirstSplit[i].second;
+
+                            Vector<Pair<UInt, UInt>> matchdaysForSecondSplit(availableMatchdays.begin() + requiredMatchdaysForLeague, availableMatchdays.end());
+                            if (matchdaysForSecondSplit.size() > split.second->GetNumMatchdays()) {
+                                std::sort(matchdaysForSecondSplit.begin(), matchdaysForSecondSplit.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
+                                    return a.first < b.first;
+                                    });
+                                matchdaysForSecondSplit.resize(split.second->GetNumMatchdays());
+                                std::sort(matchdaysForSecondSplit.begin(), matchdaysForSecondSplit.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
+                                    return a.second < b.second;
+                                    });
+                            }
+                            split.second->mSecondSeasonMatchdays.resize(split.second->GetNumMatchdays());
+                            for (UInt i = 0; i < split.second->GetNumMatchdays(); i++)
+                                split.second->mSecondSeasonMatchdays[i] = matchdaysForSecondSplit[i].second;
+                        }
+                    }
                 }
             }
         }
@@ -588,10 +687,16 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
         PutOneMatch(calendar, 1, m);
 
     for (auto [compID, comp] : database->mCompMap) {
-        if (compID.mType == FifamCompType::WorldCup || compID.mType == FifamCompType::QualiWC || compID.mType == FifamCompType::ConfedCup
-            || (compID.mType == FifamCompType::WorldClubChamp && compID.mRegion == FifamCompRegion::Europe))
-        {
+        if (compID.mType == FifamCompType::WorldCup || compID.mType == FifamCompType::QualiWC || compID.mType == FifamCompType::ConfedCup) {
             PutCompToCalendar(calendar, comp);
+        }
+        else if (compID.mType == FifamCompType::WorldClubChamp && compID.mRegion == FifamCompRegion::Europe) {
+            if (comp->GetDbType() != FifamCompDbType::Round || (comp->AsRound()->mRoundType == FifamRoundID::Final
+                || comp->AsRound()->mRoundType == FifamRoundID::Final3rdPlace || comp->AsRound()->mRoundType == FifamRoundID::Semifinal)
+                || (country->mContinent != FifamContinent::Europe && country->mContinent != FifamContinent::SouthAmerica))
+            {
+                PutCompToCalendar(calendar, comp);
+            }
         }
         else {
             switch (country->mContinent.ToInt()) {
@@ -601,7 +706,7 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
                     || (compID.mRegion == FifamCompRegion::Europe
                         && (compID.mType == FifamCompType::ChampionsLeague || compID.mType == FifamCompType::UefaCup
                             || compID.mType == FifamCompType::EuroSuperCup || compID.mType == FifamCompType::Continental1
-                            || compID.mType == FifamCompType::Continental2))
+                            || compID.mType == FifamCompType::Continental2 || compID.mType == FifamCompType::ICC))
                     )
                 {
                     PutCompToCalendar(calendar, comp);
@@ -612,7 +717,7 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
                     || (compID.mRegion == FifamCompRegion::SouthAmerica
                         && (compID.mType == FifamCompType::ChampionsLeague || compID.mType == FifamCompType::UefaCup
                             || compID.mType == FifamCompType::EuroSuperCup || compID.mType == FifamCompType::Continental1
-                            || compID.mType == FifamCompType::Continental2))
+                            || compID.mType == FifamCompType::Continental2 || compID.mType == FifamCompType::ICC))
                     || (compID.mRegion == FifamCompRegion::Asia && compID.mType == FifamCompType::Continental1)
                     )
                 {
@@ -664,6 +769,10 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
                     PutCompToCalendar(calendar, comp);
                 }
                 break;
+            default:
+                if (comp->GetProperty<Bool>(L"custom_calendar", false))
+                    PutCompToCalendar(calendar, comp);
+                break;
             }
         }
     }
@@ -673,7 +782,8 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
     Array<Int, 2> lastLeagueMatchday = { 0, 0 };
 
     for (FifamCompLeague *l : leagues) {
-        PutCompToCalendar(calendar, l);
+        if (!l->GetProperty<Bool>(L"custom_calendar", false))
+            PutCompToCalendar(calendar, l);
         if (!l->mFirstSeasonMatchdays.empty()) {
             if (l->mFirstSeasonMatchdays.back() > lastLeagueMatchday[0])
                 lastLeagueMatchday[0] = l->mFirstSeasonMatchdays.back();
@@ -681,6 +791,28 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
         if (!l->mSecondSeasonMatchdays.empty()) {
             if (l->mSecondSeasonMatchdays.back() > lastLeagueMatchday[1])
                 lastLeagueMatchday[1] = l->mSecondSeasonMatchdays.back();
+        }
+    }
+    if (split.first) {
+        if (!split.first->GetProperty<Bool>(L"custom_calendar", false))
+            PutCompToCalendar(calendar, split.first);
+        if (!split.first->mFirstSeasonMatchdays.empty()) {
+            if (split.first->mFirstSeasonMatchdays.back() > lastLeagueMatchday[0])
+                lastLeagueMatchday[0] = split.first->mFirstSeasonMatchdays.back();
+        }
+        if (!split.first->mSecondSeasonMatchdays.empty()) {
+            if (split.first->mSecondSeasonMatchdays.back() > lastLeagueMatchday[1])
+                lastLeagueMatchday[1] = split.first->mSecondSeasonMatchdays.back();
+        }
+        if (!split.second->GetProperty<Bool>(L"custom_calendar", false))
+            PutCompToCalendar(calendar, split.second);
+        if (!split.second->mFirstSeasonMatchdays.empty()) {
+            if (split.second->mFirstSeasonMatchdays.back() > lastLeagueMatchday[0])
+                lastLeagueMatchday[0] = split.second->mFirstSeasonMatchdays.back();
+        }
+        if (!split.second->mSecondSeasonMatchdays.empty()) {
+            if (split.second->mSecondSeasonMatchdays.back() > lastLeagueMatchday[1])
+                lastLeagueMatchday[1] = split.second->mSecondSeasonMatchdays.back();
         }
     }
 
@@ -699,22 +831,24 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
     UInt numMatchesForLeAndFaCups = 0;
 
     for (FifamCompCup *c : cups) {
-        if (c->mID.mType == FifamCompType::SuperCup) {
-            if (!superCup)
-                superCup = c;
-            numSuperCups++;
-        }
-        else if (c->mID.mType == FifamCompType::FaCup)
-            numFaCups++;
-        else if (c->mID.mType == FifamCompType::LeagueCup)
-            numLeCups++;
+        if (!c->GetProperty<Bool>(L"custom_calendar", false)) {
+            if (c->mID.mType == FifamCompType::SuperCup) {
+                if (!superCup)
+                    superCup = c;
+                numSuperCups++;
+            }
+            else if (c->mID.mType == FifamCompType::FaCup)
+                numFaCups++;
+            else if (c->mID.mType == FifamCompType::LeagueCup)
+                numLeCups++;
 
-        if (c->mID.mType == FifamCompType::FaCup || c->mID.mType == FifamCompType::LeagueCup) {
-            for (auto &r : c->mRounds) {
-                if (r.mFlags.Check(FifamBeg::_2ndLeg) || r.mFlags.Check(FifamBeg::WithReplay))
-                    numMatchesForLeAndFaCups += 2;
-                else
-                    numMatchesForLeAndFaCups += 1;
+            if (c->mID.mType == FifamCompType::FaCup || c->mID.mType == FifamCompType::LeagueCup) {
+                for (auto &r : c->mRounds) {
+                    if (r.mFlags.Check(FifamBeg::_2ndLeg) || r.mFlags.Check(FifamBeg::WithReplay))
+                        numMatchesForLeAndFaCups += 2;
+                    else
+                        numMatchesForLeAndFaCups += 1;
+                }
             }
         }
     }
@@ -807,11 +941,13 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
                     });
                     // clear matchdays
                 for (FifamCompCup *c : cups) {
-                    if (c->mID.mType == FifamCompType::FaCup || c->mID.mType == FifamCompType::LeagueCup) {
-                        if (s == 0)
-                            c->mFirstSeasonMatchdays.clear();
-                        else
-                            c->mSecondSeasonMatchdays.clear();
+                    if (!c->GetProperty<Bool>(L"custom_calendar", false)) {
+                        if (c->mID.mType == FifamCompType::FaCup || c->mID.mType == FifamCompType::LeagueCup) {
+                            if (s == 0)
+                                c->mFirstSeasonMatchdays.clear();
+                            else
+                                c->mSecondSeasonMatchdays.clear();
+                        }
                     }
                 }
                 // fill matchdays
@@ -819,16 +955,18 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
                 for (UInt r = 0; r < 8; r++) {
                     for (UInt m = 0; m < 2; m++) {
                         for (FifamCompCup *c : cups) {
-                            if (c->mID.mType == FifamCompType::FaCup || c->mID.mType == FifamCompType::LeagueCup) {
-                                UInt numRounds = c->mRounds.size();
-                                if (numRounds > r) {
-                                    if (m == 0 || (c->mRounds[numRounds - 1 - r].mFlags.Check(FifamBeg::_2ndLeg) ||
-                                        c->mRounds[numRounds - 1 - r].mFlags.Check(FifamBeg::WithReplay)))
-                                    {
-                                        if (s == 0)
-                                            c->mFirstSeasonMatchdays.push_back(availableMatchdays[nextMatchdayIndex++].second);
-                                        else
-                                            c->mSecondSeasonMatchdays.push_back(availableMatchdays[nextMatchdayIndex++].second);
+                            if (!c->GetProperty<Bool>(L"custom_calendar", false)) {
+                                if (c->mID.mType == FifamCompType::FaCup || c->mID.mType == FifamCompType::LeagueCup) {
+                                    UInt numRounds = c->mRounds.size();
+                                    if (numRounds > r) {
+                                        if (m == 0 || (c->mRounds[numRounds - 1 - r].mFlags.Check(FifamBeg::_2ndLeg) ||
+                                            c->mRounds[numRounds - 1 - r].mFlags.Check(FifamBeg::WithReplay)))
+                                        {
+                                            if (s == 0)
+                                                c->mFirstSeasonMatchdays.push_back(availableMatchdays[nextMatchdayIndex++].second);
+                                            else
+                                                c->mSecondSeasonMatchdays.push_back(availableMatchdays[nextMatchdayIndex++].second);
+                                        }
                                     }
                                 }
                             }
@@ -837,11 +975,13 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
                 }
                 // sort matchdays
                 for (FifamCompCup *c : cups) {
-                    if (c->mID.mType == FifamCompType::FaCup || c->mID.mType == FifamCompType::LeagueCup) {
-                        if (s == 0)
-                            std::sort(c->mFirstSeasonMatchdays.begin(), c->mFirstSeasonMatchdays.end());
-                        else
-                            std::sort(c->mSecondSeasonMatchdays.begin(), c->mSecondSeasonMatchdays.end());
+                    if (!c->GetProperty<Bool>(L"custom_calendar", false)) {
+                        if (c->mID.mType == FifamCompType::FaCup || c->mID.mType == FifamCompType::LeagueCup) {
+                            if (s == 0)
+                                std::sort(c->mFirstSeasonMatchdays.begin(), c->mFirstSeasonMatchdays.end());
+                            else
+                                std::sort(c->mSecondSeasonMatchdays.begin(), c->mSecondSeasonMatchdays.end());
+                        }
                     }
                 }
             }
@@ -850,20 +990,24 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
 
     // add FA/League cup matches to calendar
     for (FifamCompCup *c : cups) {
-        if (c->mID.mType == FifamCompType::FaCup || c->mID.mType == FifamCompType::LeagueCup)
-            PutCompToCalendar(calendar, c);
+        if (!c->GetProperty<Bool>(L"custom_calendar", false)) {
+            if (c->mID.mType == FifamCompType::FaCup || c->mID.mType == FifamCompType::LeagueCup)
+                PutCompToCalendar(calendar, c);
+        }
     }
 
     // generate matchdays for supercup
 
-    if (superCup) {
+    if (superCup && !superCup->GetProperty<Bool>(L"custom_calendar", false)) {
         if (numSuperCups > 1)
             Error(L"More than 1 supercup in %s", FifamTr(country->mName).c_str());
         else {
             if (superCup->mRounds.empty())
                 Error(L"Supercup has no rounds\nCountry : %s", FifamTr(country->mName).c_str());
-            else if (superCup->mRounds.size() > 1)
-                Error(L"Supercups with more than 1 round are not supported\nCountry : %s", FifamTr(country->mName).c_str());
+            else if (superCup->mRounds.size() > 1) {
+                if (countryId != FifamNation::Spain)
+                    Error(L"Supercups with more than 1 round are not supported\nCountry : %s", FifamTr(country->mName).c_str());
+            }
             else {
 
                 auto supercupcc = calendar;
@@ -953,6 +1097,45 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+
+    for (auto &po : playOffs) {
+        UInt numPlayOffMatches = 0;
+        if (po->mIsLeague) {
+            if (po->mLeague.mFifamLeague)
+                numPlayOffMatches = po->mLeague.mFifamLeague->GetNumMatchdays();
+        }
+        else {
+            for (auto &r : po->mRounds) {
+                if (r.mFifamRound && r.mFifamRound->GetDbType() == FifamCompDbType::Round)
+                    numPlayOffMatches += r.mFifamRound->m1stLegFlags.Check(FifamBeg::_2ndLeg) ? 2 : 1;
+            }
+        }
+        UInt dist = numPlayOffMatches > 4 ? 3 : 4;
+        UInt matchDate = 331;
+        if (po->mIsLeague) {
+            if (po->mLeague.mFifamLeague && !po->mLeague.mFifamLeague->GetProperty<Bool>(L"custom_calendar", false)) {
+                for (UInt i = 0; i < numPlayOffMatches; i++)
+                    po->mLeague.mFifamLeague->mFirstSeasonMatchdays.push_back(matchDate + i * dist);
+                po->mLeague.mFifamLeague->mSecondSeasonMatchdays = po->mLeague.mFifamLeague->mFirstSeasonMatchdays;
+            }
+        }
+        else {
+            for (auto &r : po->mRounds) {
+                if (r.mFifamRound && !r.mFifamRound->GetProperty<Bool>(L"custom_calendar", false)) {
+                    if (r.mFifamRound->m1stLegFlags.Check(FifamBeg::_2ndLeg)) {
+                        r.mFifamRound->mFirstSeasonMatchdays[0] = matchDate;
+                        r.mFifamRound->mFirstSeasonMatchdays[1] = matchDate + dist;
+                        matchDate += dist * 2;
+                    }
+                    else {
+                        r.mFifamRound->mFirstSeasonMatchdays[0] = matchDate;
+                        matchDate += dist;
+                    }
+                    r.mFifamRound->mSecondSeasonMatchdays = r.mFifamRound->mFirstSeasonMatchdays;
                 }
             }
         }

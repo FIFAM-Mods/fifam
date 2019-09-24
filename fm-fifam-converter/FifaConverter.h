@@ -11,8 +11,8 @@ public:
     static UInt FifamCountryIdFromFifa(Int fifaCountryId);
     static FifamNation FifamNationFromFifa(Int fifaCountryId);
     static UInt NextPersonId();
-    static void ConvertReferees(FifamDatabase *fifam, FifaDatabase *fifa);
-    static void ConvertManager(FifamDatabase *fifam, FifamClub *club, FifaManager *m);
+    static void ConvertReferees(Converter *converter, FifamDatabase *fifam, FifaDatabase *fifa);
+    static void ConvertManager(Converter *converter, FifamDatabase *fifam, FifamClub *club, FifaManager *m);
     static void ConvertTeamAttributes(FifamClub *club, FifaTeam *t);
-    static void ConvertPlayer(Converter *converter, FifamClub *club, FifaTeam *fifaTeam, FifaPlayer *p, FifaPlayer::Position pos, UChar number);
+    static void ConvertPlayer(Converter *converter, FifamClub *club, Bool reserve, FifaTeam *fifaTeam, FifaPlayer *p, FifaPlayer::Position pos, UChar number);
 };

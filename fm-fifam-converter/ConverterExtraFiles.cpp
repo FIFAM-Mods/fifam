@@ -180,17 +180,18 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
     }
     {
         std::wcout << L"Reading fifam_divisions.txt..." << std::endl;
-        FifamReader reader(infoPath / (gameId > 7 ? L"fifam_divisions.txt" : L"fifam_divisions_07.txt"), 0);
+        FifamReader reader(infoPath / (mFromFifaDatabase ? L"fifam_divisions_07.txt" : L"fifam_divisions.txt"), 0);
         if (reader.Available()) {
             reader.SkipLine();
             while (!reader.IsEof()) {
                 if (!reader.EmptyLine()) {
                     DivisionInfo d;
-                    String e, type, sorting;
+                    String e, type, sorting, split, promotionPlayoff, relegationPlayoff;
                     reader.ReadLineWithSeparator(L'\t', e, d.mNationID, d.mName, d.mShortName, OptionalInt(d.mID), type, d.mLevel, e, e,
-                        d.mTeams, d.mRep, d.mPriority, d.mOrder, OptionalInt(d.mRounds), d.mPromoted, d.mRelegated, d.mStartDate,
-                        d.mEndDate, d.mWinterBreakStart, d.mWinterBreakEnd, OptionalInt(d.mNumSubs), OptionalInt(d.mForeignersLimit),
-                        OptionalInt(d.mNonEuSigns), OptionalInt(d.mDomesticPlayers), OptionalInt(d.mU21Players),
+                        d.mTeams, d.mRep, d.mPriority, d.mOrder, OptionalInt(d.mRounds), split, OptionalInt(d.mSplitRounds.first),
+                        OptionalInt(d.mSplitRounds.second), d.mPromoted, promotionPlayoff, d.mPromotionID, d.mRelegated, relegationPlayoff,
+                        d.mRelegationID, d.mStartDate, d.mEndDate, d.mWinterBreakStart, d.mWinterBreakEnd, OptionalInt(d.mNumSubs),
+                        OptionalInt(d.mForeignersLimit), OptionalInt(d.mNonEuSigns), OptionalInt(d.mDomesticPlayers), OptionalInt(d.mU21Players),
                         OptionalInt(d.mReserveTeamsAllowed), sorting, d.mAttendanceMp, d.mTransfersMp, d.mTvBonus, d.mWinBouns, d.mPlaceBonus,
                         d.mOneYearCalendar);
 
@@ -219,7 +220,132 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                     else
                         d.mLevel -= 1;
 
+                    Utils::Trim(split);
+                    if (!split.empty()) {
+                        auto splitParts = Utils::Split(split, L'x');
+                        if (splitParts.size() == 2) {
+                            d.mSplit.first = Utils::SafeConvertInt<Int>(splitParts[0]);
+                            d.mSplit.second = Utils::SafeConvertInt<Int>(splitParts[1]);
+                        }
+                        else
+                            Error(L"Incorrect league split syntax: \"" + split + L"\"");
+                    }
+
+                    Utils::Trim(promotionPlayoff);
+                    if (!promotionPlayoff.empty()) {
+                        auto promotionTeams = Utils::Split(promotionPlayoff, L'+');
+                        if (promotionTeams.size() > 0) {
+                            d.mPromotionPlayoff.resize(promotionTeams.size());
+                            d.mTotalTeamsPromotionPlayoff = 0;
+                            for (UInt pt = 0; pt < promotionTeams.size(); pt++) {
+                                d.mPromotionPlayoff[pt] = Utils::SafeConvertInt<Int>(promotionTeams[pt]);
+                                d.mTotalTeamsPromotionPlayoff += d.mPromotionPlayoff[pt];
+                            }
+                        }
+                    }
+
+                    Utils::Trim(relegationPlayoff);
+                    if (!relegationPlayoff.empty()) {
+                        auto relegationTeams = Utils::Split(relegationPlayoff, L'+');
+                        if (relegationTeams.size() > 0) {
+                            d.mRelegationPlayoff.resize(relegationTeams.size());
+                            d.mTotalTeamsRelegationPlayoff = 0;
+                            for (UInt pt = 0; pt < relegationTeams.size(); pt++) {
+                                d.mRelegationPlayoff[pt] = Utils::SafeConvertInt<Int>(relegationTeams[pt]);
+                                d.mTotalTeamsRelegationPlayoff += d.mRelegationPlayoff[pt];
+                            }
+                        }
+                    }
+
                     mDivisions.push_back(d);
+                }
+                else
+                    reader.SkipLine();
+            }
+        }
+    }
+    if (!mFromFifaDatabase)
+    {
+        std::wcout << L"Reading fifam_playoffs.txt..." << std::endl;
+        FifamReader reader(infoPath / L"fifam_playoffs.txt", 0);
+        if (reader.Available()) {
+            reader.SkipLine();
+            while (!reader.IsEof()) {
+                if (!reader.EmptyLine()) {
+                    PlayOffInfo p;
+                    String e, format;
+                    reader.ReadLineWithSeparator(L'\t', e, p.mNationID, p.mID, p.mName, format, OptionalInt(p.mSubs));
+                    Bool formatError = false;
+                    Utils::Trim(format);
+                    if (!format.empty()) {
+                        if (format[0] == L'L') {
+                            String leagueFormat = format.substr(1);
+                            if (leagueFormat.empty())
+                                formatError = true;
+                            else {
+                                auto leagueInfo = Utils::Split(leagueFormat, L'-', true, false);
+                                if (leagueInfo.size() != 2)
+                                    formatError = true;
+                                else {
+                                    p.mLeague.mTotalTeams = Utils::SafeConvertInt<UShort>(leagueInfo[0]);
+                                    if (p.mLeague.mTotalTeams == 0)
+                                        formatError = true;
+                                    else {
+                                        p.mLeague.mNumWinners = Utils::SafeConvertInt<UShort>(leagueInfo[1]);
+                                        if (p.mLeague.mNumWinners > p.mLeague.mTotalTeams)
+                                            formatError = true;
+                                        else {
+                                            p.mLeague.mNumLosers = p.mLeague.mTotalTeams - p.mLeague.mNumWinners;
+                                            p.mIsLeague = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            auto rounds = Utils::Split(format, L',');
+                            if (rounds.size() > 0) {
+                                p.mRounds.resize(rounds.size());
+                                for (UInt r = 0; r < rounds.size(); r++) {
+                                    auto roundParts = Utils::Split(rounds[r], L'+');
+                                    // 1LRS+4
+                                    if ((roundParts.size() == 1 || roundParts.size() == 2)
+                                        && (roundParts[0].size() >= 2 && roundParts[0].size() <= 4)
+                                        && roundParts[0][1] == L'L')
+                                    {
+                                        if (roundParts.size() == 2)
+                                            p.mRounds[r].mNewTeams = Utils::SafeConvertInt<UShort>(roundParts[1]);
+                                        if (roundParts[0][0] == L'1')
+                                            p.mRounds[r].mLegs = 1;
+                                        else if (roundParts[0][0] == L'2')
+                                            p.mRounds[r].mLegs = 2;
+                                        else
+                                            formatError = true;
+                                        if (!formatError) {
+                                            for (UInt f = 2; f < roundParts[0].size(); f++) {
+                                                if (roundParts[0][f] == L'S')
+                                                    p.mRounds[r].mShuffle = PlayOffInfo::Round::ShuffleType::AllTeams;
+                                                else if (roundParts[0][f] == L'H')
+                                                    p.mRounds[r].mShuffle = PlayOffInfo::Round::ShuffleType::HalfTeams;
+                                                else if (roundParts[0][f] == L'R')
+                                                    p.mRounds[r].mLosersRound = true;
+                                                else
+                                                    formatError = true;
+                                            }
+                                        }
+                                    }
+                                    else
+                                        formatError = true;
+                                }
+                            }
+                            else
+                                formatError = true;
+                        }
+                    }
+                    if (formatError)
+                        Error(L"Incorrect play-off format: \"" + format + L"\"");
+                    else
+                        mPlayOffs.push_back(p);
                 }
                 else
                     reader.SkipLine();
@@ -271,6 +397,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                     foom::team *leagueWinner = nullptr;
                     Set<UInt> usedTeamIDs;
                     foom::nation *nation = nullptr;
+                    Vector<foom::club *> previousClubs;
 
                     auto finishLeague = [&] {
                         if (league && div) {
@@ -325,6 +452,20 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                                 if (league && div) {
                                     if (swscanf(line.c_str(), L"%d %s", &teamId, status) == 2) {
                                         foom::club *team = mFoomDatabase->get<foom::club>(teamId);
+                                        // TODO: remove this later
+                                        if (!team) {
+                                            if (line.size() > 19 && Utils::EndsWith(line, L" (RES)")) {
+                                                String clubName = line.substr(13, line.size() - 19);
+                                                for (foom::club *prev : previousClubs) {
+                                                    if (prev->mName == clubName) {
+                                                        if (!prev->mVecReserveTeams.empty()) {
+                                                            team = prev->mVecReserveTeams[0].mReserveClub;
+                                                            teamId = team->mID;
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
                                         if (!team) {
                                             Error(L"League tables:\nunable to find team by id\nin %s\nid %u\n%s", div->mName.c_str(), teamId, line.c_str());
                                         }
@@ -342,6 +483,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                                                     }
                                                     else {
                                                         league->mVecTeams.push_back(team);
+                                                        previousClubs.push_back(team);
                                                         usedTeamIDs.insert(teamId);
                                                         String strStatus = status;
                                                         foom::club *possibleCupWinner = nullptr;
@@ -418,6 +560,8 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                     if (nation) {
                         nation->mConverterData.mDomesticComps.cupWinner = cupWinner;
                         nation->mConverterData.mDomesticComps.cupRunnerUp = cupRunnerUp;
+                        if (leagueWinner)
+                            nation->mConverterData.mDomesticComps.leagueWinner = leagueWinner;
                     }
                     //if (nation && (cupWinner || cupRunnerUp)) {
                     //    for (auto &entry : mFoomDatabase->mComps) {
@@ -486,6 +630,43 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                     }
                     reader.Close();
                 }
+            }
+        }
+    }
+    {
+        std::wcout << L"Reading calendars..." << std::endl;
+        for (auto const &p : recursive_directory_iterator(infoPath / L"calendars")) {
+            if (is_regular_file(p.path()) && p.path().extension() == ".csv") {
+                FifamReader reader(p.path(), 0);
+                if (reader.Available()) {
+                    while (!reader.IsEof()) {
+                        if (!reader.EmptyLine()) {
+                            UInt compId = 0, season = 0;
+                            String daysStr;
+                            reader.ReadLine(Hexadecimal(compId), season, daysStr);
+                            if (compId != 0) {
+                                if (season == 0 || season == 1) {
+                                    auto days = Utils::Split(daysStr, L',', true, false);
+                                    Vector<UShort> daysInts;
+                                    daysInts.resize(days.size());
+                                    for (UInt d = 0; d < days.size(); d++)
+                                        daysInts[d] = Utils::SafeConvertInt<UShort>(days[d]);
+                                    if (season == 0)
+                                        mCalendarsFirstSeason[compId] = daysInts;
+                                    else
+                                        mCalendarsSecondSeason[compId] = daysInts;
+                                }
+                                else
+                                    Error(L"Wrong season ID in calendar file %s", p.path().filename().c_str());
+                            }
+                            else
+                                Error(L"Wrong competition ID in calendar file %s", p.path().filename().c_str());
+                        }
+                        else
+                            reader.SkipLine();
+                    }
+                }
+                reader.Close();
             }
         }
     }

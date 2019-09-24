@@ -14,7 +14,7 @@ public:
         Documents, User, Big
     };
 
-    struct GlobalOptions {
+    static struct GlobalOptions {
         std::string KitsPath = "D:\\Projects\\FIFA19\\FIFA 19 Kits Converted Textures\\";
         std::string MiniKitsPath = "D:\\Projects\\FIFA19\\mini\\";
         std::string CustomKitsPath = "D:\\Projects\\FIFA19\\custom\\kits\\";
@@ -36,6 +36,8 @@ public:
         bool Allow2xSize = true;
         bool GenerateKitNumberes = false;
         bool V2 = true;
+        bool Force2x = false;
+        bool Overlay = false;
     } options;
 
     KitConverter();
@@ -45,6 +47,7 @@ public:
     bool ConvertFifaClubKit(int fifaId, std::string const &clubIdStr, int set, int variation, std::string const &outputFile);
     bool ConvertFifaClubMiniKit(int fifaId, std::string const & clubIdStr, int set, int variation, std::string const & outputFile);
     void ConvertClubKits(std::string const &clubIdName, int fifaId, int fifaManagerId);
+    void ConvertRefereeKit(int fifaId);
     void SetSizeMode(int mode);
     int GetSizeMode();
     int Size(int value);

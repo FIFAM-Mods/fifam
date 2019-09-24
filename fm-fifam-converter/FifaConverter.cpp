@@ -1,9 +1,10 @@
-#include "FifaConverter.h"
+﻿#include "FifaConverter.h"
 #include "Random.h"
 #include "Converter.h"
 #include "FifamNames.h"
 #include "AppearanceGenerator.h"
 #include "FifamPlayerLevel.h"
+#include "ConverterUtil.h"
 
 Map<Int, Pair<UInt, UInt>> FifaConverter::mFifaToFifamCountryId;
 
@@ -73,7 +74,7 @@ UInt FifaConverter::NextPersonId() {
     return personId++;
 }
 
-void FifaConverter::ConvertReferees(FifamDatabase * fifam, FifaDatabase * fifa) {
+void FifaConverter::ConvertReferees(Converter *converter, FifamDatabase * fifam, FifaDatabase * fifa) {
     fifa->ForAllReferees([&](FifaReferee &r) {
         if (r.internal.gender == 0) {
             UInt fifamCountryId = FifamCountryIdFromFifa(r.internal.nationalitycode);
@@ -81,8 +82,8 @@ void FifaConverter::ConvertReferees(FifamDatabase * fifam, FifaDatabase * fifa) 
                 FifamCountry *fifamCountry = fifam->GetCountry(fifamCountryId);
                 if (fifamCountry) {
                     FifamReferee *referee = fifamCountry->AddReferee();
-                    referee->mFirstName = r.m_firstName;
-                    referee->mLastName = r.m_lastName;
+                    referee->mFirstName = FifamNames::LimitName(converter->FixPersonName(r.m_firstName), 19);
+                    referee->mLastName = FifamNames::LimitName(converter->FixPersonName(r.m_lastName), 19);
                     if (r.internal.foulstrictness == 1 && r.internal.cardstrictness == 1)
                         referee->mType = FifamRefereeType::WorldClassReferee;
                     else if (r.internal.foulstrictness == 2 && r.internal.cardstrictness == 2)
@@ -101,12 +102,14 @@ void FifaConverter::ConvertReferees(FifamDatabase * fifam, FifaDatabase * fifa) 
     });
 }
 
-void FifaConverter::ConvertManager(FifamDatabase * fifam, FifamClub * club, FifaManager * m) {
+void FifaConverter::ConvertManager(Converter *converter, FifamDatabase * fifam, FifamClub * club, FifaManager * m) {
     if (m->internal.gender == 0 && !m->internal.surname.empty()) {
         FifamStaff *manager = fifam->CreateStaff(club, NextPersonId());
         manager->mClubPosition = FifamClubStaffPosition::Manager;
-        manager->mFirstName = m->internal.firstname;
-        manager->mLastName = m->internal.surname;
+        manager->mFirstName = FifamNames::LimitName(converter->FixPersonName(m->internal.firstname), 15);
+        manager->mLastName = FifamNames::LimitName(converter->FixPersonName(m->internal.surname), 15);
+        manager->mPseudonym = FifamNames::LimitName(converter->FixPersonName(m->internal.commonname), 19);
+
         if (manager->mFirstName.empty()) {
             auto nameParts = Utils::Split(manager->mLastName, L' ', true, true);
             if (nameParts.size() > 1) {
@@ -118,10 +121,11 @@ void FifaConverter::ConvertManager(FifamDatabase * fifam, FifamClub * club, Fifa
                 }
             }
         }
-        manager->mNationality[0] = FifamNation::MakeFromInt(club->mCountry->mId);
+        manager->mNationality[0] = FifamNationFromFifa(m->internal.nationality);
         manager->mBirthday.Set(1, 1, 1970);
         manager->mManagerFavouriteFormation = club->mPreferredFormations[0];
-        manager->mLanguages = club->mCountry->mLanguages;
+        FifamCountry *country = fifam->GetCountry(manager->mNationality[0].ToInt());
+        manager->mLanguages = country ? country->mLanguages : club->mCountry->mLanguages;
         UInt level = (club->mInternationalPrestige + 10) / 2;
         UInt maxLevel = Utils::Clamp(level + 1, 1, 15);
         UInt minLevel = Utils::Clamp(level - 1, 1, 15);
@@ -188,7 +192,7 @@ FifamPlayerPosition FifaPositionToFifam(Int pos) {
     return FifamPlayerPosition::None;
 }
 
-void FifaConverter::ConvertPlayer(Converter * converter, FifamClub * club, FifaTeam *fifaTeam, FifaPlayer * p, FifaPlayer::Position pos, UChar number) {
+void FifaConverter::ConvertPlayer(Converter * converter, FifamClub * club, Bool reserve, FifaTeam *fifaTeam, FifaPlayer * p, FifaPlayer::Position pos, UChar number) {
     FifamNation playerNation = FifamNationFromFifa(p->internal.nationality);
     if (playerNation == FifamNation::None) {
         Error(Utils::Format(L"FIFA player %s has no nationality", p->m_quickName));
@@ -204,14 +208,22 @@ void FifaConverter::ConvertPlayer(Converter * converter, FifamClub * club, FifaT
     player->mEmpicsId = p->GetId();
     // basic info
     player->mIsRealPlayer = true;
+    player->mInReserveTeam = reserve;
     player->mNationality[0] = playerNation;
-    player->mFirstName = FifamNames::LimitPersonName(p->m_firstName, 15);
-    player->mLastName = FifamNames::LimitPersonName(p->m_lastName, 19);
+
+    auto FixedFIFAName = [](String const &n) -> String {
+        String result;
+        for (auto c : n) {
+            
+                result.push_back(c);
+        }
+        return result;
+    };
+
+    player->mFirstName = FifamNames::LimitPersonName(converter->FixPersonName(p->m_firstName), 15);
+    player->mLastName = FifamNames::LimitPersonName(converter->FixPersonName(p->m_lastName), 19);
     if (!p->m_commonName.empty())
-        player->mPseudonym = FifamNames::LimitPersonName(p->m_commonName, (converter->mCurrentGameId > 7) ? 29 : 19);
-    converter->FixPersonName(player->mFirstName);
-    converter->FixPersonName(player->mLastName);
-    converter->FixPersonName(player->mPseudonym);
+        player->mPseudonym = FifamNames::LimitPersonName(converter->FixPersonName(p->m_commonName), (converter->mCurrentGameId > 7) ? 29 : 19);
     player->mLanguages = playerCountry->mLanguages;
     player->mBirthday = p->m_birthDate;
     if (p->internal.preferredfoot == 1) {
@@ -226,7 +238,10 @@ void FifaConverter::ConvertPlayer(Converter * converter, FifamClub * club, FifaT
     player->mWeight = Utils::Clamp(p->internal.weight, 50, 150);
 
     // team info
-    player->mShirtNumberFirstTeam = number;
+    if (!player->mInReserveTeam)
+        player->mShirtNumberFirstTeam = number;
+    else
+        player->mShirtNumberReserveTeam = number;
     if (fifaTeam && fifaTeam->internal.captainid == p->GetId())
         player->mIsCaptain = true;
 
@@ -292,14 +307,22 @@ void FifaConverter::ConvertPlayer(Converter * converter, FifamClub * club, FifaT
     // rating
     player->mPotential = p->internal.potential;
 
-    if (player->mPotential >= 89)
+    if (player->mPotential >= 93)
         player->mTalent = 9;
-    else if (player->mPotential >= 81)
+    else if (player->mPotential >= 88)
+        player->mTalent = 8;
+    else if (player->mPotential >= 84)
         player->mTalent = 7;
-    else if (player->mPotential >= 74)
+    else if (player->mPotential >= 80)
+        player->mTalent = 6;
+    else if (player->mPotential >= 75)
         player->mTalent = 5;
-    else if (player->mPotential >= 68)
+    else if (player->mPotential >= 70)
+        player->mTalent = 4;
+    else if (player->mPotential >= 65)
         player->mTalent = 3;
+    else if (player->mPotential >= 60)
+        player->mTalent = 2;
     else
         player->mTalent = 1;
 
@@ -402,6 +425,23 @@ void FifaConverter::ConvertPlayer(Converter * converter, FifamClub * club, FifaT
     else
         player->mAttributes.Leadership = 20 + Random::Get(0, 30) + p->internal.overallrating / 3;
 
+    if (player->mMainPosition == FifamPlayerPosition::LB ||
+        player->mMainPosition == FifamPlayerPosition::LM ||
+        player->mMainPosition == FifamPlayerPosition::LW ||
+        player->mMainPosition == FifamPlayerPosition::LWB)
+    {
+        if (player->mLeftFoot < 4)
+            player->mLeftFoot = 4;
+    }
+    else if (player->mMainPosition == FifamPlayerPosition::RB ||
+        player->mMainPosition == FifamPlayerPosition::RM ||
+        player->mMainPosition == FifamPlayerPosition::RW ||
+        player->mMainPosition == FifamPlayerPosition::RWB)
+    {
+        if (player->mRightFoot < 4)
+            player->mRightFoot = 4;
+    }
+
     // hero status
     UChar heroStatus = 0;
     if (p->internal.overallrating >= 90)
@@ -480,6 +520,8 @@ void FifaConverter::ConvertPlayer(Converter * converter, FifamClub * club, FifaT
     if (p->internal.trait2 & TRAIT2_ONE_CLUB_PLAYER)
         player->mCharacter.Set(FifamPlayerCharacter::IdentificationHigh, true);
 
+    player->mPlayingStyle = FifamPlayerLevel::GetBestStyleForPlayer(player, false);
+
     // appearance
     UInt randomShoeType = Random::Get(1, 99);
     if (randomShoeType > 66)
@@ -490,4 +532,16 @@ void FifaConverter::ConvertPlayer(Converter * converter, FifamClub * club, FifaT
         player->mShoeType = FifamShoeType::Black;
     AppearanceGenerator gen;
     gen.SetFromFifaPlayer(player, p);
+
+    // loan
+    if (p->m_loanedFrom && p->m_loanEndDate > Date(1, 7, 2019)) {
+        FifamClub *loanClub = nullptr;
+        for (auto c : converter->mFifamDatabase->mClubs) {
+            if (c->mFifaID == p->m_loanedFrom->GetId()) {
+                loanClub = c;
+                break;
+            }
+        }
+        player->mStartingConditions.mLoan.Setup(FifamDate(1, 7, 2019), GetDateAlignedToSeasonEnd(p->m_loanEndDate, true, true), FifamClubLink(loanClub), 0);
+    }
 }

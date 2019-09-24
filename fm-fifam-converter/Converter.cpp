@@ -12,8 +12,13 @@
 #include "FifaConverter.h"
 
 #define DB_SIZE Full
-const Bool READ_FOOM_PERSONS = true;
-const Bool MAKE_CORRECTIONS_FOR_UPDATE = true;
+
+const Bool QUICK_TEST = true;
+
+const Bool READ_FOOM_PERSONS = !QUICK_TEST;
+const Bool MAKE_CORRECTIONS_FOR_UPDATE = !QUICK_TEST;
+const Bool READ_REFERENCE_DB = !QUICK_TEST;
+const Bool INCREASE_CONTRACTS = true;
 
 void Converter::Convert(UInt gameId, Bool writeToGameFolder) {
 
@@ -22,18 +27,32 @@ void Converter::Convert(UInt gameId, Bool writeToGameFolder) {
 void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb, UInt referenceGameId, Path const &referenceDb, Bool writeToGameFolder, Bool fromFifaDatabase) {
     mCurrentGameId = gameId;
     mFromFifaDatabase = fromFifaDatabase;
-    // read reference database here
+
     FifamDatabase::mReadingOptions.mReadClubs = false;
     FifamDatabase::mReadingOptions.mReadCountryCompetitions = false;
     FifamDatabase::mReadingOptions.mReadPersons = false;
-
+    if (mFromFifaDatabase)
+        FifamDatabase::mReadingOptions.mGameVersionForScripts = gameId;
     mFifamDatabase = new FifamDatabase(originalGameId, originalDb);
+    FifamDatabase::mReadingOptions.mGameVersionForScripts = 0;
 
-    FifamDatabase::mReadingOptions.mReadClubs = true;
-    FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
-    FifamDatabase::mReadingOptions.mReadPersons = !fromFifaDatabase;
+    if (READ_REFERENCE_DB) {
+        FifamDatabase::mReadingOptions.mReadClubs = true;
+        FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
+        FifamDatabase::mReadingOptions.mReadPersons = !fromFifaDatabase;
+        mReferenceDatabase = new FifamDatabase(referenceGameId, referenceDb);
+    }
 
-    mReferenceDatabase = new FifamDatabase(referenceGameId, referenceDb);
+    if (MAKE_CORRECTIONS_FOR_UPDATE) {
+        FifamDatabase::mReadingOptions.mReadClubs = true;
+        FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
+        FifamDatabase::mReadingOptions.mReadPersons = true;
+
+        mPreviousDb = new FifamDatabase(gameId, Utils::Format(L"D:\\Games\\FIFA Manager %02d\\database", gameId));
+        
+        for (FifamPlayer *p : mPreviousDb->mPlayers)
+            mPreviousPlayers[p->mEmpicsId] = p;
+    }
 
     mFifaDatabase = new FifaDatabase(L"D:\\Projects\\fifam\\db\\fifa");
     mFoomDatabase = new foom::db(L"D:\\Projects\\fifam\\db\\foom", fromFifaDatabase? false : READ_FOOM_PERSONS, foom::db::db_size::DB_SIZE);
@@ -41,6 +60,31 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     Path infoPath = L"D:\\Projects\\fifam\\db";
     Path graphicsPath = L"D:\\Documents\\Sports Interactive\\Football Manager 2019\\graphics";
     Path contentPath = L"D:\\Projects\\fifam\\content";
+
+    std::wcout << L"Creating reserve clubs..." << std::endl;
+    for (auto &entry : mFoomDatabase->mClubs) {
+        auto &c = entry.second;
+        for (auto &r : c.mVecReserveTeamsToCreate) {
+            if (r.mDivision) {
+                UInt newClubId = (*(mFoomDatabase->mClubs.rbegin())).first + 1;
+                foom::club newClub;
+                newClub.mID = newClubId;
+                newClub.mName = c.mName;
+                newClub.mShortName = c.mShortName;
+                newClub.mIsReserveDummyClub = true;
+                newClub.mIsReserveToCreateClub = true;
+                newClub.mNation = c.mNation;
+                mFoomDatabase->mClubs[newClubId] = newClub;
+
+                foom::club::reserve_team rt;
+                rt.mReserveTeamType = r.mReserveTeamType;
+                rt.mReserveClub = &mFoomDatabase->mClubs[newClubId];
+                c.mVecReserveTeams.push_back(rt);
+
+                r.mDivision->mVecTeams.push_back(&mFoomDatabase->mClubs[newClubId]);
+            }
+        }
+    }
 
     ReadAdditionalInfo(infoPath, gameId);
     appearanceGenerator.Read(infoPath / L"AppearanceDefs.sav");
@@ -66,50 +110,28 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
         });
     }
 
-    std::wcout << L"Creating reserve clubs..." << std::endl;
-    for (auto &entry : mFoomDatabase->mClubs) {
-        auto &c = entry.second;
-        for (auto &r : c.mVecReserveTeamsToCreate) {
-            if (r.mDivision) {
-                UInt newClubId = (*(mFoomDatabase->mClubs.rbegin())).first + 1;
-                foom::club newClub;
-                newClub.mID = newClubId;
-                newClub.mName = c.mName;
-                newClub.mShortName = c.mShortName;
-                newClub.mIsReserveDummyClub = true;
-                newClub.mIsReserveToCreateClub = true;
-                mFoomDatabase->mClubs[newClubId] = newClub;
-
-                foom::club::reserve_team rt;
-                rt.mReserveTeamType = r.mReserveTeamType;
-                rt.mReserveClub = &mFoomDatabase->mClubs[newClubId];
-                c.mVecReserveTeams.push_back(rt);
-
-                r.mDivision->mVecTeams.push_back(&mFoomDatabase->mClubs[newClubId]);
-            }
-        }
-    }
-
-    if (MAKE_CORRECTIONS_FOR_UPDATE) {
+    if (INCREASE_CONTRACTS) {
         for (auto &entry : mFoomDatabase->mPlayers) {
             auto &p = entry.second;
             if (p.mLoan.mClub) {
-                p.mLoan.mEndDate.year += 1;
-                if (p.mLoan.mStartDate.year < CURRENT_YEAR) {
-                    if (p.mLoan.mStartDate.year == (CURRENT_YEAR - 1)) {
-                        if (p.mLoan.mStartDate.month <= 7)
-                            p.mLoan.mStartDate.year += 1;
-                        else
-                            p.mLoan.mStartDate.Set(1, 7, CURRENT_YEAR);
-                    }
-                    else
-                        p.mLoan.mStartDate.year += 1;
-                }
+                if (p.mLoan.mEndDate < FifamDate(1, 7, CURRENT_YEAR))
+                    p.mLoan.mEndDate = FifamDate(30, 6, CURRENT_YEAR + 1);
+                //p.mLoan.mEndDate.year += 1;
+                //if (p.mLoan.mStartDate.year < CURRENT_YEAR) {
+                //    if (p.mLoan.mStartDate.year == (CURRENT_YEAR - 1)) {
+                //        if (p.mLoan.mStartDate.month <= 7)
+                //            p.mLoan.mStartDate.year += 1;
+                //        else
+                //            p.mLoan.mStartDate.Set(1, 7, CURRENT_YEAR);
+                //    }
+                //    else
+                //        p.mLoan.mStartDate.year += 1;
+                //}
             }
-            if (p.mContract.mClub) {
-                p.mContract.mContractExpires.year += 1;
-                p.mContract.mDateJoined.year += 1;
-            }
+            //if (p.mContract.mClub) {
+            //    p.mContract.mContractExpires.year += 1;
+            //    p.mContract.mDateJoined.year += 1;
+            //}
         }
     }
 
@@ -358,6 +380,10 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                     numSpareClubsToAdd = maxClubs - country->mClubs.size();
                 if (numSpareClubsToAdd > spareClubs[country->mId - 1].size())
                     numSpareClubsToAdd = spareClubs[country->mId - 1].size();
+                if (mFromFifaDatabase) {
+                    if (mNumTeamsInLeagueSystem[country->mId - 1] == 0 && numSpareClubsToAdd == 7)
+                        numSpareClubsToAdd = 6;
+                }
                 for (UInt i = 0; i < numSpareClubsToAdd; i++) {
                     foom::club *team = spareClubs[country->mId - 1][i];
                     CreateAndConvertClub(gameId, team, team, country, nullptr, mNumTeamsInLeagueSystem[country->mId - 1] == 0);
@@ -1000,9 +1026,33 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                 }
             }
 
+            if (MAKE_CORRECTIONS_FOR_UPDATE) {
+                for (FifamPlayer *a : dst->mPlayers) {
+                    bool levelSet = false;
+                    foom::player *foomPlayer = a->GetProperty<foom::player *>(L"foom::player", nullptr);
+                    if (foomPlayer) {
+                        FifamPlayer *prevPlayer = GetPreviousPlayer(foomPlayer->mID);
+                        if (prevPlayer) {
+                            a->SetProperty<Int>(L"fifam_level", GetPlayerLevel(prevPlayer, true, gameId));
+                            levelSet = true;
+                        }
+                    }
+                    if (!levelSet)
+                        a->SetProperty<Int>(L"fifam_level", GetPlayerLevel(a, true, gameId));
+                }
+            }
+
             std::sort(dst->mPlayers.begin(), dst->mPlayers.end(), [=](FifamPlayer *a, FifamPlayer *b) {
-                auto levelA = GetPlayerLevel(a, true, gameId);
-                auto levelB = GetPlayerLevel(b, true, gameId);
+                auto levelA = 0;
+                auto levelB = 0;
+                if (MAKE_CORRECTIONS_FOR_UPDATE) {
+                    levelA = a->GetProperty<Int>(L"fifam_level", 0);
+                    levelB = b->GetProperty<Int>(L"fifam_level", 0);
+                }
+                else {
+                    levelA = GetPlayerLevel(a, true, gameId);
+                    levelB = GetPlayerLevel(b, true, gameId);
+                }
                 if (levelA > levelB) return true;
                 if (levelB > levelA) return false;
                 if (a->mTalent > b->mTalent) return true;
@@ -1490,7 +1540,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     }
 
     // convert referees
-    std::wcout << L"Converting referess..." << std::endl;
+    std::wcout << L"Converting referees..." << std::endl;
     for (auto &entry : mFoomDatabase->mOfficials) {
         auto &official = entry.second;
         if (IsConvertable(&official, gameId) && official.mNation) {
@@ -1505,26 +1555,34 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     // FIFA database conversion
     if (mFromFifaDatabase) {
         // referee
-        FifaConverter::ConvertReferees(mFifamDatabase, mFifaDatabase);
-        Set<FifaPlayer *> attachedPlayers;
+        FifaConverter::ConvertReferees(this, mFifamDatabase, mFifaDatabase);
+        //Set<FifaPlayer *> attachedPlayers;
         for (auto club : mFifamDatabase->mClubs) {
             if (club->mFifaID != 0) {
                 FifaTeam *fifaTeam = mFifaDatabase->GetTeam(club->mFifaID);
                 if (fifaTeam) {
                     if (fifaTeam->m_manager)
-                        FifaConverter::ConvertManager(mFifamDatabase, club, fifaTeam->m_manager);
+                        FifaConverter::ConvertManager(this, mFifamDatabase, club, fifaTeam->m_manager);
                     fifaTeam->ForAllPlayersEx([&](FifaPlayer &p, FifaPlayer::Position pos, UChar number) {
-                        FifaConverter::ConvertPlayer(this, club, fifaTeam, &p, pos, number);
-                        attachedPlayers.insert(&p);
+                        FifaConverter::ConvertPlayer(this, club, false, fifaTeam, &p, pos, number);
+                        //attachedPlayers.insert(&p);
                     });
+                }
+                if (club->mFifaID == 21) {
+                    FifaTeam *resTeam = mFifaDatabase->GetTeam(110679);
+                    if (resTeam) {
+                        resTeam->ForAllPlayersEx([&](FifaPlayer &p, FifaPlayer::Position pos, UChar number) {
+                            FifaConverter::ConvertPlayer(this, club, true, fifaTeam, &p, pos, number);
+                        });
+                    }
                 }
             }
         }
-        mFifaDatabase->ForAllMalePlayers([&](FifaPlayer &p) {
-            if (!Utils::Contains(attachedPlayers, &p)) {
-                FifaConverter::ConvertPlayer(this, nullptr, nullptr, &p, FifaPlayer::POS_RES, 0);
-            }
-        });
+        //mFifaDatabase->ForAllMalePlayers([&](FifaPlayer &p) {
+        //    if (!Utils::Contains(attachedPlayers, &p)) {
+        //        FifaConverter::ConvertPlayer(this, nullptr, nullptr, &p, FifaPlayer::POS_RES, 0);
+        //    }
+        //});
     }
 
     // reference database
@@ -1644,6 +1702,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     ProcessContinentalComps({ 102418 }, FifamContinent::SouthAmerica, 6);
 
     ProcessContinentalComps({ 51002641, 1301417 }, FifamContinent::NorthAmerica, 4);
+    ProcessContinentalComps({ 219740 }, FifamContinent::NorthAmerica, 5);
 
     ProcessContinentalComps({ 127299 }, FifamContinent::Africa, 4);
     ProcessContinentalComps({ 12017574 }, FifamContinent::Africa, 5);
@@ -1715,6 +1774,16 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                 FifamTrSetAll(mFifamDatabase->mRules.mContinentalCupNames[FifamContinent::NorthAmerica].mFirstCup, FifamNames::LimitName(c.mShortName, MAX_COMP_NAME_LENGTH));
             else
                 FifamTrSetAll(mFifamDatabase->mRules.mContinentalCupNames[FifamContinent::NorthAmerica].mFirstCup, c.mName);
+        }
+        else if (c.mID == 219740) { // Scotiabank CONCACAF League
+            mFifamDatabase->mRules.mContinentalCupStadiums[FifamContinent::NorthAmerica].mSecondCup = GetCompHost(&c);
+            if (c.mName.length() > MAX_COMP_NAME_LENGTH)
+                FifamTrSetAll(mFifamDatabase->mRules.mContinentalCupNames[FifamContinent::NorthAmerica].mSecondCup, FifamNames::LimitName(c.mShortName, MAX_COMP_NAME_LENGTH));
+            else
+                FifamTrSetAll(mFifamDatabase->mRules.mContinentalCupNames[FifamContinent::NorthAmerica].mSecondCup, c.mName);
+        }
+        else if (c.mID == 222987) { // Campeones Cup
+            mFifamDatabase->mRules.mContinentalCupStadiums[FifamContinent::NorthAmerica].mSuperCup = GetCompHost(&c);
         }
 
         else if (c.mID == 127299) { // Orange CAF Champions League
@@ -1918,12 +1987,12 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     //    }
     //}
 
+    if (MAKE_CORRECTIONS_FOR_UPDATE && mPreviousDb)
+        UpdateDataFromPreviousDb();
+
     std::wcout << L"Writing database..." << std::endl;
     mFifamDatabase->Write(gameId, FifamDatabase::GetGameDbVersion(gameId),
-        Utils::Format(writeToGameFolder ?
-            L"D:\\Games\\FIFA Manager %02d\\database" :
-            L"fm_test\\database",
-            gameId).c_str());
+        writeToGameFolder ? Utils::Format(L"D:\\Games\\FIFA Manager %02d\\database", gameId).c_str() : L"fm_test\\database");
 
     if (!mFromFifaDatabase) {
         if (gameId >= 11 && writeToGameFolder) {
@@ -2034,6 +2103,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
 
 #if 0
     GraphicsConverter graphicsConverter;
+    //graphicsConverter.CopyLeagueSplitAndRelegationBadges(mFifamDatabase, Utils::Format(L"D:\\Games\\FIFA Manager %02d", gameId), contentPath, gameId);
     if (!mFromFifaDatabase) {
         //graphicsConverter.mOnlyUpdates = true;
         //std::wcout << L"Converting club badges..." << std::endl;
@@ -2048,10 +2118,12 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
         //graphicsConverter.ConvertStadiums(mFoomDatabase, L"D:\\Downloads", L"D:\\Games\\FIFA Manager 13", gameId, 0, false);
     }
     else {
-        std::wcout << L"Converting FIFA club badges..." << std::endl;
-        graphicsConverter.ConvertClubBadgesFIFA(mFifamDatabase, mFifaAssetsPath, contentPath, gameId);
-        std::wcout << L"Converting FIFA competition badges..." << std::endl;
-        graphicsConverter.ConvertCompBadgesFIFA(mFifamDatabase, mFifaAssetsPath, contentPath, gameId);
+        //std::wcout << L"Converting FIFA club badges..." << std::endl;
+        //graphicsConverter.ConvertClubBadgesFIFA(mFifamDatabase, mFifaAssetsPath, contentPath, gameId);
+        //std::wcout << L"Converting FIFA competition badges..." << std::endl;
+        //graphicsConverter.ConvertCompBadgesFIFA(mFifamDatabase, mFifaAssetsPath, contentPath, gameId);
+        //std::wcout << L"Converting FIFA player pictures..." << std::endl;
+        //graphicsConverter.ConvertPlayerPortraitsFIFA(mFifamDatabase, mFifaAssetsPath, contentPath, gameId);
     }
 #endif
 
@@ -2063,6 +2135,8 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     mFoomDatabase = nullptr;
     delete mFifaDatabase;
     mFifaDatabase = nullptr;
+    delete mPreviousDb;
+    mPreviousDb = nullptr;
 }
 
 FifamFormation Converter::ConvertFormationId(Int id) {
@@ -2134,4 +2208,157 @@ FifamFormation Converter::ConvertFormationId(Int id) {
         return FifamFormation::_5_3_2;
     }
     return FifamFormation::None;
+}
+
+enum eFMFormation {
+    FMF_FORMATION_4_1_2_3_DM_AM_NARROW = 1,
+    FMF_FORMATION_4_1_2_3_DM_NARROW,
+    FMF_FORMATION_4_1_2_3_NARROW,
+    FMF_FORMATION_4_1_3_1_1_DM_AM,
+    FMF_FORMATION_4_1_3_2_DM,
+    FMF_FORMATION_4_1_3_2_DM_CF,
+    FMF_FORMATION_4_1_3_2_NARROW,
+    FMF_FORMATION_4_1_3_2_CF_NARROW,
+    FMF_FORMATION_4_1_4_1_DM,
+    FMF_FORMATION_4_1_4_1_DM_WIDE,
+    FMF_FORMATION_4_1_4_1_DM_ASYMMETRIC_AM_L,
+    FMF_FORMATION_4_1_4_1_DM_ASYMMETRIC_AM_R,
+    FMF_FORMATION_4_2_1_3_DM_WIDE,
+    FMF_FORMATION_4_2_2_2_DM,
+    FMF_FORMATION_4_2_2_2_DM_CF,
+    FMF_FORMATION_4_2_2_2_DM_NARROW,
+    FMF_FORMATION_4_2_2_2_DM_CF_NARROW,
+    FMF_FORMATION_4_2_2_2_DM_AM_NARROW,
+    FMF_FORMATION_4_2_3_1_DM,
+    FMF_FORMATION_4_2_3_1_DM_WIDE,
+    FMF_FORMATION_4_2_3_1_DM_AM_NARROW,
+    FMF_FORMATION_4_2_3_1_NARROW,
+    FMF_FORMATION_4_2_3_1_WIDE,
+    FMF_FORMATION_4_2_3_1_DM_CF,
+    FMF_FORMATION_4_2_3_1_0_DM,
+    FMF_FORMATION_4_2_4_DM_WIDE,
+    FMF_FORMATION_4_2_4_DM_CF_WIDE,
+    FMF_FORMATION_4_2_4_WIDE,
+    FMF_FORMATION_4_2_4_CF_WIDE,
+    FMF_FORMATION_4_2_4_0_DM_WIDE,
+    FMF_FORMATION_4_3_1_2_NARROW,
+    FMF_FORMATION_4_3_2_1_NARROW,
+    FMF_FORMATION_4_3_3_NARROW,
+    FMF_FORMATION_4_4_1_1,
+    FMF_FORMATION_4_4_1_1_2DM,
+    FMF_FORMATION_4_4_2,
+    FMF_FORMATION_4_4_2_CF,
+    FMF_FORMATION_4_4_2_DIAMOND_NARROW,
+    FMF_FORMATION_4_5_1,
+    FMF_FORMATION_3_1_3_1_2_DM,
+    FMF_FORMATION_3_1_4_2_DM,
+    FMF_FORMATION_3_2_3_2_DM,
+    FMF_FORMATION_3_4_1_2,
+    FMF_FORMATION_3_4_2_1,
+    FMF_FORMATION_3_4_2_1_DM,
+    FMF_FORMATION_3_4_3,
+    FMF_FORMATION_3_4_3_DM_WIDE,
+    FMF_FORMATION_3_5_2,
+    FMF_FORMATION_3_5_2_CF,
+    FMF_FORMATION_5_1_2_2_DM_WB,
+    FMF_FORMATION_5_1_2_2_DM_WB_CF,
+    FMF_FORMATION_5_1_2_2_DM_WB_NARROW,
+    FMF_FORMATION_5_1_3_1_DM_WB,
+    FMF_FORMATION_5_2_1_2_WB,
+    FMF_FORMATION_5_2_2_1_DM,
+    FMF_FORMATION_5_2_2_1_WB,
+    FMF_FORMATION_5_2_2_1_DM_CF,
+    FMF_FORMATION_5_2_2_1_0_DM,
+    FMF_FORMATION_5_2_3_NARROW,
+    FMF_FORMATION_5_3_2_WB,
+    FMF_FORMATION_5_3_2_WB_CF,
+    FMF_FORMATION_5_4_1,
+    FMF_FORMATION_5_4_1_DIAMOND_WB,
+    FMF_FORMATION_5_4_1_WB_WIDE
+};
+
+Int Converter::ConvertFormationIdToCustom(Int id) {
+    switch (id) {
+    case 2:
+        return FMF_FORMATION_5_3_2_WB; // 5-3-2 WB > 5-3-2
+    case 3:
+        return FMF_FORMATION_4_4_2; // 4-4-2 > 4-4-2
+    case 4:
+        return FMF_FORMATION_4_1_4_1_DM_WIDE; // 4-1-4-1 DM Wide > 4-3-3 Wing
+    case 7:
+        return FMF_FORMATION_4_4_2_DIAMOND_NARROW; // 4-4-2 Diamond Narrow > 4-4-2 ROff
+    case 8:
+        return FMF_FORMATION_4_5_1; // 4-5-1 > 4-1-4-1 Clas
+    case 12:
+        return FMF_FORMATION_4_3_2_1_NARROW; // 4-3-2-1 Narrow > 4-3-3 T2
+    case 14:
+        return FMF_FORMATION_4_3_1_2_NARROW; // 4-3-1-2 Narrow > 4-3-1-2
+    case 15:
+        return FMF_FORMATION_5_4_1_DIAMOND_WB; // 5-4-1 Diamond WB > 5-4-1
+    case 16:
+        return FMF_FORMATION_4_4_1_1; // 4-4-1-1 > 4-4-1-1
+    case 18:
+        return FMF_FORMATION_4_2_3_1_NARROW; // 4-2-3-1 Narrow > 4-5-1 Off
+    case 19:
+        return FMF_FORMATION_4_1_3_1_1_DM_AM; // 4-1-3-1-1 DM AM > 4-2-2-1-1-V3
+    case 20:
+        return FMF_FORMATION_4_1_3_2_NARROW; // 4-1-3-2 DM Narrow > 4-4-2 ROff
+    case 21:
+        return FMF_FORMATION_4_2_3_1_WIDE; // 4-2-3-1 Wide > 4-3-3 Off
+    case 22:
+        return FMF_FORMATION_4_2_2_2_DM; // 4-2-2-2 DM > 4-4-2 Def
+    case 23:
+        return FMF_FORMATION_4_2_1_3_DM_WIDE; // 4-2-1-3 DM Wide > 4-3-3 Df V2
+    case 24:
+        return FMF_FORMATION_4_2_2_2_DM_NARROW; // 4-2-2-2 DM Narrow > 4-2-2-2
+    case 25:
+        return FMF_FORMATION_3_1_3_1_2_DM; // 3-1-3-1-2 DM > 3-5-2 Sweeper
+    case 26:
+        return FMF_FORMATION_4_1_2_3_DM_NARROW; // 4-1-2-3 DM Narrow > 4-3-3 Def
+    case 27:
+        return FMF_FORMATION_4_1_2_3_DM_AM_NARROW; // 4-1-2-3 DM AM Narrow > 4-3-3 T2
+    case 28:
+        return FMF_FORMATION_4_2_4_DM_WIDE; // 4-2-4 DM Wide > 4-4-2 Double6
+    case 29:
+        return FMF_FORMATION_4_2_3_1_DM_WIDE; // 4-2-3-1 DM Wide > 4-3-3 Of V2
+    case 30:
+        return FMF_FORMATION_5_1_2_2_DM_WB; // 5-1-2-2 DM WB > 5-3-2
+    case 31:
+        return FMF_FORMATION_3_4_2_1_DM; // 3-4-2-1 DM > 5-4-1
+    case 32:
+        return FMF_FORMATION_4_1_4_1_DM; // 4-1-4-1 DM > 4-1-4-1 Clas
+    case 33:
+        return FMF_FORMATION_4_4_1_1_2DM; // 4-4-1-1 2DM > 4-1-4-1 Def (wrong name - must be 4-4-1-1 Def)
+    case 34:
+        return FMF_FORMATION_3_2_3_2_DM; // 3-2-3-2 DM > 3-5-2
+    case 35:
+        return FMF_FORMATION_3_4_3_DM_WIDE; // 3-4-3 DM Wide > 5-4-1 F
+    case 36:
+        return FMF_FORMATION_4_3_3_NARROW; // 4-3-3 Narrow > 4-3-3 T1
+    case 40:
+        return FMF_FORMATION_4_2_3_1_DM_AM_NARROW; // 4-2-3-1 DM AM Narrow > 4-5-1 Of V2
+    case 41:
+        return FMF_FORMATION_5_2_1_2_WB; // 5-2-1-2 WB > 5-3-2
+    case 42:
+        return FMF_FORMATION_5_1_2_2_DM_WB_NARROW; // 5-1-2-2 DM Narrow > 5-3-2
+    case 47:
+        return FMF_FORMATION_5_2_3_NARROW; // 5-2-3 Narrow > 5-4-1 F
+    case 52:
+        return FMF_FORMATION_4_1_3_2_DM; // 4-1-3-2 DM > 4-4-2 Rf
+    case 54:
+        return FMF_FORMATION_4_2_3_1_DM; // 4-2-3-1 DM > 4-5-1 Def
+    case 55:
+        return FMF_FORMATION_4_2_3_1_0_DM; // 4-2-3-1-0 DM Wide > 4-5-1 Def
+    case 56:
+        return FMF_FORMATION_5_1_3_1_DM_WB; // 5-1-3-1 DM WB > 5-4-1
+    case 57:
+        return FMF_FORMATION_5_2_2_1_DM; // 5-2-2-1 DM > 5-4-1
+    case 59:
+        return FMF_FORMATION_5_2_2_1_WB; // 5-2-2-1 WB > 5-4-1
+    case 60:
+        return FMF_FORMATION_3_1_4_2_DM; // 3-1-4-2 DM > 3-5-2 F
+    case 61:
+        return FMF_FORMATION_5_4_1_WB_WIDE; // 5-4-1 WB Wide > 5-4-1 F
+    }
+    return 0;
 }

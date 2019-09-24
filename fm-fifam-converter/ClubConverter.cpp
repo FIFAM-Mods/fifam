@@ -45,20 +45,10 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     // media pressure
     dst->mMediaPressure = FifamClubMediaPressure::Normal;
     // capital
-    if (team->mBalance > 0 && team->mBalance < 300'000'000) {
-        dst->mInitialCapital = foom::db::convert_money(team->mBalance);
-    }
-    else
-        dst->mInitialCapital = Utils::Clamp(foom::db::convert_money(team->mBalance + team->mBalance / 2), 0, 300'000'000);
+    dst->mInitialCapital = foom::db::convert_money(team->mBalance);
     // transfer budget
-    if (team->mTransferBudget > 0) {
-        if (team->mTransferBudget < 300'000'000)
-            dst->mTransferBudget = foom::db::convert_money(team->mTransferBudget);
-        else
-            dst->mTransferBudget = Utils::Clamp(foom::db::convert_money(team->mTransferBudget + team->mTransferBudget / 2), 0, 500'000'000);
-    }
-    // joint-stock company
-    dst->mJointStockCompany = team->mOwnershipType == 2 /*&& team->mReputation >= 5000*/; // Public Limited Company
+    if (team->mTransferBudget > 0)
+        dst->mTransferBudget = foom::db::convert_money(team->mTransferBudget);
     // rich guy controlled
     dst->mRichGuyControlled = team->mSugarDaddy >= 1 && team->mSugarDaddy <= 3; // Foreground, Background, Underwriter
     // sponsor
@@ -273,8 +263,12 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
         }
     }
 
+    // joint-stock company
+    dst->mJointStockCompany = dst->mInternationalPrestige > 2 && team->mOwnershipType == 2 /*&& team->mReputation >= 5000*/; // Public Limited Company
+
     dst->mPreferredFormations[0] = FifamFormation::None;
     dst->mPreferredFormations[1] = FifamFormation::None;
+
     if (team->mPreferredFormation != 0) {
         FifamFormation firstFormation = ConvertFormationId(team->mPreferredFormation);
         if (firstFormation != FifamFormation::None) {
@@ -291,6 +285,14 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
                 }
             }
         }
+    }
+
+    Int firstCustomFormation = ConvertFormationIdToCustom(team->mPreferredFormation);
+    if (firstCustomFormation != 0) {
+        dst->SetProperty<Int>(L"custom_formation_1", firstCustomFormation);
+        Int secondCustomFormation = ConvertFormationIdToCustom(team->mSecondPreferredFormation);
+        if (secondCustomFormation != 0 && secondCustomFormation != firstCustomFormation)
+            dst->SetProperty<Int>(L"custom_formation_2", secondCustomFormation);
     }
 
     ConvertClubStadium(dst, gameId);

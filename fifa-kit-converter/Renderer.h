@@ -13,7 +13,7 @@ class Renderer {
     };
     Vertex mVertices[3];
 public:
-    Renderer();
+    Renderer(int w, int h);
 	~Renderer();
 	IDirect3DDevice9 *Interface();
     bool Available();

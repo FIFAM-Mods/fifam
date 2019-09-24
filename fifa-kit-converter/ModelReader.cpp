@@ -85,7 +85,7 @@ bool ReadObjModel(Model &model, wchar_t const *path) {
                                     t.v[i].z = positions[index].z;
                                 }
                                 else {
-                                    ::Error(L"obj parsing error: incorrect vertex index (at line %d)", lineNumber);
+                                    ::Error(L"obj parsing error: incorrect vertex index (%d) (at line %d)", index, lineNumber);
                                     return false;
                                 }
                                 index = Utils::SafeConvertInt<int>(tp[1]);
@@ -94,12 +94,12 @@ bool ReadObjModel(Model &model, wchar_t const *path) {
                                     return false;
                                 }
                                 index--;
-                                if (index < (int)positions.size()) {
+                                if (index < (int)texcoords.size()) {
                                     t.v[i].u = texcoords[index].u;
                                     t.v[i].v = texcoords[index].v;
                                 }
                                 else {
-                                    ::Error(L"obj parsing error: incorrect vertex index (at line %d)", lineNumber);
+                                    ::Error(L"obj parsing error: incorrect vertex index (%d) (at line %d)", index, lineNumber);
                                     return false;
                                 }
                             }

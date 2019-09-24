@@ -183,6 +183,13 @@ String FifamNames::GetPersonStringId(UInt gameId, String const &firstName, Strin
                 break;
             case 0x2019:
                 c = L'\'';
+                break;
+            case 0x21A:
+                c = L'T';
+                break;
+            case 0x21B:
+                c = L't';
+                break;
             }
             finalName += c;
         }

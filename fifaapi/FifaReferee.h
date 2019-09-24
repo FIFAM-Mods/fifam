@@ -46,6 +46,8 @@ public:
         // @since FIFA19
         int headassetid;
         int faceposerpreset;
+        // @since FIFA20
+        int smallsidedshoetypecode;
 
         void Read(FifaDataFile::Line &line);
     } internal;

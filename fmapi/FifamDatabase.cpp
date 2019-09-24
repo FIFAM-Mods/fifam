@@ -66,53 +66,54 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
     }
 
     if (!scriptPath.empty() && mReadingOptions.mReadInternationalCompetitions) {
-        if (gameId >= 8) {
-            ReadExternalScriptFile(scriptPath / L"Continental - Europe.txt", L"EURO", gameId);
-            ReadExternalScriptFile(scriptPath / L"Continental - South America.txt", L"SOUTHAM", gameId);
-            ReadExternalScriptFile(scriptPath / L"Continental - Africa.txt", L"INTAFRICA", gameId);
-            ReadExternalScriptFile(scriptPath / L"Continental - Asia.txt", L"INTASIA", gameId);
-            ReadExternalScriptFile(scriptPath / L"Continental - North America.txt", L"INTAMERICA", gameId);
-            ReadExternalScriptFile(scriptPath / L"Continental - Oceania.txt", L"INTOCEANIA", gameId);
-            ReadExternalScriptFile(scriptPath / L"WorldCupQualification.txt", L"QUALI_WC", gameId);
-            ReadExternalScriptFile(scriptPath / L"WorldCup.txt", L"WORLD_CUP", gameId);
-            ReadExternalScriptFile(scriptPath / L"EuropeanChampionshipQualification.txt", L"QUALI_EC", gameId);
-            ReadExternalScriptFile(scriptPath / L"EuropeanChampionship.txt", L"EURO_CUP", gameId);
-            ReadExternalScriptFile(scriptPath / L"WorldCupU20.txt", L"U20_WORLD_CUP", gameId);
-            ReadExternalScriptFile(scriptPath / L"ConfedCup.txt", L"CONFED_CUP", gameId);
-            if (gameId >= 11) {
-                ReadExternalScriptFile(scriptPath / L"CopaAmerica.txt", L"COPA_AMERICA", gameId);
+        UInt gameIdForScripts = mReadingOptions.mGameVersionForScripts == 0 ? gameId : mReadingOptions.mGameVersionForScripts;
+        if (gameIdForScripts >= 8) {
+            ReadExternalScriptFile(scriptPath / L"Continental - Europe.txt", L"EURO", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"Continental - South America.txt", L"SOUTHAM", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"Continental - Africa.txt", L"INTAFRICA", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"Continental - Asia.txt", L"INTASIA", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"Continental - North America.txt", L"INTAMERICA", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"Continental - Oceania.txt", L"INTOCEANIA", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"WorldCupQualification.txt", L"QUALI_WC", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"WorldCup.txt", L"WORLD_CUP", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"EuropeanChampionshipQualification.txt", L"QUALI_EC", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"EuropeanChampionship.txt", L"EURO_CUP", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"WorldCupU20.txt", L"U20_WORLD_CUP", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"ConfedCup.txt", L"CONFED_CUP", gameIdForScripts);
+            if (gameIdForScripts >= 11) {
+                ReadExternalScriptFile(scriptPath / L"CopaAmerica.txt", L"COPA_AMERICA", gameIdForScripts);
 
-                ReadExternalScriptFile(scriptPath / L"Continental - Europe.txt", L"YOUTH", gameId);
-                ReadExternalScriptFile(scriptPath / L"Continental - South America.txt", L"YOUTH", gameId);
-                ReadExternalScriptFile(scriptPath / L"EuropeanChampionship.txt", L"EURO_NL", gameId);
-                ReadExternalScriptFile(scriptPath / L"EuropeanChampionship.txt", L"Q_EURO_NL", gameId);
-                ReadExternalScriptFile(scriptPath / L"AsiaCup.txt", L"ASIA_CUP", gameId);
-                ReadExternalScriptFile(scriptPath / L"AsiaCup.txt", L"Q_ASIA_CUP", gameId);
-                ReadExternalScriptFile(scriptPath / L"OFCCup.txt", L"OFC_CUP", gameId);
-                ReadExternalScriptFile(scriptPath / L"OFCCup.txt", L"Q_OFC_CUP", gameId);
-                ReadExternalScriptFile(scriptPath / L"NorthAmericaCup.txt", L"NAM_CUP", gameId);
-                ReadExternalScriptFile(scriptPath / L"NorthAmericaCup.txt", L"NAM_NL", gameId);
-                ReadExternalScriptFile(scriptPath / L"NorthAmericaCup.txt", L"Q_NAM_NL", gameId);
-                ReadExternalScriptFile(scriptPath / L"AfricaCup.txt", L"AFRICA_CUP", gameId);
-                ReadExternalScriptFile(scriptPath / L"AfricaCup.txt", L"Q_AFRICA_CUP", gameId);
-                ReadExternalScriptFile(scriptPath / L"WorldCupU17.txt", L"U17_WORLD_CUP", gameId);
-                ReadExternalScriptFile(scriptPath / L"EuropeanChampionshipU21.txt", L"U21_EC", gameId);
-                ReadExternalScriptFile(scriptPath / L"EuropeanChampionshipU19.txt", L"U19_EC", gameId);
-                ReadExternalScriptFile(scriptPath / L"EuropeanChampionshipU17.txt", L"U17_EC", gameId);
-                ReadExternalScriptFile(scriptPath / L"OlympicGames.txt", L"OLYMPIC", gameId);
+                ReadExternalScriptFile(scriptPath / L"Continental - Europe.txt", L"YOUTH", gameIdForScripts);
+                ReadExternalScriptFile(scriptPath / L"Continental - South America.txt", L"YOUTH", gameIdForScripts);
+                ReadExternalScriptFile(scriptPath / L"EuropeanChampionship.txt", L"EURO_NL", gameIdForScripts);
+                ReadExternalScriptFile(scriptPath / L"EuropeanChampionship.txt", L"Q_EURO_NL", gameIdForScripts);
+                ReadExternalScriptFile(scriptPath / L"AsiaCup.txt", L"ASIA_CUP", gameIdForScripts);
+                ReadExternalScriptFile(scriptPath / L"AsiaCup.txt", L"Q_ASIA_CUP", gameIdForScripts);
+                ReadExternalScriptFile(scriptPath / L"OFCCup.txt", L"OFC_CUP", gameIdForScripts);
+                ReadExternalScriptFile(scriptPath / L"OFCCup.txt", L"Q_OFC_CUP", gameIdForScripts);
+                ReadExternalScriptFile(scriptPath / L"NorthAmericaCup.txt", L"NAM_CUP", gameIdForScripts);
+                ReadExternalScriptFile(scriptPath / L"NorthAmericaCup.txt", L"NAM_NL", gameIdForScripts);
+                ReadExternalScriptFile(scriptPath / L"NorthAmericaCup.txt", L"Q_NAM_NL", gameIdForScripts);
+                ReadExternalScriptFile(scriptPath / L"AfricaCup.txt", L"AFRICA_CUP", gameIdForScripts);
+                ReadExternalScriptFile(scriptPath / L"AfricaCup.txt", L"Q_AFRICA_CUP", gameIdForScripts);
+                ReadExternalScriptFile(scriptPath / L"WorldCupU17.txt", L"U17_WORLD_CUP", gameIdForScripts);
+                ReadExternalScriptFile(scriptPath / L"EuropeanChampionshipU21.txt", L"U21_EC", gameIdForScripts);
+                ReadExternalScriptFile(scriptPath / L"EuropeanChampionshipU19.txt", L"U19_EC", gameIdForScripts);
+                ReadExternalScriptFile(scriptPath / L"EuropeanChampionshipU17.txt", L"U17_EC", gameIdForScripts);
+                ReadExternalScriptFile(scriptPath / L"OlympicGames.txt", L"OLYMPIC", gameIdForScripts);
             }
         }
         else {
-            ReadExternalScriptFile(scriptPath / L"EuropeanCup.txt", L"EURO", gameId);
-            ReadExternalScriptFile(scriptPath / L"SouthAmCup", L"SOUTHAM", gameId);
-            ReadExternalScriptFile(scriptPath / L"IntAfrica", L"INTAFRICA", gameId);
-            ReadExternalScriptFile(scriptPath / L"IntAsia", L"INTASIA", gameId);
-            ReadExternalScriptFile(scriptPath / L"IntAmerica", L"INTAMERICA", gameId);
-            ReadExternalScriptFile(scriptPath / L"IntOceania", L"INTOCEANIA", gameId);
-            ReadExternalScriptFile(scriptPath / L"QualiWC.txt", L"QUALI_WC", gameId);
-            ReadExternalScriptFile(scriptPath / L"WC.txt", L"WORLD_CUP", gameId);
-            ReadExternalScriptFile(scriptPath / L"QualiEC.txt", L"QUALI_EC", gameId);
-            ReadExternalScriptFile(scriptPath / L"EC.txt", L"EURO_CUP", gameId);
+            ReadExternalScriptFile(scriptPath / L"EuropeanCup.txt", L"EURO", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"SouthAmCup.txt", L"SOUTHAM", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"IntAfrica.txt", L"INTAFRICA", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"IntAsia.txt", L"INTASIA", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"IntAmerica.txt", L"INTAMERICA", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"IntOceania.txt", L"INTOCEANIA", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"QualiWC.txt", L"QUALI_WC", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"WC.txt", L"WORLD_CUP", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"QualiEC.txt", L"QUALI_EC", gameIdForScripts);
+            ReadExternalScriptFile(scriptPath / L"EC.txt", L"EURO_CUP", gameIdForScripts);
         }
     }
 
@@ -1146,7 +1147,7 @@ void FifamDatabase::WritePlayerRelations(Path const &filepath, UInt gameId) {
 void FifamDatabase::ReadExternalScriptFile(Path const &filepath, String const &compKeyName, UInt gameId) {
     FifamReader reader(filepath, gameId);
     if (reader.Available()) {
-        std::wcout << L"Reading script file \"" << filepath.filename() << L"\"" << std::endl;
+        std::wcout << L"Reading script file " << filepath.filename() << L"" << std::endl;
         auto numComps = reader.ReadLine<UInt>();
         for (UInt i = 0; i < numComps; i++) {
             if (reader.ReadStartIndex(Utils::Format(L"%s%d", compKeyName.c_str(), i))) {

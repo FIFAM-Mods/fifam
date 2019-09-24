@@ -29,7 +29,8 @@
 #include "tests\GenerateKitConfig.h"
 #include "tests\CopyPortraitsLight.h"
 #include "tests\ExportPlayerAccessories.h"
+#include "tests\Parameters.h"
 
 void RunTests() {
-    RunTest<ExportPlayerAccessories>();
+    RunTest<ShowDbVersion>();
 }

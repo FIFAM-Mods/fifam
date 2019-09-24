@@ -490,8 +490,16 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         writer.WriteLine(mSponsorAmount, mSponsorDuration, mSpecialSponsor);
         writer.WriteLine(mPotentialFansCount, mAverageAttendanceLastSeason, mCountOfSoldSeasonTickets);
         writer.WriteLine(mFanMembers);
-        if (writer.IsVersionGreaterOrEqual(0x2013, 0x06))
-            writer.WriteLineArray(mPreferredFormations);
+        if (writer.IsVersionGreaterOrEqual(0x2013, 0x06)) {
+            Array<Int, 2> customFormations;
+            customFormations[0] = GetProperty<Int>(L"custom_formation_1", -1);
+            if (customFormations[0] != -1) {
+                customFormations[1] = GetProperty<Int>(L"custom_formation_2", 0);
+                writer.WriteLineArray(customFormations);
+            }
+            else
+                writer.WriteLineArray(mPreferredFormations);
+        }
         writer.WriteLineArray(mLeagueTotalPoints);
         writer.WriteLineArray(mLeagueTotalWins);
         writer.WriteLineArray(mLeagueTotalDraws);

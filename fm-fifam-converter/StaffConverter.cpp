@@ -300,6 +300,10 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
     else
         staff->mManagerFavouriteFormation = FifamFormation::None;
 
+    Int customFormation = ConvertFormationIdToCustom(p->mPreferredFormation);
+    if (customFormation != 0)
+        staff->SetProperty<Int>(L"custom_formation", customFormation);
+
     // preferred orientation
     if (p->mExpectAttackingFootball && (!p->mWillLookToPlayOutOfDefence || (p->mExpectAttackingFootball / 3) > p->mWillLookToPlayOutOfDefence)) {
         if (p->mExpectAttackingFootball >= 15)

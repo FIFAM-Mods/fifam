@@ -284,8 +284,15 @@ struct InstructionWriteableData {
     Vector<String> mErrors;
 };
 
-void WriteInstruction(FifamWriter &writer, FifamInstructionID instructionID, InstructionWriteableData &writeableData,
-    Vector<UInt> inlineParams, Vector<UInt> additionalPparams, String compIdParam = L"", UInt compIdIndex = 0)
+bool IsInternationalTeamsInstruction(FifamInstructionID const &instructionID) {
+    return instructionID == FifamInstructionID::ID_GET_NATIONAL_TEAM
+        || instructionID == FifamInstructionID::ID_GET_NATIONAL_TEAM_WITHOUT_HOST
+        || instructionID == FifamInstructionID::ID_GET_NAT_SOUTH_AMERICA
+        || instructionID == FifamInstructionID::ID_GET_INTERNATIONAL_TEAMS;
+}
+
+void WriteInstruction(FifamWriter &writer, FifamInstructionID instructionID, InstructionWriteableData const &writeableData,
+    Vector<UInt> const &inlineParams, Vector<UInt> const &additionalPparams, String const &compIdParam = L"", UInt compIdIndex = 0)
 {
     for (auto const &err : writeableData.mErrors)
         writer.WriteLine(L";; ERROR: " + err);
@@ -299,13 +306,12 @@ void WriteInstruction(FifamWriter &writer, FifamInstructionID instructionID, Ins
             writer.Write(L", ");
             if (!compIdParam.empty() && i == compIdIndex)
                 writer.Write(compIdParam + L", ");
-            writer.Write(inlineParams[i]);
+            if (writer.GetGameId() <= 7 && i == 0 && IsInternationalTeamsInstruction(instructionID) && inlineParams[i] == 207)
+                writer.Write(206);
+            else
+                writer.Write(inlineParams[i]);
         }
-        if (instructionID == FifamInstructionID::ID_GET_NATIONAL_TEAM
-            || instructionID == FifamInstructionID::ID_GET_NATIONAL_TEAM_WITHOUT_HOST
-            || instructionID == FifamInstructionID::ID_GET_NAT_SOUTH_AMERICA
-            || instructionID == FifamInstructionID::ID_GET_INTERNATIONAL_TEAMS)
-        {
+        if (IsInternationalTeamsInstruction(instructionID)) {
             if (inlineParams[0] >= 1 && inlineParams[0] <= 207) {
                 if (inlineParams[0] >= 100)
                     writer.Write(L" ; ");
@@ -313,14 +319,14 @@ void WriteInstruction(FifamWriter &writer, FifamInstructionID instructionID, Ins
                     writer.Write(L"  ; ");
                 else
                     writer.Write(L"   ; ");
-            #ifdef UCP_EXTENSIONS
-                if (inlineParams[0] == 207)
-                    writer.Write(L"Kosovo");
-                else
-                    writer.Write(FifamNation::MakeFromInt(inlineParams[0]).ToStr());
-            #else
+            //#ifdef UCP_EXTENSIONS
+            //    if (inlineParams[0] == 207)
+            //        writer.Write(L"Kosovo");
+            //    else
+            //        writer.Write(FifamNation::MakeFromInt(inlineParams[0]).ToStr());
+            //#else
                 writer.Write(FifamNation::MakeFromInt(inlineParams[0]).ToStr());
-            #endif
+            //#endif
             }
         }
         else if (instructionID == FifamInstructionID::ID_GET_RANDOM_NATIONAL_TEAM) {

@@ -16,6 +16,7 @@
     <ClCompile Include="CompConverter.cpp" />
     <ClCompile Include="LeagueConverter.cpp" />
     <ClCompile Include="PersonConverter.cpp" />
+    <ClCompile Include="DbUpdate.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Converter.h" />

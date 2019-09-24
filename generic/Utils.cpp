@@ -213,6 +213,10 @@ std::wstring Utils::GetStringWithoutUnicodeChars(std::wstring const &src) {
             str[i] = L's';
         else if (str[i] == L'Þ')
             str[i] = L'P';
+        else if (str[i] == L'ț')
+            str[i] = L't';
+        else if (str[i] == L'Ț')
+            str[i] = L'T';
     }
     int mbSize = WideCharToMultiByte(20127, 0, str.c_str(), -1, NULL, 0, NULL, NULL);
     char *mb = new char[mbSize];

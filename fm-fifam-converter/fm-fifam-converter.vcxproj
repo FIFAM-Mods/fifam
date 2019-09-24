@@ -99,6 +99,7 @@
     <ClCompile Include="ConverterExtraFiles.cpp" />
     <ClCompile Include="ConverterUtil.cpp" />
     <ClCompile Include="CountryConverter.cpp" />
+    <ClCompile Include="DbUpdate.cpp" />
     <ClCompile Include="FifaConverter.cpp" />
     <ClCompile Include="GraphicsConverter.cpp" />
     <ClCompile Include="LeagueConverter.cpp" />

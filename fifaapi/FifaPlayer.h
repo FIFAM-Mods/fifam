@@ -161,6 +161,16 @@ public:
         int headassetid;
         int faceposerpreset;
         int skillmoveslikelihood;
+        // @since FIFA20
+        int tattooback;
+        int tattoofront;
+        int tattoohead;
+        int tattooleftleg;
+        int tattoorightleg;
+        int avatarpomid;
+        int personality;
+        int smallsidedshoetypecode;
+        int runstylecode;
 
         void Read(FifaDataFile::Line &line);
     } internal;
