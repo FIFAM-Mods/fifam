@@ -73,6 +73,7 @@
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>D:\Projects\fifam\output\libs;C:\Program Files (x86)\ImageMagick-7.0.8-Q8\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <GenerateDebugInformation>false</GenerateDebugInformation>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_Qt|Win32'">
@@ -105,17 +106,20 @@
     <ClInclude Include="tests\BadgeTest.h" />
     <ClInclude Include="tests\CalendarDatabase.h" />
     <ClInclude Include="tests\CopyPortraitsLight.h" />
+    <ClInclude Include="tests\DbConvert.h" />
     <ClInclude Include="tests\ExportClubIDs.h" />
     <ClInclude Include="tests\CompetitionsTest.h" />
     <ClInclude Include="tests\CompIDTest.h" />
     <ClInclude Include="tests\CreateFlagImages.h" />
     <ClInclude Include="tests\ExportCompInfo.h" />
+    <ClInclude Include="tests\ExportJapanLeaguePlayers.h" />
     <ClInclude Include="tests\ExportPlayerAccessories.h" />
     <ClInclude Include="tests\ExportXML.h" />
     <ClInclude Include="tests\FifaConverter.h" />
     <ClInclude Include="tests\FoomBasicTest.h" />
     <ClInclude Include="tests\GenerateKitColors.h" />
     <ClInclude Include="tests\GenerateKitConfig.h" />
+    <ClInclude Include="tests\MissingPortraits.h" />
     <ClInclude Include="tests\HistoricTest.h" />
     <ClInclude Include="tests\FlagsTest.h" />
     <ClInclude Include="tests\ColorsTest.h" />
@@ -126,6 +130,7 @@
     <ClInclude Include="tests\RulesTest.h" />
     <ClInclude Include="tests\ShowDbVersion.h" />
     <ClInclude Include="tests\ShowPlayers.h" />
+    <ClInclude Include="tests\DatabaseRewrite.h" />
     <ClInclude Include="tests\WriteCountries.h" />
     <ClInclude Include="tests\WriteDbClubsTest.h" />
     <ClInclude Include="tests\WriteDbCountriesTest.h" />
@@ -134,6 +139,7 @@
     <ClInclude Include="tests\WritePlayerHistoryTest.h" />
     <ClInclude Include="tests\WritePlayerIDs.h" />
     <ClInclude Include="tests\WritePlayersTest.h" />
+    <ClInclude Include="Translation.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp" />

@@ -23,6 +23,7 @@ void FifaTeam::Internal::Read(FifaDataFile::Line &line) {
 
 FifaTeam::FifaTeam(FifaDataFile::Line &line) {
     internal.Read(line);
+    m_gameId = FifaDatabase::m_currentGameVersion;
     m_name = internal.teamname;
     m_manager = nullptr;
     m_ownStadium = nullptr;

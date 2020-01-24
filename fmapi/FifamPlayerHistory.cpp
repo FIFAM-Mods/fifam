@@ -6,7 +6,7 @@ void FifamPlayerHistory::Read(FifamReader &reader) {
         for (UInt i = 0; i < numRecords; i++) {
             FifamPlayerHistoryEntry entry;
             entry.Read(reader);
-            mEntries.insert(entry);
+            mEntries.push_back(entry);
         }
         reader.ReadEndIndex(L"HIST");
     }

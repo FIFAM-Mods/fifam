@@ -138,6 +138,25 @@ struct club : public team {
 
     Vector<team_league_history> mVecTeamLeagueHistory;
 
+    struct nation_transfer_preference {
+        nation *mNation = 0;
+        Int mLevel = 0;
+        Int mMinAge = 0;
+        Int mMaxAge = 0;
+    };
+
+    Vector<nation_transfer_preference> mVecNationTransferPreferences;
+
+    struct nation_newgen_specification {
+        nation *mFirstNation = 0;
+        nation *mSecondNation = 0;
+        Int mPercentage = 0;
+    };
+
+    Vector<nation_newgen_specification> mVecNationNewgenSpecifications;
+
+    Vector<club *> mVecNewClubs;
+
     struct converter_data {
         UInt mFIFAManagerID = 0;
         UInt mFIFAID = 0;

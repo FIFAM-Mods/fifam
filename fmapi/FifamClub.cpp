@@ -17,16 +17,18 @@ void FifamClub::ReadClubMembers(FifamReader &reader) {
             dummyPlayer.Read(reader);
         }
     }
-    UInt staffsCount = reader.ReadLine<UInt>();
-    for (UInt i = 0; i < staffsCount; i++) {
-        UInt id = reader.ReadLine<UInt>();
-        if (FifamDatabase::mReadingOptions.mReadPersons) {
-            auto staff = mCountry->mDatabase->CreateStaff(this, id);
-            staff->Read(reader);
-        }
-        else {
-            FifamStaff dummyStaff;
-            dummyStaff.Read(reader);
+    if (reader.IsVersionGreaterOrEqual(0x2006, 1)) {
+        UInt staffsCount = reader.ReadLine<UInt>();
+        for (UInt i = 0; i < staffsCount; i++) {
+            UInt id = reader.ReadLine<UInt>();
+            if (FifamDatabase::mReadingOptions.mReadPersons) {
+                auto staff = mCountry->mDatabase->CreateStaff(this, id);
+                staff->Read(reader);
+            }
+            else {
+                FifamStaff dummyStaff;
+                dummyStaff.Read(reader);
+            }
         }
     }
 }
@@ -42,15 +44,17 @@ void FifamClub::WriteClubMembers(FifamWriter &writer) {
         writer.WriteLine(FifamUtils::GetWriteableID(player));
         player->Write(writer);
     }
-    Vector<FifamStaff *> staffs;
-    for (auto staff : mStaffs) {
-        if (staff->GetIsWriteable())
-            staffs.push_back(staff);
-    }
-    writer.WriteLine(staffs.size());
-    for (auto staff : staffs) {
-        writer.WriteLine(FifamUtils::GetWriteableID(staff));
-        staff->Write(writer);
+    if (writer.IsVersionGreaterOrEqual(0x2006, 1)) {
+        Vector<FifamStaff *> staffs;
+        for (auto staff : mStaffs) {
+            if (staff->GetIsWriteable())
+                staffs.push_back(staff);
+        }
+        writer.WriteLine(staffs.size());
+        for (auto staff : staffs) {
+            writer.WriteLine(FifamUtils::GetWriteableID(staff));
+            staff->Write(writer);
+        }
     }
 }
 
@@ -113,8 +117,18 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
             reader.ReadLine(mSponsorAmount, mSponsorDuration, mSpecialSponsor);
             reader.ReadLine(mPotentialFansCount, mAverageAttendanceLastSeason, mCountOfSoldSeasonTickets);
             reader.ReadLine(mFanMembers);
-            if (reader.IsVersionGreaterOrEqual(0x2013, 0x06))
-                reader.ReadLineArray(mPreferredFormations);
+            if (reader.IsVersionGreaterOrEqual(0x2013, 0x06)) {
+                if (FifamDatabase::mReadingOptions.mUseCustomFormations) {
+                    mPreferredFormations[0] = FifamFormation::None;
+                    mPreferredFormations[1] = FifamFormation::None;
+                    Array<Int, 2> customFormations = {};
+                    reader.ReadLineArray(customFormations);
+                    SetProperty<Int>(L"custom_formation_1", customFormations[0]);
+                    SetProperty<Int>(L"custom_formation_2", customFormations[1]);
+                }
+                else
+                    reader.ReadLineArray(mPreferredFormations); 
+            }
             reader.ReadLineArray(mLeagueTotalPoints);
             reader.ReadLineArray(mLeagueTotalWins);
             reader.ReadLineArray(mLeagueTotalDraws);
@@ -291,14 +305,21 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
                 mBackgroundColour.SetFromTable(m08InterfaceColorsTable, reader.ReadLine<UChar>());
             }
             else {
-                mHeaderColour.SetFromTable(m07InterfaceColorsTable, reader.ReadLine<UChar>());
-                mBackgroundColour.SetFromTable(m07InterfaceColorsTable, reader.ReadLine<UChar>());
+                if (reader.IsVersionGreaterOrEqual(0x2007, 2)) {
+                    mHeaderColour.SetFromTable(m07InterfaceColorsTable, reader.ReadLine<UChar>());
+                    mBackgroundColour.SetFromTable(m07InterfaceColorsTable, reader.ReadLine<UChar>());
+                }
+                else {
+                    mBackgroundColour = mClubColour.first;
+                    mHeaderColour = mClubColour.second;
+                }
             }
             mHistory.Read(reader);
             mGeoCoords.mLatitude.SetFromInt(reader.ReadLine<UInt>());
             mGeoCoords.mLongitude.SetFromInt(reader.ReadLine<UInt>());
             reader.ReadLine(mNationalPrestige);
-            reader.ReadLine(mInternationalPrestige);
+            if (reader.IsVersionGreaterOrEqual(0x2006, 2))
+                reader.ReadLine(mInternationalPrestige);
             reader.ReadFullLine(Unknown._4);
             reader.ReadLine(mTransfersCountry[0]);
             reader.ReadLine(mTransfersCountry[1]);
@@ -306,9 +327,15 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
             reader.ReadLine(mFifaID);
             ReadClubMembers(reader);
             mKit.Read(reader);
-            mLowestLeagues.resize(4);
-            for (UInt i = 0; i < 4; i++)
-                mLowestLeagues[i].SetFromInt(reader.ReadLine<UInt>());
+            if (reader.IsVersionGreaterOrEqual(0x2007, 2)) {
+                mLowestLeagues.resize(4);
+                for (UInt i = 0; i < 4; i++)
+                    mLowestLeagues[i].SetFromInt(reader.ReadLine<UInt>());
+            }
+            else if (reader.IsVersionGreaterOrEqual(0x2007, 1)) {
+                mLowestLeagues.resize(1);
+                mLowestLeagues[0].SetFromInt(reader.ReadLine<UInt>());
+            }
             if (reader.IsVersionGreaterOrEqual(0x2011, 0x0D)) {
                 reader.ReadLine(mClubFacilities);
                 reader.ReadLine(mYouthCentre);
@@ -383,6 +410,8 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
             if (mPotentialFansCount > 250'000)
                 mPotentialFansCount = 250'000;
         }
+
+        // TODO: calculate international prestige for clubs
 
         //FifamCheckEnum(mStadiumType);
         FifamCheckEnum(mAiStrategy);
@@ -653,7 +682,7 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
             writer.WriteLine(mHeaderColour.FindIndexInTable(m08InterfaceColorsTable));
             writer.WriteLine(mBackgroundColour.FindIndexInTable(m08InterfaceColorsTable));
         }
-        else {
+        else if (writer.IsVersionGreaterOrEqual(0x2007, 2)) {
             writer.WriteLine(mHeaderColour.FindIndexInTable(m07InterfaceColorsTable));
             writer.WriteLine(mBackgroundColour.FindIndexInTable(m07InterfaceColorsTable));
         }
@@ -661,7 +690,8 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         writer.WriteLine(mGeoCoords.mLatitude.ToInt());
         writer.WriteLine(mGeoCoords.mLongitude.ToInt());
         writer.WriteLine(mNationalPrestige);
-        writer.WriteLine(mInternationalPrestige);
+        if (writer.IsVersionGreaterOrEqual(0x2006, 2))
+            writer.WriteLine(mInternationalPrestige);
         writer.WriteLine(Unknown._4);
         writer.WriteLine(mTransfersCountry[0]);
         writer.WriteLine(mTransfersCountry[1]);
@@ -669,12 +699,18 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         writer.WriteLine(mFifaID);
         WriteClubMembers(writer);
         mKit.Write(writer);
-        FifamDbWriteableIDsList lowestLeaguesIDs;
-        // TODO: check this one
-        for (UInt i = 0; i < mLowestLeagues.size(); i++)
-            lowestLeaguesIDs.push_back_unique(FifamUtils::GetWriteableID(mLowestLeagues[i], writer.GetGameId()));
-        for (UInt i = 0; i < 4; i++)
-            writer.WriteLine(lowestLeaguesIDs[i]);
+        if (writer.IsVersionGreaterOrEqual(0x2007, 1)) {
+            FifamDbWriteableIDsList lowestLeaguesIDs;
+            // TODO: check this one
+            for (UInt i = 0; i < mLowestLeagues.size(); i++)
+                lowestLeaguesIDs.push_back_unique(FifamUtils::GetWriteableID(mLowestLeagues[i], writer.GetGameId()));
+            if (writer.IsVersionGreaterOrEqual(0x2007, 2)) {
+                for (UInt i = 0; i < 4; i++)
+                    writer.WriteLine(lowestLeaguesIDs[i]);
+            }
+            else
+                writer.WriteLine(lowestLeaguesIDs[0]);
+        }
         if (writer.IsVersionGreaterOrEqual(0x2011, 0x0D)) {
             writer.WriteLine(mClubFacilities);
             writer.WriteLine(mYouthCentre);

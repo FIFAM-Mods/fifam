@@ -83,5 +83,17 @@ void FifamPlayerHistoryEntry::Write(FifamWriter &writer) {
 }
 
 Bool operator<(FifamPlayerHistoryEntry const &lhs, FifamPlayerHistoryEntry const &rhs) {
-    return lhs.mStartDate < rhs.mStartDate;
+    if (rhs.mStillInThisClub)
+        return true;
+    if (lhs.mStillInThisClub)
+        return false;
+    if (lhs.mStartDate < rhs.mStartDate)
+        return true;
+    if (rhs.mStartDate < lhs.mStartDate)
+        return false;
+    if (lhs.mEndDate < rhs.mEndDate)
+        return true;
+    if (rhs.mEndDate < lhs.mEndDate)
+        return false;
+    return true;
 }

@@ -10,6 +10,7 @@ struct team;
 struct stadium {
     Int mID = 0;
     String mName;
+    Array<String, 6> mTranslatedNames;
     nation *mNation = nullptr;
     city *mCity = nullptr;
     team *mOwner = nullptr;

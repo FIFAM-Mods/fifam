@@ -146,6 +146,14 @@ public:
                         UChar nameplacement = fifaKit->internal.jerseybacknameplacementcode;
                         if (nameplacement > 1)
                             nameplacement = 1;
+                        if (nameplacement != 0) {
+                            FifamReader posReader(Utils::AtoW("D:\\Projects\\FIFA20\\kit\\positions\\kit_" + std::to_string(club->mFifaID) + "_" + std::to_string(fifaKit->internal.teamkittypetechid) + "_0.txt"), 14, false, false);
+                            if (posReader.Available()) {
+                                posReader.SkipLines(13);
+                                if (posReader.ReadLine<Float>() < 0.3f)
+                                    nameplacement = 2;
+                            }
+                        }
                         UChar frontnumber = fifaKit->internal.jerseyfrontnumberplacementcode;
                         if (frontnumber > 1)
                             frontnumber = 1;

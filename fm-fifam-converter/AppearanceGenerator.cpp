@@ -1,6 +1,8 @@
 #include "AppearanceGenerator.h"
 #include "FifamPlayer.h"
 #include "FifaPlayer.h"
+#include "FifamPlayerAppearance.h"
+#include "FifaDatabase.h"
 
 void AppearanceGenerator::Read(Path const &filepath) {
     FifamReader reader(filepath, 0);
@@ -94,186 +96,253 @@ enum ShoeType {
     SHOE_BRIGHT_RED = 19
 };
 
-int GetPlayerShoesIdFromFifaId(int shoeTypeCode, int shoeColorCode1, int shoeColorCode2) {
+int GetPlayerShoesIdFromFifaId(int shoeTypeCode) {
     int ShoeType = 0;
     switch (shoeTypeCode) {
-    case 0:
-        // design
-        switch (shoeColorCode1) {
-        case 0:
-            switch (shoeColorCode2) {
-            case 11:
-            case 12:
-                ShoeType = SHOE_WHITE_RED;
-                break;
-            default:
-                ShoeType = SHOE_WHITE;
-            }
-            break;
-        case 1:
-        case 2:
-            ShoeType = SHOE_DARK_BLUE;
-            break;
-        case 3:
-        case 4:
-            ShoeType = SHOE_BLUE;
-            break;
-        case 5:
-            ShoeType = SHOE_GREEN;
-            break;
-        case 6:
-            ShoeType = SHOE_LIGHT_GREEN;
-            break;
-        case 7:
-            ShoeType = SHOE_LIGHT_YELLOW;
-            break;
-        case 8:
-            ShoeType = SHOE_YELLOW;
-            break;
-        case 9:
-            ShoeType = SHOE_ORANGE;
-            break;
-        case 10:
-            ShoeType = SHOE_MAGENTA;
-            break;
-        case 11:
-            ShoeType = SHOE_BRIGHT_RED;
-            break;
-        case 12:
-            ShoeType = SHOE_RED;
-            break;
-        case 14:
-            ShoeType = SHOE_GREY;
-            break;
-        case 15:
-            switch (shoeColorCode2) {
-            case 1:
-            case 2:
-            case 3:
-                ShoeType = SHOE_WHITE_BLUE;
-                break;
-            case 4:
-                ShoeType = SHOE_WHITE_LIGHT_BLUE;
-                break;
-            case 0:
-                ShoeType = SHOE_WHITE_BLACK;
-                break;
-            case 11:
-            case 12:
-                ShoeType = SHOE_WHITE_RED;
-                break;
-            default:
-                ShoeType = SHOE_WHITE;
-            }
-            break;
-        default:
-            ShoeType = SHOE_BLACK;
-        }
-        break;
+    case 16:
+    case 20:
+    case 21:
+    case 35:
+    case 48:
+    case 63:
+    case 64:
+    case 95:
+    case 107:
+    case 108:
+    case 125:
+    case 134:
     case 140:
     case 141:
-    case 185:
-    case 197:
+    case 147:
+    case 159:
+    case 160:
+    case 161:
+    case 162:
+    case 189:
+    case 193:
+    case 214:
     case 243:
-        ShoeType = SHOE_WHITE; // pure white
+    case 253:
+        ShoeType = SHOE_WHITE;
         break;
+    case 19:
+    case 60:
+    case 150:
+    case 151:
+        ShoeType = SHOE_WHITE_BLACK;
+        break;
+    case 17:
+    case 39:
+    case 45:
+    case 50:
+    case 61:
+    case 62:
+    case 72:
+    case 88:
+    case 89:
+    case 93:
+    case 99:
+    case 102:
+    case 111:
+    case 112:
+    case 113:
+    case 115:
+    case 118:
+    case 120:
     case 126:
+    case 130:
+    case 131:
     case 132:
+    case 146:
+    case 154:
+    case 163:
+    case 165:
+    case 166:
     case 171:
     case 172:
     case 174:
     case 177:
     case 180:
+    case 183:
+    case 191:
     case 195:
     case 200:
+    case 203:
     case 210:
+    case 211:
     case 216:
     case 219:
     case 220:
     case 232:
-    case 233:
     case 234:
     case 235:
-        ShoeType = SHOE_BLACK; // black
+        ShoeType = SHOE_BLACK;
         break;
+    case 22:
+    case 24:
+    case 90:
+    case 96:
+    case 103:
+    case 114:
+    case 121:
     case 128:
     case 137:
+    case 156:
+    case 212:
+    case 222:
     case 231:
-        ShoeType = SHOE_BLUE; // blue
+        ShoeType = SHOE_DARK_BLUE;
         break;
-    case 179:
-        ShoeType = SHOE_RED; // dark red
+    case 36:
+    case 145:
+    case 148:
+    case 157:
+    case 215:
+        ShoeType = SHOE_RED;
         break;
+    case 34:
+    case 46:
+    case 47:
+    case 58:
+    case 97:
+    case 100:
+    case 116:
+    case 123:
+    case 124:
+    case 196:
     case 204:
     case 209:
-        ShoeType = SHOE_YELLOW; // gold
-        break;
-    case 168:
-    case 169:
-    case 240:
-        ShoeType = SHOE_WHITE_BLUE; // white + blue
-        break;
-    case 198:
-        ShoeType = SHOE_WHITE_BLACK; // black + red (white?)
-        break;
-    case 167:
-        ShoeType = SHOE_WHITE_LIGHT_BLUE; // white + blue (light?)
-        break;
-    case 127:
-        ShoeType = SHOE_GREEN; // green
-        break;
-    case 135:
-    case 181:
-    case 249:
-        ShoeType = SHOE_BLACK_RED; // black + red
-        break;
-    case 131:
-    case 138:
-    case 176:
-    case 178:
-    case 206:
-    case 241:
-        ShoeType = SHOE_GREY; // grey
-        break;
-    case 246:
-    case 253:
-        ShoeType = SHOE_WHITE_RED; // white + red
-        break;
-    case 136:
-        ShoeType = SHOE_LIGHT_YELLOW; // yellow
-        break;
     case 217:
     case 218:
+    case 225:
     case 227:
-        ShoeType = SHOE_ORANGE; // orange
+    case 248:
+        ShoeType = SHOE_ORANGE;
         break;
-    //case 0:
-    //    ShoeType = SHOE_DARK_BLUE; // blue (dark?)
+    case 23:
+    case 25:
+    case 71:
+    case 92:
+    case 98:
+    case 105:
+    case 136:
+    case 155:
+    case 158:
+    case 182:
+    case 190:
+    case 233:
+        ShoeType = SHOE_YELLOW;
         break;
+    case 15:
+    case 37:
+    case 49:
+    case 59:
+    case 70:
+    case 86:
+    case 87:
+    case 106:
+    case 109:
+    case 119:
+    case 127:
+    case 138:
+    case 142:
+    case 194:
+    case 202:
     case 252:
-        ShoeType = SHOE_LIGHT_GREEN; // green (light)
+        ShoeType = SHOE_GREEN;
         break;
+    case 26:
     case 175:
     case 184:
-    case 242:
     case 250:
     case 251:
-        ShoeType = SHOE_MAGENTA; // pink
+        ShoeType = SHOE_MAGENTA;
         break;
+    case 27:
+    case 28:
+    case 38:
+    case 69:
+    case 91:
+    case 94:
+    case 153:
+    case 167:
+    case 226:
+    case 228:
+    case 236:
+        ShoeType = SHOE_BLUE;
+        break;
+    case 33:
+    case 54:
+    case 57:
+    case 73:
+    case 122:
+    case 143:
+    case 144:
+    case 164:
+    case 176:
+    case 178:
+    case 185:
+    case 186:
+    case 199:
+    case 206:
+    case 208:
+    case 221:
+    case 223:
+    case 224:
+    case 237:
+    case 240:
+    case 241:
+    case 249:
+        ShoeType = SHOE_GREY;
+        break;
+    case 51:
+    case 110:
+    case 135:
     case 139:
+    case 149:
+    case 152:
+    case 181:
+    case 187:
+    case 188:
+    case 229:
+        ShoeType = SHOE_BLACK_RED;
+        break;
+    case 101:
+    case 104:
+    case 179:
+    case 197:
+    case 198:
+    case 230:
+        ShoeType = SHOE_WHITE_RED;
+        break;
+    case 133:
+    case 168:
+    case 169:
+    case 201:
+    case 207:
+    case 213:
+    case 244:
+    case 246:
+        ShoeType = SHOE_WHITE_BLUE;
+        break;
+    case 18:
+    case 117:
     case 170:
     case 173:
+    case 192:
     case 205:
     case 245:
-        ShoeType = SHOE_BRIGHT_RED; // red
+    case 247:
+        ShoeType = SHOE_BRIGHT_RED;
         break;
     default:
-        ShoeType = SHOE_BLACK;
+        ShoeType = Random::Get(1, 19);
     }
     return ShoeType;
 }
 
 void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fifaPlayer) {
+    bool isLastVersion = fifaPlayer->m_gameId == FIFA_DATABASE_LATEST_GAME_VERSION;
     switch (fifaPlayer->internal.skintonecode) {
     case 1:
     case 2:
@@ -420,6 +489,9 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
     }
     else {
         switch (fifaPlayer->internal.hairtypecode) {
+        case 97:
+            player->mAppearance.mHairStyle = g14HairEditorIdToReal[23 - 1];
+            break;
         case 98:
             player->mAppearance.mHairStyle = 62;
             break;
@@ -603,6 +675,17 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
         case 158:
             player->mAppearance.mHairStyle = 93;
             break;
+        case 267:
+            player->mAppearance.mHairStyle = g14HairEditorIdToReal[83 - 1];
+            break;
+        case 283:
+        case 284:
+        case 298:
+            player->mAppearance.mHairStyle = g14HairEditorIdToReal[17 - 1];
+            break;
+        case 295:
+            player->mAppearance.mHairStyle = g14HairEditorIdToReal[44 - 1];
+            break;
         }
     }
     // 0 - blonde, 1 - black, 2 - medium blonde, 3 - darkbrown, 4 - platinumblonde, 5 - lightbrown, 6 - brown, 7 - red
@@ -657,7 +740,7 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
         player->mAppearance.mGenericFace = fifaPlayer->internal.headtypecode - 4000 + 124;
     else if (fifaPlayer->internal.headtypecode >= 3500 && fifaPlayer->internal.headtypecode <= 3505)
         player->mAppearance.mGenericFace = fifaPlayer->internal.headtypecode - 3500 + 118;
-    else if (fifaPlayer->internal.headtypecode >= 1500 && fifaPlayer->internal.headtypecode <= 1528)
+    else if (fifaPlayer->internal.headtypecode >= 1500 && fifaPlayer->internal.headtypecode <= 1527)
         player->mAppearance.mGenericFace = fifaPlayer->internal.headtypecode - 1500 + 66;
     else if (fifaPlayer->internal.headtypecode >= 2500 && fifaPlayer->internal.headtypecode <= 2506)
         player->mAppearance.mGenericFace = fifaPlayer->internal.headtypecode - 2500 + 105;
@@ -684,8 +767,5 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
     else if (fifaPlayer->internal.headtypecode == 2016)
         player->mAppearance.mGenericFace = 100;
 
-    if (fifaPlayer->m_gameId >= 19) {
-        player->mShoeType.SetFromInt(GetPlayerShoesIdFromFifaId(
-            fifaPlayer->internal.shoetypecode, fifaPlayer->internal.shoecolorcode1, fifaPlayer->internal.shoecolorcode2));
-    }
+    player->mShoeType.SetFromInt(GetPlayerShoesIdFromFifaId(isLastVersion ? fifaPlayer->internal.shoetypecode : 0));
 }

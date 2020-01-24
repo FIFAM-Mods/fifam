@@ -205,7 +205,7 @@ Int ConvertStaffAttribute_100_15(Int attr) {
     return ConvertStaffAttribute_20_15(OriginalAttrValue(attr));
 }
 
-FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * club, FifamClubStaffPosition position) {
+FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * club, FifamClubStaffPosition position, UInt gameId) {
     if (!p->mNation) {
         Error(L"Staff without nation\nSaffId: %d\nStaffName: %s", p->mID, p->mFullName.c_str());
         return nullptr;
@@ -217,7 +217,7 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
     }
     FifamStaff *staff = mFifamDatabase->CreateStaff(club, mPersonIdCounter++);
 
-    ConvertPersonAttributes(staff, p);
+    ConvertPersonAttributes(staff, p, gameId);
     staff->SetProperty(L"foom::non_player", p);
 
     staff->mLinkedCountry = staff->mNationality[0];
@@ -295,23 +295,25 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
         staff->mChairmanStability = FifamChairmanStability::Insane;
 
     // formation
-    if (p->mPreferredFormation > 0)
-        staff->mManagerFavouriteFormation = ConvertFormationId(p->mPreferredFormation);
-    else
+    // custom formations are used
+    //if (p->mPreferredFormation > 0)
+    //    staff->mManagerFavouriteFormation = ConvertFormationId(p->mPreferredFormation);
+    //else
         staff->mManagerFavouriteFormation = FifamFormation::None;
 
     Int customFormation = ConvertFormationIdToCustom(p->mPreferredFormation);
     if (customFormation != 0)
         staff->SetProperty<Int>(L"custom_formation", customFormation);
 
+    UInt expectAttackingFootball = Utils::Max(p->mAttacking, p->mCoachingAttacking);
     // preferred orientation
-    if (p->mExpectAttackingFootball && (!p->mWillLookToPlayOutOfDefence || (p->mExpectAttackingFootball / 3) > p->mWillLookToPlayOutOfDefence)) {
-        if (p->mExpectAttackingFootball >= 15)
+    if (p->mAttacking && (!p->mWillLookToPlayOutOfDefence || (p->mAttacking / 3) > p->mWillLookToPlayOutOfDefence)) {
+        if (p->mAttacking >= 15)
             staff->mCoachPlayingOrientation = FifamCoachPlayingOrientation::VeryOffensive;
         else
             staff->mCoachPlayingOrientation = FifamCoachPlayingOrientation::Offensive;
     }
-    else if (p->mWillLookToPlayOutOfDefence && (!p->mExpectAttackingFootball || (p->mWillLookToPlayOutOfDefence / 3) > p->mExpectAttackingFootball)) {
+    else if (p->mWillLookToPlayOutOfDefence && (!p->mAttacking || (p->mWillLookToPlayOutOfDefence / 3) > p->mAttacking)) {
         if (p->mWillLookToPlayOutOfDefence >= 15)
             staff->mCoachPlayingOrientation = FifamCoachPlayingOrientation::VeryDefensive;
         else
@@ -320,11 +322,77 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
     else
         staff->mCoachPlayingOrientation = FifamCoachPlayingOrientation::Normal;
 
+    if (staff->mCoachPlayingOrientation == FifamCoachPlayingOrientation::Offensive) {
+        UInt rnd;
+        Int customFormation = staff->GetProperty<Int>(L"custom_formation", 0);
+        if (customFormation > 0) {
+            switch (customFormation) {
+            case FMF_FORMATION_4_1_2_3_NARROW:
+            case FMF_FORMATION_4_1_3_2_NARROW:
+            case FMF_FORMATION_4_2_4_WIDE:
+            case FMF_FORMATION_4_3_1_2_NARROW:
+            case FMF_FORMATION_4_3_3_NARROW:
+            case FMF_FORMATION_4_3_3_WIDE:
+                staff->mCoachPlayingOrientation = FifamCoachPlayingOrientation::Offensive;
+                break;
+
+            case FMF_FORMATION_3_4_1_2:
+            case FMF_FORMATION_3_4_2_1:
+            case FMF_FORMATION_3_4_3:
+            case FMF_FORMATION_3_4_3_DM_WIDE:
+            case FMF_FORMATION_3_5_2:
+            case FMF_FORMATION_3_5_2_CF:
+            case FMF_FORMATION_5_1_2_2_DM_WB:
+            case FMF_FORMATION_5_1_2_2_DM_WB_CF:
+            case FMF_FORMATION_5_1_2_2_DM_WB_NARROW:
+            case FMF_FORMATION_5_1_3_1_DM_WB:
+            case FMF_FORMATION_5_2_1_2_WB:
+            case FMF_FORMATION_5_2_2_1_WB:
+            case FMF_FORMATION_5_2_3_NARROW:
+            case FMF_FORMATION_5_3_2_WB:
+            case FMF_FORMATION_5_3_2_WB_CF:
+            case FMF_FORMATION_5_4_1:
+            case FMF_FORMATION_5_4_1_DIAMOND_WB:
+            case FMF_FORMATION_5_4_1_WB_WIDE:
+                staff->mCoachPlayingOrientation = FifamCoachPlayingOrientation::Defensive;
+                break;
+            case FMF_FORMATION_5_2_2_1_DM:
+            case FMF_FORMATION_5_2_2_1_DM_CF:
+            case FMF_FORMATION_5_2_2_1_0_DM:
+            case FMF_FORMATION_3_1_3_1_2_DM:
+            case FMF_FORMATION_3_1_4_2_DM:
+            case FMF_FORMATION_3_2_3_2_DM:
+            case FMF_FORMATION_3_4_2_1_DM:
+                staff->mCoachPlayingOrientation = FifamCoachPlayingOrientation::VeryDefensive;
+                break;
+            default:
+                rnd = Random::Get(0, 100);
+                //std::wcout << rnd << std::endl;
+                if (rnd < 33)
+                    staff->mCoachPlayingOrientation = FifamCoachPlayingOrientation::Normal;
+                else if (rnd < 67)
+                    staff->mCoachPlayingOrientation = FifamCoachPlayingOrientation::Defensive;
+                else
+                    staff->mCoachPlayingOrientation = FifamCoachPlayingOrientation::Offensive;
+            }
+        }
+        else {
+            rnd = Random::Get(0, 100);
+            //std::wcout << rnd << std::endl;
+            if (rnd < 33)
+                staff->mCoachPlayingOrientation = FifamCoachPlayingOrientation::Normal;
+            else if (rnd < 67)
+                staff->mCoachPlayingOrientation = FifamCoachPlayingOrientation::Defensive;
+            else
+                staff->mCoachPlayingOrientation = FifamCoachPlayingOrientation::Offensive;
+        }
+    }
+
     // coaching style
-    Int bestAttacking = Utils::Min(p->mAttacking, p->mExpectAttackingFootball) * 5;
+    Int bestAttacking = p->mAttacking * 5;
     Int bestDefending = p->mWillLookToPlayOutOfDefence * 5;
     Int bestTactical = BestFrom_Avg<Int>({ p->mTacticalKnowledge, p->mWillMakeEarlyTacticalChanges * 5, p->mWillFitPlayersIntoPreferredTactic * 5 }, 1);
-    Int bestYouth = BestFrom_Avg<Int>({ p->mSignsYoungPlayersForTheFirstTeam, p->mSignsALotOfYouthPlayers, p->mExpectYoungSigningsForTheFirstTeam }, 1) * 5;
+    Int bestYouth = BestFrom_Avg<Int>({ p->mSignsYoungPlayersForTheFirstTeam, p->mSignsALotOfYouthPlayers }, 1) * 5;
     auto bestStyle = Utils::GetMaxElementId<Int, FifamManagerFocus>({
         { bestAttacking > bestDefending ? (bestAttacking - bestDefending) : 0, FifamManagerFocus::Offensive },
         { bestDefending > bestAttacking ? (bestDefending - bestAttacking) : 0, FifamManagerFocus::Defensive },
@@ -531,6 +599,42 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
         }
     }
 
+    if (staff->mClubPosition == FifamClubStaffPosition::GeneralScout) {
+        Map<FifamNation, UInt> scoutNations;
+        scoutNations[staff->mNationality[0]] = 3;
+        if (staff->mNationality[1] != FifamNation::None && staff->mNationality[1] != staff->mNationality[0])
+            scoutNations[staff->mNationality[1]] = 2;
+        if (club && club->mCountry) {
+            FifamNation clubCountry = FifamNation::MakeFromInt(club->mCountry->mId);
+            scoutNations[clubCountry] = 1;
+        }
+        for (auto const &sn : p->mDaysAtClubOrNation) {
+            if (sn.mClubOrNation && sn.mDays > 0) {
+                foom::nation *n = nullptr;
+                if (sn.mClubOrNation->mIsNation)
+                    n = reinterpret_cast<foom::nation *>(sn.mClubOrNation);
+                else
+                    n = reinterpret_cast<foom::club *>(sn.mClubOrNation)->mNation;
+                if (n && n->mConverterData.mFifamCountry) {
+                    auto clubCountry = FifamNation::MakeFromInt(reinterpret_cast<FifamCountry *>(n->mConverterData.mFifamCountry)->mId);
+                    if (clubCountry != FifamNation::None)
+                        scoutNations[clubCountry] += sn.mDays;
+                }       
+            }
+        }
+        Vector<Pair<FifamNation, UInt>> vecScoutNations;
+        for (auto const &sn : scoutNations)
+            vecScoutNations.push_back(sn);
+        std::sort(vecScoutNations.begin(), vecScoutNations.end(), [](Pair<FifamNation, UInt> const &a, Pair<FifamNation, UInt> const &b) {
+            return a.second > b.second;
+        });
+        if (vecScoutNations.size() > 0) {
+            staff->mHasScoutJobData = true;
+            for (UInt i = 0; i < Utils::Min(3u, vecScoutNations.size()); i++)
+                staff->mScoutPreferredCountries.push_back(vecScoutNations[i].first);
+        }
+    }
+
     return staff;
 }
 
@@ -705,43 +809,43 @@ void Converter::CreateStaffMembersForClub(UInt gameId, foom::team *team, FifamCl
         staffChiefScouts.insert(staffChiefScouts.end(), staffScouts.begin(), staffScouts.end());
 
     if (staffManager)
-        CreateAndConvertStaff(staffManager, dst, FifamClubStaffPosition::Manager);
+        CreateAndConvertStaff(staffManager, dst, FifamClubStaffPosition::Manager, gameId);
     if (staffOwner) {
         if (IsConvertable(staffOwner, gameId))
-            CreateAndConvertStaff(staffOwner, dst, FifamClubStaffPosition::President);
+            CreateAndConvertStaff(staffOwner, dst, FifamClubStaffPosition::President, gameId);
         if (staffChairman)
-            CreateAndConvertStaff(staffChairman, dst, FifamClubStaffPosition::ChiefExec);
+            CreateAndConvertStaff(staffChairman, dst, FifamClubStaffPosition::ChiefExec, gameId);
         else if (staffDirector)
-            CreateAndConvertStaff(staffDirector, dst, FifamClubStaffPosition::ChiefExec);
+            CreateAndConvertStaff(staffDirector, dst, FifamClubStaffPosition::ChiefExec, gameId);
     }
     else {
         if (staffChairman)
-            CreateAndConvertStaff(staffChairman, dst, FifamClubStaffPosition::President);
+            CreateAndConvertStaff(staffChairman, dst, FifamClubStaffPosition::President, gameId);
         if (staffDirector)
-            CreateAndConvertStaff(staffDirector, dst, FifamClubStaffPosition::ChiefExec);
+            CreateAndConvertStaff(staffDirector, dst, FifamClubStaffPosition::ChiefExec, gameId);
     }
     if (staffManagingDirector)
-        CreateAndConvertStaff(staffManagingDirector, dst, FifamClubStaffPosition::GeneralManager);
+        CreateAndConvertStaff(staffManagingDirector, dst, FifamClubStaffPosition::GeneralManager, gameId);
     if (gameId >= 9) {
         if (staffSportsDirector)
-            CreateAndConvertStaff(staffSportsDirector, dst, FifamClubStaffPosition::SportsDirector);
+            CreateAndConvertStaff(staffSportsDirector, dst, FifamClubStaffPosition::SportsDirector, gameId);
     }
     for (UInt i = 0; i < Utils::Min(maxAssistantCoaches, staffAssistantCoaches.size()); i++)
-        CreateAndConvertStaff(staffAssistantCoaches[i], dst, FifamClubStaffPosition::AssistantCoach);
+        CreateAndConvertStaff(staffAssistantCoaches[i], dst, FifamClubStaffPosition::AssistantCoach, gameId);
     for (UInt i = 0; i < Utils::Min(maxScouts, staffChiefScouts.size()); i++)
-        CreateAndConvertStaff(staffChiefScouts[i], dst, FifamClubStaffPosition::GeneralScout);
+        CreateAndConvertStaff(staffChiefScouts[i], dst, FifamClubStaffPosition::GeneralScout, gameId);
     if (staffReserveCoach)
-        CreateAndConvertStaff(staffReserveCoach, dst, FifamClubStaffPosition::AmateurCoach);
+        CreateAndConvertStaff(staffReserveCoach, dst, FifamClubStaffPosition::AmateurCoach, gameId);
     if (staffYouthCoach)
-        CreateAndConvertStaff(staffYouthCoach, dst, FifamClubStaffPosition::YouthCoach);
+        CreateAndConvertStaff(staffYouthCoach, dst, FifamClubStaffPosition::YouthCoach, gameId);
     if (staffGoalkeeperCoach)
-        CreateAndConvertStaff(staffGoalkeeperCoach, dst, FifamClubStaffPosition::GoalkeeperCoach);
+        CreateAndConvertStaff(staffGoalkeeperCoach, dst, FifamClubStaffPosition::GoalkeeperCoach, gameId);
     if (gameId >= 9) {
         if (staffFitnessCoach)
-            CreateAndConvertStaff(staffFitnessCoach, dst, FifamClubStaffPosition::FitnessCoach);
+            CreateAndConvertStaff(staffFitnessCoach, dst, FifamClubStaffPosition::FitnessCoach, gameId);
     }
     if (staffPhysio)
-        CreateAndConvertStaff(staffPhysio, dst, FifamClubStaffPosition::Masseur);
+        CreateAndConvertStaff(staffPhysio, dst, FifamClubStaffPosition::Masseur, gameId);
     if (staffTeamDoctor)
-        CreateAndConvertStaff(staffTeamDoctor, dst, FifamClubStaffPosition::TeamDoctor);
+        CreateAndConvertStaff(staffTeamDoctor, dst, FifamClubStaffPosition::TeamDoctor, gameId);
 }

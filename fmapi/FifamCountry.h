@@ -30,7 +30,7 @@ public:
     // @maxsize 4
     FifamTrArray<String> mAbbr;
     // @since FM07
-    FifamTrArray<Bool> mNameGender = {}; // 0: in % 1: in the % 2: on % 3: on the % 4: - 5: - 6: -
+    FifamTrArray<UChar> mNameGender = {}; // 0: in % 1: in the % 2: on % 3: on the % 4: - 5: - 6: -
     // @since FM07
     FifamContinent mContinent;
     // @since FM07
@@ -215,6 +215,8 @@ public:
         // @since FM07
         // 1 or 3
         UInt _18 = 0;
+        // @until FM05
+        UChar _19 = 0;
 
         // @since FM07
         struct {

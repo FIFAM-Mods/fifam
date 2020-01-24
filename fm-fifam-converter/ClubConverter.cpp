@@ -1,16 +1,16 @@
 #include "Converter.h"
 #include "FifamNames.h"
 #include "FifamUtils.h"
+#include "ConverterUtil.h"
+
+
 
 void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div) {
     // name
-    if (team->mName.length() < 30)
-        FifamTrSetAll(dst->mName, team->mName);
-    else
-        FifamTrSetAll(dst->mName, FifamNames::LimitName(team->mShortName, 29));
+    SetNameAndTranslation(dst->mName, team->mName, team->mTranslatedNames, 29, team->mShortName, team->mTranslatedShortNames);
     dst->mName2 = dst->mName;
     // short name
-    FifamTrSetAll(dst->mShortName, FifamNames::LimitName(team->mShortName, 10));
+    SetNameAndTranslation(dst->mShortName, team->mShortName, team->mTranslatedShortNames, 10);
     dst->mShortName2 = dst->mShortName;
     // abbr
     FifamTrSetAll(dst->mAbbreviation, FifamNames::GetClubAbbr(team->mShortName));
@@ -24,7 +24,7 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     }
     // city and settlement
     if (team->mCity)
-        FifamTrSetAll(dst->mCityName, FifamNames::LimitName(team->mCity->mName, 29));
+        SetNameAndTranslation(dst->mCityName, team->mCity->mName, team->mCity->mTranslatedNames, 29);
     else
         dst->mCityName = country->mNationalTeam.mCityName;
     // latitude/longitude
@@ -57,7 +57,7 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     foom::club::income *bestIndividualTvMoneyIncome = nullptr;
     Int bestIndividualTvMoneyValue = 0;
     for (auto &i : team->mVecIncomes) {
-        if (i.mIncomeType >= 1 && i.mIncomeType <= 5) { // Kit Sponsor, Government/Council Grant, Stadium Sponsor, General Sponsor, Individual TV Deal
+        if (i.mIncomeType >= 1 && i.mIncomeType <= 5) { // Kit Sponsor, Government/Council Grant, Stadium Sponsor, General Sponsor, Individual TV Deal; 19 - sleeve sponsor
             if (i.mAmount > 0 && i.mStartDate.year <= CURRENT_YEAR && i.mEndDate.year > CURRENT_YEAR) { // is valid contract
                 UShort duration = i.mEndDate.year - i.mStartDate.year;
                 UShort yearsLeft = i.mEndDate.year - CURRENT_YEAR;
@@ -107,7 +107,7 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     // Stadium
     if (team->mStadium) {
         dst->SetProperty<Int>(L"foom::stad_id", team->mStadium->mID);
-        FifamTrSetAll(dst->mStadiumName, FifamNames::LimitName(team->mStadium->mName, 29));
+        SetNameAndTranslation(dst->mStadiumName, team->mStadium->mName, team->mStadium->mTranslatedNames, 29);
         if (team->mStadium->mCapacity > 0) {
             Int seatingCapacity = team->mStadium->mSeatingCapacity;
             if (seatingCapacity == 0 || seatingCapacity > team->mStadium->mCapacity)
@@ -116,8 +116,12 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
             dst->mStadiumStandingsCapacity = team->mStadium->mCapacity - seatingCapacity;
         }
     }
-    if (FifamTr(dst->mStadiumName).empty())
-        FifamTrSetAll(dst->mStadiumName, FifamNames::LimitName(FifamTr(dst->mCityName), 21) + L" Stadium");
+    if (FifamTr(dst->mStadiumName).empty()) {
+        for (UInt s = 0; s < dst->mStadiumName.size(); s++) {
+            String stadSuffix = (s == FifamTranslation::German) ? L" Stadion" : L" Stadium";
+            dst->mStadiumName[s] = FifamNames::LimitName(dst->mCityName[s], 29 - stadSuffix.length()) + stadSuffix;
+        }
+    }
     if ((dst->mStadiumSeatsCapacity + dst->mStadiumStandingsCapacity) == 0)
         dst->mStadiumSeatsCapacity = Utils::Clamp(dst->mAverageAttendanceLastSeason * 2, 50, 50'000);
 
@@ -269,23 +273,25 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     dst->mPreferredFormations[0] = FifamFormation::None;
     dst->mPreferredFormations[1] = FifamFormation::None;
 
-    if (team->mPreferredFormation != 0) {
-        FifamFormation firstFormation = ConvertFormationId(team->mPreferredFormation);
-        if (firstFormation != FifamFormation::None) {
-            UChar firstFormationId = firstFormation.GetIdForGame(gameId);
-            if (firstFormationId != 0) {
-                dst->mPreferredFormations[0] = firstFormation;
-                if (team->mSecondPreferredFormation != 0) {
-                    FifamFormation secondFormation = ConvertFormationId(team->mSecondPreferredFormation);
-                    if (secondFormation != FifamFormation::None) {
-                        UChar secondFormationId = secondFormation.GetIdForGame(gameId);
-                        if (secondFormationId != 0 && secondFormationId != firstFormationId)
-                            dst->mPreferredFormations[1] = secondFormation;
-                    }
-                }
-            }
-        }
-    }
+    // custom formations enabled
+    //
+    //if (team->mPreferredFormation != 0) {
+    //    FifamFormation firstFormation = ConvertFormationId(team->mPreferredFormation);
+    //    if (firstFormation != FifamFormation::None) {
+    //        UChar firstFormationId = firstFormation.GetIdForGame(gameId);
+    //        if (firstFormationId != 0) {
+    //            dst->mPreferredFormations[0] = firstFormation;
+    //            if (team->mSecondPreferredFormation != 0) {
+    //                FifamFormation secondFormation = ConvertFormationId(team->mSecondPreferredFormation);
+    //                if (secondFormation != FifamFormation::None) {
+    //                    UChar secondFormationId = secondFormation.GetIdForGame(gameId);
+    //                    if (secondFormationId != 0 && secondFormationId != firstFormationId)
+    //                        dst->mPreferredFormations[1] = secondFormation;
+    //                }
+    //            }
+    //        }
+    //    }
+    //}
 
     Int firstCustomFormation = ConvertFormationIdToCustom(team->mPreferredFormation);
     if (firstCustomFormation != 0) {
@@ -304,20 +310,23 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
 
 void Converter::ConvertReserveClub(UInt gameId, FifamClub * dst, foom::club * team, foom::club * mainTeam, FifamCountry * country, DivisionInfo * div) {
     // name
-    String secondTypeName, thirdTypeName;
-    if (country && country->mId == FifamNation::Germany) {
-        secondTypeName = L"II";
-        thirdTypeName = L"III";
-    }
-    else {
-        secondTypeName = L"2";
-        thirdTypeName = L"3";
-    }
+    SetNameAndTranslation(dst->mName, team->mName, team->mTranslatedNames, 29, team->mShortName, team->mTranslatedShortNames);
+    SetNameAndTranslation(dst->mShortName, team->mShortName, team->mTranslatedShortNames, 10);
     if (team->mName == mainTeam->mName) {
+        String secondTypeName, thirdTypeName;
+        if (country && country->mId == FifamNation::Germany) {
+            secondTypeName = L"II";
+            thirdTypeName = L"III";
+        }
+        else {
+            secondTypeName = L"2";
+            thirdTypeName = L"3";
+        }
         String teamTypeName = L"Res";
         switch (team->mConverterData.mChildType) {
         case foom::club::converter_data::child_type::second:
         case foom::club::converter_data::child_type::second_affiliated:
+        case foom::club::converter_data::child_type::other:
             teamTypeName = secondTypeName;
             break;
         case foom::club::converter_data::child_type::third:
@@ -342,17 +351,15 @@ void Converter::ConvertReserveClub(UInt gameId, FifamClub * dst, foom::club * te
             teamTypeName = L"U18";
             break;
         }
-        String teamName = team->mName + L" " + teamTypeName;
-        if (teamName.length() >= 30)
-            teamName = FifamNames::LimitName(team->mShortName + L" " + teamTypeName, 29);
-        FifamTrSetAll(dst->mName, teamName);
-    }
-    else {
-        if (team->mName.length() < 30)
-            FifamTrSetAll(dst->mName, team->mName);
-        else
-            FifamTrSetAll(dst->mName, FifamNames::LimitName(team->mShortName, 29));
-        FifamTrSetAll(dst->mShortName, FifamNames::LimitName(team->mShortName, 10));
+
+        teamTypeName = L" " + teamTypeName;
+        for (UInt s = 0; s < dst->mName.size(); s++) {
+            if (dst->mName[s].length() <= 29 - teamTypeName.length())
+                dst->mName[s] = FifamNames::LimitName(dst->mName[s], 29 - teamTypeName.length()) + teamTypeName;
+            else
+                dst->mName[s] = FifamNames::LimitName(dst->mShortName[s], 29 - teamTypeName.length()) + teamTypeName;
+            dst->mShortName[s] = FifamNames::LimitName(dst->mShortName[s], 10 - teamTypeName.length()) + teamTypeName;
+        }
     }
 
     dst->mName2 = dst->mName;
@@ -368,13 +375,14 @@ void Converter::ConvertReserveClub(UInt gameId, FifamClub * dst, foom::club * te
 
     // city and settlement
     if (team->mCity)
-        FifamTrSetAll(dst->mCityName, FifamNames::LimitName(team->mCity->mName, 29));
+        SetNameAndTranslation(dst->mCityName, team->mCity->mName, team->mCity->mTranslatedNames, 29);
     else if (country)
         dst->mCityName = country->mNationalTeam.mCityName;
     else
         FifamTrSetAll<String>(dst->mCityName, L"City");
+
     // latitude/longitude
-    if (team->mLatitude != 0 && team->mLongitude != 0)
+    if (team->mLatitude != 0 || team->mLongitude != 0)
         dst->mGeoCoords.SetFromFloat(team->mLatitude, team->mLongitude);
     else if (country)
         dst->mGeoCoords = country->mNationalTeam.mGeoCoords;
@@ -399,7 +407,12 @@ void Converter::ConvertReserveClub(UInt gameId, FifamClub * dst, foom::club * te
         dst->mPotentialFansCount = 250'000;
 
     // Stadium
-    FifamTrSetAll(dst->mStadiumName, FifamNames::LimitName(FifamTr(dst->mCityName), 21) + L" Stadium");
+    if (FifamTr(dst->mStadiumName).empty()) {
+        for (UInt s = 0; s < dst->mStadiumName.size(); s++) {
+            String stadSuffix = (s == FifamTranslation::German) ? L" Stadion" : L" Stadium";
+            dst->mStadiumName[s] = FifamNames::LimitName(dst->mCityName[s], 29 - stadSuffix.length()) + stadSuffix;
+        }
+    }
     if (team->mReputation > 8'000)
         dst->mStadiumSeatsCapacity = 3'000;
     else if (team->mReputation > 7'000)
@@ -489,7 +502,7 @@ void Converter::ConvertClubStadium(FifamClub * dst, UInt gameId) {
             dst->mStadiumVenue = 2;
     }
     else if (dst->mFifaID == 461) { // Mestalla
-        if (gameId <= 9 && gameId >= 12)
+        if (gameId >= 9 && gameId <= 12)
             dst->mStadiumVenue = 10;
     }
 
@@ -780,17 +793,32 @@ void Converter::ConvertKitsAndColors(FifamClub * dst, Int foomId, Vector<foom::k
     }
 
     if (!colorsFound) {
-        // random club colors
-        UInt numTeamColors = FifamClub::mTeamColorsTable.size();
-        if (numTeamColors > 0) {
-            dst->mClubColour.SetFromTable(FifamClub::mTeamColorsTable, Random::Get(0, 27));
-            if (Random::Get(1, 100) > 50) {
-                backgroundClr = dst->mClubColour.second;
-                foregroundClr = dst->mClubColour.first;
-            }
-            else {
-                backgroundClr = dst->mClubColour.first;
-                foregroundClr = dst->mClubColour.second;
+        //FifamClubTeamColor badgeColor;
+        //if (ClubColorsFromBadgeFile(dst->mUniqueID, badgeColor)) {
+        //    dst->mClubColour.SetFromTable(FifamClub::mTeamColorsTable, badgeColor.ToInt());
+        //    backgroundClr = dst->mClubColour.second;
+        //    foregroundClr = dst->mClubColour.first;
+        //}
+        auto it = mRefDbColors.find(dst->mUniqueID);
+        if (it != mRefDbColors.end()) {
+            dst->mClubColour = (*it).second;
+            backgroundClr = dst->mClubColour.first;
+            foregroundClr = dst->mClubColour.second;
+            colorsFound = true;
+        }
+        if (!colorsFound) {
+            //random club colors
+            UInt numTeamColors = FifamClub::mTeamColorsTable.size();
+            if (numTeamColors > 0) {
+                dst->mClubColour.SetFromTable(FifamClub::mTeamColorsTable, Random::Get(0, 27));
+                if (Random::Get(1, 100) > 50) {
+                    backgroundClr = dst->mClubColour.second;
+                    foregroundClr = dst->mClubColour.first;
+                }
+                else {
+                    backgroundClr = dst->mClubColour.first;
+                    foregroundClr = dst->mClubColour.second;
+                }
             }
         }
     }
@@ -813,7 +841,9 @@ void Converter::ConvertKitsAndColors(FifamClub * dst, Int foomId, Vector<foom::k
             if (exists(mFifaAssetsPath / L"crest" / Utils::Format(L"l%d.dds", dst->mFifaID)) ||
                 exists(mFifaAssetsPath / L"crest" / Utils::Format(L"%d.png", dst->mFifaID)) ||
                 exists(mFifaAssetsPath / L"_crest" / Utils::Format(L"l%d.dds", dst->mFifaID)) ||
-                exists(mFifaAssetsPath / L"_crest" / Utils::Format(L"%d.png", dst->mFifaID)))
+                exists(mFifaAssetsPath / L"_crest" / Utils::Format(L"%d.png", dst->mFifaID)) ||
+                exists(Utils::Format(L"D:\\Games\\FIFA MANAGER %02d\\badges\\clubs\\256x256\\%08X.tga", gameId, dst->mUniqueID))
+                )
             {
                 dst->mBadge.SetBadgePath(L"clubs\\Badge%d\\" + Utils::Format(L"%08X", dst->mUniqueID) + L".tga");
                 hasCustomBadge = true;
@@ -1210,7 +1240,7 @@ FifamClub *Converter::CreateAndConvertClub(UInt gameId, foom::club *team, foom::
         club->mUniqueID = (country->mId << 16) | mNextFreeUID[country->mId - 1]++;
     club->mFifaID = team->mConverterData.mFIFAID;
 
-    if (mainTeam && mainTeam != team)
+    if (mainTeam != team)
         ConvertReserveClub(gameId, club, team->mIsReserveToCreateClub ? mainTeam : team, mainTeam, country, div);
     else
         ConvertClub(gameId, club, team, mainTeam, country, div);

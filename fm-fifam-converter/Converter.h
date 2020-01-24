@@ -21,6 +21,7 @@ public:
 
     FifamDatabase *mPreviousDb = nullptr;
     Map<UInt, FifamPlayer *> mPreviousPlayers;
+    Map<UInt, ColorPair> mRefDbColors;
 
     FifamClub *GetPreviousClub(UInt id);
     FifamPlayer *GetPreviousPlayer(UInt id);
@@ -192,13 +193,13 @@ public:
     void ConvertReserveClub(UInt gameId, FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);
     void ConvertClubStadium(FifamClub *dst, UInt gameId);
     FifamClub *CreateAndConvertClub(UInt gameId, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div, bool convertSquad);
-    void ConvertReferee(FifamReferee *dst, foom::official *official);
+    void ConvertReferee(FifamReferee *dst, foom::official *official, UInt gameId);
     void ConvertKitsAndColors(FifamClub *dst, Int foomId, Vector<foom::kit> const &kits, Int badgeType, Color const &teamBackgroundColor,
         Color const &teamForegroundColor, UInt gameId);
     FifamPlayer *CreateAndConvertPlayer(UInt gameId, foom::player *p, FifamClub *club);
-    FifamStaff *CreateAndConvertStaff(foom::non_player *p, FifamClub *club, FifamClubStaffPosition position);
-    String FixPersonName(String const &name);
-    void ConvertPersonAttributes(FifamPerson *person, foom::person *p);
+    FifamStaff *CreateAndConvertStaff(foom::non_player *p, FifamClub *club, FifamClubStaffPosition position, UInt gameId);
+    String FixPersonName(String const &name, UInt gameId);
+    void ConvertPersonAttributes(FifamPerson *person, foom::person *p, UInt gameId);
     void CreateStaffMembersForClub(UInt gameId, foom::team *team, FifamClub *dst, Bool isNationalTeam);
     UChar GetPlayerLevelFromCA(Int ca);
 
@@ -211,6 +212,7 @@ public:
     Bool IsInsecurePlayer(Int playerId);
     Bool IsFansFavouritePlayer(Int playerId);
     Bool IsSensitivePlayer(Int playerId);
+    Bool IsLazyPlayer(Int playerId);
 
     UChar GetPlayerLevel(FifamPlayer *player, Bool includeExperience, UInt gameId);
     UChar GetPlayerLevel(FifamPlayer *player, FifamPlayerPosition position, FifamPlayerPlayingStyle style, Bool includeExperience, UInt gameId);
@@ -234,6 +236,10 @@ public:
 
     void ConvertLeagues(UInt gameId);
     Bool ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<FifamCompLeague *> &leagues, Vector<FifamCompCup *> &cups, Pair<FifamCompLeague *, FifamCompLeague *> &split, Vector<PlayOffInfo *> &playOffs);
+
+    void GenerateNewTeamIDsFile(Path const &outputFilePath, Path const &oldTeamIDsFilePath);
+
+    Bool ClubColorsFromBadgeFile(UInt clubId, FifamClubTeamColor &out);
 
     /*
     void GenerateMaleFemaleNames() {

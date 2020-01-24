@@ -146,26 +146,68 @@ void FifamPlayer::Read(FifamReader &reader) {
                 UChar flags = reader.ReadLine<UChar>();
                 UChar footPrefs = (flags >> 3) & 7;
                 mTalent = (flags & 7) * 2 + 1;
-                mInYouthTeam = Utils::CheckFlag(flags, 0x40);
-                switch (footPrefs) {
-                case 0:
-                    mRightFoot = 4;
-                    mLeftFoot = 0;
-                    break;
-                case 1:
-                    mRightFoot = 0;
-                    mLeftFoot = 4;
-                    break;
-                case 2:
-                    mRightFoot = 4;
-                    mLeftFoot = 2;
-                    break;
-                case 3:
-                    mRightFoot = 2;
-                    mLeftFoot = 4;
-                    break;
-                default:
-                    break;
+                if (reader.IsVersionGreaterOrEqual(0x2006, 0)) {
+                    mInYouthTeam = Utils::CheckFlag(flags, 0x40);
+                    switch (footPrefs) {
+                    case 0:
+                        mRightFoot = 4;
+                        mLeftFoot = 0;
+                        break;
+                    case 1:
+                        mRightFoot = 0;
+                        mLeftFoot = 4;
+                        break;
+                    case 2:
+                        mRightFoot = 4;
+                        mLeftFoot = 2;
+                        break;
+                    case 3:
+                        mRightFoot = 2;
+                        mLeftFoot = 4;
+                        break;
+                    default:
+                        break;
+                    }
+                }
+                else {
+                    if (reader.IsVersionGreaterOrEqual(0x2005, 0)) {
+                        switch (footPrefs) {
+                        case 0:
+                        case 1:
+                            mRightFoot = 4;
+                            mLeftFoot = 4;
+                            break;
+                        case 2:
+                            mRightFoot = 4;
+                            mLeftFoot = 0;
+                            break;
+                        case 3:
+                            mRightFoot = 0;
+                            mLeftFoot = 4;
+                            break;
+                        default:
+                            break;
+                        }
+                    }
+                    else {
+                        switch (footPrefs) {
+                        case 0:
+                        case 1:
+                            mRightFoot = 4;
+                            mLeftFoot = 4;
+                            break;
+                        case 2:
+                            mRightFoot = 4;
+                            mLeftFoot = 0;
+                            break;
+                        case 3:
+                            mRightFoot = 0;
+                            mLeftFoot = 4;
+                            break;
+                        default:
+                            break;
+                        }
+                    }
                 }
             }
             reader.ReadLine(mHeroStatus);

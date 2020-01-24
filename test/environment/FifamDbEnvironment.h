@@ -14,6 +14,7 @@ struct FM14 { static int id() { return 14; } static int year() { return 0x2013; 
 
 struct Default { static bool isDefault() { return true; } };
 struct External { static bool isDefault() { return false; } };
+using GameFolder = Default;
 
 template<typename Game, typename DbType>
 class FifamDbEnvironment {

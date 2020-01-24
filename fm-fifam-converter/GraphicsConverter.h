@@ -4,6 +4,7 @@
 class GraphicsConverter {
 public:
     Bool mOnlyUpdates = false;
+    Bool mOutputToGameFolder = true;
 
     GraphicsConverter();
     void ConvertClubBadges(foom::db *db, Map<Int, Path> const &availableBadges, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Int minRep = 0);
@@ -27,4 +28,8 @@ public:
     void ConvertCompBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId);
 
     void CopyLeagueSplitAndRelegationBadges(FifamDatabase *db, Path const &outputPath, Path const &contentPath, UInt gameId);
+    void DownloadClubBadgesFIFA(FifamDatabase *db, Path const &contentPath, UInt gameId);
+    void DownloadPlayerPortraitsFIFA(FifamDatabase *db, Path const &contentPath, UInt gameId);
+
+    static FifamClubTeamColor GetBadgeColor(Path const &filepath);
 };

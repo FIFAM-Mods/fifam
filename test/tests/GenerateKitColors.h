@@ -1,6 +1,7 @@
 #pragma once
 #include "FifamDbEnvironment.h"
 #include "FifaDbEnvironment.h"
+#include "FifamCompLeague.h"
 #include "Magick++.h"
 
 using namespace Magick;
@@ -15,7 +16,7 @@ public:
     GenerateKitColors() {
         FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
         FifamDatabase::mReadingOptions.mReadPersons = false;
-        FifamDatabase *db = GetEnvironment<FifamDbEnvironment<FM13, Default>>().GetDatabase();
+        FifamDatabase *db = new FifamDatabase(13, L"D:\\Games\\FIFA Manager 13\\database");
         FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
 
         std::string outputPath = "D:\\Games\\FIFA Manager 13\\ucp_popups\\colors\\vert\\";
@@ -40,14 +41,14 @@ public:
                         else if (fifaKit->internal.teamkittypetechid == 3)
                             suffix = "_t";
                         if (!suffix.empty()) {
-                            if (exists("D:\\Games\\FIFA Manager 13\\data\\kits\\" + teamIDstr + suffix + ".tga")) {
+                            //if (exists("D:\\Games\\FIFA Manager 13\\data\\kits\\" + teamIDstr + suffix + ".tga")) {
                                 Image img(Geometry(8, 64), Magick::Color(fifaKit->internal.teamcolorprimr, fifaKit->internal.teamcolorprimg, fifaKit->internal.teamcolorprimb));
                                 img.defineValue("png", "color-type", "2");
                                 if (fifaKit->internal.teamcolorsecpercent >= 15)
                                     DrawRect(img, 0, 32, 8, 32, fifaKit->internal.teamcolorsecr, fifaKit->internal.teamcolorsecg, fifaKit->internal.teamcolorsecb);
                                 img.write(outputPath + teamIDstr + suffix + ".png");
                                 generated = true;
-                            }
+                            //}
                         }
                     }
                 }
@@ -73,10 +74,13 @@ public:
                         DrawRect(img, 0, 32, 8, 32, kit.mShirtColors[shirtColorId2].r, kit.mShirtColors[shirtColorId2].g, kit.mShirtColors[shirtColorId2].b);
                     };
                     auto Draw3 = [&](int shirtColorId, int shirtColorId2, int shirtColorId3) {
-                        shirtColorId -= 1; shirtColorId2 -= 1; shirtColorId3 -= 1;
-                        DrawRect(img, 0, 0, 8, 21, kit.mShirtColors[shirtColorId].r, kit.mShirtColors[shirtColorId].g, kit.mShirtColors[shirtColorId].b);
-                        DrawRect(img, 0, 21, 8, 22, kit.mShirtColors[shirtColorId2].r, kit.mShirtColors[shirtColorId2].g, kit.mShirtColors[shirtColorId2].b);
-                        DrawRect(img, 0, 21 + 22, 8, 21, kit.mShirtColors[shirtColorId3].r, kit.mShirtColors[shirtColorId3].g, kit.mShirtColors[shirtColorId3].b);
+                        shirtColorId -= 1; shirtColorId2 -= 1;
+                        DrawRect(img, 0, 0, 8, 32, kit.mShirtColors[shirtColorId].r, kit.mShirtColors[shirtColorId].g, kit.mShirtColors[shirtColorId].b);
+                        DrawRect(img, 0, 32, 8, 32, kit.mShirtColors[shirtColorId2].r, kit.mShirtColors[shirtColorId2].g, kit.mShirtColors[shirtColorId2].b);
+                        //shirtColorId -= 1; shirtColorId2 -= 1; shirtColorId3 -= 1;
+                        //DrawRect(img, 0, 0, 8, 21, kit.mShirtColors[shirtColorId].r, kit.mShirtColors[shirtColorId].g, kit.mShirtColors[shirtColorId].b);
+                        //DrawRect(img, 0, 21, 8, 22, kit.mShirtColors[shirtColorId2].r, kit.mShirtColors[shirtColorId2].g, kit.mShirtColors[shirtColorId2].b);
+                        //DrawRect(img, 0, 21 + 22, 8, 21, kit.mShirtColors[shirtColorId3].r, kit.mShirtColors[shirtColorId3].g, kit.mShirtColors[shirtColorId3].b);
                     };
                     switch (kit.mShirt) {
                     case 2:
@@ -221,5 +225,7 @@ public:
         }
         for (auto c : db->mClubs)
             GenerateForClub(c);
+
+        delete db;
     }
 };

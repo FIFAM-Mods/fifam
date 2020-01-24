@@ -187,11 +187,20 @@ Bool FifamCountry::Read(FifamReader &reader) {
                 reader.ReadFullLine();
                 reader.ReadFullLine();
                 reader.ReadFullLine();
-                reader.ReadLine(mOriginalLeagueSystem);
+                if (reader.IsVersionGreaterOrEqual(0x2006, 0))
+                    reader.ReadLine(mOriginalLeagueSystem);
+                else
+                    reader.SkipLines(2);
             }
             reader.ReadFullLine(mFA_Name);
-            reader.ReadLineArray(mLanguages);
-            reader.ReadLineArray(mLanguageFrequency);
+            if (reader.IsVersionGreaterOrEqual(0x2004, 0)) {
+                reader.ReadLineArray(mLanguages);
+                reader.ReadLineArray(mLanguageFrequency);
+            }
+            else {
+                reader.ReadLine(mLanguages[0]);
+                reader.ReadLine(mLanguageFrequency[0]);
+            }
             reader.ReadLine(mLeagueLevelWithReserveTeams);
             reader.ReadLine(Unknown._1);
             if (reader.GetGameId() < 11) {
@@ -256,13 +265,15 @@ Bool FifamCountry::Read(FifamReader &reader) {
             mLeagueCupSystemType[1].SetFromInt((leagueCupType >> 8) & 0xFF);
             mLeagueCupSystemType[2].SetFromInt((leagueCupType >> 16) & 0xFF);
             mLeagueCupSystemType[3].SetFromInt((leagueCupType >> 24) & 0xFF);
-            reader.ReadLine(mYearsForNaturalization);
-            reader.ReadLine(Unknown._10[0]);
-            reader.ReadLine(Unknown._10[1]);
-            reader.ReadLine(Unknown._11);
-            reader.ReadLine(Unknown._12);
-            reader.ReadLine(Unknown._13);
-            reader.ReadLine(Unknown._14);
+            if (reader.IsVersionGreaterOrEqual(0x2005, 2)) {
+                reader.ReadLine(mYearsForNaturalization);
+                reader.ReadLine(Unknown._10[0]);
+                reader.ReadLine(Unknown._10[1]);
+                reader.ReadLine(Unknown._11);
+                reader.ReadLine(Unknown._12);
+                reader.ReadLine(Unknown._13);
+                reader.ReadLine(Unknown._14);
+            }
             UChar flags = reader.ReadLine<UChar>();
             if (reader.GetGameId() <= 7)
                 flags &= 6;
@@ -284,6 +295,8 @@ Bool FifamCountry::Read(FifamReader &reader) {
                 Unknown.flags._64 = true;
             if (flags & 128)
                 Unknown.flags._128 = true;
+            if (!reader.IsVersionGreaterOrEqual(0x2005, 0))
+                reader.ReadLine(Unknown._19);
             reader.ReadLine(Unknown._15);
             reader.ReadLine(mAmateurRule);
             reader.ReadLine(mClimate);
@@ -295,13 +308,25 @@ Bool FifamCountry::Read(FifamReader &reader) {
             if (reader.GetGameId() < 11)
                 mManager.Read(reader);
             reader.ReadLine(mAveragePlayerRating);
+            if (!reader.IsVersionGreaterOrEqual(0x2006, 0)) {
+                mAveragePlayerRating *= 3;
+                if (mAveragePlayerRating > 100)
+                    mAveragePlayerRating = 100;
+            }
             reader.ReadLine(Unknown._18);
             reader.ReadLine(mAppearanceHairColor);
-            reader.ReadLine(mAppearanceHairStyle[0]);
-            reader.ReadLine(mAppearanceHairStyle[1]);
-            reader.ReadLine(mAppearanceBeard);
-            for (UInt i = 0; i < 4; i++)
-                reader.ReadLine(mAppearanceFaceType[i]);
+            if (reader.IsVersionGreaterOrEqual(0x2007, 4)) {
+                reader.ReadLine(mAppearanceHairStyle[0]);
+                reader.ReadLine(mAppearanceHairStyle[1]);
+                reader.ReadLine(mAppearanceBeard);
+                for (UInt i = 0; i < 4; i++)
+                    reader.ReadLine(mAppearanceFaceType[i]);
+            }
+            else {
+                reader.ReadLine(mAppearanceHairStyle[0]);
+                reader.ReadLine(mAppearanceBeard);
+                reader.ReadLine(mAppearanceFaceType[0]);
+            }
             reader.ReadLine(mAverageHeight);
             reader.ReadLine(mAverageWeight);
             if (reader.IsVersionGreaterOrEqual(0x2011, 0x01)) {
@@ -318,10 +343,23 @@ Bool FifamCountry::Read(FifamReader &reader) {
                 reader.ReadFullLine(mMostImportantMagazine);
             reader.ReadLine(mNumContinentalChampions);
             reader.ReadLine(mNumWorldCups);
-            reader.ReadLine(mNumContinentalRunnersUp);
-            reader.ReadLine(mNumWorldCupRunnersUp);
-            reader.ReadFullLine(mNotes);
+            if (reader.IsVersionGreaterOrEqual(0x2004, 0)) {
+                reader.ReadLine(mNumContinentalRunnersUp);
+                reader.ReadLine(mNumWorldCupRunnersUp);
+                if (reader.IsVersionGreaterOrEqual(0x2004, 8))
+                    reader.ReadFullLine(mNotes);
+            }
             reader.ReadEndIndex(countryMiscSectionName);
+
+            if (!reader.IsVersionGreaterOrEqual(0x2006, 0)) {
+                // create pools
+            }
+
+            if (!reader.IsVersionGreaterOrEqual(0x2007, 0)) {
+                Array<Float, 10> mp = { 1.0f, 0.9f, 0.82f, 0.75f, 0.68f, 0.57f, 0.46f, 0.3f, 0.2f, 0.1f };
+                for (UInt i = 0; i < 10; i++)
+                    mLeagueLevels[i].mRating = UChar(Float(mAveragePlayerRating) * mp[i]);
+            }
 
             FifamCheckEnum(mYellowCardsLeagueRule);
             FifamCheckEnum(mYellowCardsCupRule);
@@ -362,6 +400,7 @@ Bool FifamCountry::Write(FifamWriter &writer) {
     }
     if (writer.IsVersionGreaterOrEqual(0x2007, 0x17))
         writer.WriteLine(Unknown._2);
+    Vector<FifamCompEntry> compLeagues;
     if (writer.GetGameId() < 11) {
         writer.WriteLine(IsCompetitionSystemCorrect());
         //writer.WriteStartIndex(L"COMPETITIONPART");
@@ -369,7 +408,12 @@ Bool FifamCountry::Write(FifamWriter &writer) {
         //writer.WriteEndIndex(L"COMPETITIONPART");
         writer.WriteStartIndex(L"COMPETITION");
         auto comps = GetCompetitions(true);
-        Vector<FifamCompEntry> compLeagues, compRelegations, compPools, compFACups, compLECups, compSupercups;
+        Vector<FifamCompEntry> compRelegations, compPools, compFACups, compLECups, compSupercups;
+        auto IsCupWriteable = [](FifamCompetition *comp) {
+            if (comp->GetDbType() == FifamCompDbType::Cup)
+                return comp->AsCup()->mCupTemplate != FifamCupSystemType::None || FifamCompCup::DetectCupSystemType(comp->AsCup()) != FifamCupSystemType::None;
+            return false;
+        };
         for (auto const &compEntry : comps) {
             if (compEntry.first.mType == FifamCompType::League)
                 compLeagues.push_back(compEntry);
@@ -377,12 +421,18 @@ Bool FifamCountry::Write(FifamWriter &writer) {
                 compRelegations.push_back(compEntry);
             else if (compEntry.first.mType == FifamCompType::Pool)
                 compPools.push_back(compEntry);
-            else if (compEntry.first.mType == FifamCompType::FaCup)
-                compFACups.push_back(compEntry);
-            else if (compEntry.first.mType == FifamCompType::LeagueCup)
-                compLECups.push_back(compEntry);
-            else if (compEntry.first.mType == FifamCompType::SuperCup)
-                compSupercups.push_back(compEntry);
+            else if (compEntry.first.mType == FifamCompType::FaCup) {
+                if (IsCupWriteable(compEntry.second))
+                    compFACups.push_back(compEntry);
+            }
+            else if (compEntry.first.mType == FifamCompType::LeagueCup) {
+                if (IsCupWriteable(compEntry.second))
+                    compLECups.push_back(compEntry);
+            }
+            else if (compEntry.first.mType == FifamCompType::SuperCup) {
+                if (IsCupWriteable(compEntry.second))
+                    compSupercups.push_back(compEntry);
+            }
         }
         writer.WriteLine(compLeagues.size() + compRelegations.size() + compPools.size() + compFACups.size() + compLECups.size() + compSupercups.size());
         UInt compIndex = 0;
@@ -503,7 +553,12 @@ Bool FifamCountry::Write(FifamWriter &writer) {
         writer.WriteLine(FifamTr(mName));
         writer.WriteLine(FifamTr(mAbbr));
         writer.WriteLine((mContinent.ToInt() & 7) | (mTerritory.ToInt() << 3));
-        writer.WriteLine(mOriginalLeagueSystem);
+        if (writer.IsVersionGreaterOrEqual(0x2006, 0))
+            writer.WriteLine(mOriginalLeagueSystem);
+        else {
+            writer.WriteLine(compLeagues.size());
+            writer.WriteLine(0);
+        }
     }
     writer.WriteLine(mFA_Name);
     writer.WriteLineArray(mLanguages);
@@ -561,8 +616,34 @@ Bool FifamCountry::Write(FifamWriter &writer) {
         secondYellowCardLeaguesState |= 16;
     writer.WriteLine(secondYellowCardLeaguesState);
     UInt numLeagueLevels = writer.IsVersionGreaterOrEqual(0x2007, 0x13) ? 16 : 5;
-    for (UInt i = 0; i < numLeagueLevels; i++)
-        mLeagueLevels[i].Write(writer);
+    if (!writer.IsVersionGreaterOrEqual(0x2006, 0)) {
+        Map<UChar, Pair<UChar, UChar>> countryLeagueLevelsLeagues;
+        UChar leagueCounter = 0;
+        for (auto l : compLeagues) {
+            if (l.second->GetDbType() == FifamCompDbType::League) {
+                if (countryLeagueLevelsLeagues.find(l.second->AsLeague()->mLeagueLevel) == countryLeagueLevelsLeagues.end()) {
+                    auto &p = countryLeagueLevelsLeagues[l.second->AsLeague()->mLeagueLevel];
+                    p.first = leagueCounter;
+                    p.second = leagueCounter;
+                }
+                else {
+                    auto &p = countryLeagueLevelsLeagues[l.second->AsLeague()->mLeagueLevel];
+                    p.second = leagueCounter;
+                }
+                leagueCounter++;
+            }
+        }
+        for (UInt i = 0; i < numLeagueLevels; i++) {
+            if (countryLeagueLevelsLeagues.find(i) == countryLeagueLevelsLeagues.end())
+                mLeagueLevels[i].Write(writer, leagueCounter, leagueCounter);
+            else
+                mLeagueLevels[i].Write(writer, countryLeagueLevelsLeagues[i].first, countryLeagueLevelsLeagues[i].second);
+        }
+    }
+    else {
+        for (UInt i = 0; i < numLeagueLevels; i++)
+            mLeagueLevels[i].Write(writer, 0, 0);
+    }
     writer.WriteLine(mCupSystemType);
     UChar cupOptions = 0;
     if (mCupHomeAdvantageForTeamsInLowerLeagues)

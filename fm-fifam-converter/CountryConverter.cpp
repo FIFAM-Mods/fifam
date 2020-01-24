@@ -1,7 +1,8 @@
 #include "Converter.h"
 #include "FifamNames.h"
+#include "ConverterUtil.h"
 
-const Bool CONVERT_ASSESSMENT = false;
+const Bool CONVERT_ASSESSMENT = true;
 
 Int StadNationalTeamUsagePriority(foom::stadium *stad) {
     switch (stad->mUsedByNationalTeam) {
@@ -81,7 +82,7 @@ void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt 
         dst->SetProperty<Int>(L"foom::stad_id", nationalStadium->mID);
         if (nationalStadium->mOwner)
             dst->SetProperty<foom::team *>(L"foom::stad_owner", nationalStadium->mOwner);
-        FifamTrSetAll(dst->mNationalTeam.mStadiumName, FifamNames::LimitName(nationalStadium->mName, 29));
+        SetNameAndTranslation(dst->mNationalTeam.mStadiumName, nationalStadium->mName, nationalStadium->mTranslatedNames, 29);
         if (nationalStadium->mCapacity > 0) {
             Int seatingCapacity = nationalStadium->mSeatingCapacity;
             if (seatingCapacity == 0 || seatingCapacity > nationalStadium->mCapacity)
@@ -89,6 +90,13 @@ void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt 
             dst->mNationalTeam.mStadiumSeatsCapacity = seatingCapacity;
             dst->mNationalTeam.mStadiumStandingsCapacity = nationalStadium->mCapacity - seatingCapacity;
         }
+    }
+
+    // capital city
+    if (nation->mCapitalCity) {
+        SetNameAndTranslation(dst->mNationalTeam.mCityName, nation->mCapitalCity->mName, nation->mCapitalCity->mTranslatedNames, 29);
+        if (nation->mCapitalCity->mLatitude != 0 || nation->mCapitalCity->mLongitude != 0)
+            dst->mNationalTeam.mGeoCoords.SetFromFloat(nation->mCapitalCity->mLatitude, nation->mCapitalCity->mLongitude);
     }
 
     // wins

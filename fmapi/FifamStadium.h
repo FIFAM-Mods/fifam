@@ -36,6 +36,9 @@ public:
     struct {
         // @since FM07
         UChar _1 = 0;
+        // @since FM03
+        // @until FM04
+        String _2;
     } Unknown;
 
     void Read(FifamReader &reader);

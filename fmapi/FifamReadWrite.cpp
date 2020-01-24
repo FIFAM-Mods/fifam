@@ -267,8 +267,14 @@ void FifamWriter::WriteVersion() {
 
 void FifamWriter::WriteTranslationArray(FifamTrArray<String> const &ary, Bool quoted, WideChar sep) {
     UInt num_tr = 6;
-    if (!IsVersionGreaterOrEqual(0x2007, 0x1A))
+    if (IsVersionGreaterOrEqual(0x2007, 0x1A))
+        num_tr = 6;
+    else if (IsVersionGreaterOrEqual(0x2005, 0))
         num_tr = 5;
+    else if (IsVersionGreaterOrEqual(0x2004, 0))
+        num_tr = 4;
+    else
+        num_tr = 3;
     for (UInt i = 0; i < num_tr; i++) {
         if (quoted)
             WriteOne(L"\"");
@@ -721,6 +727,10 @@ UInt FifamReader::ReadLineTranslationArray(FifamTrArray<String> &out, WideChar s
             else
                 out[i].clear();
         }
+        if (!IsVersionGreaterOrEqual(0x2004, 0))
+            out[FifamTranslation::Spanish] = out[FifamTranslation::English];
+        if (!IsVersionGreaterOrEqual(0x2005, 0))
+            out[FifamTranslation::Italian] = out[FifamTranslation::English];
         if (!IsVersionGreaterOrEqual(0x2007, 0x1A))
             out[FifamTranslation::Polish] = out[FifamTranslation::English];
     }

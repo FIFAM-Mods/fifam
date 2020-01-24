@@ -28,7 +28,9 @@ void Converter::UpdateDataFromPreviousDb() {
             // main position
             p->mMainPosition = oldP->mMainPosition;
             // abilities
+            auto oldLeadership = p->mAttributes.Leadership;
             p->mAttributes = oldP->mAttributes;
+            p->mAttributes.Leadership = oldLeadership;
             // appearance
             p->mAppearance = oldP->mAppearance;
             // NT stats
@@ -40,12 +42,28 @@ void Converter::UpdateDataFromPreviousDb() {
             p->mPlayerAgent = oldP->mPlayerAgent;
             // other
             p->mPlayingStyle = oldP->mPlayingStyle;
+            
+            // Disabled this to convert shoes from FIFA
             p->mShoeType = oldP->mShoeType;
+            
+            // history
+            /*
+            p->mHistory.mEntries.clear();
+            for (auto h : oldP->mHistory.mEntries) {
+                if (h.mClub.IsValid()) {
+                    h.mClub.mPtr = mFifamDatabase->GetClubFromUID(h.mClub.mPtr->mUniqueID);
+                    if (!h.mClub.mPtr)
+                        h.mClub.mTeamType = FifamClubTeamType::First;
+                }
+                p->mHistory.mEntries.push_back(h);
+            }
+            */
         }
     }
     for (FifamClub *c : mFifamDatabase->mClubs) {
         FifamClub *oldC = GetPreviousClub(c->mUniqueID);
         if (oldC) {
+            /*
             FifamTrSetAll(c->mName, FifamTr(oldC->mName));
             FifamTrSetAll(c->mShortName, FifamTr(oldC->mShortName));
             FifamTrSetAll(c->mShortName2, FifamTr(oldC->mShortName2));
@@ -67,19 +85,24 @@ void Converter::UpdateDataFromPreviousDb() {
             c->mNationalPrestige = oldC->mNationalPrestige;
             c->mMediaPressure = oldC->mMediaPressure;
             c->mIndividualTvMoney = oldC->mIndividualTvMoney;
+            */
             c->mInitialCapital = oldC->mInitialCapital;
             if (c->mInitialCapital > 0)
                 c->mTransferBudget = c->mInitialCapital / 2;
             else
                 c->mTransferBudget = 0;
+
+            /*
             c->mJointStockCompany = oldC->mJointStockCompany;
             c->mRichGuyControlled = oldC->mRichGuyControlled;
             c->mAddress = oldC->mAddress;
             c->mTelephone = oldC->mTelephone;
             c->mWebsiteAndMail = oldC->mWebsiteAndMail;
             c->mFansites = oldC->mFansites;
+            */
 
             // stadium
+            /*
             FifamTrSetAll(c->mStadiumName, FifamTr(oldC->mStadiumName));
             c->mStadiumSeatsCapacity = oldC->mStadiumSeatsCapacity;
             c->mStadiumStandingsCapacity = oldC->mStadiumStandingsCapacity;
@@ -92,12 +115,14 @@ void Converter::UpdateDataFromPreviousDb() {
             c->mAiStrategy = oldC->mAiStrategy;
             c->mSettlement = oldC->mSettlement;
             c->mLandscape = oldC->mLandscape;
+            */
 
             // SPONSOR - TODO (need to update from foom)
             //c->mSponsorAmount = oldC->mSponsorAmount;
             //c->mSponsorDuration = oldC->mSponsorDuration;
             //c->mSpecialSponsor = oldC->mSpecialSponsor;
 
+            /*
             c->mGeoCoords = oldC->mGeoCoords;
             c->mYouthPlayersAreBasques = oldC->mYouthPlayersAreBasques;
             c->mYouthPlayersCountry = oldC->mYouthPlayersCountry;
@@ -111,6 +136,7 @@ void Converter::UpdateDataFromPreviousDb() {
             c->mMerchandiseColour = oldC->mMerchandiseColour;
             c->mHeaderColour = oldC->mHeaderColour;
             c->mBackgroundColour = oldC->mBackgroundColour;
+            */
         }
     }
 }

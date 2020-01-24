@@ -15,6 +15,11 @@ public:
     // @since FM07
     UChar mRating = 0;
 
+    struct {
+        UChar _1 = 0; // 0
+        UChar _2 = 0; // 0
+    } Unknown;
+
     void Read(FifamReader &reader);
-    void Write(FifamWriter &writer);
+    void Write(FifamWriter &writer, UInt minLeagueIndex, UInt maxLeagueIndex);
 };

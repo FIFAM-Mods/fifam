@@ -5,7 +5,7 @@
 class FifamPlayerHistory {
 public:
     // @since FM07
-    MultiSet<FifamPlayerHistoryEntry> mEntries;
+    Vector<FifamPlayerHistoryEntry> mEntries;
 
     void Read(FifamReader &reader);
     void Write(FifamWriter &writer);

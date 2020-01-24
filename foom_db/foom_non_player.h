@@ -20,6 +20,8 @@ struct non_player : public person {
     Int mJobDirectorOfFootball = 0;
     Int mJobHeadOfYouth = 0;
     Int mJobChairman = 0;
+    Int mJobTechnicalDirector = 0;
+    Int mJobHeadOfPlayerDevelopment = 0;
     Int mCurrentAbility = 0;
     Int mPotentialAbility = 0;
     Int mOriginalCA = 0;
@@ -57,6 +59,7 @@ struct non_player : public person {
     Int mCoachingTactical = 0;
     Int mCoachingTechnical = 0;
     Int mBusiness = 0;
+    Int mNegotiations = 0;
     Int mInterference = 0;
     Int mPatience = 0;
     Int mResources = 0;
@@ -66,8 +69,6 @@ struct non_player : public person {
     Int mSignsYoungPlayersForTheFirstTeam = 0;
     Int mWillMakeEarlyTacticalChanges = 0;
     Int mWillFitPlayersIntoPreferredTactic = 0;
-    Int mExpectAttackingFootball = 0;
-    Int mExpectYoungSigningsForTheFirstTeam = 0;
     Int mWillLookToPlayOutOfDefence = 0;
 
     struct club_contract {
@@ -78,6 +79,7 @@ struct non_player : public person {
         Date mContractExpires;
         Int mContractType = 0;
         Bool mOnRollingContract = 0;
+        Int mSquadStatus = 0;
     };
 
     club_contract mClubContract;
@@ -90,6 +92,13 @@ struct non_player : public person {
     };
 
     nation_contract mNationContract;
+
+    struct days_at_club_or_nation {
+        team *mClubOrNation = 0;
+        Int mDays = 0;
+    };
+
+    Vector<days_at_club_or_nation> mDaysAtClubOrNation;
 };
 
 }

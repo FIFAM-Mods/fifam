@@ -22,6 +22,7 @@ struct player : public person {
     Int mCurrentAbility = 0;
     Int mRecommendedCurrentAbility = 0;
     Int mPotentialAbility = 0;
+    Int mPerceivedPotentialAbility = 0;
     Int mOriginalCA = 0;
     Int mOriginalPA = 0;
     Int mCurrentReputation = 0;
@@ -159,6 +160,7 @@ struct player : public person {
         Int mContractType = 0;
         Int mWage = 0;
         Bool mOnRollingContract = 0;
+        Int mSquadStatus = 0;
         Int mSquadNumber = 0;
         Int mPreferredSquadNumber = 0;
         Int mAppearanceFee = 0;
@@ -200,6 +202,8 @@ struct player : public person {
         Int mOrder = 0;
         club *mClub = 0;
         comp *mDivision = 0;
+        Date mDateJoined;
+        Date mDateLeft;
         Bool mOnLoan = 0;
         Bool mYouthTeam = 0;
         Int mApps = 0;

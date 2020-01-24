@@ -102,10 +102,14 @@ void GraphicsConverter::ConvertClubBadges(foom::db *db, Map<Int, Path> const &av
     String gameFolder = Utils::Format(L"fm%02d", gameId);
     Path badgesPath = contentPath / gameFolder / L"badges" / L"badges" / L"clubs";
     Path outputPath;
-    if (mOnlyUpdates)
-        outputPath = contentPath / gameFolder / L"art_05" / L"badges" / L"clubs";
+    if (mOnlyUpdates || mOutputToGameFolder)
+        outputPath = L"D:\\Games\\FIFA Manager 13\\badges\\clubs";
     else
         outputPath = badgesPath;
+    create_directories(outputPath / L"256x256");
+    create_directories(outputPath / L"128x128");
+    create_directories(outputPath / L"64x64");
+    create_directories(outputPath / L"32x32");
     for (auto e : db->mClubs) {
         auto &club = e.second;
         if (club.mReputation > minRep && club.mConverterData.mFifamClub) {
@@ -113,20 +117,28 @@ void GraphicsConverter::ConvertClubBadges(foom::db *db, Map<Int, Path> const &av
             Int foomIdForGraphics = club.mID;
             if (!club.mConverterData.mParentClub && club.mConverterData.mOriginalStoredParentClub)
                 foomIdForGraphics = club.mConverterData.mOriginalStoredParentClub->mID;
-            auto it = availableBadges.find(foomIdForGraphics);
-            if (it != availableBadges.end()) {
-                String clubBadgeName = Utils::Format(L"%08X.tga", fifamClub->mUniqueID);
-                if (!mOnlyUpdates || !exists(badgesPath / L"256x256" / clubBadgeName)) {
-                    Image badgeImg((*it).second.string());
-                    if (badgeImg.isValid() && badgeImg.baseRows() >= 256) {
-                        if (badgeImg.baseColumns() != badgeImg.baseRows()) {
-                            UInt newSize = Utils::Max(badgeImg.baseColumns(), badgeImg.baseRows());
-                            badgeImg.extent(Geometry(newSize, newSize), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
+
+            auto CreateBadge = [&](Int id, Bool reserve) {
+                auto it = availableBadges.find(foomIdForGraphics);
+                if (it != availableBadges.end()) {
+                    String clubBadgeName = Utils::Format(reserve ? L"%08X_1.tga" : L"%08X.tga", fifamClub->mUniqueID);
+                    if (!mOnlyUpdates || !exists(badgesPath / L"256x256" / clubBadgeName)) {
+                        Image badgeImg((*it).second.string());
+                        if (badgeImg.isValid() && badgeImg.baseRows() >= 256) {
+                            if (badgeImg.baseColumns() != badgeImg.baseRows()) {
+                                UInt newSize = Utils::Max(badgeImg.baseColumns(), badgeImg.baseRows());
+                                badgeImg.extent(Geometry(newSize, newSize), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
+                            }
+                            WriteOneBadge(badgeImg, outputPath, clubBadgeName, gameId);
                         }
-                        WriteOneBadge(badgeImg, outputPath, clubBadgeName, gameId);
                     }
                 }
-            }
+            };
+
+            CreateBadge(foomIdForGraphics, false);
+            //auto reserveFoomId = fifamClub->GetProperty<Int>(L"res_team_foom_id", -1);
+            //if (reserveFoomId != -1)
+            //    CreateBadge(foomIdForGraphics, true);
         }
     }
 }
@@ -148,10 +160,14 @@ void GraphicsConverter::ConvertCompBadges(FifamDatabase *db, Path const &fmGraph
     String gameFolder = Utils::Format(L"fm%02d", gameId);
     Path badgesPath = contentPath / gameFolder / L"badges" / L"badges" / L"Leagues";
     Path outputPath;
-    if (mOnlyUpdates)
-        outputPath = contentPath / gameFolder / L"art_05" / L"badges" / L"Leagues";
+    if (mOnlyUpdates || mOutputToGameFolder)
+        outputPath = L"D:\\Games\\FIFA Manager 13\\badges\\Leagues";
     else
         outputPath = badgesPath;
+    create_directories(outputPath / L"256x256");
+    create_directories(outputPath / L"128x128");
+    create_directories(outputPath / L"64x64");
+    create_directories(outputPath / L"32x32");
     for (auto e : db->mCompMap) {
         auto &comp = e.second;
         if (comp->GetDbType() == FifamCompDbType::League || (gameId >= 10 && comp->GetDbType() == FifamCompDbType::Cup)) {
@@ -181,7 +197,7 @@ void GraphicsConverter::ConvertCompBadges(FifamDatabase *db, Path const &fmGraph
                                     Image flagImg((*nit).second.string());
                                     if (flagImg.isValid()) {
                                         if (comp->mID.mType == FifamCompType::League) {
-                                            if (comp->mID.mIndex == 0) {
+                                            if (comp->mCompetitionLevel == 0) {
                                                 Image outputImg(Geometry(256, 256), Magick::Color(0, 0, 0, 0));
                                                 outputImg.composite(flagImg, -52, 18, OverCompositeOp);
                                                 Image maskImg(Path(contentPath / L"templates" / L"league_mask.png").string());
@@ -190,7 +206,7 @@ void GraphicsConverter::ConvertCompBadges(FifamDatabase *db, Path const &fmGraph
                                                 outputImg.composite(frameImg, 0, 0, OverCompositeOp);
                                                 WriteOneBadge(outputImg, outputPath, badgeName, gameId, true);
                                             }
-                                            else if (comp->mID.mIndex == 1) {
+                                            else if (comp->mCompetitionLevel == 1) {
                                                 Image outputImg(Geometry(256, 256), Magick::Color(0, 0, 0, 0));
                                                 outputImg.composite(flagImg, -52, 18, OverCompositeOp);
                                                 Image maskImg(Path(contentPath / L"templates" / L"league2_mask.png").string());
@@ -199,7 +215,7 @@ void GraphicsConverter::ConvertCompBadges(FifamDatabase *db, Path const &fmGraph
                                                 outputImg.composite(frameImg, 0, 0, OverCompositeOp);
                                                 WriteOneBadge(outputImg, outputPath, badgeName, gameId, true);
                                             }
-                                            else if (comp->mID.mIndex == 2) {
+                                            else if (comp->mCompetitionLevel == 2) {
                                                 Image outputImg(Geometry(256, 256), Magick::Color(0, 0, 0, 0));
                                                 flagImg.resize(Geometry(306, 187));
                                                 outputImg.composite(flagImg, -25, 34, OverCompositeOp);
@@ -209,7 +225,7 @@ void GraphicsConverter::ConvertCompBadges(FifamDatabase *db, Path const &fmGraph
                                                 outputImg.composite(frameImg, 0, 0, OverCompositeOp);
                                                 WriteOneBadge(outputImg, outputPath, badgeName, gameId, true);
                                             }
-                                            else if (comp->mID.mIndex == 3) {
+                                            else if (comp->mCompetitionLevel == 3) {
                                                 Image outputImg(Geometry(256, 256), Magick::Color(0, 0, 0, 0));
                                                 flagImg.resize(Geometry(306, 187));
                                                 outputImg.composite(flagImg, -25, 34, OverCompositeOp);
@@ -485,6 +501,11 @@ void GraphicsConverter::ConvertTrophies(FifamDatabase *db, Path const &fmGraphic
     }
     Path foomTrophies = fmGraphicsPath / L"trophies";
     Path outputPath = contentPath / gameFolder / artArchiveForLeagues / L"trophies";
+    create_directories(outputPath / trophyRoomFolder);
+    create_directories(outputPath / L"256x256");
+    create_directories(outputPath / L"128x128");
+    create_directories(outputPath / L"64x64");
+    create_directories(outputPath / L"32x32");
     for (auto e : db->mCompMap) {
         auto &comp = e.second;
         if (comp->GetDbType() == FifamCompDbType::League || comp->GetDbType() == FifamCompDbType::Cup) {
@@ -543,14 +564,24 @@ void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGrap
             if (gameId <= 9)
                 portraitsDir = Path(L"art") / L"picture";
             FifamPerson *fifamPerson = (FifamPerson *)person->mConverterData.mFifamPerson;
-            Path outputPath = contentPath / gameFolder / L"art_02" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat);
+            String dstFolder = L"art_02";
+            if (gameId >= 13 && !fifamPerson->mWriteableStringID.empty()) {
+                if (fifamPerson->mWriteableStringID[0] >= L'F' && fifamPerson->mWriteableStringID[0] <= L'L')
+                    dstFolder = L"art_03";
+                else if (fifamPerson->mWriteableStringID[0] >= L'M' && fifamPerson->mWriteableStringID[0] <= L'R')
+                    dstFolder = L"art_06";
+                else if (fifamPerson->mWriteableStringID[0] >= L'S' /*&& fifamPerson->mWriteableStringID[0] <= L'Z'*/)
+                    dstFolder = L"art_07";
+            }
+            Path outputPath = contentPath / gameFolder / dstFolder / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat);
             if (!mOnlyUpdates || (!exists(outputPath) &&
-                !exists(contentPath / gameFolder / L"art_05" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
+                !exists(contentPath / gameFolder / L"art_02" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
+                !exists(contentPath / gameFolder / L"art_03" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
                 !exists(contentPath / gameFolder / L"art_06" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
                 !exists(contentPath / gameFolder / L"art_07" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat))))
             {
-                if (mOnlyUpdates)
-                    outputPath = contentPath / gameFolder / L"art_05" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat);
+                if (mOnlyUpdates || mOutputToGameFolder)
+                    outputPath = Path(L"D:\\Games\\FIFA Manager 13\\portraits\\club\\160x160") / (fifamPerson->mWriteableStringID + targetFormat);
                 Image portraitImg(portraitPath.string());
                 if (portraitImg.isValid() && portraitImg.baseRows() >= 150 && portraitImg.baseColumns() >= 150) {
                     if (portraitImg.baseColumns() != portraitImg.baseRows()) {
@@ -569,15 +600,20 @@ void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path con
     if (referee->mConverterData.mFifamReferee) {
         Path portraitPath = fmGraphicsPath / L"sortitoutsi" / L"faces" / (std::to_wstring(referee->mID) + L".png");
         if (exists(portraitPath)) {
-            String gameFolder = Utils::Format(L"fm%02d", gameId);
             String targetFormat = L".png";
-            String artArchive = L"art_05";
-            if (gameId <= 12) {
-                targetFormat = L".tga";
-                artArchive = L"art_02";
-            }
             FifamReferee *fifamReferee = (FifamReferee *)referee->mConverterData.mFifamReferee;
-            Path outputPath = contentPath / gameFolder / artArchive / L"portraits" / L"Referees" / L"160x160" /
+            Path basePath;
+            if (mOnlyUpdates || mOutputToGameFolder)
+                basePath = L"D:\\Games\\FIFA Manager 13";
+            else {
+                String artArchive = L"art_05";
+                if (gameId <= 12) {
+                    targetFormat = L".tga";
+                    artArchive = L"art_02";
+                }
+                basePath = contentPath / Utils::Format(L"fm%02d", gameId) / artArchive;
+            }
+            Path outputPath = basePath / L"portraits" / L"Referees" / L"160x160" /
                 (FifamNames::GetPersonStringId(gameId, fifamReferee->mFirstName, fifamReferee->mLastName, String(), Date(), 0) + targetFormat);
             if (!mOnlyUpdates || !exists(outputPath)) {
                 Image portraitImg(portraitPath.string());
@@ -595,6 +631,11 @@ void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path con
 }
 
 void GraphicsConverter::ConvertPortraits(foom::db *db, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Int minCA) {
+    create_directories(contentPath / L"fm13\\art_02\\portraits\\club\\160x160");
+    create_directories(contentPath / L"fm13\\art_03\\portraits\\club\\160x160");
+    create_directories(contentPath / L"fm13\\art_06\\portraits\\club\\160x160");
+    create_directories(contentPath / L"fm13\\art_07\\portraits\\club\\160x160");
+    create_directories(contentPath / L"fm13\\art_05\\portraits\\Referees\\160x160");
     std::wcout << L"Converting player portraits...  0%";
     UInt max = db->mPlayers.size();
     UInt counter = 0;
@@ -618,17 +659,19 @@ void GraphicsConverter::ConvertPortraits(foom::db *db, Path const &fmGraphicsPat
             counter++;
         }
         std::wcout << L"\b\b\b\b100%" << std::endl;
-        max = db->mOfficials.size();
-        counter = 0;
-        std::wcout << L"Converting referee portraits...   0%";
-        for (auto e : db->mOfficials) {
-            auto &p = e.second;
-            if (p.mCurrentAbility > minCA)
-                ConvertRefereePortrait(&p, fmGraphicsPath, contentPath, gameId);
-            std::wcout << Utils::Format(L"\b\b\b\b%3d%%", (Int)((Float)counter / max * 100));
-            counter++;
+        if (!mOnlyUpdates) {
+            max = db->mOfficials.size();
+            counter = 0;
+            std::wcout << L"Converting referee portraits...   0%";
+            for (auto e : db->mOfficials) {
+                auto &p = e.second;
+                if (p.mCurrentAbility > minCA)
+                    ConvertRefereePortrait(&p, fmGraphicsPath, contentPath, gameId);
+                std::wcout << Utils::Format(L"\b\b\b\b%3d%%", (Int)((Float)counter / max * 100));
+                counter++;
+            }
+            std::wcout << L"\b\b\b\b100%" << std::endl;
         }
-        std::wcout << L"\b\b\b\b100%" << std::endl;
     }
 }
 
@@ -779,6 +822,10 @@ void WriteTextModeBadge(Image &img, Image &mask, Path const &outputPath, String 
 void GraphicsConverter::ConvertClubBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId) {
     String gameFolder = Utils::Format(L"fm%02d", gameId);
     Path outputPath = contentPath / gameFolder / L"badges" / L"badges" / L"clubs";
+    create_directories(outputPath / L"256x256");
+    create_directories(outputPath / L"128x128");
+    create_directories(outputPath / L"64x64");
+    create_directories(outputPath / L"32x32");
     for (auto [clubId, club] : db->mClubsMap) {
         if (club->mFifaID != 0) {
             Path badgePath = fifaAssetsPath / L"crest" / Utils::Format(L"%d.png", club->mFifaID);
@@ -808,6 +855,161 @@ void GraphicsConverter::ConvertClubBadgesFIFA(FifamDatabase *db, Path const &fif
             }
         }
     }
+}
+
+void GraphicsConverter::DownloadClubBadgesFIFA(FifamDatabase *db, Path const &contentPath, UInt gameId) {
+    String gameFolder = Utils::Format(L"fm%02d", gameId);
+    Path outputPath = contentPath / gameFolder / L"badges" / L"badges" / L"clubs";
+    create_directories(outputPath / L"256x256");
+    create_directories(outputPath / L"128x128");
+    create_directories(outputPath / L"64x64");
+    create_directories(outputPath / L"32x32");
+    for (auto c : db->mCountries) {
+        if (c) {
+            std::wcout << L"Badges: " << FifamTr(c->mName) << std::endl;
+            for (auto [clubId, club] : c->mClubsMap) {
+                if (club->mFifaID != 0) {
+                    String clubIdFile = Utils::Format(L"%08X.tga", club->mUniqueID);
+                    if (!mOnlyUpdates || !exists(outputPath / L"256x256" / clubIdFile)) {
+                        Char url[MAX_PATH];
+                        sprintf(url, "https://cdn-p2.frzdb.net/fifamobile/images/clubbadges/%d.png", club->mFifaID);
+                        if (URLDownloadToFile(NULL, url, "tmpFifaBadge.png", 0, NULL) == S_OK) {
+                            Image badgeImg("tmpFifaBadge.png");
+                            if (badgeImg.isValid() && badgeImg.baseRows() == 256)
+                                WriteOneBadge(badgeImg, outputPath, clubIdFile, gameId);
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+Bool DownloadAndSavePlayerPhoto(Int version, Char const *filepath, Char const *url) {
+    if (URLDownloadToFile(NULL, url, "tmpFifaPortrait.png", 0, NULL) == S_OK) {
+        Image portraitImg("tmpFifaPortrait.png");
+        if (portraitImg.isValid() && portraitImg.columns() >= 160) {
+            portraitImg.resize(Geometry(160, 160));
+            portraitImg.write(filepath);
+            return true;
+        }
+    }
+    return false;
+}
+
+Bool DownloadAndSavePlayerPhoto(Int playerId, Char const *filepath) {
+    char url[MAX_PATH];
+    sprintf(url, "https://www.futwiz.com/assets/img/fifa%d/careerfaces/%d.png", 20, playerId);
+    if (!DownloadAndSavePlayerPhoto(20, filepath, url) && !exists(filepath)) {
+        sprintf(url, "https://www.futwiz.com/assets/img/fifa%d/careerfaces/%d.png", 19, playerId);
+        if (!DownloadAndSavePlayerPhoto(19, filepath, url)) {
+            sprintf(url, "https://www.futwiz.com/assets/img/fifa%d/careerfaces/%d.png", 18, playerId);
+            if (!DownloadAndSavePlayerPhoto(15, filepath, url)) {
+                sprintf(url, "http://futhead.cursecdn.com/static/img/%d/players/%d.png", 17, playerId);
+                if (!DownloadAndSavePlayerPhoto(17, filepath, url))
+                    return false;
+            }
+        }
+    }
+    return true;
+}
+
+void GraphicsConverter::DownloadPlayerPortraitsFIFA(FifamDatabase *db, Path const &contentPath, UInt gameId) {
+    if (gameId >= 9) {
+        Path outputPath = contentPath / L"portraits" / L"club" / L"160x160";
+        create_directories(outputPath);
+        for (auto c : db->mCountries) {
+            if (c && c->mId == FifamNation::Romania) {
+                std::wcout << L"Portraits: " << FifamTr(c->mName) << std::endl;
+                for (auto b : c->mClubs) {
+                    for (auto p : b->mPlayers) {
+                        try {
+                            if (p->mEmpicsId != 0) {
+                                Path outputPic = outputPath / (p->mWriteableStringID + L".tga");
+                                DownloadAndSavePlayerPhoto(p->mEmpicsId, outputPic.string().c_str());
+                            }
+                        }
+                        catch (std::exception &e) {
+                            ::Error(Utils::AtoW(e.what()) + String(L"\n") + p->mWriteableStringID);
+                        }
+                    }
+                }
+            }
+        }
+        std::wcout << L"Portraits: Free agents" << std::endl;
+        for (auto p : db->mPlayers) {
+            try {
+                if (!p->mClub && p->mEmpicsId != 0) {
+                    Path outputPic = outputPath / (p->mWriteableStringID + L".tga");
+                    DownloadAndSavePlayerPhoto(p->mEmpicsId, outputPic.string().c_str());
+                }
+            }
+            catch (std::exception &e) {
+                ::Error(Utils::AtoW(e.what()) + String(L"\n") + p->mWriteableStringID);
+            }
+        }
+    }
+}
+
+Bool operator<(::Color const &a, ::Color const &b) {
+    return a.ToHexStr() <= b.ToHexStr();;
+}
+
+FifamClubTeamColor GraphicsConverter::GetBadgeColor(Path const &filepath) {
+    ColorPair clr;
+    Image img(filepath.string());
+    if (img.isValid()) {
+        const UInt badgeSize = 8;
+        const Double colorRange = 100.0;
+        const Float secondColorFactor = 5.0f;
+        Map<::Color, UInt> clrsMap;
+        img.resize(Geometry(badgeSize, badgeSize));
+        for (size_t row = 0; row < img.rows(); ++row) {
+            for (size_t column = 0; column < img.columns(); ++column) {
+                auto pc = img.pixelColor(column, row);
+                if (pc.quantumAlpha() == 255)
+                    clrsMap[::Color(pc.quantumRed(), pc.quantumGreen(), pc.quantumBlue())]++;
+            }
+        }
+        if (!clrsMap.empty()) {
+            Vector<Pair<::Color, UInt>> clrsVecFromMap;
+            clrsVecFromMap.reserve(badgeSize < 100 ? (badgeSize * badgeSize) : badgeSize);
+            for (auto const &i : clrsMap)
+                clrsVecFromMap.push_back(i);
+            std::sort(clrsVecFromMap.begin(), clrsVecFromMap.end(), [](Pair<::Color, UInt> const &a, Pair<::Color, UInt> const &b) {
+                return a.second >= b.second;
+            });
+            Vector<Pair<::Color, UInt>> clrsVec;
+            clrsVec.reserve(clrsVecFromMap.size());
+            for (auto const &i : clrsVecFromMap) {
+                Bool found = false;
+                if (!clrsVec.empty()) {
+                    for (auto &p : clrsVec) {
+                        if (::Color::Distance(p.first, i.first) < colorRange) {
+                            p.second++;
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+                if (!found)
+                    clrsVec.push_back(i);
+            }
+            if (!clrsVec.empty()) {
+                std::sort(clrsVec.begin(), clrsVec.end(), [](Pair<::Color, UInt> const &a, Pair<::Color, UInt> const &b) {
+                    return a.second >= b.second;
+                });
+                clr.first = clrsVec[0].first;
+                clr.second = ::Color(255, 255, 255);
+                if (clrsVec.size() > 1 && clrsVec[0].second != 0 && clrsVec[1].second != 0) {
+                    if (Float(clrsVec[0].second) / Float(clrsVec[1].second) < secondColorFactor)
+                        clr.second = clrsVec[1].first;
+                }
+                return FifamClubTeamColor::MakeFromInt(clr.FindIndexInTable(FifamClub::mTeamColorsTable));
+            }
+        }
+    }
+    return FifamClubTeamColor::MakeFromInt(Random::Get(0, 27));
 }
 
 void GraphicsConverter::ConvertPlayerPortraitsFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId) {
@@ -858,7 +1060,6 @@ void GraphicsConverter::ConvertPlayerPortraitsFIFA(FifamDatabase *db, Path const
         }
     }
 }
-
 
 void GraphicsConverter::ConvertCompBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId) {
     String gameFolder = Utils::Format(L"fm%02d", gameId);
@@ -1070,7 +1271,7 @@ void GraphicsConverter::ConvertCompBadgesFIFA(FifamDatabase *db, Path const &fif
 
 void GraphicsConverter::CopyLeagueSplitAndRelegationBadges(FifamDatabase *db, Path const &outputPath, Path const &contentPath, UInt gameId) {
     String gameFolder = Utils::Format(L"fm%02d", gameId);
-    Path badgesPath = contentPath / gameFolder / L"badges" / L"badges" / L"Leagues";
+    Path badgesPath = /*contentPath / gameFolder*/ outputPath / L"badges" / L"Leagues";
     Path badgesOutputPath = outputPath / L"badges" / L"Leagues";
     for (auto const &[compId, comp] : db->mCompMap) {
         if (compId.mRegion.ToInt() > 0 && compId.mRegion.ToInt() <= FifamDatabase::NUM_COUNTRIES

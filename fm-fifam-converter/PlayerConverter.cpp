@@ -77,6 +77,14 @@ Bool Converter::IsSensitivePlayer(Int playerId) {
     return false;
 }
 
+Bool Converter::IsLazyPlayer(Int playerId) {
+    static Vector<Int> playerIDs = {
+        85140178, // Dembele
+        71000324, // Konoplyanka
+    };
+    return Utils::Contains(playerIDs, playerId);
+}
+
 UChar Converter::GetPlayerLevel(FifamPlayer *player, Bool includeExperience, UInt gameId) {
     return GetPlayerLevel(player, player->mMainPosition, player->mPlayingStyle, includeExperience, gameId);
 }
@@ -164,26 +172,26 @@ Int Converter::LinearConvertPlayerAttribute(Int attr, UInt gameId) {
     if (originalAttr > 20)
         originalAttr = 20;
     static Pair<Int, Int> fmRatingAry[20] = {
-        {  0,  4 }, // 1
-        {  5,  9 }, // 2
-        { 10, 14 }, // 3
-        { 15, 19 }, // 4
-        { 20, 24 }, // 5
-        { 25, 29 }, // 6
-        { 30, 34 }, // 7
-        { 35, 39 }, // 8
-        { 40, 44 }, // 9
-        { 45, 49 }, // 10
-        { 50, 54 }, // 11
-        { 55, 59 }, // 12
-        { 60, 64 }, // 13
-        { 65, 69 }, // 14
-        { 70, 74 }, // 15
-        { 75, 79 }, // 16
-        { 80, 84 }, // 17
-        { 85, 89 }, // 18
-        { 90, 94 }, // 19
-        { 95, 99 }  // 20
+        {  1,  7 }, // 1
+        {  8, 13 }, // 2
+        { 14, 19 }, // 3
+        { 21, 26 }, // 4
+        { 27, 32 }, // 5
+        { 33, 37 }, // 6
+        { 38, 42 }, // 7
+        { 43, 47 }, // 8
+        { 48, 52 }, // 9
+        { 53, 57 }, // 10
+        { 58, 62 }, // 11
+        { 63, 67 }, // 12
+        { 68, 71 }, // 13
+        { 72, 75 }, // 14
+        { 76, 79 }, // 15
+        { 80, 83 }, // 16
+        { 84, 87 }, // 17
+        { 88, 91 }, // 18
+        { 92, 95 }, // 19
+        { 96, 99 }  // 20
     };
     if (fmRatingAry[originalAttr - 1].first == fmRatingAry[originalAttr - 1].second)
         return fmRatingAry[originalAttr - 1].first;
@@ -201,7 +209,7 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         return nullptr;
     }
     FifamPlayer *player = mFifamDatabase->CreatePlayer(club, mPersonIdCounter++);
-    ConvertPersonAttributes(player, p);
+    ConvertPersonAttributes(player, p, gameId);
     player->SetProperty(L"foom::player", p);
     player->mIsRealPlayer = true;
     player->mIsBasque = p->mIsBasque;
@@ -417,9 +425,13 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     else if (age >= 21)
         minExperiencePoints = 100; // 1 | -4
 //}
+
+    const Float experience_mp = 1.1f;
+    minExperiencePoints = UInt(Float(minExperiencePoints) * experience_mp);
+
     if (totalExperiencePoints < minExperiencePoints)
         totalExperiencePoints = minExperiencePoints;
-    player->mGeneralExperience = Utils::MapTo(totalExperiencePoints, 0, 2500, 0, 18);
+    player->mGeneralExperience = Utils::MapTo(totalExperiencePoints, 0, UInt(Float(2500) * experience_mp), 0, 18);
 
     // potential
     player->mPotential = GetPlayerLevelFromCA(p->mPotentialAbility);
@@ -431,15 +443,15 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         else if (p->mOriginalPA == -95) // 160-190
             player->mTalent = 8; // 4,5 stars
         else if (p->mOriginalPA == -9) { // 150-180
-            if (p->mOriginalCA >= 130)
+            if (p->mOriginalCA >= 120)
                 player->mTalent = 8; // 4,5 stars
             else
-                player->mTalent = 7; // 4 stars
+                player->mTalent = 8; // 4 stars
         }
         else if (p->mOriginalPA == -85) // 140-170
             player->mTalent = 7; // 4 stars
         else if (p->mOriginalPA == -8) { // 130-160
-            if (p->mOriginalCA >= 135)
+            if (p->mOriginalCA >= 130)
                 player->mTalent = 7; // 4 stars
             else
                 player->mTalent = 6; // 3.5 stars
@@ -779,7 +791,10 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     player->mAttributes.PosOffensive = attr.mMovement;
     player->mAttributes.PosDefensive = attr.mPositioning;
     player->mAttributes.Vision = attr.mVision;
-    player->mAttributes.Reactions = (UChar)ceilf((attr.mAnticipation + attr.mFirstTouch) / 2.0f);
+    if (player->mMainPosition == FifamPlayerPosition::GK)
+        player->mAttributes.Reactions = (UChar)ceilf((attr.mAnticipation + attr.mReflexes) / 2.0f);
+    else
+        player->mAttributes.Reactions = (UChar)ceilf((attr.mAnticipation + attr.mFirstTouch) / 2.0f);
     player->mAttributes.TacticAwareness = attr.mTeamWork;
     player->mAttributes.Aggression = attr.mAggression;
     player->mAttributes.Composure = attr.mComposure;
@@ -1142,6 +1157,8 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     player->mCharacter.Set(FifamPlayerCharacter::FansFavorite, IsFansFavouritePlayer(p->mID));
     player->mCharacter.Set(FifamPlayerCharacter::Diva, IsSensitivePlayer(p->mID));
     player->mCharacter.Set(FifamPlayerCharacter::NeedsAttention, IsInsecurePlayer(p->mID));
+    if (!player->mCharacter.Check(FifamPlayerCharacter::HighTrainingWorkRate) && IsLazyPlayer(p->mID))
+        player->mCharacter.Set(FifamPlayerCharacter::LazyInTraining, true);
 
     // hero
     UChar heroStatus = 0;

@@ -2,6 +2,8 @@
 #include <Magick++.h>
 #include "Renderer.h"
 #include "ModelReader.h"
+#include "Color.h"
+#include <array>
 
 class KitConverter {
     void resizeImage_noAspect(Magick::Image &image, int w, int h);
@@ -9,17 +11,19 @@ class KitConverter {
     Renderer *mRenderer = nullptr;
     Model mEditedModel;
     Model mSourceModel;
+    std::vector<std::vector<std::pair<int, int>>> circles;
 public:
     enum {
         Documents, User, Big
     };
 
     static struct GlobalOptions {
-        std::string KitsPath = "D:\\Projects\\FIFA19\\FIFA 19 Kits Converted Textures\\";
-        std::string MiniKitsPath = "D:\\Projects\\FIFA19\\mini\\";
-        std::string CustomKitsPath = "D:\\Projects\\FIFA19\\custom\\kits\\";
-        std::string CustomMiniKitsPath = "D:\\Projects\\FIFA19\\custom\\kits\\mini\\";
-        std::string KitNumbersPath = "D:\\Projects\\FIFA19\\F19_specific-kitnumbers\\png\\";
+        std::string KitsPath = "D:\\Projects\\FIFA20\\kit\\";
+        std::string MiniKitsPath = "D:\\Projects\\FIFA20\\kits\\";
+        std::string CustomKitsPath = "D:\\Projects\\FIFA20\\custom\\kits\\";
+        std::string CustomMiniKitsPath = "D:\\Projects\\FIFA20\\custom\\kits\\mini\\";
+        std::string KitNumbersPath = "D:\\Projects\\FIFA20\\kitnumbers\\";
+        std::string BannersPath = "D:\\Projects\\FIFA20\\banners\\";
         int OutputGameId = 14;
         int SaveLocation = User;
         std::string OutputFormat = "tga";
@@ -42,8 +46,8 @@ public:
 
     KitConverter();
     ~KitConverter();
-    bool ConvertKit(std::string const &inputShirt, std::string const &inputShorts, std::string const &inputCrest, std::string const &outputFile);
-    bool ConvertKitV2(std::string const &inputShirt, std::string const &inputShorts, std::string const &inputCrest, std::string const &outputFile);
+    bool ConvertKit(std::string const &inputShirt, std::string const &inputShorts, std::string const &inputCrest, std::string const &outputFile, std::array<int, 8> logoPos, bool hasPositions);
+    bool ConvertKitV2(std::string const &inputShirt, std::string const &inputShorts, std::string const &inputCrest, std::string const &outputFile, std::array<int, 8> logoPos, bool hasPositions);
     bool ConvertFifaClubKit(int fifaId, std::string const &clubIdStr, int set, int variation, std::string const &outputFile);
     bool ConvertFifaClubMiniKit(int fifaId, std::string const & clubIdStr, int set, int variation, std::string const & outputFile);
     void ConvertClubKits(std::string const &clubIdName, int fifaId, int fifaManagerId);
@@ -60,7 +64,10 @@ public:
     bool ConvertClubArmband(int fifaId, std::string const &clubIdStr, int set, int variation, std::string const &outputFile);
     void ConvertClubArmbands(std::string const &clubIdName, int fifaId, int fifaManagerId);
     bool ConvertClubKitNumbersSet(int fifaId, std::string const &clubIdStr, int tournament, int type, bool jersey, std::string const &outputFile);
-    void ConvertClubKitNumbers(std::string const &clubIdName, int fifaId, int fifaManagerId);
+    bool ConvertClubKitNumbersSet(int kitnumersId, bool jersey, std::string const &outputFile, ::Color const &clr1, ::Color const &clr2, ::Color const &clr3);
+    void ConvertClubKitNumbers(int fifaId, int fifaManagerId);
+    void ConvertClubKitNumbers(int kitnumberId, int fifaManagerId, ::Color const &clr1, ::Color const &clr2, ::Color const &clr3);
     bool ConvertClubKitNumbersSetCustom(std::string const &dirPath, std::string const &dirName, bool jersey);
     void ConvertClubKitNumbersCustom();
+    void ConvertBanners(int fifaId, int fifaManagerId);
 };

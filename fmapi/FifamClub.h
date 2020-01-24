@@ -218,11 +218,11 @@ public:
     // unknown color (usually same as first color)
     ColorPair mClubColour2;
     // @since FM07
-    Color mMerchandiseColour;
+    ::Color mMerchandiseColour;
     // @since FM07
-    Color mHeaderColour;
+    ::Color mHeaderColour;
     // @since FM07
-    Color mBackgroundColour;
+    ::Color mBackgroundColour;
     // @since FM07
     FifamClubHistory mHistory;
     // @since FM07
@@ -358,14 +358,14 @@ public:
         { FifamClubTeamColor::Yellow_Black, {{ 248, 240, 72 } ,{ 40,40,40 }}}
 
     };
-    inline static Vector<Pair<UInt, Color>> mMerchandiseColorsTable = {
+    inline static Vector<Pair<UInt, ::Color>> mMerchandiseColorsTable = {
         { 0, { 0, 174, 255 }},
         { 1, { 190, 13, 13 }},
         { 2, { 11, 166, 3 }},
         { 3, { 255, 246, 0 }},
         { 4, { 255, 255, 255 }}
     };
-    inline static Vector<Pair<UInt, Color>> m07InterfaceColorsTable = {
+    inline static Vector<Pair<UInt, ::Color>> m07InterfaceColorsTable = {
         { 0,  { 0, 0, 0 }},
         { 1,  { 236, 235, 231 }},
         { 2,  { 63, 63, 62 }},
@@ -431,7 +431,7 @@ public:
         { 62, { 79, 79, 79 }},
         { 63, { 63, 63, 62 }}
     };
-    inline static Vector<Pair<UInt, Color>> m08InterfaceColorsTable = {
+    inline static Vector<Pair<UInt, ::Color>> m08InterfaceColorsTable = {
         { 0,  { 69 , 120, 183 }},
         { 1,  { 37 , 37 , 39 }},
         { 2,  { 101, 101, 103 }},

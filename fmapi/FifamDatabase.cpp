@@ -120,32 +120,37 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
     FifamReader countriesReader(dbPath / L"Countries.sav", gameId);
     if (countriesReader.Available()) {
         auto &reader = countriesReader;
-        auto firstLine = reader.ReadFullLine();
-        if (Utils::StartsWith(firstLine, L"Countries Version: ")) {
-            auto verParams = Utils::Split(firstLine, ' ', false);
-            if (verParams.size() >= 3) {
-                UInt countriesVer = Utils::ToNumber(verParams[2]);
-                if (countriesVer == 2 || countriesVer == 3) {
-                    for (UInt i = 0; i < NUM_COUNTRIES; i++) {
-                        FifamCountry *country = CreateCountry(i + 1);
-                        if (IsCountryPresent(gameId, country->mId)) {
-                            reader.ReadLineTranslationArray(country->mName);
-                            reader.ReadLineTranslationArray(country->mAbbr);
-                            reader.ReadLineTranslationArray(country->mNameGender);
-                            reader.ReadLine(country->mContinent);
-                            reader.ReadLine(country->mFirstLanguageForNames);
-                            reader.ReadLine(country->mSecondLanguageForNames);
-                            reader.ReadLine(country->mTerritory);
-                        }
-                    }
-                }
-                else
-                    Error(L"Inocrrect countries version");
+        UInt countriesVer = 0;
+        if (gameId >= 7) {
+            auto firstLine = reader.ReadFullLine();
+            if (Utils::StartsWith(firstLine, L"Countries Version: ")) {
+                auto verParams = Utils::Split(firstLine, ' ', false);
+                if (verParams.size() >= 3)
+                    countriesVer = Utils::ToNumber(verParams[2]);
             }
         }
-        else {
-            Error(L"Inocrrect countries file");
+        else
+            countriesVer = 1;
+        if (countriesVer >= 1 && countriesVer <= 3) {
+            for (UInt i = 0; i < NUM_COUNTRIES; i++) {
+                FifamCountry *country = CreateCountry(i + 1);
+                if (IsCountryPresent(gameId, country->mId)) {
+                    reader.ReadLineTranslationArray(country->mName);
+                    if (gameId >= 4)
+                        reader.ReadLineTranslationArray(country->mAbbr);
+                    else
+                        FifamTrSetAll(country->mAbbr, reader.ReadLine<String>());
+                    if (countriesVer >= 2)
+                        reader.ReadLineTranslationArray(country->mNameGender);
+                    reader.ReadLine(country->mContinent);
+                    reader.ReadLine(country->mFirstLanguageForNames);
+                    reader.ReadLine(country->mSecondLanguageForNames);
+                    reader.ReadLine(country->mTerritory);
+                }
+            }
         }
+        else
+            Error(L"Incorrect countries version");
     }
 
     if (mReadingOptions.mReadCountriesData) {
@@ -273,6 +278,7 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
         ResolveClubUniqueID(worstStartingStreak.mClub, gameId);
         ResolveCompetitionID(worstStartingStreak.mCompetition, gameId);
     }
+    std::wcout << L"Done with database reading" << std::endl;
 }
 
 void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &dbPath) {
@@ -419,17 +425,23 @@ void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &
         WriteExternalScriptFile(scriptPath / L"EC.txt", L"EURO_CUP", gameId, compsEC, 1);
     }
 
-    FifamWriter countriesWriter(dbPath / L"Countries.sav", gameId, FifamVersion(), unicode);
+    FifamWriter countriesWriter(dbPath / L"Countries.sav", gameId, FifamVersion(FifamDatabase::GetGameDbVersion(gameId)), unicode);
     if (countriesWriter.Available()) {
         auto &writer = countriesWriter;
-        UInt countriesVer = (gameId <= 7) ? 2 : 3;
-        writer.WriteLine(Utils::Format(L"Countries Version: %d", countriesVer));
+        if (gameId >= 7) {
+            UInt countriesVer = (gameId <= 7) ? 2 : 3;
+            writer.WriteLine(Utils::Format(L"Countries Version: %d", countriesVer));
+        }
         for (UInt i = 0; i < NUM_COUNTRIES; i++) {
             auto &country = mCountries[i];
             if (country && IsCountryPresent(gameId, country->mId)) {
                 writer.WriteLineTranslationArray(country->mName, false);
-                writer.WriteLineTranslationArray(country->mAbbr, false);
-                writer.WriteLineTranslationArray(country->mNameGender);
+                if (gameId >= 4)
+                    writer.WriteLineTranslationArray(country->mAbbr, false);
+                else
+                    writer.WriteLine(country->mAbbr[FifamTranslation::English]);
+                if (gameId >= 7)
+                    writer.WriteLineTranslationArray(country->mNameGender);
                 writer.WriteLine(country->mContinent);
                 writer.WriteLine(country->mFirstLanguageForNames);
                 writer.WriteLine(country->mSecondLanguageForNames);
@@ -471,30 +483,32 @@ void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &
         }
     }
 
-    FifamWriter assessmentWriter(dbPath / L"Assessment.sav", gameId, version, unicode);
-    if (assessmentWriter.Available()) {
-        if (gameId > 7)
-            assessmentWriter.WriteLine(L"Index\t[English]\t[French]\t[German]\t[Italian]\t[Spanish]\t[Polish]\tYear -6\tYear -5\tYear -4\tYear -3\tYear -2\tYear -1");
-        else
-            assessmentWriter.WriteLine(L"Index\t[English]\t[French]\t[German]\t[Italian]\t[Spanish]\tYear -6\tYear -5\tYear -4\tYear -3\tYear -2\tYear -1");
-        for (UInt i = 0; i < NUM_COUNTRIES; i++) {
-            if (mCountries[i] && mCountries[i]->mContinent == FifamContinent::Europe && IsCountryPresent(gameId, i + 1)) {
-                FifamNation nationId;
-                nationId.SetFromInt(i + 1);
-                FifamCountry *c = mCountries[i];
-                if (gameId > 7) {
-                    assessmentWriter.WriteLineWithSeparator(L'\t', nationId,
-                        c->mName[1], c->mName[0], c->mName[2], c->mName[3], c->mName[4], c->mName[5],
-                        c->mAssessmentData[0], c->mAssessmentData[1], c->mAssessmentData[2], c->mAssessmentData[3], c->mAssessmentData[4], c->mAssessmentData[5]);
-                }
-                else {
-                    assessmentWriter.WriteLineWithSeparator(L'\t', nationId,
-                        c->mName[1], c->mName[0], c->mName[2], c->mName[3], c->mName[4],
-                        c->mAssessmentData[0], c->mAssessmentData[1], c->mAssessmentData[2], c->mAssessmentData[3], c->mAssessmentData[4], c->mAssessmentData[5]);
+    if (mWritingOptions.mWriteAssessment) {
+        FifamWriter assessmentWriter(dbPath / L"Assessment.sav", gameId, version, unicode);
+        if (assessmentWriter.Available()) {
+            if (gameId > 7)
+                assessmentWriter.WriteLine(L"Index\t[English]\t[French]\t[German]\t[Italian]\t[Spanish]\t[Polish]\tYear -6\tYear -5\tYear -4\tYear -3\tYear -2\tYear -1");
+            else
+                assessmentWriter.WriteLine(L"Index\t[English]\t[French]\t[German]\t[Italian]\t[Spanish]\tYear -6\tYear -5\tYear -4\tYear -3\tYear -2\tYear -1");
+            for (UInt i = 0; i < NUM_COUNTRIES; i++) {
+                if (mCountries[i] && mCountries[i]->mContinent == FifamContinent::Europe && IsCountryPresent(gameId, i + 1)) {
+                    FifamNation nationId;
+                    nationId.SetFromInt(i + 1);
+                    FifamCountry *c = mCountries[i];
+                    if (gameId > 7) {
+                        assessmentWriter.WriteLineWithSeparator(L'\t', nationId,
+                            c->mName[1], c->mName[0], c->mName[2], c->mName[3], c->mName[4], c->mName[5],
+                            c->mAssessmentData[0], c->mAssessmentData[1], c->mAssessmentData[2], c->mAssessmentData[3], c->mAssessmentData[4], c->mAssessmentData[5]);
+                    }
+                    else {
+                        assessmentWriter.WriteLineWithSeparator(L'\t', nationId,
+                            c->mName[1], c->mName[0], c->mName[2], c->mName[3], c->mName[4],
+                            c->mAssessmentData[0], c->mAssessmentData[1], c->mAssessmentData[2], c->mAssessmentData[3], c->mAssessmentData[4], c->mAssessmentData[5]);
+                    }
                 }
             }
+            assessmentWriter.Close();
         }
-        assessmentWriter.Close();
     }
 
     FifamWriter withoutWriter(dbPath / L"Without.sav", gameId, version, unicode);
@@ -572,12 +586,22 @@ void FifamDatabase::SetupWriteableStatus(UInt gameId) {
 
     UInt lastEmpicsId = 0;
     Map<String, Vector<FifamPlayer *>> playerStrIDsCollisionsMap;
+
+    UInt nextFreePersonId = 1;
+
+    for (auto personEntry : mPersonsMap) {
+        if (personEntry.first < 1'000'000'000 && personEntry.first > nextFreePersonId)
+            nextFreePersonId = personEntry.first;
+    }
     
     for (auto personEntry : mPersonsMap) {
         auto person = personEntry.second;
         person->SetIsWriteable(true);
-        person->SetWriteableID(personEntry.second->mID);
-        person->SetWriteableUniqueID(personEntry.second->mID);
+        UInt writeableId = personEntry.second->mID;
+        if (writeableId >= 1'000'000'000)
+            writeableId = nextFreePersonId++;
+        person->SetWriteableID(writeableId);
+        person->SetWriteableUniqueID(writeableId);
         if (person->mPersonType == FifamPersonType::Player) {
             FifamPlayer *player = person->AsPlayer();
             if (player->mEmpicsId > lastEmpicsId)
@@ -705,6 +729,9 @@ FifamPlayer *FifamDatabase::CreatePlayer(FifamClub *club, UInt id) {
     FifamPlayer *player = new FifamPlayer;
     player->mID = id;
     mPlayers.insert(player);
+    auto it = mPersonsMap.find(id);
+    if (it != mPersonsMap.end())
+        Error(L"FifamDatabase::CreatePlayer: ID is already in use (%d)", id);
     mPersonsMap[id] = player;
     if (club)
         club->mPlayers.push_back(player);
@@ -716,6 +743,9 @@ FifamStaff *FifamDatabase::CreateStaff(FifamClub *club, UInt id) {
     FifamStaff *staff = new FifamStaff;
     staff->mID = id;
     mStaffs.push_back(staff);
+    auto it = mPersonsMap.find(id);
+    if (it != mPersonsMap.end())
+        Error(L"FifamDatabase::CreateStaff: ID is already in use (%d)", id);
     mPersonsMap[id] = staff;
     if (club)
         club->mStaffs.push_back(staff);
@@ -918,9 +948,10 @@ FifamCompetition *FifamDatabase::GetCompetition(FifamCompID const & compID) {
 }
 
 UInt FifamDatabase::GetNextFreePersonID() {
-    if (mPersonsMap.empty())
-        return 1;
-    return (*mPersonsMap.rbegin()).first;
+    const UInt BASE_NEW_PERSON_ID = 1'000'000'000;
+    if (mPersonsMap.contains(BASE_NEW_PERSON_ID))
+        return (*mPersonsMap.rbegin()).first + 1;
+    return BASE_NEW_PERSON_ID;
 }
 
 void FifamDatabase::ReadNamesFile(Path const &filepath, UInt gameId, NamesMap &outNames) {

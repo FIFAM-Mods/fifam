@@ -7,6 +7,7 @@
 #include "ConverterUtil.h"
 
 Map<Int, Pair<UInt, UInt>> FifaConverter::mFifaToFifamCountryId;
+Map<UInt, Vector<UChar>> FifaConverter::mFifaPlayerRatings;
 
 enum eTrait1 {
     TRAIT1_INFLEXIBLE = 1, // 1 - Inflexible
@@ -74,7 +75,7 @@ UInt FifaConverter::NextPersonId() {
     return personId++;
 }
 
-void FifaConverter::ConvertReferees(Converter *converter, FifamDatabase * fifam, FifaDatabase * fifa) {
+void FifaConverter::ConvertReferees(Converter *converter, FifamDatabase * fifam, FifaDatabase * fifa, UInt gameId) {
     fifa->ForAllReferees([&](FifaReferee &r) {
         if (r.internal.gender == 0) {
             UInt fifamCountryId = FifamCountryIdFromFifa(r.internal.nationalitycode);
@@ -82,8 +83,8 @@ void FifaConverter::ConvertReferees(Converter *converter, FifamDatabase * fifam,
                 FifamCountry *fifamCountry = fifam->GetCountry(fifamCountryId);
                 if (fifamCountry) {
                     FifamReferee *referee = fifamCountry->AddReferee();
-                    referee->mFirstName = FifamNames::LimitName(converter->FixPersonName(r.m_firstName), 19);
-                    referee->mLastName = FifamNames::LimitName(converter->FixPersonName(r.m_lastName), 19);
+                    referee->mFirstName = FifamNames::LimitName(converter->FixPersonName(r.m_firstName, gameId), 19);
+                    referee->mLastName = FifamNames::LimitName(converter->FixPersonName(r.m_lastName, gameId), 19);
                     if (r.internal.foulstrictness == 1 && r.internal.cardstrictness == 1)
                         referee->mType = FifamRefereeType::WorldClassReferee;
                     else if (r.internal.foulstrictness == 2 && r.internal.cardstrictness == 2)
@@ -102,13 +103,13 @@ void FifaConverter::ConvertReferees(Converter *converter, FifamDatabase * fifam,
     });
 }
 
-void FifaConverter::ConvertManager(Converter *converter, FifamDatabase * fifam, FifamClub * club, FifaManager * m) {
+void FifaConverter::ConvertManager(Converter *converter, FifamDatabase * fifam, FifamClub * club, FifaManager * m, UInt gameId) {
     if (m->internal.gender == 0 && !m->internal.surname.empty()) {
         FifamStaff *manager = fifam->CreateStaff(club, NextPersonId());
         manager->mClubPosition = FifamClubStaffPosition::Manager;
-        manager->mFirstName = FifamNames::LimitName(converter->FixPersonName(m->internal.firstname), 15);
-        manager->mLastName = FifamNames::LimitName(converter->FixPersonName(m->internal.surname), 15);
-        manager->mPseudonym = FifamNames::LimitName(converter->FixPersonName(m->internal.commonname), 19);
+        manager->mFirstName = FifamNames::LimitName(converter->FixPersonName(m->internal.firstname, gameId), 15);
+        manager->mLastName = FifamNames::LimitName(converter->FixPersonName(m->internal.surname, gameId), 15);
+        manager->mPseudonym = FifamNames::LimitName(converter->FixPersonName(m->internal.commonname, gameId), 19);
 
         if (manager->mFirstName.empty()) {
             auto nameParts = Utils::Split(manager->mLastName, L' ', true, true);
@@ -192,7 +193,7 @@ FifamPlayerPosition FifaPositionToFifam(Int pos) {
     return FifamPlayerPosition::None;
 }
 
-void FifaConverter::ConvertPlayer(Converter * converter, FifamClub * club, Bool reserve, FifaTeam *fifaTeam, FifaPlayer * p, FifaPlayer::Position pos, UChar number) {
+void FifaConverter::ConvertPlayer(Converter * converter, FifamClub * club, Bool reserve, FifaTeam *fifaTeam, FifaPlayer * p, FifaPlayer::Position pos, UChar number, UInt gameId) {
     FifamNation playerNation = FifamNationFromFifa(p->internal.nationality);
     if (playerNation == FifamNation::None) {
         Error(Utils::Format(L"FIFA player %s has no nationality", p->m_quickName));
@@ -220,10 +221,10 @@ void FifaConverter::ConvertPlayer(Converter * converter, FifamClub * club, Bool 
         return result;
     };
 
-    player->mFirstName = FifamNames::LimitPersonName(converter->FixPersonName(p->m_firstName), 15);
-    player->mLastName = FifamNames::LimitPersonName(converter->FixPersonName(p->m_lastName), 19);
+    player->mFirstName = FifamNames::LimitPersonName(converter->FixPersonName(p->m_firstName, gameId), 15);
+    player->mLastName = FifamNames::LimitPersonName(converter->FixPersonName(p->m_lastName, gameId), 19);
     if (!p->m_commonName.empty())
-        player->mPseudonym = FifamNames::LimitPersonName(converter->FixPersonName(p->m_commonName), (converter->mCurrentGameId > 7) ? 29 : 19);
+        player->mPseudonym = FifamNames::LimitPersonName(converter->FixPersonName(p->m_commonName, gameId), (converter->mCurrentGameId > 7) ? 29 : 19);
     player->mLanguages = playerCountry->mLanguages;
     player->mBirthday = p->m_birthDate;
     if (p->internal.preferredfoot == 1) {
@@ -250,7 +251,13 @@ void FifaConverter::ConvertPlayer(Converter * converter, FifamClub * club, Bool 
 
     // contract
     player->mContract.mJoined = FifaDate(p->internal.playerjointeamdate);
+    player->mContract.mJoined.day = 1;
+    player->mContract.mJoined.month = 7;
     player->mContract.mValidUntil = FifaDate(p->internal.contractvaliduntil);
+    player->mContract.mValidUntil.day = 30;
+    player->mContract.mValidUntil.month = 6;
+    if (player->mContract.mValidUntil.year <= converter->GetCurrentDate().year)
+        player->mContract.mValidUntil.year = converter->GetCurrentDate().year + 1;
 
     // position
     auto playerPos = FifaPositionToFifam(p->internal.preferredposition1);
@@ -304,30 +311,38 @@ void FifaConverter::ConvertPlayer(Converter * converter, FifamClub * club, Bool 
         }
     }
 
-    // rating
     player->mPotential = p->internal.potential;
+    auto it = mFifaPlayerRatings.find(p->GetId());
+    if (it != mFifaPlayerRatings.end()) {
+        auto vecRatings = (*it).second;
+        if (vecRatings.size() > 1) {
+            std::sort(vecRatings.begin(), vecRatings.end(), std::greater<UChar>());
+            if (vecRatings[1] > player->mPotential)
+                player->mPotential = vecRatings[1];
+        }
+    }
 
-    if (player->mPotential >= 93)
+    if (player->mPotential >= 94)
         player->mTalent = 9;
     else if (player->mPotential >= 88)
         player->mTalent = 8;
     else if (player->mPotential >= 84)
         player->mTalent = 7;
-    else if (player->mPotential >= 80)
+    else if (player->mPotential >= 78)
         player->mTalent = 6;
-    else if (player->mPotential >= 75)
+    else if (player->mPotential >= 72)
         player->mTalent = 5;
-    else if (player->mPotential >= 70)
+    else if (player->mPotential >= 68)
         player->mTalent = 4;
-    else if (player->mPotential >= 65)
+    else if (player->mPotential >= 64)
         player->mTalent = 3;
-    else if (player->mPotential >= 60)
+    else if (player->mPotential >= 59)
         player->mTalent = 2;
     else
         player->mTalent = 1;
 
     auto FifaStat = [](UChar stat) {
-        return (UChar)((Float)stat * 1.025f);
+        return stat; // (UChar)((Float)stat * 1.025f);
     };
 
     player->mAttributes.Acceleration = p->internal.acceleration;
@@ -494,6 +509,26 @@ void FifaConverter::ConvertPlayer(Converter * converter, FifamClub * club, Bool 
         player->mInternationalExperience += 1;
     player->mGeneralExperience = Utils::Clamp((player->mInternationalExperience + 1) * 2 + player->mNationalExperience + player->mNationalExperience / 2, 0, 18);
 
+    // rating
+    player->mMaxBias = Float(p->internal.overallrating);
+
+    UChar desiredLevel = p->internal.overallrating;
+    UChar currLevel = FifamPlayerLevel::GetPlayerLevel12(player, player->mMainPosition, player->mPlayingStyle, true);
+    Int levelDiff = desiredLevel - currLevel;
+    if (levelDiff != 0) {
+        Int levelCorrection = 1;
+        Int levelIteration = levelDiff * 4;
+        if (levelDiff < 0) {
+            levelCorrection = -1;
+            levelIteration *= -1;
+        }
+        do {
+            player->mMaxBias += levelCorrection;
+            levelIteration--;
+            currLevel = FifamPlayerLevel::GetPlayerLevel12(player, player->mMainPosition, player->mPlayingStyle, true);
+        } while (levelIteration && ((levelCorrection == -1 && currLevel > desiredLevel) || (levelCorrection == 1 && currLevel < desiredLevel)));
+    }
+
     // traits
     if (p->internal.trait1 & TRAIT1_INFLEXIBLE)
         player->mCharacter.Set(FifamPlayerCharacter::Inflexibility, true);
@@ -543,5 +578,49 @@ void FifaConverter::ConvertPlayer(Converter * converter, FifamClub * club, Bool 
             }
         }
         player->mStartingConditions.mLoan.Setup(FifamDate(1, 7, 2019), GetDateAlignedToSeasonEnd(p->m_loanEndDate, true, true), FifamClubLink(loanClub), 0);
+    }
+}
+
+void FifaConverter::WriteCurrentPlayersToHistory(FifaDatabase *fifaDb, Path const &dbPath, UInt versionNumber) {
+    Path filePath = dbPath / L"fifa_player_ratings" / Utils::Format(L"%d.bin", versionNumber);
+    FILE *file = fopen(filePath.string().c_str(), "wb");
+#pragma pack(push, 1)
+    struct playerRatingInfo {
+        unsigned int id;
+        unsigned char rating;
+        unsigned char potential;
+    };
+#pragma pack(pop)
+    fifaDb->ForAllPlayers([&](FifaPlayer &p) {
+        playerRatingInfo info;
+        info.id = p.GetId();
+        info.rating = p.internal.overallrating;
+        info.potential = p.internal.potential;
+        fwrite(&info, 6, 1, file);
+    });
+    fclose(file);
+}
+
+void FifaConverter::ReadHistoryRatings(Path const &dbPath) {
+#pragma pack(push, 1)
+    struct playerRatingInfo {
+        unsigned int id;
+        unsigned char rating;
+        unsigned char potential;
+    };
+#pragma pack(pop)
+    for (auto const &p : directory_iterator(dbPath / L"fifa_player_ratings")) {
+        if (p.path().extension() == L".bin") {
+            FILE *file = fopen(p.path().string().c_str(), "rb");
+            fseek(file, 0, SEEK_END);
+            UInt size = ftell(file) / 6;
+            fseek(file, 0, SEEK_SET);
+            for (UInt i = 0; i < size; i++) {
+                playerRatingInfo info;
+                fread(&info, 6, 1, file);
+                mFifaPlayerRatings[info.id].push_back(info.rating);
+            }
+            fclose(file);
+        }
     }
 }

@@ -124,6 +124,21 @@
     <ClInclude Include="tests\Parameters.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\DbConvert.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\ExportJapanLeaguePlayers.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\MissingPortraits.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\DatabaseRewrite.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="Translation.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

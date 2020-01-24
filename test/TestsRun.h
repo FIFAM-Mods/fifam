@@ -30,7 +30,12 @@
 #include "tests\CopyPortraitsLight.h"
 #include "tests\ExportPlayerAccessories.h"
 #include "tests\Parameters.h"
+#include "tests\DbConvert.h"
+#include "tests\ExportJapanLeaguePlayers.h"
+#include "tests\MissingPortraits.h"
+#include "tests\DatabaseRewrite.h"
+#include "Translation.h"
 
 void RunTests() {
-    RunTest<ShowDbVersion>();
+    RunTest<Translation>();
 }

@@ -5,7 +5,12 @@ void FifamStadium::Read(FifamReader &reader) {
         reader.ReadLine(Unknown._1);
         reader.ReadFullLine(mName);
         reader.ReadFullLine(mCity);
-        reader.ReadLine(mStadiumType);
+        if (reader.IsVersionGreaterOrEqual(0x2004, 0))
+            reader.ReadLine(mStadiumType);
+        else {
+            mStadiumType = 0;
+            reader.ReadFullLine(Unknown._2);
+        }
         for (UInt i = 0; i < mParts.size(); i++) {
             reader.ReadLine(mParts[i].mSeats);
             reader.ReadLine(mParts[i].mTerraces);
@@ -28,7 +33,10 @@ void FifamStadium::Write(FifamWriter &writer) {
     writer.WriteLine(Unknown._1);
     writer.WriteLine(mName);
     writer.WriteLine(mCity);
-    writer.WriteLine(mStadiumType);
+    if (writer.IsVersionGreaterOrEqual(0x2004, 0))
+        writer.WriteLine(mStadiumType);
+    else
+        writer.WriteLine(Unknown._2);
     for (UInt i = 0; i < mParts.size(); i++) {
         writer.WriteLine(mParts[i].mSeats);
         writer.WriteLine(mParts[i].mTerraces);

@@ -86,8 +86,12 @@ void FifamCompCup::Write(FifamWriter &writer, FifamDatabase *database, FifamNati
     if (writer.IsVersionGreaterOrEqual(0, 0x1)) {
         if (writer.GetGameId() >= 11)
             writer.WriteLine(0);
-        else
-            writer.WriteLine(mCupTemplate);
+        else {
+            if (mCupTemplate == FifamCupSystemType::None)
+                writer.WriteLine(FifamCompCup::DetectCupSystemType(this));
+            else
+                writer.WriteLine(mCupTemplate);
+        }
         writer.WriteLine(mDrawPeriodInWeeks);
         if (writer.GetGameId() >= 11)
             writer.WriteLine(mRounds.size());
@@ -123,4 +127,44 @@ void FifamCompCup::Write(FifamWriter &writer, FifamDatabase *database, FifamNati
         }
     }
     FifamCompetition::Write(writer, database, nationId);
+}
+
+FifamCupSystemType FifamCompCup::DetectCupSystemType(FifamCompCup *cup) {
+    UInt numMatches = 0;
+    for (auto const &r : cup->mRounds)
+        numMatches += ((r.mFlags.Check(FifamBeg::_2ndLeg) || r.mFlags.Check(FifamBeg::WithReplay)) ? 2 : 1);
+    auto countryId = cup->mID.mRegion;
+    auto compType = cup->mID.mType;
+    auto compIndex = cup->mID.mIndex;
+    switch (numMatches) {
+    case 1:
+        return FifamCupSystemType::Supercup1Leg;
+    case 2:
+        return FifamCupSystemType::Supercup2Leg;
+    case 3:
+        if (countryId == FifamCompRegion::Germany && compType == FifamCompType::LeagueCup)
+            return FifamCupSystemType::LeagueCup_Germany;
+        return FifamCupSystemType::FA_Cup_Small;
+    case 5:
+        return FifamCupSystemType::LeagueCup_Scotland;
+    case 6:
+        if (countryId == FifamCompRegion::France && compType == FifamCompType::FaCup)
+            return FifamCupSystemType::FA_France;
+        if (countryId == FifamCompRegion::France && compType == FifamCompType::LeagueCup)
+            return FifamCupSystemType::LeagueCup_France;
+        if (countryId == FifamCompRegion::England && compType == FifamCompType::LeagueCup && compIndex == 1)
+            return FifamCupSystemType::LeaguecupDiv2And3;
+        return FifamCupSystemType::FA_Germany;
+    case 8:
+        return FifamCupSystemType::LeagueCup_England;
+    case 11:
+        return FifamCupSystemType::FA_Italy;
+    case 12:
+        return FifamCupSystemType::FA_Spain;
+    case 13:
+        return FifamCupSystemType::FA_Scotland;
+    case 14:
+        return FifamCupSystemType::FA_England;
+    }
+    return FifamCupSystemType::None;
 }

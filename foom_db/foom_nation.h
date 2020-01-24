@@ -13,7 +13,9 @@ struct comp;
 
 struct nation : public team {
     String mThreeLetterName;
+    Array<String, 6> mTranslatedThreeLetterName;
     String mNationalityName;
+    Array<String, 6> mTranslatedNationalityName;
     Int mContinent = -1;
     city *mCapitalCity = 0;
     stadium *mNationalStadium = 0;

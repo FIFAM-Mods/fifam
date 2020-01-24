@@ -14,7 +14,8 @@ Renderer::Renderer(int w, int h) {
             mDirect3D = nullptr;
         }
         else {
-            if (FAILED(mDevice->CreateRenderTarget(w, h, D3DFMT_A8R8G8B8, D3DMULTISAMPLE_NONE, 0, FALSE, &mRT, NULL))) {
+            auto sampling = D3DMULTISAMPLE_NONE;
+            if (FAILED(mDevice->CreateRenderTarget(w, h, D3DFMT_A8R8G8B8, sampling, sampling, FALSE, &mRT, NULL))) {
                 mDevice->Release();
                 mDevice = nullptr;
                 mDirect3D->Release();
@@ -79,7 +80,7 @@ void Renderer::DestroyTexture(IDirect3DTexture9 *tex) {
 
 bool Renderer::SaveRT(wchar_t const *path) {
     if (mRT) {
-        if (FAILED(D3DXSaveSurfaceToFileW(path, D3DXIFF_BMP, mRT, NULL, NULL)))
+        if (FAILED(D3DXSaveSurfaceToFileW(path, D3DXIFF_TGA, mRT, NULL, NULL)))
             return false;
         return true;
     }

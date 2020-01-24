@@ -2,6 +2,7 @@
 #include "FifamUtils.h"
 #include "FifamPlayer.h"
 #include "FifamNames.h"
+#include "FifamDatabase.h"
 
 FifamStaff::FifamStaff() {
     mPersonType = FifamPersonType::Staff;
@@ -130,7 +131,15 @@ void FifamStaff::ReadWorker(FifamReader &reader) {
             mHasNoneJobData = true;
         else if (jobType == 1) {
             mHasCoachJobData = true;
-            reader.ReadLine(mManagerFavouriteFormation);
+            if (FifamDatabase::mReadingOptions.mUseCustomFormations) {
+                mManagerFavouriteFormation = FifamFormation::None;
+                Int customFormation = 0;
+                reader.ReadLine(customFormation);
+                SetProperty<Int>(L"custom_formation", customFormation);
+            }
+            else
+                reader.ReadLine(mManagerFavouriteFormation);
+
             reader.ReadLine(mCoachPlayingOrientation);
         }
         else if (jobType == 2)
@@ -190,12 +199,20 @@ void FifamStaff::ReadManager(FifamReader &reader) {
     reader.ReadLine(mManagerCoachingSkills);
     reader.ReadLine(mManagerGoalkeepersTraining);
     reader.ReadLine(mManagerNegotiationSkills);
-    reader.ReadLine(mManagerFocus);
+    if (reader.IsVersionGreaterOrEqual(0x2007, 0x05))
+        reader.ReadLine(mManagerFocus);
     reader.ReadLine(mLanguages[0]);
     reader.ReadLine(mLanguages[1]);
     reader.ReadLine(mLanguages[2]);
     reader.ReadLine(mLanguages[3]);
-    reader.ReadLine(mManagerFavouriteFormation);
+    if (FifamDatabase::mReadingOptions.mUseCustomFormations) {
+        mManagerFavouriteFormation = FifamFormation::None;
+        Int customFormation = 0;
+        reader.ReadLine(customFormation);
+        SetProperty<Int>(L"custom_formation", customFormation);
+    }
+    else
+        reader.ReadLine(mManagerFavouriteFormation);
     reader.ReadLine(Unknown._2);
     reader.ReadLine(mChairmanStability);
     mLinkedCountry = mNationality[0];

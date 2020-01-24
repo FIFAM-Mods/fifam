@@ -19,7 +19,9 @@ public:
         German,
         English,
         French,
+        // @since FM04
         Spanish,
+        // @since FM05
         Italian,
         // @since FM08
         Polish

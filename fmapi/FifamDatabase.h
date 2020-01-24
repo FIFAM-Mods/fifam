@@ -44,11 +44,13 @@ public:
         Bool mReadClubs = true;
         Bool mReadPersons = true;
         UInt mGameVersionForScripts = 0;
+        Bool mUseCustomFormations = false;
     } mReadingOptions;
 
     struct {
         Bool mNonWriteablePlayersAreFreeAgents = false;
         Bool mNonWriteableStaffsAreFreeAgents = false;
+        Bool mWriteAssessment = true;
         UInt mMaxClubsInCountry[8] = { 512, 512, 512, 1024, 1024, 1024, 1024, 1024 };
         UInt mMaxPersonsInClub[8] = { 60, 96, 99, 99, 99, 99, 256, 256 };
     } mWritingOptions;

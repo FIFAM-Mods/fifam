@@ -12,21 +12,23 @@ struct Color {
     Color &operator=(Color const &rhs);
     bool operator== (Color const &rhs) const;
     bool operator!= (Color const &rhs) const;
-    unsigned int FindIndexInTable(std::vector<std::pair<unsigned int, Color>> const &table, unsigned int tableMin = 0, unsigned int tableMax = 0);
+    unsigned int FindIndexInTable(std::vector<std::pair<unsigned int, Color>> const &table, unsigned int tableMin = 0, unsigned int tableMax = 0) const;
     void SetFromTable(std::vector<std::pair<unsigned int, Color>> const &table, unsigned int index, unsigned int tableMin = 0, unsigned int tableMax = 0);
-    std::wstring ToStr();
-    std::wstring ToHexStr();
+    std::wstring ToStr() const;
+    std::wstring ToHexStr() const;
 };
 
-struct ColorPair : public std::pair<Color, Color> {
+using GenColor = ::Color;
+
+struct ColorPair : public std::pair<::Color, ::Color> {
     ColorPair();
-    ColorPair(Color const &color1, Color const &color2);
-    void Set(Color const &color1, Color const &color2);
+    ColorPair(::Color const &color1, ::Color const &color2);
+    void Set(::Color const &color1, ::Color const &color2);
     static double Distance(ColorPair const &e1, ColorPair const &e2);
     ColorPair &operator=(ColorPair const &rhs);
     bool operator== (ColorPair const &rhs) const;
-    unsigned int FindIndexInTable(std::vector<std::pair<unsigned int, ColorPair>> const &table, unsigned int tableMin = 0, unsigned int tableMax = 0);
+    unsigned int FindIndexInTable(std::vector<std::pair<unsigned int, ColorPair>> const &table, unsigned int tableMin = 0, unsigned int tableMax = 0) const;
     void SetFromTable(std::vector<std::pair<unsigned int, ColorPair>> const &table, unsigned int index, unsigned int tableMin = 0, unsigned int tableMax = 0);
-    std::wstring ToStr();
-    std::wstring ToHexStr();
+    std::wstring ToStr() const;
+    std::wstring ToHexStr() const;
 };

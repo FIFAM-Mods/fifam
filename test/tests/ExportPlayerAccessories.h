@@ -2,6 +2,8 @@
 #include "FifaDbEnvironment.h"
 #include "FifamReadWrite.h"
 
+#define SKIP_EMPTY
+
 class ExportPlayerAccessories {
 public:
     ExportPlayerAccessories() {
@@ -145,6 +147,20 @@ public:
             #endif
             }
             writer.Close();
+        }
+        else
+            ::Error(L"Unable to open output file");
+
+        FifamWriter writer2(L"D:\\Games\\FIFA Manager 13\\plugins\\ucp\\player_shoes.csv", 14, FifamVersion());
+        writer2.WriteLine(L"playerempicsid,shoeid,comment");
+        if (writer2.Available()) {
+            for (auto const &entry : playersList) {
+                FifaPlayer *player = entry.second;
+                UChar shoeid = player->internal.shoetypecode;
+                if (exists(Path(L"D:\\Games\\FIFA Manager 13\\data\\zdata") / Utils::Format(L"t20__%d.fsh", shoeid)))
+                    writer2.WriteLine(entry.first, shoeid, Quoted(player->m_quickName));
+            }
+            writer2.Close();
         }
         else
             ::Error(L"Unable to open output file");

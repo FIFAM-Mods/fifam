@@ -154,8 +154,14 @@ public:
     void WriteTranslationArray(FifamTrArray<T> const &ary, WideChar sep = L',') {
         Vector<T> vec;
         UInt num_tr = 6;
-        if (!IsVersionGreaterOrEqual(0x2007, 0x1A))
+        if (IsVersionGreaterOrEqual(0x2007, 0x1A))
+            num_tr = 6;
+        else if (IsVersionGreaterOrEqual(0x2005, 0))
             num_tr = 5;
+        else if (IsVersionGreaterOrEqual(0x2004, 0))
+            num_tr = 4;
+        else
+            num_tr = 3;
         for (UInt i = 0; i < num_tr; i++)
             vec.push_back(ary[i]);
         WriteArray(vec, sep);
@@ -322,8 +328,14 @@ public:
     template<typename T>
     UInt ReadLineTranslationArray(FifamTrArray<T> &out, WideChar sep = L',') {
         auto result = ReadLineArray(out, sep);
-        if (!IsVersionGreaterOrEqual(0x2007, 0x1A) && out.size() >= FifamTranslation::NUM_TRANSLATIONS)
-            out[FifamTranslation::Polish] = out[FifamTranslation::English];
+        if (out.size() >= FifamTranslation::NUM_TRANSLATIONS) {
+            if (!IsVersionGreaterOrEqual(0x2004, 0))
+                out[FifamTranslation::Spanish] = out[FifamTranslation::English];
+            if (!IsVersionGreaterOrEqual(0x2005, 0))
+                out[FifamTranslation::Italian] = out[FifamTranslation::English];
+            if (!IsVersionGreaterOrEqual(0x2007, 0x1A))
+                out[FifamTranslation::Polish] = out[FifamTranslation::English];
+        }
         return result;
     }
 

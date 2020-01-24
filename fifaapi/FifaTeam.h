@@ -137,6 +137,7 @@ public:
         FifaStadium *m_stadium;
     } m_linkedStadium;
     std::vector<FifaKit *> m_kits;
+    unsigned int m_gameId;
 
     FifaTeam(FifaDataFile::Line &line);
     unsigned int GetId();

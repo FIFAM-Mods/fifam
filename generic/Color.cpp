@@ -37,7 +37,7 @@ bool Color::operator!= (Color const &rhs) const {
     return r != rhs.r || g != rhs.g || b != rhs.b;
 }
 
-unsigned int Color::FindIndexInTable(std::vector<std::pair<unsigned int, Color>> const &table, unsigned int tableMin, unsigned int tableMax) {
+unsigned int Color::FindIndexInTable(std::vector<std::pair<unsigned int, Color>> const &table, unsigned int tableMin, unsigned int tableMax) const {
     if (tableMax == 0)
         tableMax = 9999;
     for (auto &clr : table) {
@@ -76,11 +76,11 @@ void Color::SetFromTable(std::vector<std::pair<unsigned int, Color>> const &tabl
     Set(255, 255, 255);
 }
 
-std::wstring Color::ToStr() {
+std::wstring Color::ToStr() const {
     return Utils::Format(L"(%u,%u,%u)", r, g, b);
 }
 
-std::wstring Color::ToHexStr() {
+std::wstring Color::ToHexStr() const {
     return Utils::Format(L"#%02X%02X%02X", r, g, b);
 }
 
@@ -111,7 +111,7 @@ bool ColorPair::operator== (ColorPair const &rhs) const {
     return (first == rhs.first && second == rhs.second) || (first == rhs.second && second == rhs.first);
 }
 
-unsigned int ColorPair::FindIndexInTable(std::vector<std::pair<unsigned int, ColorPair>> const &table, unsigned int tableMin, unsigned int tableMax) {
+unsigned int ColorPair::FindIndexInTable(std::vector<std::pair<unsigned int, ColorPair>> const &table, unsigned int tableMin, unsigned int tableMax) const {
     if (tableMax == 0)
         tableMax = 9999;
     for (auto &clr : table) {
@@ -150,10 +150,10 @@ void ColorPair::SetFromTable(std::vector<std::pair<unsigned int, ColorPair>> con
     Set(Color(), Color());
 }
 
-std::wstring ColorPair::ToStr() {
+std::wstring ColorPair::ToStr() const {
     return Utils::Format(L"%s:%s", first.ToStr().c_str(), second.ToStr().c_str());
 }
 
-std::wstring ColorPair::ToHexStr() {
+std::wstring ColorPair::ToHexStr() const {
     return Utils::Format(L"%s:%s", first.ToHexStr().c_str(), second.ToHexStr().c_str());
 }

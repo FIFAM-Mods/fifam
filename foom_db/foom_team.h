@@ -10,8 +10,11 @@ struct non_player;
 struct team {
     Int mID = 0;
     String mName;
+    Array<String, 6> mTranslatedNames;
     String mShortName;
+    Array<String, 6> mTranslatedShortNames;
     String mNickname;
+    Array<String, 6> mTranslatedNicknames;
     Int mReputation = 0;
     Int mAttendance = 0;
     Int mMinimumAttendance = 0;

@@ -52,4 +52,5 @@ public:
     FifamCompDbType GetDbType() const override;
     void Read(FifamReader &reader, FifamDatabase *database, FifamNation nationId) override;
     void Write(FifamWriter &writer, FifamDatabase *database, FifamNation nationId) override;
+    static FifamCupSystemType DetectCupSystemType(FifamCompCup *cup);
 };

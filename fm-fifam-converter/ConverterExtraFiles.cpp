@@ -34,8 +34,8 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
         }
     }
     {
-        std::wcout << L"Reading fifam-uids.txt..." << std::endl;
-        FifamReader reader(infoPath / L"fifam-uids.txt", 0);
+        std::wcout << L"Reading fifam-uids.csv..." << std::endl;
+        FifamReader reader(infoPath / L"fifam-uids.csv", 0);
         if (reader.Available()) {
             reader.SkipLine();
             Map<UInt, UInt> uidsMap;
@@ -45,7 +45,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                     String dummy;
                     foom::club::converter_data info;
                     Int FootballManagerID;
-                    reader.ReadLineWithSeparator(L'\t', dummy, dummy, dummy, dummy, dummy, FootballManagerID, Hexadecimal(info.mFIFAManagerID), info.mFIFAID);
+                    reader.ReadLine(dummy, dummy, dummy, dummy, dummy, FootballManagerID, Hexadecimal(info.mFIFAManagerID), info.mFIFAID);
                     map_find(mFoomDatabase->mClubs, FootballManagerID).mConverterData = info;
                     uidsMap[FootballManagerID] = info.mFIFAManagerID;
 
@@ -201,7 +201,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                     else if (type == L"level")
                         d.mType = DivisionInfo::Level;
                     else {
-                        Error(L"Unknown DivisionInfo type: %s", type.c_str());
+                        //Error(L"Unknown DivisionInfo type: %s", type.c_str());
                         continue;
                     }
 
@@ -456,6 +456,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                                         if (!team) {
                                             if (line.size() > 19 && Utils::EndsWith(line, L" (RES)")) {
                                                 String clubName = line.substr(13, line.size() - 19);
+                                                //Error(clubName);
                                                 for (foom::club *prev : previousClubs) {
                                                     if (prev->mName == clubName) {
                                                         if (!prev->mVecReserveTeams.empty()) {
@@ -790,7 +791,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                         if (!shortName.empty())
                             mShortNamesMap[teamId] = shortName;
                         if (!abbr.empty())
-                            mAbbreviationMap[teamId] = abbr;
+                            mAbbreviationMap[teamId] = Utils::GetStringWithoutUnicodeChars(abbr);
                     }
                 }
                 else
