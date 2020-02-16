@@ -6,8 +6,8 @@
 #include "FifamNation.h"
 
 Int wmain(Int argc, WideChar **argv) {
-    Path inputDir = L"D:\\Projects\\fifam\\content\\sponsors\\input";
-    Path outputDir = L"D:\\Projects\\fifam\\content\\sponsors\\output";
+    Path inputDir = L"input";
+    Path outputDir = L"output";
     create_directories(outputDir / L"64x64");
     create_directories(outputDir / L"96x96");
     create_directories(outputDir / L"200x120");
@@ -32,8 +32,8 @@ Int wmain(Int argc, WideChar **argv) {
     writer.WriteLine(L"            PICTURE_ADBOARD = \"EASPORTS.tga\"");
     writer.WriteLine(L"        END");
     writer.WriteLine(L"    END");
-    Magick::Image in96("D:\\Projects\\fifam\\content\\templates\\sponsor96.tga");
-    Magick::Image in64("D:\\Projects\\fifam\\content\\templates\\sponsor64.tga");
+    Magick::Image in96("templates\\sponsor96.tga");
+    Magick::Image in64("templates\\sponsor64.tga");
 
     auto ScanFolder = [&](Path const &dir, Set<String> &out, Bool isDefault = false) {
         for (auto &i : recursive_directory_iterator(dir)) {

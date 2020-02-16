@@ -98,12 +98,12 @@ Bool GraphicsConverter::ConvertOneCompBadge(Path const &badgePath, Path const &o
     return false;
 }
 
-void GraphicsConverter::ConvertClubBadges(foom::db *db, Map<Int, Path> const &availableBadges, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Int minRep) {
+void GraphicsConverter::ConvertClubBadges(foom::db *db, Map<Int, Path> const &availableBadges, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minRep) {
     String gameFolder = Utils::Format(L"fm%02d", gameId);
-    Path badgesPath = contentPath / gameFolder / L"badges" / L"badges" / L"clubs";
+    Path badgesPath = contentPath  / L"badges" / L"badges" / L"clubs";
     Path outputPath;
     if (mOnlyUpdates || mOutputToGameFolder)
-        outputPath = L"D:\\Games\\FIFA Manager 13\\badges\\clubs";
+        outputPath = gameOutputPath / L"badges\\clubs";
     else
         outputPath = badgesPath;
     create_directories(outputPath / L"256x256");
@@ -143,7 +143,7 @@ void GraphicsConverter::ConvertClubBadges(foom::db *db, Map<Int, Path> const &av
     }
 }
 
-void GraphicsConverter::ConvertCompBadges(FifamDatabase *db, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Int minRep) {
+void GraphicsConverter::ConvertCompBadges(FifamDatabase *db, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minRep) {
     Map<Int, Path> availableBadges;
     Path foomBadgesPath = fmGraphicsPath / L"dvx-logos" / L"competitions" / L"primary" / L"@2x";
     for (auto const &i : recursive_directory_iterator(foomBadgesPath)) {
@@ -161,7 +161,7 @@ void GraphicsConverter::ConvertCompBadges(FifamDatabase *db, Path const &fmGraph
     Path badgesPath = contentPath / gameFolder / L"badges" / L"badges" / L"Leagues";
     Path outputPath;
     if (mOnlyUpdates || mOutputToGameFolder)
-        outputPath = L"D:\\Games\\FIFA Manager 13\\badges\\Leagues";
+        outputPath = gameOutputPath / L"badges\\Leagues";
     else
         outputPath = badgesPath;
     create_directories(outputPath / L"256x256");
@@ -488,7 +488,7 @@ Bool GraphicsConverter::ConvertOneTrophy(Path const &trophyPath, Path const &out
     return false;
 }
 
-void GraphicsConverter::ConvertTrophies(FifamDatabase *db, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Int minRep) {
+void GraphicsConverter::ConvertTrophies(FifamDatabase *db, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minRep) {
     String gameFolder = Utils::Format(L"fm%02d", gameId);
     String trophyRoomFolder = L"534x423";
     Path artArchiveForLeagues = L"art_05";
@@ -552,7 +552,7 @@ void GraphicsConverter::ConvertTrophies(FifamDatabase *db, Path const &fmGraphic
     }
 }
 
-void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId) {
+void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
     if (person->mConverterData.mFifamPerson) {
         Path portraitPath = fmGraphicsPath / L"sortitoutsi" / L"faces" / (std::to_wstring(person->mID) + L".png");
         if (exists(portraitPath)) {
@@ -581,7 +581,7 @@ void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGrap
                 !exists(contentPath / gameFolder / L"art_07" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat))))
             {
                 if (mOnlyUpdates || mOutputToGameFolder)
-                    outputPath = Path(L"D:\\Games\\FIFA Manager 13\\portraits\\club\\160x160") / (fifamPerson->mWriteableStringID + targetFormat);
+                    outputPath = Path(gameOutputPath / L"portraits\\club\\160x160") / (fifamPerson->mWriteableStringID + targetFormat);
                 Image portraitImg(portraitPath.string());
                 if (portraitImg.isValid() && portraitImg.baseRows() >= 150 && portraitImg.baseColumns() >= 150) {
                     if (portraitImg.baseColumns() != portraitImg.baseRows()) {
@@ -596,7 +596,7 @@ void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGrap
     }
 }
 
-void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId) {
+void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
     if (referee->mConverterData.mFifamReferee) {
         Path portraitPath = fmGraphicsPath / L"sortitoutsi" / L"faces" / (std::to_wstring(referee->mID) + L".png");
         if (exists(portraitPath)) {
@@ -604,7 +604,7 @@ void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path con
             FifamReferee *fifamReferee = (FifamReferee *)referee->mConverterData.mFifamReferee;
             Path basePath;
             if (mOnlyUpdates || mOutputToGameFolder)
-                basePath = L"D:\\Games\\FIFA Manager 13";
+                basePath = gameOutputPath;
             else {
                 String artArchive = L"art_05";
                 if (gameId <= 12) {
@@ -630,19 +630,20 @@ void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path con
     }
 }
 
-void GraphicsConverter::ConvertPortraits(foom::db *db, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Int minCA) {
-    create_directories(contentPath / L"fm13\\art_02\\portraits\\club\\160x160");
-    create_directories(contentPath / L"fm13\\art_03\\portraits\\club\\160x160");
-    create_directories(contentPath / L"fm13\\art_06\\portraits\\club\\160x160");
-    create_directories(contentPath / L"fm13\\art_07\\portraits\\club\\160x160");
-    create_directories(contentPath / L"fm13\\art_05\\portraits\\Referees\\160x160");
+void GraphicsConverter::ConvertPortraits(foom::db *db, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minCA) {
+    String gameFolder = Utils::Format(L"fm%02d", gameId);
+    create_directories(contentPath / gameFolder / L"art_02\\portraits\\club\\160x160");
+    create_directories(contentPath / gameFolder / L"art_03\\portraits\\club\\160x160");
+    create_directories(contentPath / gameFolder / L"art_06\\portraits\\club\\160x160");
+    create_directories(contentPath / gameFolder / L"art_07\\portraits\\club\\160x160");
+    create_directories(contentPath / gameFolder / L"art_05\\portraits\\Referees\\160x160");
     std::wcout << L"Converting player portraits...  0%";
     UInt max = db->mPlayers.size();
     UInt counter = 0;
     for (auto e : db->mPlayers) {
         auto &p = e.second;
         if (p.mCurrentAbility > minCA)
-            ConvertPortrait(&p, fmGraphicsPath, contentPath, gameId);
+            ConvertPortrait(&p, fmGraphicsPath, contentPath, gameId, gameOutputPath);
         std::wcout << Utils::Format(L"\b\b\b\b%3d%%", (Int)((Float)counter / max * 100));
         counter++;
     }
@@ -654,7 +655,7 @@ void GraphicsConverter::ConvertPortraits(foom::db *db, Path const &fmGraphicsPat
         for (auto e : db->mNonPlayers) {
             auto &p = e.second;
             if (p.mCurrentAbility > minCA)
-                ConvertPortrait(&p, fmGraphicsPath, contentPath, gameId);
+                ConvertPortrait(&p, fmGraphicsPath, contentPath, gameId, gameOutputPath);
             std::wcout << Utils::Format(L"\b\b\b\b%3d%%", (Int)((Float)counter / max * 100));
             counter++;
         }
@@ -666,7 +667,7 @@ void GraphicsConverter::ConvertPortraits(foom::db *db, Path const &fmGraphicsPat
             for (auto e : db->mOfficials) {
                 auto &p = e.second;
                 if (p.mCurrentAbility > minCA)
-                    ConvertRefereePortrait(&p, fmGraphicsPath, contentPath, gameId);
+                    ConvertRefereePortrait(&p, fmGraphicsPath, contentPath, gameId, gameOutputPath);
                 std::wcout << Utils::Format(L"\b\b\b\b%3d%%", (Int)((Float)counter / max * 100));
                 counter++;
             }
@@ -702,7 +703,7 @@ void GraphicsConverter::ConvertOneCity(Int foomClubId, Int fifamClubId, Path con
     }
 }
 
-void GraphicsConverter::ConvertCities(foom::db *db, Path const &inputPath, Path const &contentPath, UInt gameId, Int minRep) {
+void GraphicsConverter::ConvertCities(foom::db *db, Path const &inputPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minRep) {
     Path outputPath = contentPath / L"cities" / L"615x461";
     if (!exists(outputPath))
         create_directories(outputPath);
@@ -775,7 +776,7 @@ void GraphicsConverter::ConvertOneStadium(Int foomId, UInt fifamClubId, Path con
     }
 }
 
-void GraphicsConverter::ConvertStadiums(foom::db *db, Path const &inputPath, Path const &contentPath, UInt gameId, Int minRep, bool overview) {
+void GraphicsConverter::ConvertStadiums(foom::db *db, Path const &inputPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minRep, bool overview) {
     Path outputPath = contentPath / L"stadiums";
     Path inputImagesFolder = inputPath / (overview ? L"stadiums_overview" : L"stadiums_my");
     if (!exists(outputPath))
@@ -819,7 +820,7 @@ void WriteTextModeBadge(Image &img, Image &mask, Path const &outputPath, String 
     tmImg.write(Path(outputPath / fileName).string());
 }
 
-void GraphicsConverter::ConvertClubBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId) {
+void GraphicsConverter::ConvertClubBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
     String gameFolder = Utils::Format(L"fm%02d", gameId);
     Path outputPath = contentPath / gameFolder / L"badges" / L"badges" / L"clubs";
     create_directories(outputPath / L"256x256");
@@ -857,7 +858,7 @@ void GraphicsConverter::ConvertClubBadgesFIFA(FifamDatabase *db, Path const &fif
     }
 }
 
-void GraphicsConverter::DownloadClubBadgesFIFA(FifamDatabase *db, Path const &contentPath, UInt gameId) {
+void GraphicsConverter::DownloadClubBadgesFIFA(FifamDatabase *db, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
     String gameFolder = Utils::Format(L"fm%02d", gameId);
     Path outputPath = contentPath / gameFolder / L"badges" / L"badges" / L"clubs";
     create_directories(outputPath / L"256x256");
@@ -914,7 +915,7 @@ Bool DownloadAndSavePlayerPhoto(Int playerId, Char const *filepath) {
     return true;
 }
 
-void GraphicsConverter::DownloadPlayerPortraitsFIFA(FifamDatabase *db, Path const &contentPath, UInt gameId) {
+void GraphicsConverter::DownloadPlayerPortraitsFIFA(FifamDatabase *db, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
     if (gameId >= 9) {
         Path outputPath = contentPath / L"portraits" / L"club" / L"160x160";
         create_directories(outputPath);
@@ -1012,7 +1013,7 @@ FifamClubTeamColor GraphicsConverter::GetBadgeColor(Path const &filepath) {
     return FifamClubTeamColor::MakeFromInt(Random::Get(0, 27));
 }
 
-void GraphicsConverter::ConvertPlayerPortraitsFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId) {
+void GraphicsConverter::ConvertPlayerPortraitsFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
     Path picPath;
     if (gameId >= 9) {
         Path assetsDir = fifaAssetsPath / L"minifaces";
@@ -1061,7 +1062,7 @@ void GraphicsConverter::ConvertPlayerPortraitsFIFA(FifamDatabase *db, Path const
     }
 }
 
-void GraphicsConverter::ConvertCompBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId) {
+void GraphicsConverter::ConvertCompBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
     String gameFolder = Utils::Format(L"fm%02d", gameId);
     Path outputPath = contentPath / gameFolder / L"badges" / L"badges" / L"Leagues";
     create_directories(outputPath / L"256x256");
@@ -1269,7 +1270,7 @@ void GraphicsConverter::ConvertCompBadgesFIFA(FifamDatabase *db, Path const &fif
     }
 }
 
-void GraphicsConverter::CopyLeagueSplitAndRelegationBadges(FifamDatabase *db, Path const &outputPath, Path const &contentPath, UInt gameId) {
+void GraphicsConverter::CopyLeagueSplitAndRelegationBadges(FifamDatabase *db, Path const &outputPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
     String gameFolder = Utils::Format(L"fm%02d", gameId);
     Path badgesPath = /*contentPath / gameFolder*/ outputPath / L"badges" / L"Leagues";
     Path badgesOutputPath = outputPath / L"badges" / L"Leagues";

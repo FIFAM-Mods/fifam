@@ -17,7 +17,12 @@ public:
     UInt mCurrentGameId = FifamDatabase::LATEST_GAME_VERSION;
     Bool mFromFifaDatabase = false;
     foom::db *mFoomDatabase = nullptr;
-    Path mFifaAssetsPath = L"D:\\Projects\\FIFA19";
+    Bool mWarnings = false;
+    Bool mErrors = true;
+    Path mOutputGameFolder;
+    Path mContentFolder;
+    Path mContentArtsFolder;
+    Path mFifaAssetsPath;
 
     FifamDatabase *mPreviousDb = nullptr;
     Map<UInt, FifamPlayer *> mPreviousPlayers;
@@ -183,8 +188,7 @@ public:
     Date FmEmptyDate() { return Date(1, 1, 1900); }
 
     void ReadAdditionalInfo(Path const &infoPath, UInt gameId);
-    void Convert(UInt gameId, Bool writeToGameFolder);
-    void Convert(UInt gameId, UInt originalGameId, Path const &originalDb, UInt referenceGameId, Path const &referenceDb, Bool writeToGameFolder, Bool fromFifaDatabase = false);
+    void Convert();
 
     Int ConvertPlayerAttribute(Int attr, UInt gameId = 14);
     Int LinearConvertPlayerAttribute(Int attr, UInt gameId = 14);

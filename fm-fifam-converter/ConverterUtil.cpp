@@ -141,7 +141,7 @@ Array<String, 6> TranslationArrayFromTrArray(FifamTrArray<String> const &dst) {
     Array<String, 6> result;
     for (UInt i = 0; i < result.size(); i++) {
         Int language = TranslationArrayIDToTranslationLanguageFm(i);
-        if (language != -1 && language < dst.size())
+        if (language != -1 && language < Int(dst.size()))
             result[i] = dst[language];
     }
     return result;

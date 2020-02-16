@@ -296,10 +296,10 @@ public:
         GetLine(line);
         auto startPos = line.find_first_of(L'{');
         if (startPos != String::npos)
-            line = substr(startPos + 1);
+            line = line.substr(startPos + 1);
         auto endPos = line.find_first_of(L'}');
         if (endPos != String::npos)
-            line = substr(0, endPos);
+            line = line.substr(0, endPos);
         auto strArgs = Utils::Split(line, L',');
         UInt currArg = 0;
         ReadOneArg(strArgs, currArg, std::forward<ArgTypes>(args)...);

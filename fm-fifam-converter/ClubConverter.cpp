@@ -3,8 +3,6 @@
 #include "FifamUtils.h"
 #include "ConverterUtil.h"
 
-
-
 void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div) {
     // name
     SetNameAndTranslation(dst->mName, team->mName, team->mTranslatedNames, 29, team->mShortName, team->mTranslatedShortNames);
@@ -842,7 +840,7 @@ void Converter::ConvertKitsAndColors(FifamClub * dst, Int foomId, Vector<foom::k
                 exists(mFifaAssetsPath / L"crest" / Utils::Format(L"%d.png", dst->mFifaID)) ||
                 exists(mFifaAssetsPath / L"_crest" / Utils::Format(L"l%d.dds", dst->mFifaID)) ||
                 exists(mFifaAssetsPath / L"_crest" / Utils::Format(L"%d.png", dst->mFifaID)) ||
-                exists(Utils::Format(L"D:\\Games\\FIFA MANAGER %02d\\badges\\clubs\\256x256\\%08X.tga", gameId, dst->mUniqueID))
+                exists(Utils::Format(mOutputGameFolder / L"badges\\clubs\\256x256\\%08X.tga", gameId, dst->mUniqueID))
                 )
             {
                 dst->mBadge.SetBadgePath(L"clubs\\Badge%d\\" + Utils::Format(L"%08X", dst->mUniqueID) + L".tga");
@@ -1201,8 +1199,8 @@ void Converter::ConvertKitsAndColors(FifamClub * dst, Int foomId, Vector<foom::k
         }
 
         // (if club has no FIFA kit)
-        if (!exists(L"D:\\Games\\FIFA Manager 13\\data\\kits\\" + Utils::Format(L"%08X", dst->mUniqueID) + L"_h.tga")
-            && !exists(L"D:\\Projects\\fifam\\content\\fm13\\art_05\\data\\kits\\" + Utils::Format(L"%08X", dst->mUniqueID) + L"_h.tga"))
+        if (!exists(mOutputGameFolder / (L"data\\kits\\" + Utils::Format(L"%08X", dst->mUniqueID) + L"_h.tga"))
+            && !exists(mContentArtsFolder / (L"art_05\\data\\kits\\" + Utils::Format(L"%08X", dst->mUniqueID) + L"_h.tga")))
         {
             Color shirtBackColor = FifamKit::GetShirtBackColor(kit.mShirt, kit.mShirtColors[0], kit.mShirtColors[1], kit.mShirtColors[2]);
             if (Color::Distance(kit.mShirtNumberColor, shirtBackColor) < 100) {
@@ -1227,13 +1225,17 @@ FifamClub *Converter::CreateAndConvertClub(UInt gameId, foom::club *team, foom::
         UChar countryId = FifamUtils::GetCountryIDFromClubID(club->mUniqueID);
         if (countryId >= 1 && countryId <= FifamDatabase::NUM_COUNTRIES) {
             if (countryId != country->mId) {
-                Error(L"Incorrect Club Country in UniqueID\nClub: '%s'\nUniqueID: %08X\nCountryId: %d\nIncorrectCountryId: %d",
-                    team->mName.c_str(), club->mUniqueID, country->mId, countryId);
+                if (mErrors) {
+                    Error(L"Incorrect Club Country in UniqueID\nClub: '%s'\nUniqueID: %08X\nCountryId: %d\nIncorrectCountryId: %d",
+                        team->mName.c_str(), club->mUniqueID, country->mId, countryId);
+                }
             }
         }
         else {
-            Error(L"Incorrect Club UniqueID\nClub: '%s'\nUniqueID: %08X\nIncorrectCountryId: %d",
-                team->mName.c_str(), club->mUniqueID, countryId);
+            if (mErrors) {
+                Error(L"Incorrect Club UniqueID\nClub: '%s'\nUniqueID: %08X\nIncorrectCountryId: %d",
+                    team->mName.c_str(), club->mUniqueID, countryId);
+            }
         }
     }
     if (club->mUniqueID == 0)

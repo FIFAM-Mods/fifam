@@ -106,6 +106,7 @@
     <ClInclude Include="tests\BadgeTest.h" />
     <ClInclude Include="tests\CalendarDatabase.h" />
     <ClInclude Include="tests\CopyPortraitsLight.h" />
+    <ClInclude Include="tests\CreateStarheadsFile.h" />
     <ClInclude Include="tests\DbConvert.h" />
     <ClInclude Include="tests\ExportClubIDs.h" />
     <ClInclude Include="tests\CompetitionsTest.h" />

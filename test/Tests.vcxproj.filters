@@ -139,6 +139,9 @@
     <ClInclude Include="Translation.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\CreateStarheadsFile.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

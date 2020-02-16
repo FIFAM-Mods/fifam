@@ -34,8 +34,9 @@
 #include "tests\ExportJapanLeaguePlayers.h"
 #include "tests\MissingPortraits.h"
 #include "tests\DatabaseRewrite.h"
+#include "tests\CreateStarheadsFile.h"
 #include "Translation.h"
 
 void RunTests() {
-    RunTest<Translation>();
+    RunTest<CreateStarheadsFile>();
 }

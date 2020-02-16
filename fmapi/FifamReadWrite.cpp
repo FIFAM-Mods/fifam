@@ -43,6 +43,9 @@ void FifamFileWorker::SetVersion(UShort year, UShort number) {
 FifamWriter::FifamWriter(Path const &filename, UInt gameId, FifamVersion const &version, Bool unicode) :
     FifamFileWorker(gameId)
 {
+    auto parentPath = filename.parent_path();
+    if (!parentPath.empty() && !exists(parentPath))
+        create_directories(parentPath);
     mFile = _wfopen(filename.c_str(), unicode ? L"wb" : L"wt");
     if (mFile && unicode) {
         UChar sign[3];

@@ -13,29 +13,57 @@
 
 #define DB_SIZE Full
 
-Bool QUICK_TEST = true;
-Bool GENERATE_IDS = false;
-Bool READ_FOOM_PERSONS = !QUICK_TEST;
-Bool MAKE_CORRECTIONS_FOR_UPDATE = !QUICK_TEST;
-Bool READ_REFERENCE_DB = !QUICK_TEST;
-Bool INCREASE_CONTRACTS = false;
-Bool DB_REF_COLORS = true;
-
-/*
-Bool QUICK_TEST = true;
-Bool GENERATE_IDS = false;
-Bool READ_FOOM_PERSONS = !QUICK_TEST;
-Bool MAKE_CORRECTIONS_FOR_UPDATE = false;
-Bool READ_REFERENCE_DB = !QUICK_TEST;
-Bool INCREASE_CONTRACTS = false;
-Bool DB_REF_COLORS = true;
-*/
-
-void Converter::Convert(UInt gameId, Bool writeToGameFolder) {
-
+Int GetIniInt(wchar_t const *key, Int defaultValue = 0) {
+    static wchar_t const *ConfigPath = L".\\CONFIG.INI";
+    static wchar_t const *MainSection = L"MAIN";
+    return GetPrivateProfileIntW(MainSection, key, defaultValue, ConfigPath);
 }
 
-void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb, UInt referenceGameId, Path const &referenceDb, Bool writeToGameFolder, Bool fromFifaDatabase) {
+Path GetIniPath(wchar_t const *key, Path const &defaultValue = Path()) {
+    static wchar_t const *ConfigPath = L".\\CONFIG.INI";
+    static wchar_t const *MainSection = L"MAIN";
+    wchar_t ResultPath[MAX_PATH];
+    GetPrivateProfileStringW(MainSection, key, defaultValue.c_str(), ResultPath, MAX_PATH, ConfigPath);
+    return ResultPath;
+}
+
+void Converter::Convert() {
+    UInt originalGameId = GetIniInt(L"ORIGINAL_DB_VERSION", 13);
+    Path originalDb = GetIniPath(L"ORIGINAL_DB_FOLDER", L"reference\\dbs\\fm13\\database");
+    UInt referenceGameId = GetIniInt(L"REFERENCE_DB_VERSION", 14);
+    Path referenceDb = GetIniPath(L"REFERENCE_DB_FOLDER", L"reference\\dbs\\fm14\\database");
+    UInt gameId = GetIniInt(L"OUTPUT_GAME_VERSION", 13);
+    mOutputGameFolder = GetIniPath(L"OUTPUT_GAME_FOLDER", L"D:\\Games\\FIFA Manager 13");
+    Bool writeToGameFolder = GetIniInt(L"WRITE_TO_OUTPUT_FOLDER", 1);
+    Bool fromFifaDatabase = GetIniInt(L"FROM_FIFA_DB", 0);
+    Bool QUICK_TEST = GetIniInt(L"QUICK_TEST", 1);
+    Bool GENERATE_IDS = GetIniInt(L"GENERATE_IDS", 0);
+    Bool INCREASE_CONTRACTS = GetIniInt(L"INCREASE_CONTRACTS", 0);
+    Path testsOutputFolder = GetIniPath(L"TESTS_OUTPUT_FOLDER", L"tests");
+    Path dbPath = GetIniPath(L"DB_FOLDER", L"db");
+    Path graphicsPath = GetIniPath(L"FM_GRAPHICS_FOLDER", L"D:\\Documents\\Sports Interactive\\Football Manager 2020\\graphics");
+    mContentFolder = GetIniPath(L"CONTENT_FOLDER", L"content");
+    mContentArtsFolder = mContentFolder / Utils::Format(L"fm%02d", gameId);
+    mFifaAssetsPath = GetIniPath(L"FIFA_GRAPHICS_FOLDER", L"D:\\Projects\\FIFA20");
+
+    Bool CONVERT_CLUB_BADGES = GetIniInt(L"CONVERT_CLUB_BADGES", 0);
+    Bool CONVERT_COMP_BADGES = GetIniInt(L"CONVERT_COMP_BADGES", 0);
+    Bool CONVERT_PORTRAITS = GetIniInt(L"CONVERT_PORTRAITS", 0);
+    Bool CONVERT_TROPHIES = GetIniInt(L"CONVERT_TROPHIES", 0);
+    Bool CONVERT_CITYPICS = GetIniInt(L"CONVERT_CITYPICS", 0);
+    Bool CONVERT_STADPICS = GetIniInt(L"CONVERT_STADPICS", 0);
+    Bool COPY_LEAGUE_SPLIT_AND_RELEGATION_BADGES = GetIniInt(L"COPY_LEAGUE_SPLIT_AND_RELEGATION_BADGES", 0);
+    Bool GRAPHICS_WRITE_TO_GAME_FOLDER = GetIniInt(L"GRAPHICS_WRITE_TO_GAME_FOLDER", 0);
+    Bool GRAPHICS_UPDATE_ONLY = GetIniInt(L"GRAPHICS_UPDATE_ONLY", 0);
+
+    mWarnings = GetIniInt(L"HIDE_WARNINGS", 1) == 0;
+    mErrors = GetIniInt(L"HIDE_ERRORS", 0) == 0;
+    
+    Bool READ_FOOM_PERSONS = !QUICK_TEST;
+    Bool MAKE_CORRECTIONS_FOR_UPDATE = !QUICK_TEST;
+    Bool READ_REFERENCE_DB = !QUICK_TEST;
+    Bool DB_REF_COLORS = false;
+    
     mCurrentGameId = gameId;
     mFromFifaDatabase = fromFifaDatabase;
 
@@ -56,23 +84,23 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
         mReferenceDatabase = new FifamDatabase(referenceGameId, referenceDb);
     }
 
-    if (MAKE_CORRECTIONS_FOR_UPDATE) {
+    if (false && MAKE_CORRECTIONS_FOR_UPDATE) {
         FifamDatabase::mReadingOptions.mReadClubs = true;
         FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
         FifamDatabase::mReadingOptions.mReadPersons = true;
 
-        mPreviousDb = new FifamDatabase(gameId, Utils::Format(L"D:\\Games\\FIFA Manager %02d\\database text", gameId));
+        mPreviousDb = new FifamDatabase(gameId, mOutputGameFolder / L"database text");
         
         for (FifamPlayer *p : mPreviousDb->mPlayers)
             mPreviousPlayers[p->mEmpicsId] = p;
     }
 
-    if (DB_REF_COLORS) {
+    if (false && DB_REF_COLORS) {
         FifamDatabase::mReadingOptions.mReadClubs = true;
         FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
         FifamDatabase::mReadingOptions.mReadPersons = false;
 
-        auto colorsDb = new FifamDatabase(gameId, Utils::Format(L"D:\\Games\\FIFA Manager %02d\\ref_db_colors", gameId));
+        auto colorsDb = new FifamDatabase(gameId, Utils::Format(mOutputGameFolder / L"ref_db_colors", gameId));
 
         for (FifamClub *c : colorsDb->mClubs)
             mRefDbColors[c->mUniqueID] = c->mClubColour;
@@ -80,12 +108,10 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
         delete colorsDb;
     }
 
-    mFifaDatabase = new FifaDatabase(L"D:\\Projects\\fifam\\db\\fifa");
-    mFoomDatabase = new foom::db(L"D:\\Projects\\fifam\\db\\foom", fromFifaDatabase? false : READ_FOOM_PERSONS, foom::db::db_size::DB_SIZE);
+    mFifaDatabase = new FifaDatabase(dbPath / L"fifa");
+    mFoomDatabase = new foom::db(dbPath / L"foom", fromFifaDatabase? false : READ_FOOM_PERSONS, foom::db::db_size::DB_SIZE);
 
-    Path infoPath = L"D:\\Projects\\fifam\\db";
-    Path graphicsPath = L"D:\\Documents\\Sports Interactive\\Football Manager 2019\\graphics";
-    Path contentPath = L"D:\\Projects\\fifam\\content";
+    Path infoPath = dbPath;
 
     if (mFromFifaDatabase)
         FifaConverter::ReadHistoryRatings(infoPath);
@@ -130,11 +156,14 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
     }
 
     if (!mFromFifaDatabase) {
-        std::wcout << L"Scanning badges folder..." << std::endl;
-        for (auto const &i : recursive_directory_iterator(graphicsPath / L"dvx-logos" / L"clubs" / L"primary" / L"@2x")) {
-            Int id = Utils::SafeConvertInt<Int>(i.path().filename().c_str());
-            if (id > 0 && i.path().extension() == ".png")
-                mAvailableBadges[id] = i.path();
+        Path foomBadgesPath = graphicsPath / L"dvx-logos" / L"clubs" / L"primary" / L"@2x";
+        if (exists(foomBadgesPath)) {
+            std::wcout << L"Scanning badges folder..." << std::endl;
+            for (auto const &i : recursive_directory_iterator(foomBadgesPath)) {
+                Int id = Utils::SafeConvertInt<Int>(i.path().filename().c_str());
+                if (id > 0 && i.path().extension() == ".png")
+                    mAvailableBadges[id] = i.path();
+            }
         }
     }
 
@@ -528,7 +557,9 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
             && player.mFutureTransfer.mClub != player.mContract.mClub)
         {
             if (player.mFutureTransfer.mTransferDate <= loanEndDate) {
-                //Error(L"Player is loaned and transferred at same time\nPlayer: %s\nPlayerID: %d", player.mFullName.c_str(), player.mID);
+                if (mErrors) {
+                    //Error(L"Player is loaned and transferred at same time\nPlayer: %s\nPlayerID: %d", player.mFullName.c_str(), player.mID);
+                }
             }
             else {
                 if (player.mFutureTransfer.mClub->mConverterData.mFifamClub) {
@@ -1375,7 +1406,8 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
             // history - validate years
             for (auto &h : p.mVecPlayingHistory) {
                 if (h.mYear <= 0) {
-                    Error(L"Wrong date in player history\nPlayer: %s\nPlayerID: %d", p.mFullName.c_str(), p.mID);
+                    if (mErrors)
+                        Error(L"Wrong date in player history\nPlayer: %s\nPlayerID: %d", p.mFullName.c_str(), p.mID);
                     h.mYear = 1970;
                 }
             };
@@ -2043,9 +2075,11 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
 
     mFifamDatabase->mWritingOptions.mWriteAssessment = false;
 
+    Path outputPath = writeToGameFolder ? mOutputGameFolder : testsOutputFolder;
+    Path outputDbPath = outputPath / L"database";
+
     std::wcout << L"Writing database..." << std::endl;
-    mFifamDatabase->Write(gameId, FifamDatabase::GetGameDbVersion(gameId),
-        writeToGameFolder ? Utils::Format(L"D:\\Games\\FIFA Manager %02d\\database", gameId).c_str() : L"fm_test\\database");
+    mFifamDatabase->Write(gameId, FifamDatabase::GetGameDbVersion(gameId), outputDbPath);
 
     if (!mFromFifaDatabase) {
         if (gameId >= 11 && writeToGameFolder) {
@@ -2088,7 +2122,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
             std::sort(derbies.begin(), derbies.end(), [](derby_info const &a, derby_info const &b) {
                 return a.reputation > b.reputation;
             });
-            FifamWriter derbiesWriter(Utils::Format(L"D:\\Games\\FIFA Manager %02d\\fmdata\\Parameter Files\\Derbies.txt", gameId),
+            FifamWriter derbiesWriter(Utils::Format(outputPath / L"fmdata\\Parameter Files\\Derbies.txt", gameId),
                 gameId, FifamVersion(), false);
             if (derbiesWriter.Available()) {
                 derbiesWriter.WriteLine(L"BEGIN( DERBIES )");
@@ -2116,7 +2150,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                 derbiesWriter.Write(L"END");
                 derbiesWriter.Close();
             }
-            FifamWriter derbyNamesWriter(Utils::Format(L"D:\\Games\\FIFA Manager %02d\\plugins\\ucp\\derbies.tr", gameId),
+            FifamWriter derbyNamesWriter(Utils::Format(outputPath / L"plugins\\ucp\\derbies.tr", gameId),
                 gameId, FifamVersion(), true);
             Set<String> writtenDerbyNames;
             if (derbyNamesWriter.Available()) {
@@ -2132,7 +2166,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
                 }
                 derbyNamesWriter.Close();
             }
-            FifamWriter derbyNamesWriterRu(Utils::Format(L"D:\\Games\\FIFA Manager %02d\\plugins\\ucp\\derbies_ru.tr", gameId),
+            FifamWriter derbyNamesWriterRu(Utils::Format(outputPath / L"plugins\\ucp\\derbies_ru.tr", gameId),
                 gameId, FifamVersion(), true);
             Set<String> writtenDerbyNamesRu;
             if (derbyNamesWriterRu.Available()) {
@@ -2151,7 +2185,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
 
         std::wcout << L"Writing female persons..." << std::endl;
 
-        FifamWriter femaleStaffWriter(Utils::Format(L"D:\\Games\\FIFA Manager %02d\\database\\FemaleStaff.sav", gameId), gameId, FifamVersion(), true);
+        FifamWriter femaleStaffWriter(Utils::Format(outputDbPath / L"FemaleStaff.sav", gameId), gameId, FifamVersion(), true);
         femaleStaffWriter.WriteLine(L"FirstName,LastName,Pseudonym,Birthdate,Nationality,Job,ID");
         for (FifamStaff *staff : mFifamDatabase->mStaffs) {
             auto fmstaff = staff->GetProperty<foom::non_player *>(L"foom::non_player");
@@ -2162,7 +2196,7 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
             }
         }
 
-        FifamWriter femaleRefereeWriter(Utils::Format(L"D:\\Games\\FIFA Manager %02d\\database\\FemaleReferee.sav", gameId), gameId, FifamVersion(), true);
+        FifamWriter femaleRefereeWriter(Utils::Format(outputDbPath / L"FemaleReferee.sav", gameId), gameId, FifamVersion(), true);
         femaleRefereeWriter.WriteLine(L"FirstName,LastName,Pseudonym,Birthdate,Nationality,Job,ID");
         for (FifamReferee *ref : mFifamDatabase->mReferees) {
             auto fmofficial = ref->GetProperty<foom::official *>(L"foom::official");
@@ -2175,28 +2209,45 @@ void Converter::Convert(UInt gameId, UInt originalGameId, Path const &originalDb
 
 #if 1
     if (!mFromFifaDatabase) {
-        //graphicsConverter.mOnlyUpdates = true;
-        graphicsConverter.mOutputToGameFolder = true;
-        std::wcout << L"Converting club badges..." << std::endl;
-        graphicsConverter.ConvertClubBadges(mFoomDatabase, mAvailableBadges, graphicsPath, contentPath, gameId, 0);
-        //std::wcout << L"Converting portraits..." << std::endl;
-        //graphicsConverter.ConvertPortraits(mFoomDatabase, graphicsPath, contentPath, gameId, 0);
-        //std::wcout << L"Converting competition badges..." << std::endl;
-        //graphicsConverter.ConvertCompBadges(mFifamDatabase, graphicsPath, contentPath, gameId, 0);
-        //std::wcout << L"Converting trophies..." << std::endl;
-        //graphicsConverter.ConvertTrophies(mFifamDatabase, graphicsPath, contentPath, gameId, 0);
-        //graphicsConverter.ConvertCities(mFoomDatabase, L"D:\\Downloads", L"D:\\Games\\FIFA Manager 13", gameId, 0);
-        //graphicsConverter.ConvertStadiums(mFoomDatabase, L"D:\\Downloads", L"D:\\Games\\FIFA Manager 13", gameId, 0, false);
-        //graphicsConverter.CopyLeagueSplitAndRelegationBadges(mFifamDatabase, Utils::Format(L"D:\\Games\\FIFA Manager %02d", gameId), contentPath, gameId);
+        graphicsConverter.mOnlyUpdates = GRAPHICS_UPDATE_ONLY;
+        graphicsConverter.mOutputToGameFolder = GRAPHICS_WRITE_TO_GAME_FOLDER;
+        if (CONVERT_CLUB_BADGES) {
+            std::wcout << L"Converting club badges..." << std::endl;
+            graphicsConverter.ConvertClubBadges(mFoomDatabase, mAvailableBadges, graphicsPath, mContentFolder, gameId, mOutputGameFolder, 0);
+        }
+        if (CONVERT_COMP_BADGES) {
+            std::wcout << L"Converting competition badges..." << std::endl;
+            graphicsConverter.ConvertCompBadges(mFifamDatabase, graphicsPath, mContentFolder, gameId, mOutputGameFolder, 0);
+        }
+        if (COPY_LEAGUE_SPLIT_AND_RELEGATION_BADGES)
+            graphicsConverter.CopyLeagueSplitAndRelegationBadges(mFifamDatabase, mOutputGameFolder, mContentFolder, gameId, mOutputGameFolder);
+        if (CONVERT_PORTRAITS) {
+            std::wcout << L"Converting portraits..." << std::endl;
+            graphicsConverter.ConvertPortraits(mFoomDatabase, graphicsPath, mContentFolder, gameId, mOutputGameFolder, 0);
+        }
+        if (CONVERT_TROPHIES) {
+            std::wcout << L"Converting trophies..." << std::endl;
+            graphicsConverter.ConvertTrophies(mFifamDatabase, graphicsPath, mContentFolder, gameId, mOutputGameFolder, 0);
+        }
+        if (CONVERT_CITYPICS)
+            graphicsConverter.ConvertCities(mFoomDatabase, mContentFolder, mOutputGameFolder, gameId, mOutputGameFolder, 0);
+        if (CONVERT_STADPICS)
+            graphicsConverter.ConvertStadiums(mFoomDatabase, mContentFolder, mOutputGameFolder, gameId, mOutputGameFolder, 0, false);
     }
     else {
-        //std::wcout << L"Converting FIFA club badges..." << std::endl;
-        //graphicsConverter.ConvertClubBadgesFIFA(mFifamDatabase, mFifaAssetsPath, contentPath, gameId);
-        //std::wcout << L"Converting FIFA competition badges..." << std::endl;
-        //graphicsConverter.ConvertCompBadgesFIFA(mFifamDatabase, mFifaAssetsPath, contentPath, gameId);
-        //std::wcout << L"Converting FIFA player pictures..." << std::endl;
-        //graphicsConverter.ConvertPlayerPortraitsFIFA(mFifamDatabase, mFifaAssetsPath, contentPath, gameId);
-        //graphicsConverter.DownloadPlayerPortraitsFIFA(mFifamDatabase, L"D:\\Games\\FIFA MANAGER 11", gameId);
+        if (CONVERT_CLUB_BADGES) {
+            std::wcout << L"Converting FIFA club badges..." << std::endl;
+            graphicsConverter.ConvertClubBadgesFIFA(mFifamDatabase, mFifaAssetsPath, mContentFolder, gameId, mOutputGameFolder);
+        }
+        if (CONVERT_COMP_BADGES) {
+            std::wcout << L"Converting FIFA competition badges..." << std::endl;
+            graphicsConverter.ConvertCompBadgesFIFA(mFifamDatabase, mFifaAssetsPath, mContentFolder, gameId, mOutputGameFolder);
+        }
+        if (CONVERT_PORTRAITS) {
+            std::wcout << L"Converting FIFA player pictures..." << std::endl;
+            graphicsConverter.ConvertPlayerPortraitsFIFA(mFifamDatabase, mFifaAssetsPath, mContentFolder, gameId, mOutputGameFolder);
+        }
+        //graphicsConverter.DownloadPlayerPortraitsFIFA(mFifamDatabase, mOutputGameFolder, gameId);
     }
 #endif
 
@@ -2371,7 +2422,9 @@ Int Converter::ConvertFormationIdToCustom(Int id) {
 
 void Converter::GenerateNewTeamIDsFile(Path const &outputFilePath, Path const &oldTeamIDsFilePath) {
     if (!mFoomDatabase) {
-        Error(L"FoomDatabase is not available");
+        if (mErrors) {
+            Error(L"FoomDatabase is not available");
+        }
         return;
     }
     struct TeamDesc {
@@ -2404,8 +2457,11 @@ void Converter::GenerateNewTeamIDsFile(Path const &outputFilePath, Path const &o
                     info.mReputation, info.mLeagueLevel);
                 if (info.mFifaManagerID > 0) {
                     auto it = uniqueUIDsMap.find(info.mFifaManagerID);
-                    if (it != uniqueUIDsMap.end())
-                        Error(L"Duplicated Unique ID in old team IDs file: %08X\nClub1: %d\nClub2: %d", info.mFifaManagerID, (*it).second, FootballManagerID);
+                    if (it != uniqueUIDsMap.end()) {
+                        if (mErrors) {
+                            Error(L"Duplicated Unique ID in old team IDs file: %08X\nClub1: %d\nClub2: %d", info.mFifaManagerID, (*it).second, FootballManagerID);
+                        }
+                    }
                     else {
                         info.mValid = false;
                         uidsMap[FootballManagerID] = info;
@@ -2528,8 +2584,8 @@ Bool Converter::ClubColorsFromBadgeFile(UInt clubId, FifamClubTeamColor &out) {
     Bool result = false;
     String filename = Utils::Format(L"%08X.tga", clubId);
     const String resolution = L"32x32";
-    static Path p1 = Path(L"D:\\Games\\FIFA Manager 13\\badges\\clubs") / resolution / filename;
-    static Path p2 = Path(L"D:\\Projects\\fifam\\content\\fm13\\badges\\badges\\clubs") / resolution / filename;
+    static Path p1 = Path(mOutputGameFolder / L"badges\\clubs") / resolution / filename;
+    static Path p2 = Path(mContentArtsFolder / L"badges\\badges\\clubs") / resolution / filename;
     Path p;
     if (!exists(p1)) {
         if (exists(p2)) {

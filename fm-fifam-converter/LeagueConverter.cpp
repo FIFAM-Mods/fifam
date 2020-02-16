@@ -10,7 +10,9 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
         return false;
     auto countryId = country->mId;
     auto ErrorMsg = [&](String const &message) {
-        Error(L"Error while creating special competition format:\n" + message + L"\nin " + FifamTr(country->mName));
+        if (mErrors) {
+            Error(L"Error while creating special competition format:\n" + message + L"\nin " + FifamTr(country->mName));
+        }
         return false;
     };
     auto GetNextLeagueCupIndex = [&]() {
@@ -743,7 +745,9 @@ void Converter::ConvertLeagues(UInt gameId) {
 
                         foom::comp *comp = mFoomDatabase->get<foom::comp>(lg->mID);
                         if (!comp) {
-                            Error(L"Competition is not available\nCompetitionName: %s\nCompetitionID: %d", lg->mName.c_str(), lg->mID);
+                            if (mErrors) {
+                                Error(L"Competition is not available\nCompetitionName: %s\nCompetitionID: %d", lg->mName.c_str(), lg->mID);
+                            }
                             continue;
                         }
 
@@ -824,11 +828,16 @@ void Converter::ConvertLeagues(UInt gameId) {
                             league->mSuccessors.push_back(FifamCompID(country->mId, FifamCompType::Relegation, 1));
 
                             if (lg->mSplit.second <= 0 && lg->mSplit.first + lg->mSplit.second != lg->mTeams) {
-                                Error(L"Incorrect league split format (%s (%d)) - total teams: %d, split: %d/%d",
-                                    lg->mName.c_str(), lg->mID, lg->mTeams, lg->mSplit.first, lg->mSplit.second);
+                                if (mErrors) {
+                                    Error(L"Incorrect league split format (%s (%d)) - total teams: %d, split: %d/%d",
+                                        lg->mName.c_str(), lg->mID, lg->mTeams, lg->mSplit.first, lg->mSplit.second);
+                                }
                             }
-                            else if (lg->mLevel != 0)
-                                Error(L"League split is possible only on first league level (%s (%d))", lg->mName.c_str(), lg->mID);
+                            else if (lg->mLevel != 0) {
+                                if (mErrors) {
+                                    Error(L"League split is possible only on first league level (%s (%d))", lg->mName.c_str(), lg->mID);
+                                }
+                            }
                             else {
                                 String roundNames[2] = { L" Top " + Utils::Format(L"%u", lg->mSplit.first),
                                     L" Bottom " + Utils::Format(L"%u", lg->mSplit.second) };
@@ -875,21 +884,32 @@ void Converter::ConvertLeagues(UInt gameId) {
                         }
 
                         if (lg->mTotalTeamsPromotionPlayoff > 0) {
-                            if (league->mCompetitionLevel == 0)
-                                Error(L"League promotion play-off is not possible at first league level (%s (%d))", lg->mName.c_str(), lg->mID);
+                            if (league->mCompetitionLevel == 0) {
+                                if (mErrors) {
+                                    Error(L"League promotion play-off is not possible at first league level (%s (%d))", lg->mName.c_str(), lg->mID);
+                                }
+                            }
                             else {
-                                if ((lg->mPromoted + lg->mRelegated + lg->mTotalTeamsPromotionPlayoff + lg->mTotalTeamsRelegationPlayoff) > league->mNumTeams)
-                                    Error(L"Not enough teams in league for promotion/relegation play-off (%s (%d))", lg->mName.c_str(), lg->mID);
+                                if ((lg->mPromoted + lg->mRelegated + lg->mTotalTeamsPromotionPlayoff + lg->mTotalTeamsRelegationPlayoff) > league->mNumTeams) {
+                                    if (mErrors) {
+                                        Error(L"Not enough teams in league for promotion/relegation play-off (%s (%d))", lg->mName.c_str(), lg->mID);
+                                    }
+                                }
                                 else {
                                     auto it = playOffs.find(lg->mPromotionID);
-                                    if (it == playOffs.end())
-                                        Error(L"Incorrect league promotion play-off ID (%s (%d)) - %d", lg->mName.c_str(), lg->mID, lg->mPromotionID);
+                                    if (it == playOffs.end()) {
+                                        if (mErrors) {
+                                            Error(L"Incorrect league promotion play-off ID (%s (%d)) - %d", lg->mName.c_str(), lg->mID, lg->mPromotionID);
+                                        }
+                                    }
                                     else {
                                         auto &po = (*it).second;
                                         Bool promotionError = false;
                                         if (po->mIsLeague) {
                                             if (lg->mPromotionPlayoff.size() != 1) {
-                                                Error(L"League promotion play-off should have only 1 play-off group (%s (%d))", lg->mName.c_str(), lg->mID);
+                                                if (mErrors) {
+                                                    Error(L"League promotion play-off should have only 1 play-off group (%s (%d))", lg->mName.c_str(), lg->mID);
+                                                }
                                                 promotionError = true;
                                             }
                                             else {
@@ -908,7 +928,9 @@ void Converter::ConvertLeagues(UInt gameId) {
                                         }
                                         else {
                                             if (po->mRounds.size() < lg->mPromotionPlayoff.size()) {
-                                                Error(L"Too many teams in promotion play-off (%s (%d))", lg->mName.c_str(), lg->mID);
+                                                if (mErrors) {
+                                                    Error(L"Too many teams in promotion play-off (%s (%d))", lg->mName.c_str(), lg->mID);
+                                                }
                                                 promotionError = true;
                                             }
                                             else {
@@ -934,8 +956,11 @@ void Converter::ConvertLeagues(UInt gameId) {
                                                 po->mMaxLeagueLevel = league->mCompetitionLevel;
                                             if (po->mPromotionLevel == -1)
                                                 po->mPromotionLevel = league->mCompetitionLevel;
-                                            else if (po->mPromotionLevel != league->mCompetitionLevel)
-                                                Error(L"League promotion play-off is present more than one level (%s (%d))", lg->mName.c_str(), lg->mID);
+                                            else if (po->mPromotionLevel != league->mCompetitionLevel) {
+                                                if (mErrors) {
+                                                    Error(L"League promotion play-off is present more than one level (%s (%d))", lg->mName.c_str(), lg->mID);
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -946,19 +971,26 @@ void Converter::ConvertLeagues(UInt gameId) {
                             FifamCompLeague *targetLeague = (league->mCompetitionLevel == 0 && relLeague[1]) ? relLeague[1] : league;
                             UInt totalTeamsInPromotionRelegation = lg->mPromoted + lg->mRelegated + lg->mTotalTeamsPromotionPlayoff + lg->mTotalTeamsRelegationPlayoff;
                             if (totalTeamsInPromotionRelegation > targetLeague->mNumTeams) {
-                                Error(L"Not enough teams in league for promotion/relegation play-off - %d/%d (in %s (%d))",
-                                    totalTeamsInPromotionRelegation, targetLeague->mNumTeams, lg->mName.c_str(), lg->mID);
+                                if (mErrors) {
+                                    Error(L"Not enough teams in league for promotion/relegation play-off - %d/%d (in %s (%d))",
+                                        totalTeamsInPromotionRelegation, targetLeague->mNumTeams, lg->mName.c_str(), lg->mID);
+                                }
                             }
                             else {
                                 auto it = playOffs.find(lg->mRelegationID);
-                                if (it == playOffs.end())
-                                    Error(L"Incorrect league relegation play-off ID (%s (%d)) - %d", lg->mName.c_str(), lg->mID, lg->mRelegationID);
+                                if (it == playOffs.end()) {
+                                    if (mErrors) {
+                                        Error(L"Incorrect league relegation play-off ID (%s (%d)) - %d", lg->mName.c_str(), lg->mID, lg->mRelegationID);
+                                    }
+                                }
                                 else {
                                     auto &po = (*it).second;
                                     Bool relegationError = false;
                                     if (po->mIsLeague) {
                                         if (lg->mRelegationPlayoff.size() != 1) {
-                                            Error(L"League relegation play-off should have only 1 play-off group (%s (%d))", lg->mName.c_str(), lg->mID);
+                                            if (mErrors) {
+                                                Error(L"League relegation play-off should have only 1 play-off group (%s (%d))", lg->mName.c_str(), lg->mID);
+                                            }
                                             relegationError = true;
                                         }
                                         else {
@@ -977,7 +1009,9 @@ void Converter::ConvertLeagues(UInt gameId) {
                                     }
                                     else {
                                         if (po->mRounds.size() < lg->mRelegationPlayoff.size()) {
-                                            Error(L"Too many teams in relegation play-off (%s (%d))", lg->mName.c_str(), lg->mID);
+                                            if (mErrors) {
+                                                Error(L"Too many teams in relegation play-off (%s (%d))", lg->mName.c_str(), lg->mID);
+                                            }
                                             relegationError = true;
                                         }
                                         else {
@@ -1003,8 +1037,11 @@ void Converter::ConvertLeagues(UInt gameId) {
                                             po->mMaxLeagueLevel = league->mCompetitionLevel;
                                         if (po->mRelegationLevel == -1)
                                             po->mRelegationLevel = league->mCompetitionLevel;
-                                        else if (po->mRelegationLevel != league->mCompetitionLevel)
-                                            Error(L"League relegation play-off is present more than on one level (%s (%d))", lg->mName.c_str(), lg->mID);
+                                        else if (po->mRelegationLevel != league->mCompetitionLevel) {
+                                            if (mErrors) {
+                                                Error(L"League relegation play-off is present more than on one level (%s (%d))", lg->mName.c_str(), lg->mID);
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -1019,8 +1056,10 @@ void Converter::ConvertLeagues(UInt gameId) {
                         UInt numLeagueRelegatedTeams = 0;
 
                         if (comp->mVecTeams.size() != lg->mTeams) {
-                            Error(L"Different number of teams in league: %d / %d\nCompetitionName: %s\nCompetitionID: %d",
-                                comp->mVecTeams.size(), lg->mTeams, lg->mName.c_str(), lg->mID);
+                            if (mErrors) {
+                                Error(L"Different number of teams in league: %d / %d\nCompetitionName: %s\nCompetitionID: %d",
+                                    comp->mVecTeams.size(), lg->mTeams, lg->mName.c_str(), lg->mID);
+                            }
                             continue;
                         }
 
@@ -1092,7 +1131,9 @@ void Converter::ConvertLeagues(UInt gameId) {
                         for (auto entry : comp->mVecTeams) {
                             foom::club *team = (foom::club *)entry;
                             if (!team) {
-                                Error(L"Invalid club pointer in league\nLeague: %s", lg->mName.c_str());
+                                if (mErrors) {
+                                    Error(L"Invalid club pointer in league\nLeague: %s", lg->mName.c_str());
+                                }
                                 continue;
                             }
                             FifamClub *club = nullptr;
@@ -1105,12 +1146,16 @@ void Converter::ConvertLeagues(UInt gameId) {
                                 hasReserveTeams = true;
                             }
                             if (isExtinct) {
-                                Error(L"Extinct club in the league\nClub: '%s'\nLeague: '%s'",
-                                    team->mName.c_str(), lg->mName.c_str());
+                                if (mErrors) {
+                                    Error(L"Extinct club in the league\nClub: '%s'\nLeague: '%s'",
+                                        team->mName.c_str(), lg->mName.c_str());
+                                }
                             }
                             else if (team->mConverterData.mFifamClub) {
-                                Message(Utils::Format(L"Team already present in other league\nClub: '%s'\nLeague: '%s'",
-                                    team->mName.c_str(), lg->mName.c_str()));
+                                if (mErrors) {
+                                    Message(Utils::Format(L"Team already present in other league\nClub: '%s'\nLeague: '%s'",
+                                        team->mName.c_str(), lg->mName.c_str()));
+                                }
                                 club = (FifamClub *)team->mConverterData.mFifamClub;
                                 if (team->mConverterData.mParentClub)
                                     teamType = FifamClubTeamType::Reserve;
@@ -1118,8 +1163,10 @@ void Converter::ConvertLeagues(UInt gameId) {
                             else if (team->mConverterData.mParentClub) {
                                 FifamClub *parentFifamClub = (FifamClub *)team->mConverterData.mParentClub->mConverterData.mFifamClub;
                                 if (!parentFifamClub) {
-                                    Error(L"Reserve club appears before the first team in the league\nMainClub: '%s'\nReserveClub: '%s'\nLeague: '%s'",
-                                        team->mConverterData.mParentClub->mName.c_str(), team->mName.c_str(), lg->mName.c_str());
+                                    if (mErrors) {
+                                        Error(L"Reserve club appears before the first team in the league\nMainClub: '%s'\nReserveClub: '%s'\nLeague: '%s'",
+                                            team->mConverterData.mParentClub->mName.c_str(), team->mName.c_str(), lg->mName.c_str());
+                                    }
                                 }
                                 else {
                                     if (!team->mConverterData.mParentClub->mConverterData.mMainChildClubInDB
@@ -1146,11 +1193,15 @@ void Converter::ConvertLeagues(UInt gameId) {
                                             createNewClub = true;
                                         }
                                         else {
-                                            Error(L"Reserve club can't be created because it's a dummy club\nMainClub: '%s'\nReserveTeamID: %d\nLeague: '%s'",
-                                                team->mConverterData.mParentClub->mName.c_str(), team->mID, lg->mName.c_str());
+                                            if (mErrors) {
+                                                Error(L"Reserve club can't be created because it's a dummy club\nMainClub: '%s'\nReserveTeamID: %d\nLeague: '%s'",
+                                                    team->mConverterData.mParentClub->mName.c_str(), team->mID, lg->mName.c_str());
+                                            }
                                         }
-                                        //Error(L"Reserve club already present for team in the league\nMainClub: '%s'\nReserveClub: '%s'\nLeague: '%s'",
-                                        //    parentClub->mName.c_str(), team->mName.c_str(), lg->mName.c_str());
+                                        if (mErrors) {
+                                            //Error(L"Reserve club already present for team in the league\nMainClub: '%s'\nReserveClub: '%s'\nLeague: '%s'",
+                                            //    parentClub->mName.c_str(), team->mName.c_str(), lg->mName.c_str());
+                                        }
                                     }
                                 }
                             }
@@ -1229,19 +1280,25 @@ void Converter::ConvertLeagues(UInt gameId) {
                                         league->mFixtures[matchdayId].resize(leagueMatchesInMatchday);
                                         for (UInt d = 0; d < leagueMatchesInMatchday; d++) {
                                             if (fixtures.size() <= matchId) {
-                                                Error(L"Incorrect fixtures list size\nLeague: %s", comp->mName.c_str());
+                                                if (mErrors) {
+                                                    Error(L"Incorrect fixtures list size\nLeague: %s", comp->mName.c_str());
+                                                }
                                                 gotFixtures = false;
                                                 break;
                                             }
                                             UInt team1id = 0, team2id = 0;
                                             if (!fixtures[matchId].mTeam1 || leagueTeamsMap.count(GetTeamClubLink(fixtures[matchId].mTeam1)) == 0) {
-                                                //Error(L"Incorrect fixtures team (match %d)\nLeague: %s\nTeam: %s", matchId + 1, comp->mName.c_str(), fixtures[matchId].mTeam1 ? GetTeamClubLink(fixtures[matchId].mTeam1).GetTeamName().c_str() : L"none");
+                                                if (mErrors) {
+                                                    //Error(L"Incorrect fixtures team (match %d)\nLeague: %s\nTeam: %s", matchId + 1, comp->mName.c_str(), fixtures[matchId].mTeam1 ? GetTeamClubLink(fixtures[matchId].mTeam1).GetTeamName().c_str() : L"none");
+                                                }
                                                 gotFixtures = false;
                                                 break;
                                             }
                                             team1id = leagueTeamsMap[GetTeamClubLink(fixtures[matchId].mTeam1)];
                                             if (!fixtures[matchId].mTeam2 || leagueTeamsMap.count(GetTeamClubLink(fixtures[matchId].mTeam2)) == 0) {
-                                                //Error(L"Incorrect fixtures team (match %d)\nLeague: %s\nTeam: %s", matchId + 1, comp->mName.c_str(), fixtures[matchId].mTeam2 ? GetTeamClubLink(fixtures[matchId].mTeam2).GetTeamName().c_str() : L"none");
+                                                if (mErrors) {
+                                                    //Error(L"Incorrect fixtures team (match %d)\nLeague: %s\nTeam: %s", matchId + 1, comp->mName.c_str(), fixtures[matchId].mTeam2 ? GetTeamClubLink(fixtures[matchId].mTeam2).GetTeamName().c_str() : L"none");
+                                                }
                                                 gotFixtures = false;
                                                 break;
                                             }
