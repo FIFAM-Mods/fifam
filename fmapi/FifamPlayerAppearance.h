@@ -3,10 +3,10 @@
 #include "FifamEnum.h"
 
 ENUM_BEGIN(FifamSkinColor, UChar)
-    ENUM_MEMBER(0, White,    L"White")
-    ENUM_MEMBER(1, Asian,    L"Asian")
-    ENUM_MEMBER(2, Latin1,   L"Latin1")
-    ENUM_MEMBER(3, Latin2,   L"Latin2")
+    ENUM_MEMBER(0, White, L"White")
+    ENUM_MEMBER(1, Asian, L"Asian")
+    ENUM_MEMBER(2, Latin1, L"Latin1")
+    ENUM_MEMBER(3, Latin2, L"Latin2")
     ENUM_MEMBER(4, African1, L"African1")
     ENUM_MEMBER(5, African2, L"African2")
     ENUM_MEMBER(6, African3, L"African3")
@@ -81,21 +81,21 @@ public:
     // @since FM07
     UChar mGenericFace = 0; // generic face ID
     // @since FM11
-    FifamSkinColor mSkinColor;
+    UChar mSkinColor;
     // @since FM11
-    FifamFaceVariation mFaceVariation;
+    UChar mFaceVariation;
     // @since FM11
-    FifamEyeColor mEyeColour;
+    UChar mEyeColour;
     // @since FM07
-    FifamHairColor mHairColor;
+    UChar mHairColor;
     // @since FM07
     UChar mHairStyle = 0;
     // @since FM11
     Bool mSideburns = false;
     // @since FM07
-    FifamBeardType mBeardType;
+    UChar mBeardType;
     // @since FM11
-    FifamBeardColor mBeardColor;
+    UChar mBeardColor;
 
     struct AppearanceInfo07 {
         UChar faceId = 0;

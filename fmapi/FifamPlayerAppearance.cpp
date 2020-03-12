@@ -372,10 +372,10 @@ void FifamPlayerAppearance::SetFrom07AppearanceInfo(AppearanceInfo07 const &data
     if (data.faceId >= Utils::ToInt(Face07::Caucasian1) && data.faceId <= Utils::ToInt(Face07::Caucasian21)) {
         for (auto &faceInfo : gFace07to11Mapping) {
             if (data.faceId == Utils::ToInt(std::get<0>(faceInfo))) {
-                mSkinColor = std::get<1>(faceInfo);
+                mSkinColor = std::get<1>(faceInfo).ToInt();
                 mGenericFace = std::get<2>(faceInfo) - 1;
-                mFaceVariation = std::get<3>(faceInfo);
-                mEyeColour = std::get<4>(faceInfo);
+                mFaceVariation = std::get<3>(faceInfo).ToInt();;
+                mEyeColour = std::get<4>(faceInfo).ToInt();;
                 break;
             }
         }
@@ -444,8 +444,8 @@ FifamPlayerAppearance::AppearanceInfo07 FifamPlayerAppearance::Get07AppearanceIn
     result.beardType = Utils::ToInt(BeardType07::None);
 
     // Get face id
-    if (mGenericFace < 135)
-        result.faceId = gFace11to07table[mSkinColor.ToInt()][mGenericFace];
+    if (mGenericFace < 135 && mSkinColor < 7)
+        result.faceId = gFace11to07table[mSkinColor][mGenericFace];
 
     // Get hair id
     for (auto &hairInfo : gHair11to07table) {

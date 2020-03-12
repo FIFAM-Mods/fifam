@@ -16,6 +16,8 @@ struct Color {
     void SetFromTable(std::vector<std::pair<unsigned int, Color>> const &table, unsigned int index, unsigned int tableMin = 0, unsigned int tableMax = 0);
     std::wstring ToStr() const;
     std::wstring ToHexStr() const;
+    std::string ToStrA() const;
+    std::string ToHexStrA() const;
 };
 
 using GenColor = ::Color;
@@ -31,4 +33,8 @@ struct ColorPair : public std::pair<::Color, ::Color> {
     void SetFromTable(std::vector<std::pair<unsigned int, ColorPair>> const &table, unsigned int index, unsigned int tableMin = 0, unsigned int tableMax = 0);
     std::wstring ToStr() const;
     std::wstring ToHexStr() const;
+    std::string ToStrA() const;
+    std::string ToHexStrA() const;
 };
+
+using GenColorPair = ::ColorPair;

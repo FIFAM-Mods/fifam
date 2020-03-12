@@ -32,7 +32,9 @@ using Double = double;
 using Bool = bool;
 using Bool8 = unsigned char;
 using Bool32 = unsigned int;
-using String = std::wstring;
+using StringW = std::wstring;
+using StringA = std::string;
+using String = StringW;
 template<typename A, typename B>
 using Pair = std::pair<A, B>;
 template<typename... Types>

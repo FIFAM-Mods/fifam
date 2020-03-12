@@ -131,7 +131,6 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     if (clubDefaultFacilitiesForUnknown > 1)
         clubDefaultFacilitiesForUnknown -= 1;
 
-
     // club facilities is based on training facilities (66,7%) and corporate facilities (33,3%)
     dst->mClubFacilities = Utils::MapTo(team->mTraining + team->mCorporateFacilities / 2, 1, 30, 0, 6);
     Int youthFacilities = team->mYouthFacilities;

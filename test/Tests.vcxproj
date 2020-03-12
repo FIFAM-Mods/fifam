@@ -120,6 +120,7 @@
     <ClInclude Include="tests\FoomBasicTest.h" />
     <ClInclude Include="tests\GenerateKitColors.h" />
     <ClInclude Include="tests\GenerateKitConfig.h" />
+    <ClInclude Include="tests\GetUnlinkedFaces.h" />
     <ClInclude Include="tests\MissingPortraits.h" />
     <ClInclude Include="tests\HistoricTest.h" />
     <ClInclude Include="tests\FlagsTest.h" />

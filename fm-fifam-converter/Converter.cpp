@@ -151,7 +151,7 @@ void Converter::Convert() {
     appearanceGenerator.Read(infoPath / L"AppearanceDefs.sav");
 
     if (GENERATE_IDS) {
-        GenerateNewTeamIDsFile(infoPath / L"fifam-uids.csv", infoPath / L"fifam-uids_old.txt");
+        GenerateNewTeamIDsFile(infoPath / L"fifam-uids.csv", infoPath / L"fifam-uids_old.csv");
         return;
     }
 
@@ -2452,7 +2452,7 @@ void Converter::GenerateNewTeamIDsFile(Path const &outputFilePath, Path const &o
             if (!reader.EmptyLine()) {
                 TeamDesc info;
                 Int FootballManagerID = -1;
-                reader.ReadLineWithSeparator(L'\t', info.mCountry, info.mName, info.mExtinct, info.mAffiliationType, info.mMainTeamName,
+                reader.ReadLine(info.mCountry, info.mName, info.mExtinct, info.mAffiliationType, info.mMainTeamName,
                     FootballManagerID, Hexadecimal(info.mFifaManagerID), info.mFIFAID, info.mStatus, info.mLeague, info.mYearOF, info.mCity,
                     info.mReputation, info.mLeagueLevel);
                 if (info.mFifaManagerID > 0) {

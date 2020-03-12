@@ -9,21 +9,44 @@ namespace Utils {
     std::wstring TimeDifferenceSting(std::time_t const &timeEnd, std::time_t const &timeBegin);
     std::wstring CurrentTime();
     std::wstring GetQuickName(std::wstring const &firstName, std::wstring const &lastName, std::wstring const &commonName);
-    std::wstring CharToStr(char c);
+    std::wstring CharToStr(wchar_t c);
 
-    class FormatterUtils {
+    std::string TimeStringA(std::time_t const &time);
+    std::string TimeDifferenceStingA(std::time_t const &timeEnd, std::time_t const &timeBegin);
+    std::string CurrentTimeA();
+    std::string GetQuickNameA(std::string const &firstName, std::string const &lastName, std::string const &commonName);
+    std::string CharToStrA(char c);
+
+    class FormatterUtilsUnicode {
     public:
         template<typename T> static T const &Arg(T const &arg) { return arg; }
         static wchar_t const *Arg(std::wstring const &arg) { return arg.c_str(); }
         static wchar_t const *Arg(std::filesystem::path const &arg) { return arg.c_str(); }
     };
 
+    class FormatterUtilsAscii {
+    public:
+        template<typename T> static T const &Arg(T const &arg) { return arg; }
+        static char const *Arg(std::string const &arg) { return arg.c_str(); }
+        static char const *Arg(std::filesystem::path const &arg) { return arg.string().c_str(); }
+    };
+
     template<typename ...ArgTypes>
     static std::wstring Format(const std::wstring &format, ArgTypes... args) {
         static wchar_t buf[4096];
-        swprintf(buf, 4096, format.c_str(), FormatterUtils::Arg(args)...);
+        swprintf(buf, 4096, format.c_str(), FormatterUtilsUnicode::Arg(args)...);
         return buf;
     }
+
+    template<typename ...ArgTypes>
+    static std::string Format(const std::string &format, ArgTypes... args) {
+        static char buf[4096];
+        snprintf(buf, 4096, format.c_str(), FormatterUtilsAscii::Arg(args)...);
+        return buf;
+    }
+
+    std::wstring AtoW(std::string const &str);
+    std::string WtoA(std::wstring const &str);
 
     std::vector<std::wstring> Split(std::wstring const &str, wchar_t delim, bool trim = true, bool skipEmpty = false, bool quotesHavePriority = true);
     std::wstring Join(std::vector<std::wstring> const &strList, wchar_t delim);
@@ -36,9 +59,20 @@ namespace Utils {
     void Trim(std::wstring &str);
     std::wstring ToUpper(std::wstring const &str);
     std::wstring ToLower(std::wstring const &str);
-    std::wstring AtoW(std::string const &str);
-    std::string WtoA(std::wstring const &str);
     void Replace(std::wstring& str, const std::wstring& from, const std::wstring& to);
+
+    std::vector<std::string> Split(std::string const &str, char delim, bool trim = true, bool skipEmpty = false, bool quotesHavePriority = true);
+    std::string Join(std::vector<std::string> const &strList, char delim);
+    std::string Join(std::vector<std::string> const &strList, std::string const &delim);
+    bool StartsWith(std::string const &str, std::string const &what);
+    bool EndsWith(std::string const &str, std::string const &what);
+    bool Compare(std::string const &str, size_t index, char c);
+    bool IsNumber(std::string const &str, bool hexadecimal = false);
+    int ToNumber(std::string const &str);
+    void Trim(std::string &str);
+    std::string ToUpper(std::string const &str);
+    std::string ToLower(std::string const &str);
+    void Replace(std::string &str, const std::string &from, const std::string &to);
 
     template<typename T>
     unsigned int ToInt(T value) {
@@ -62,6 +96,19 @@ namespace Utils {
 
     float SafeConvertFloat(std::wstring const &str);
     double SafeConvertDouble(std::wstring const &str);
+
+    template<typename T>
+    T SafeConvertInt(std::string const &str, bool isHex = false) {
+        T result = 0;
+        try {
+            result = static_cast<T>(std::stoull(str, 0, isHex ? 16 : 10));
+        }
+        catch (...) {}
+        return result;
+    }
+
+    float SafeConvertFloat(std::string const &str);
+    double SafeConvertDouble(std::string const &str);
 
     int Clamp(int value, int min, int max);
     int MapTo(int value, int input_start, int input_end, int output_start, int output_end);

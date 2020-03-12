@@ -14,6 +14,7 @@ public:
     bool IsEmpty() const;
     void MakeEmpty();
     std::wstring ToString() const;
+    std::string ToStringA() const;
 
     bool operator==(Date const &rhs) const;
     void operator=(Date const &rhs);

@@ -9,10 +9,10 @@ public:
     CreateStarheadsFile() {
         std::wcout << L"Reading FIFA database..." << std::endl;
         FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
-        Path headsPath = "D:\\Projects\\FIFA\\heads\\in\\default";
+        Path headsPath = "D:\\Games\\FIFA Manager 13\\data\\assets";
         vector<FifaPlayer *> starHeads;
         fifadb->ForAllPlayers([&](FifaPlayer &player) {
-            if (exists(headsPath / ("head_" + to_string(player.GetId()) + "_0_0.rx3")))
+            if (exists(headsPath / ("m228__" + to_string(player.GetId()) + ".o")))
                 starHeads.push_back(&player);
         });
         std::wcout << L"Writing FaceIDs..." << std::endl;

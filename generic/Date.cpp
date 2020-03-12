@@ -25,6 +25,12 @@ std::wstring Date::ToString() const {
     return Utils::Format(L"%02d.%02d.%04d", day, month, year);
 }
 
+std::string Date::ToStringA() const {
+    if (year == 0)
+        return "00.00.0000";
+    return Utils::Format("%02d.%02d.%04d", day, month, year);
+}
+
 bool Date::operator==(Date const &rhs) const {
     return year == rhs.year && month == rhs.month && day == rhs.day;
 }

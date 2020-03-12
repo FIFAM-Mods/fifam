@@ -80,8 +80,16 @@ std::wstring Color::ToStr() const {
     return Utils::Format(L"(%u,%u,%u)", r, g, b);
 }
 
+std::string Color::ToStrA() const {
+    return Utils::Format("(%u,%u,%u)", r, g, b);
+}
+
 std::wstring Color::ToHexStr() const {
     return Utils::Format(L"#%02X%02X%02X", r, g, b);
+}
+
+std::string Color::ToHexStrA() const {
+    return Utils::Format("#%02X%02X%02X", r, g, b);
 }
 
 ColorPair::ColorPair() {}
@@ -154,6 +162,14 @@ std::wstring ColorPair::ToStr() const {
     return Utils::Format(L"%s:%s", first.ToStr().c_str(), second.ToStr().c_str());
 }
 
+std::string ColorPair::ToStrA() const {
+    return Utils::Format("%s:%s", first.ToStr().c_str(), second.ToStr().c_str());
+}
+
 std::wstring ColorPair::ToHexStr() const {
     return Utils::Format(L"%s:%s", first.ToHexStr().c_str(), second.ToHexStr().c_str());
+}
+
+std::string ColorPair::ToHexStrA() const {
+    return Utils::Format("%s:%s", first.ToHexStr().c_str(), second.ToHexStr().c_str());
 }

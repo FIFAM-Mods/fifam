@@ -181,6 +181,10 @@ void FifamWriter::WriteOne(WideChar const *value) {
     WriteOne(str);
 }
 
+void FifamWriter::WriteOne(Char const *value) {
+    WriteOne(Utils::AtoW(value));
+}
+
 void FifamWriter::WriteOne(String const &value) {
     String str;
     if (GetGameId() >= 8)
@@ -205,6 +209,10 @@ void FifamWriter::WriteOne(String const &value) {
         fputws(str.c_str(), mFile);
 }
 
+void FifamWriter::WriteOne(StringA const &value) {
+    WriteOne(Utils::AtoW(value));
+}
+
 void FifamWriter::WriteOne(Hexadecimal const &value) {
     if (mOutputStr)
         *mOutputStr += Utils::Format(L"%X", value);
@@ -218,6 +226,12 @@ void FifamWriter::WriteOne(Quoted const &value) {
     WriteOne(L"\"");
 }
 
+void FifamWriter::WriteOne(QuotedA const &value) {
+    WriteOne(L"\"");
+    WriteOne(value());
+    WriteOne(L"\"");
+}
+
 void FifamWriter::WriteStartIndex(String const &name, Bool newLine) {
     if (newLine)
         WriteLine(L"%INDEX%" + name);
@@ -225,11 +239,19 @@ void FifamWriter::WriteStartIndex(String const &name, Bool newLine) {
         WriteOne(L"%INDEX%" + name);
 }
 
+void FifamWriter::WriteStartIndex(StringA const &name, Bool newLine) {
+    WriteStartIndex(Utils::AtoW(name), newLine);
+}
+
 void FifamWriter::WriteEndIndex(String const &name, Bool newLine) {
     if (newLine)
         WriteLine(L"%INDEXEND%" + name);
     else
         WriteOne(L"%INDEXEND%" + name);
+}
+
+void FifamWriter::WriteEndIndex(StringA const &name, Bool newLine) {
+    WriteEndIndex(Utils::AtoW(name), newLine);
 }
 
 void FifamWriter::WriteOne(FifamDate const &date) {
@@ -524,6 +546,16 @@ Bool FifamReader::GetLine(String &out) {
     return false;
 }
 
+Bool FifamReader::GetLine(StringA &out) {
+    String outW;
+    if (GetLine(outW)) {
+        out = Utils::WtoA(outW);
+        return true;
+    }
+    out.clear();
+    return false;
+}
+
 Bool FifamReader::EmptyLine() {
     if (mCurrentLine < mLines.size())
         return mLines[mCurrentLine].empty();
@@ -542,6 +574,10 @@ Bool FifamReader::CheckLine(String const &str, Bool skipIfTrue) {
     return false;
 }
 
+Bool FifamReader::CheckLine(StringA const &str, Bool skipIfTrue) {
+    return CheckLine(Utils::AtoW(str), skipIfTrue);
+}
+
 Bool FifamReader::FindLine(String const &str, Bool skipIfFound, Bool moveToEofIfNotFound) {
     auto savedFilePos = GetPosition();
     while (!IsEof()) {
@@ -558,6 +594,10 @@ Bool FifamReader::FindLine(String const &str, Bool skipIfFound, Bool moveToEofIf
     return false;
 }
 
+Bool FifamReader::FindLine(StringA const &str, Bool skipIfFound, Bool moveToEofIfNotFound) {
+    return FindLine(Utils::AtoW(str), skipIfFound, moveToEofIfNotFound);
+}
+
 void FifamReader::SkipLines(UInt count) {
     for (UInt i = 0; i < count; i++)
         GetLine();
@@ -571,8 +611,16 @@ Bool FifamReader::ReadStartIndex(String const &name, Bool moveToEofIfNotFound) {
     return FindLine(L"%INDEX%" + name, true, moveToEofIfNotFound);
 }
 
+Bool FifamReader::ReadStartIndex(StringA const &name, Bool moveToEofIfNotFound) {
+    return ReadStartIndex(name, moveToEofIfNotFound);
+}
+
 Bool FifamReader::ReadEndIndex(String const &name, Bool moveToEofIfNotFound) {
     return FindLine(L"%INDEXEND%" + name, true, moveToEofIfNotFound);
+}
+
+Bool FifamReader::ReadEndIndex(StringA const &name, Bool moveToEofIfNotFound) {
+    return ReadEndIndex(name, moveToEofIfNotFound);
 }
 
 void FifamReader::ReadLine(FifamDate &date) {
@@ -636,8 +684,16 @@ void FifamReader::StrToArg(String const &str, WideChar *arg) {
     wcscpy(arg, str.c_str());
 }
 
+void FifamReader::StrToArg(String const &str, Char *arg) {
+    strcpy(arg, Utils::WtoA(str).c_str());
+}
+
 void FifamReader::StrToArg(String const &str, String &arg) {
     arg = str;
+}
+
+void FifamReader::StrToArg(String const &str, StringA &arg) {
+    arg = Utils::WtoA(str);
 }
 
 void FifamReader::StrToArg(String const &str, FifamDate &arg) {
@@ -676,6 +732,13 @@ void FifamReader::StrToArg(String const &str, Quoted arg) {
     arg = modstr;
 }
 
+void FifamReader::StrToArg(String const &str, QuotedA arg) {
+    String modstr = str;
+    if (mRemoveQuotes)
+        RemoveQuotes(modstr);
+    arg = Utils::WtoA(modstr);
+}
+
 void FifamReader::StrToArg(String const &str, OptionalInt arg) {
     String trimmed = str;
     Utils::Trim(trimmed);
@@ -698,10 +761,27 @@ String FifamReader::ReadFullLine() {
     return String();
 }
 
+StringA FifamReader::ReadFullLineA() {
+    auto line = GetLine();
+    if (line)
+        return Utils::WtoA(line);
+    return StringA();
+}
+
 Bool FifamReader::ReadFullLine(String &out) {
     auto line = GetLine();
     if (line) {
         out = line;
+        return true;
+    }
+    out.clear();
+    return false;
+}
+
+Bool FifamReader::ReadFullLine(StringA &out) {
+    auto line = GetLine();
+    if (line) {
+        out = Utils::WtoA(line);
         return true;
     }
     out.clear();

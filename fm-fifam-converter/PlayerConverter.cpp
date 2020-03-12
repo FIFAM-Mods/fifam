@@ -288,36 +288,60 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     // first - generate random appearance for ethnicity
     appearanceGenerator.Generate(player, ethnicity);
 
-    if (player->mAppearance.mHairStyle <= 1)
+    if (player->mAppearance.mHairStyle == 0) // 1?
         player->mAppearance.mHairStyle = 28;
 
     // second - apply skin color and hair color (if available)
     bool skinColorSet = false;
-    if (p->mSkinTone >= 0 && p->mSkinTone <= 20) {
-        if (p->mSkinTone <= 6) // 1, 2, 3, 4, 5, 6, 7
-            player->mAppearance.mSkinColor = FifamSkinColor::White;
-        else if (p->mSkinTone <= 9) { // 8, 9, 10
-            if (p->mEthnicity < 0 || p->mEthnicity == 2 || p->mEthnicity == 4 || p->mEthnicity == 5 || p->mEthnicity == 9 || p->mEthnicity == 10)
-                player->mAppearance.mSkinColor = FifamSkinColor::Asian;
-            else
-                player->mAppearance.mSkinColor = FifamSkinColor::Latin1;
+    if (p->mSkinTone >= 0 && p->mSkinTone <= 19) {
+        switch (p->mSkinTone) {
+        case 0:
+        case 1:
+            player->mAppearance.mSkinColor = 0;
+            break;
+        case 2:
+        case 3:
+            player->mAppearance.mSkinColor = 1;
+            break;
+        case 4:
+        case 5:
+            player->mAppearance.mSkinColor = 2;
+            break;
+        case 6:
+        case 7:
+            player->mAppearance.mSkinColor = 3;
+            break;
+        case 8:
+        case 9:
+            player->mAppearance.mSkinColor = 4;
+            break;
+        case 10:
+        case 11:
+            player->mAppearance.mSkinColor = 5;
+            break;
+        case 12:
+        case 13:
+            player->mAppearance.mSkinColor = 6;
+            break;
+        case 14:
+        case 15:
+            player->mAppearance.mSkinColor = 7;
+            break;
+        case 16:
+        case 17:
+            player->mAppearance.mSkinColor = 8;
+            break;
+        case 18:
+        case 19:
+            player->mAppearance.mSkinColor = 9;
+            break;
         }
-        else if (p->mSkinTone <= 10)
-            player->mAppearance.mSkinColor = FifamSkinColor::Latin1; // 11
-        else if (p->mSkinTone <= 12)
-            player->mAppearance.mSkinColor = FifamSkinColor::Latin2; // 12, 13
-        else if (p->mSkinTone <= 15)
-            player->mAppearance.mSkinColor = FifamSkinColor::African1; // 14, 15, 16
-        else if (p->mSkinTone <= 17)
-            player->mAppearance.mSkinColor = FifamSkinColor::African2; // 17, 18
-        else
-            player->mAppearance.mSkinColor = FifamSkinColor::African3; // 19, 20
         skinColorSet = true;
     }
 
     bool hairSet = false;
     if (p->mHairLength == 0) {
-        player->mAppearance.mHairStyle = 1;
+        player->mAppearance.mHairStyle = 0; // 1?
         hairSet = true;
     }
 
@@ -334,40 +358,47 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         else if (p->mHairColour == 5)
             player->mAppearance.mHairColor = FifamHairColor::Black;
         else if (p->mHairColour == 6)
-            player->mAppearance.mHairColor = FifamHairColor::Black;
+            player->mAppearance.mHairColor = 8;
         hairColorSet = true;
     }
 
     // third - convert appearance from FIFA (if available)
     if (p->mConverterData.mFifaPlayerId > 0) {
         FifaPlayer *fifaPlayer = mFifaDatabase->GetPlayer(p->mConverterData.mFifaPlayerId);
-        if (fifaPlayer)
+        if (fifaPlayer) {
             appearanceGenerator.SetFromFifaPlayer(player, fifaPlayer);
+            if (exists(mOutputGameFolder / Utils::Format(L"data\\assets\\m228__%d.o", p->mConverterData.mFifaPlayerId)))
+                player->mSpecialFace = p->mConverterData.mFifaPlayerId;
+            player->mComment = L"FIFAID: " + Utils::Format(L"%d", p->mConverterData.mFifaPlayerId);
+        }
     }
 
     // fourth - apply custom appearance (if available)
     bool hasCustomFace = false;
     bool hasCustomHair = false;
-    if (p->mConverterData.mEditorFace >= 1 && p->mConverterData.mEditorFace <= 135) {
+    if (p->mConverterData.mEditorFace >= 1 && p->mConverterData.mEditorFace <= 219) {
         player->mAppearance.mGenericFace = p->mConverterData.mEditorFace - 1;
         hasCustomFace = true;
     }
-    if (p->mConverterData.mEditorHair >= 1 && p->mConverterData.mEditorHair <= 98) {
-        player->mAppearance.mHairStyle = FifamPlayerAppearance::GetHairIdFromEditor14Id(p->mConverterData.mEditorHair);
+    static unsigned char hairIdFromEditorId[] = {
+        0,26,120,132,43,25,29,92,46,28,41,16,1,121,82,60,117,123,36,63,40,72,47,114,86,150,37,106,124,65,45,105,38,31,77,88,18,118,133,115,140,61,134,64,135,137,75,155,122,101,113,24,154,148,21,39,141,151,146,129,93,149,17,143,67,70,85,2,119,156,54,57,90,144,152,102,94,42,78,97,147,116,130,145,111,131,127,107,126,104,138,158,153,128,23,112,66,157,30,89,74,136,14,22,53,35,100,13,19,142,58,162,62,110,55,108,68,20,10,8,69,83,98,15,71,48,7,59,139,44,95,103,73,27,84,125,81,4,34,99,161,109,52,96,51,12,9,6,91,56,32,80,33,11,76,49,87,3,5,79,159,50,160
+    };
+    if (p->mConverterData.mEditorHair >= 1 && p->mConverterData.mEditorHair <= std::size(hairIdFromEditorId)) {
+        player->mAppearance.mHairStyle = hairIdFromEditorId[p->mConverterData.mEditorHair - 1];
         hasCustomHair = true;
     }
-    if (p->mConverterData.mEditorBeard >= 0 && p->mConverterData.mEditorBeard <= 8)
-        player->mAppearance.mBeardType.SetFromInt(p->mConverterData.mEditorBeard);
+    if (p->mConverterData.mEditorBeard >= 0 && p->mConverterData.mEditorBeard <= 15)
+        player->mAppearance.mBeardType = p->mConverterData.mEditorBeard;
     else if (hasCustomFace && hasCustomHair) {
         player->mAppearance.mBeardType = FifamBeardType::None;
         player->mAppearance.mBeardColor = FifamBeardColor::Black;
     }
-    if (p->mConverterData.mEditorEye >= 0 && p->mConverterData.mEditorEye <= 6)
-        player->mAppearance.mEyeColour.SetFromInt(p->mConverterData.mEditorEye);
+    if (p->mConverterData.mEditorEye >= 0 && p->mConverterData.mEditorEye <= 9)
+        player->mAppearance.mEyeColour = p->mConverterData.mEditorEye;
     else if (hasCustomFace && hasCustomHair)
         player->mAppearance.mEyeColour = FifamEyeColor::Brown;
-    if (p->mConverterData.mEditorSkin >= 1 && p->mConverterData.mEditorSkin <= 7)
-        player->mAppearance.mSkinColor.SetFromInt(p->mConverterData.mEditorSkin - 1);
+    if (p->mConverterData.mEditorSkin >= 1 && p->mConverterData.mEditorSkin <= 10)
+        player->mAppearance.mSkinColor = p->mConverterData.mEditorSkin - 1;
     if (hasCustomFace && hasCustomHair)
         player->mAppearance.mFaceVariation = FifamFaceVariation::Normal;
 
@@ -443,25 +474,29 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         else if (p->mOriginalPA == -95) // 160-190
             player->mTalent = 8; // 4,5 stars
         else if (p->mOriginalPA == -9) { // 150-180
-            if (p->mOriginalCA >= 120)
+            if (p->mOriginalCA >= 130)
                 player->mTalent = 8; // 4,5 stars
             else
-                player->mTalent = 8; // 4 stars
+                player->mTalent = 7; // 4 stars
         }
-        else if (p->mOriginalPA == -85) // 140-170
-            player->mTalent = 7; // 4 stars
-        else if (p->mOriginalPA == -8) { // 130-160
-            if (p->mOriginalCA >= 130)
+        else if (p->mOriginalPA == -85) { // 140-170
+            if (p->mOriginalCA >= 135)
                 player->mTalent = 7; // 4 stars
             else
                 player->mTalent = 6; // 3.5 stars
         }
+        else if (p->mOriginalPA == -8) { // 130-160
+            if (p->mOriginalCA >= 120)
+                player->mTalent = 6; // 3.5 stars
+            else
+                player->mTalent = 5; // 3 stars
+        }
         else if (p->mOriginalPA == -75) // 120-150
-            player->mTalent = 6; // 3.5 stars
+            player->mTalent = 5; // 3 stars
         else {
             UInt maxTalent = 9;
             UChar *potantialAbilityRanges = nullptr;
-            static UChar potentialAbilityRanges1to10[9] = { 35, 60, 80, 100, 119, 136, 155, 170, 190 };
+            static UChar potentialAbilityRanges1to10[9] = { 35, 65, 85, 105, 123, 140, 159, 174, 190 };
             potantialAbilityRanges = potentialAbilityRanges1to10;
             player->mTalent = 0;
             for (UInt i = 0; i < maxTalent; i++) {
@@ -1249,77 +1284,77 @@ FifamPlayer *Converter::CreateAndConvertFifaPlayer(UInt gameId, FifaPlayer * p, 
 
 UChar Converter::GetPlayerLevelFromCA(Int ca) {
     static Pair<UChar, UChar> playerCAtoLvlAry[99] = {
-        { 99, 199 },
-        { 98, 198 },
-        { 97, 197 },
-        { 96, 196 },
-        { 95, 195 },
-        { 94, 192 },
-        { 93, 190 },
-        { 92, 188 },
-        { 91, 184 },
-        { 90, 180 },
-        { 89, 177 },
-        { 88, 174 },
-        { 87, 170 },
-        { 86, 166 },
-        { 85, 163 },
-        { 84, 160 },
-        { 83, 157 },
-        { 82, 154 },
-        { 81, 151 },
-        { 80, 149 },
-        { 79, 146 }, // 147?
-        { 78, 143 },
-        { 77, 141 },
-        { 76, 139 },
-        { 75, 136 }, // 73, 74, 75
-        { 74, 133 },
-        { 73, 130 },
-        { 72, 127 },
-        { 71, 124 },
-        { 70, 122 },
-        { 69, 119 }, // 66, 67
-        { 68, 115 },
-        { 67, 111 },
-        { 66, 108 },
-        { 65, 105 },
-        { 64, 102 },
-        { 63,  99 },
-        { 62,  96 },
-        { 61,  93 },
-        { 60,  90 },
-        { 59,  88 },
-        { 58,  86 },
-        { 57,  84 },
-        { 56,  82 },
-        { 55,  80 },
-        { 54,  78 },
-        { 53,  76 },
-        { 52,  74 },
-        { 51,  72 },
-        { 50,  70 },
-        { 49,  68 },
-        { 48,  66 },
-        { 47,  64 },
-        { 46,  62 },
-        { 45,  60 },
-        { 44,  58 },
-        { 43,  56 },
-        { 42,  54 },
-        { 41,  52 },
-        { 40,  50 },
-        { 39,  48 },
-        { 38,  46 },
-        { 37,  44 },
-        { 36,  42 },
-        { 35,  40 },
-        { 34,  38 },
-        { 33,  36 },
-        { 32,  34 },
-        { 31,  32 },
-        { 30,  30 },
-        { 29,  29 },
+        { 99, 200 },
+        { 98, 199 },
+        { 97, 198 },
+        { 96, 197 },
+        { 95, 196 },
+        { 94, 195 }, // 2
+        { 93, 192 },
+        { 92, 189 },
+        { 91, 185 }, // 2
+        { 90, 181 }, // 2
+        { 89, 180 }, // 3
+        { 88, 175 }, // 6
+        { 87, 170 }, // 12
+        { 86, 166 }, // 14
+        { 85, 162 }, // 19
+        { 84, 160 }, // 20
+        { 83, 157 }, // 31
+        { 82, 155 }, // 36
+        { 81, 152 }, // 55
+        { 80, 150 }, // 67
+        { 79, 147 }, // 85
+        { 78, 145 }, // 83
+        { 77, 143 }, // 104
+        { 76, 140 }, // 178
+        { 75, 137 }, // 232 73, 74, 75
+        { 74, 135 }, // 272
+        { 73, 133 }, // 250
+        { 72, 131 }, // 349
+        { 71, 129 }, // 513
+        { 70, 127 }, // 523
+        { 69, 125 }, // 732 66, 67
+        { 68, 122 }, // 996
+        { 67, 120 }, // 1090
+        { 66, 117 }, // 1568
+        { 65, 115 }, // 1700
+        { 64, 112 }, // 2165
+        { 63, 109 }, // 2802
+        { 62, 106 }, // 2998
+        { 61, 103 }, // 3898
+        { 60, 100 }, // 4608
+        { 59,  97 }, // 4347
+        { 58,  95 }, // 4762
+        { 57,  92 }, // 5766
+        { 56,  90 }, // 6673
+        { 55,  87 }, // 7614
+        { 54,  85 }, // 8247
+        { 53,  82 }, // 9422
+        { 52,  80 }, // 10445
+        { 51,  77 }, // 9986
+        { 50,  75 }, // 10890
+        { 49,  72 }, // 11760
+        { 48,  70 }, // 13467
+        { 47,  67 }, // 11626
+        { 46,  64 }, // 12639
+        { 45,  61 }, // 10224
+        { 44,  60 }, // 10599
+        { 43,  58 },
+        { 42,  56 },
+        { 41,  54 },
+        { 40,  52 },
+        { 39,  50 },
+        { 38,  48 },
+        { 37,  46 },
+        { 36,  44 },
+        { 35,  42 },
+        { 34,  40 },
+        { 33,  38 },
+        { 32,  36 },
+        { 31,  34 },
+        { 30,  32 },
+        { 29,  30 },
         { 28,  28 },
         { 27,  27 },
         { 26,  26 },

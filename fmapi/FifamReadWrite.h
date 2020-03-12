@@ -53,9 +53,12 @@ public:
     void WriteOne(Double value);
     void WriteOne(Bool value);
     void WriteOne(WideChar const *value);
+    void WriteOne(Char const *value);
     void WriteOne(String const &value);
+    void WriteOne(StringA const &value);
     void WriteOne(Hexadecimal const &value);
     void WriteOne(Quoted const &value);
+    void WriteOne(QuotedA const &value);
     void WriteOne(FifamDate const &date);
     void WriteOne(Date const &date);
 
@@ -75,7 +78,9 @@ public:
     }
 
     void WriteStartIndex(String const &name, Bool newLine = true);
+    void WriteStartIndex(StringA const &name, Bool newLine = true);
     void WriteEndIndex(String const &name, Bool newLine = true);
+    void WriteEndIndex(StringA const &name, Bool newLine = true);
     void WriteVersion();
 private:
     template<typename One>
@@ -214,14 +219,19 @@ public:
 private:
     WideChar const *GetLine();
     Bool GetLine(String &out);
+    Bool GetLine(StringA &out);
 public:
     Bool CheckLine(String const &str, Bool skipIfTrue = false);
+    Bool CheckLine(StringA const &str, Bool skipIfTrue = false);
     Bool FindLine(String const &str, Bool skipIfFound = false, Bool moveToEofIfNotFound = false);
+    Bool FindLine(StringA const &str, Bool skipIfFound = false, Bool moveToEofIfNotFound = false);
     void SkipLines(UInt count);
     void SkipLine();
     Bool EmptyLine();
     Bool ReadStartIndex(String const &name, Bool moveToEofIfNotFound = false);
+    Bool ReadStartIndex(StringA const &name, Bool moveToEofIfNotFound = false);
     Bool ReadEndIndex(String const &name, Bool moveToEofIfNotFound = true);
+    Bool ReadEndIndex(StringA const &name, Bool moveToEofIfNotFound = true);
     void ReadLine(FifamDate &date);
 private:
     void StrToArg(String const &str, Bool &arg);
@@ -236,10 +246,13 @@ private:
     void StrToArg(String const &str, Float &arg);
     void StrToArg(String const &str, Double &arg);
     void StrToArg(String const &str, WideChar *arg);
+    void StrToArg(String const &str, Char *arg);
     void StrToArg(String const &str, String &arg);
+    void StrToArg(String const &str, StringA &arg);
     void StrToArg(String const &str, FifamDate &arg);
     void StrToArg(String const &str, Hexadecimal arg);
     void StrToArg(String const &str, Quoted arg);
+    void StrToArg(String const &str, QuotedA arg);
     void StrToArg(String const &str, OptionalInt arg);
     void StrToArg(String const &str, Date &arg);
     template<typename T>
@@ -382,5 +395,7 @@ public:
     Bool ReadVersion();
 
     String ReadFullLine();
+    StringA ReadFullLineA();
     Bool ReadFullLine(String &out);
+    Bool ReadFullLine(StringA &out);
 };

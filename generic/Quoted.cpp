@@ -41,3 +41,45 @@ void Quoted::reset(std::wstring *link) {
 std::wstring *Quoted::getLink() {
     return pLinkedString;
 }
+
+QuotedA::QuotedA() {
+    pLinkedString = &ownedValue;
+}
+
+QuotedA::QuotedA(std::string &link) {
+    pLinkedString = &link;
+}
+
+QuotedA::QuotedA(std::string *link) {
+    pLinkedString = link;
+}
+
+QuotedA::QuotedA(QuotedA const &rhs) {
+    pLinkedString = rhs.pLinkedString;
+}
+
+QuotedA::QuotedA(std::string &&rvalue) {
+    ownedValue = rvalue;
+    pLinkedString = &ownedValue;
+}
+
+void QuotedA::operator=(std::string const &value) {
+    if (pLinkedString)
+        *pLinkedString = value;
+}
+
+std::string QuotedA::operator()() const {
+    return pLinkedString ? *pLinkedString : std::string();
+}
+
+void QuotedA::reset(std::string &link) {
+    pLinkedString = &link;
+}
+
+void QuotedA::reset(std::string *link) {
+    pLinkedString = link;
+}
+
+std::string *QuotedA::getLink() {
+    return pLinkedString;
+}

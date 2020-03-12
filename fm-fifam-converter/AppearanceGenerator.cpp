@@ -64,15 +64,15 @@ UChar AppearanceGenerator::GetRandomAppearanceParam(AppearanceGenerator::Appeara
 
 void AppearanceGenerator::Generate(FifamPlayer *player, AppearanceGenerator::Type type) {
     AppearanceDef &def = mAppearanceDefs[type];
-    player->mAppearance.mSkinColor.SetFromInt(GetRandomAppearanceParam(def, ParamSkinColor, player->mAppearance.mSkinColor.ToInt()));
+    player->mAppearance.mSkinColor = GetRandomAppearanceParam(def, ParamSkinColor, player->mAppearance.mSkinColor);
     player->mAppearance.mGenericFace = GetRandomAppearanceParam(def, ParamFace, player->mAppearance.mGenericFace);
     player->mAppearance.mHairStyle = GetRandomAppearanceParam(def, ParamHair, player->mAppearance.mHairStyle);
-    player->mAppearance.mFaceVariation.SetFromInt(GetRandomAppearanceParam(def, ParamVariation, player->mAppearance.mFaceVariation.ToInt()));
-    player->mAppearance.mBeardColor.SetFromInt(GetRandomAppearanceParam(def, ParamBeardColor, player->mAppearance.mBeardColor.ToInt()));
-    player->mAppearance.mEyeColour.SetFromInt(GetRandomAppearanceParam(def, ParamEyeColor, player->mAppearance.mEyeColour.ToInt()));
-    player->mAppearance.mBeardType.SetFromInt(GetRandomAppearanceParam(def, ParamBeard, player->mAppearance.mBeardType.ToInt()));
+    player->mAppearance.mFaceVariation = GetRandomAppearanceParam(def, ParamVariation, player->mAppearance.mFaceVariation);
+    player->mAppearance.mBeardColor = GetRandomAppearanceParam(def, ParamBeardColor, player->mAppearance.mBeardColor);
+    player->mAppearance.mEyeColour = GetRandomAppearanceParam(def, ParamEyeColor, player->mAppearance.mEyeColour);
+    player->mAppearance.mBeardType = GetRandomAppearanceParam(def, ParamBeard, player->mAppearance.mBeardType);
     player->mAppearance.mSideburns = GetRandomAppearanceParam(def, ParamSideburns, player->mAppearance.mSideburns);
-    player->mAppearance.mHairColor.SetFromInt(GetRandomAppearanceParam(def, ParamHairColor, player->mAppearance.mHairColor.ToInt()));
+    player->mAppearance.mHairColor = GetRandomAppearanceParam(def, ParamHairColor, player->mAppearance.mHairColor);
 }
 
 enum ShoeType {
@@ -341,32 +341,32 @@ int GetPlayerShoesIdFromFifaId(int shoeTypeCode) {
     return ShoeType;
 }
 
-void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fifaPlayer) {
+void AppearanceGenerator::SetFromFifaPlayer_Old(FifamPlayer *player, FifaPlayer *fifaPlayer) {
     bool isLastVersion = fifaPlayer->m_gameId == FIFA_DATABASE_LATEST_GAME_VERSION;
     switch (fifaPlayer->internal.skintonecode) {
     case 1:
     case 2:
     case 3:
-        player->mAppearance.mSkinColor = FifamSkinColor::White;
+        player->mAppearance.mSkinColor = 1;
         break;
     case 4:
-        player->mAppearance.mSkinColor = FifamSkinColor::Asian;
+        player->mAppearance.mSkinColor = 2;
         break;
     case 5:
-        player->mAppearance.mSkinColor = FifamSkinColor::Latin1;
+        player->mAppearance.mSkinColor = 3;
         break;
     case 6:
     case 7:
-        player->mAppearance.mSkinColor = FifamSkinColor::Latin2;
+        player->mAppearance.mSkinColor = 4;
         break;
     case 8:
-        player->mAppearance.mSkinColor = FifamSkinColor::African1;
+        player->mAppearance.mSkinColor = 5;
         break;
     case 9:
-        player->mAppearance.mSkinColor = FifamSkinColor::African2;
+        player->mAppearance.mSkinColor = 6;
         break;
     case 10:
-        player->mAppearance.mSkinColor = FifamSkinColor::African3;
+        player->mAppearance.mSkinColor = 7;
         break;
     }
     switch (fifaPlayer->internal.skintypecode) {
@@ -767,5 +767,241 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
     else if (fifaPlayer->internal.headtypecode == 2016)
         player->mAppearance.mGenericFace = 100;
 
+    player->mShoeType.SetFromInt(GetPlayerShoesIdFromFifaId(isLastVersion ? fifaPlayer->internal.shoetypecode : 0));
+}
+
+void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fifaPlayer) {
+    bool isLastVersion = fifaPlayer->m_gameId == FIFA_DATABASE_LATEST_GAME_VERSION;
+    switch (fifaPlayer->internal.skintonecode) {
+    case 1:
+        player->mAppearance.mSkinColor = 0;
+        break;
+    case 2:
+        player->mAppearance.mSkinColor = 1;
+        break;
+    case 3:
+        player->mAppearance.mSkinColor = 2;
+        break;
+    case 4:
+        player->mAppearance.mSkinColor = 3;
+        break;
+    case 5:
+        player->mAppearance.mSkinColor = 4;
+        break;
+    case 6:
+        player->mAppearance.mSkinColor = 5;
+        break;
+    case 7:
+        player->mAppearance.mSkinColor = 6;
+        break;
+    case 8:
+        player->mAppearance.mSkinColor = 7;
+        break;
+    case 9:
+        player->mAppearance.mSkinColor = 8;
+        break;
+    case 10:
+        player->mAppearance.mSkinColor = 9;
+        break;
+    }
+    switch (fifaPlayer->internal.skintypecode) {
+    case 0:
+        player->mAppearance.mFaceVariation = 0;
+        break;
+    case 1:
+        player->mAppearance.mFaceVariation = 1;
+        break;
+    case 2:
+        player->mAppearance.mFaceVariation = 2;
+        break;
+    }
+    // 0 - light blue 1 - brown 2 - grey-green 3 - green 4 - green-blue 5 -grey 6 - blue
+    switch (fifaPlayer->internal.eyecolorcode) {
+    case 1:
+        player->mAppearance.mEyeColour = 6;
+        break;
+    case 2:
+        player->mAppearance.mEyeColour = 0;
+        break;
+    case 3:
+        player->mAppearance.mEyeColour = 1;
+        break;
+    case 4:
+        player->mAppearance.mEyeColour = 7;
+        break;
+    case 5:
+        player->mAppearance.mEyeColour = 4;
+        break;
+    case 6:
+        player->mAppearance.mEyeColour = 3;
+        break;
+    case 7:
+        player->mAppearance.mEyeColour = 9;
+        break;
+    case 8:
+        player->mAppearance.mEyeColour = 5;
+        break;
+    case 9:
+        player->mAppearance.mEyeColour = 8;
+        break;
+    case 10:
+        player->mAppearance.mEyeColour = 2;
+        break;
+    }
+    if (fifaPlayer->internal.sideburnscode)
+        player->mAppearance.mSideburns = 1;
+    else
+        player->mAppearance.mSideburns = 0;
+
+    // 0 - none
+    // 1 - chin beard  _
+    // 2 - kevin beard \_/
+    // 3 - full goatee |_|
+    // 4 - full beard \|_|/
+    // 5 - tash --
+    // 6 - shadow
+    // 7 - goatee \/
+    // 8 - unshaven
+    switch (fifaPlayer->internal.facialhairtypecode) {
+    case 0:
+        player->mAppearance.mBeardType = 0;
+        break;
+    case 1:
+        player->mAppearance.mBeardType = 1;
+        break;
+    case 2:
+        player->mAppearance.mBeardType = 2;
+        break;
+    case 3:
+        player->mAppearance.mBeardType = 3;
+        break;
+    case 4:
+        player->mAppearance.mBeardType = 4;
+        break;
+    case 5:
+    case 16:
+    case 17:
+        player->mAppearance.mBeardType = 5;
+        break;
+    case 6:
+        player->mAppearance.mBeardType = 6;
+        break;
+    case 7:
+        player->mAppearance.mBeardType = 7;
+        break;
+    case 8:
+    case 18:
+    case 19:
+    case 20:
+        player->mAppearance.mBeardType = 8;
+        break;
+    case 9:
+        player->mAppearance.mBeardType = 9;
+        break;
+    case 10:
+    case 21:
+        player->mAppearance.mBeardType = 10;
+        break;
+    case 11:
+        player->mAppearance.mBeardType = 11;
+        break;
+    case 12:
+        player->mAppearance.mBeardType = 12;
+        break;
+    case 13:
+        player->mAppearance.mBeardType = 13;
+        break;
+    case 14:
+        player->mAppearance.mBeardType = 14;
+        break;
+    case 15:
+        player->mAppearance.mBeardType = 15;
+        break;
+    }
+    // 0 - black, 1 - blonde, 2 - brown, 3 - medium blonde, 4 - red
+    switch (fifaPlayer->internal.facialhaircolorcode) {
+    case 0:
+        player->mAppearance.mBeardColor = 0;
+        break;
+    case 1:
+        player->mAppearance.mBeardColor = 1;
+        break;
+    case 2:
+        player->mAppearance.mBeardColor = 2;
+        break;
+    case 3:
+        player->mAppearance.mBeardColor = 3;
+        break;
+    case 4:
+        player->mAppearance.mBeardColor = 4;
+        break;
+    }
+    bool fifaHairSet = false;
+    switch (fifaPlayer->internal.hairtypecode) {
+    case 267:
+        player->mAppearance.mHairStyle = g14HairEditorIdToReal[83 - 1];
+        fifaHairSet = true;
+        break;
+    case 283:
+    case 284:
+    case 298:
+        player->mAppearance.mHairStyle = g14HairEditorIdToReal[17 - 1];
+        fifaHairSet = true;
+        break;
+    case 295:
+        player->mAppearance.mHairStyle = g14HairEditorIdToReal[44 - 1];
+        fifaHairSet = true;
+        break;
+    }
+    if (!fifaHairSet) {
+        static int fifaHairMapping[] = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115,116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,203,213,549,553 };
+        for (unsigned int i = 0; i < std::size(fifaHairMapping); i++) {
+            if (fifaHairMapping[i] == fifaPlayer->internal.hairtypecode) {
+                player->mAppearance.mHairStyle = i;
+                break;
+            }
+        }
+    }
+    // 0 - blonde, 1 - black, 2 - medium blonde, 3 - darkbrown, 4 - platinumblonde, 5 - lightbrown, 6 - brown, 7 - red
+    switch (fifaPlayer->internal.haircolorcode) {
+    case 0:
+        player->mAppearance.mHairColor = 0;
+        break;
+    case 1:
+        player->mAppearance.mHairColor = 1;
+        break;
+    case 2:
+    case 9:
+        player->mAppearance.mHairColor = 2;
+        break;
+    case 3:
+        player->mAppearance.mHairColor = 3;
+        break;
+    case 4:
+        player->mAppearance.mHairColor = 4;
+        break;
+    case 5:
+        player->mAppearance.mHairColor = 5;
+        break;
+    case 6:
+        player->mAppearance.mHairColor = 6;
+        break;
+    case 7:
+    case 12:
+    case 13:
+        player->mAppearance.mHairColor = 7;
+        break;
+    case 8:
+        player->mAppearance.mHairColor = 8;
+        break;
+    }
+
+    static int fifaHeadMapping[] = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,500,501,502,503,504,505,506,507,508,509,510,511,512,513,514,515,516,517,518,519,520,1000,1001,1002,1003,1004,1005,1006,1007,1008,1009,1010,1011,1012,1013,1014,1015,1016,1017,1018,1500,1501,1502,1503,1504,1505,1506,1507,1508,1509,1510,1511,1512,1513,1514,1515,1516,1517,1518,1519,1520,1521,1522,1523,1524,1525,1526,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2012,2500,2501,2502,2503,2504,2505,2506,3000,3001,3002,3003,3004,3005,3500,3501,3502,3503,3504,3505,4000,4001,4002,4003,4500,4501,4502,5000,5001,5002,5003,521,522,523,524,525,526,527,528,529,530,531,532,533,534,535,536,537,538,539,540,541,542,543,544,545,546,547,548,549,550,551,552,553,554,555,556,557,558,559,560,561,562,1019,1020,1021,1022,1023,1024,1025,1026,1027,1527,1528,2011,2013,2014,2015,2016,2017,2019,2020,2021,2022,2023,2024,2025,2026,2027,2028,2029,2030,2507,2508,2509,2510,2511,2512,2513,2514,2515,2516,2517,2518,4525 };
+    for (unsigned int i = 0; i < std::size(fifaHeadMapping); i++) {
+        if (fifaHeadMapping[i] == fifaPlayer->internal.headtypecode) {
+            player->mAppearance.mGenericFace = i;
+            break;
+        }
+    }
     player->mShoeType.SetFromInt(GetPlayerShoesIdFromFifaId(isLastVersion ? fifaPlayer->internal.shoetypecode : 0));
 }

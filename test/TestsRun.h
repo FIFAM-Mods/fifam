@@ -36,7 +36,8 @@
 #include "tests\DatabaseRewrite.h"
 #include "tests\CreateStarheadsFile.h"
 #include "Translation.h"
+#include "tests\GetUnlinkedFaces.h"
 
 void RunTests() {
-    RunTest<CreateStarheadsFile>();
+    RunTest<GetUnlinkedFaces>();
 }

@@ -7,6 +7,11 @@ std::wstring Utils::TimeString(std::time_t const &time) {
     return Format(L"%02d.%02d.%04d %02d:%02d:%02d", t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min, t.tm_sec);
 }
 
+std::string Utils::TimeStringA(std::time_t const &time) {
+    tm t = *localtime(&time);
+    return Format("%02d.%02d.%04d %02d:%02d:%02d", t.tm_mday, t.tm_mon + 1, t.tm_year + 1900, t.tm_hour, t.tm_min, t.tm_sec);
+}
+
 std::wstring Utils::TimeDifferenceSting(std::time_t const &timeEnd, std::time_t const &timeBegin) {
     time_t seconds = static_cast<time_t>(difftime(timeEnd, timeBegin));
     tm *dt = gmtime(&seconds);
@@ -19,8 +24,24 @@ std::wstring Utils::TimeDifferenceSting(std::time_t const &timeEnd, std::time_t 
     return Format(L"%ds", dt->tm_sec);
 }
 
+std::string Utils::TimeDifferenceStingA(std::time_t const &timeEnd, std::time_t const &timeBegin) {
+    time_t seconds = static_cast<time_t>(difftime(timeEnd, timeBegin));
+    tm *dt = gmtime(&seconds);
+    if (dt->tm_yday > 0)
+        return Format("%dd %dh %dm %ds", dt->tm_yday, dt->tm_hour, dt->tm_min, dt->tm_sec);
+    if (dt->tm_hour > 0)
+        return Format("%dh %dm %ds", dt->tm_hour, dt->tm_min, dt->tm_sec);
+    if (dt->tm_min > 0)
+        return Format("%dm %ds", dt->tm_min, dt->tm_sec);
+    return Format("%ds", dt->tm_sec);
+}
+
 std::wstring Utils::CurrentTime() {
     return TimeString(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
+}
+
+std::string Utils::CurrentTimeA() {
+    return TimeStringA(std::chrono::system_clock::to_time_t(std::chrono::system_clock::now()));
 }
 
 std::wstring Utils::GetQuickName(std::wstring const &firstName, std::wstring const &lastName, std::wstring const &commonName) {
@@ -35,6 +56,20 @@ std::wstring Utils::GetQuickName(std::wstring const &firstName, std::wstring con
     else if (!lastName.empty())
         return lastName;
     return std::wstring();
+}
+
+std::string Utils::GetQuickNameA(std::string const &firstName, std::string const &lastName, std::string const &commonName) {
+    if (!commonName.empty())
+        return commonName;
+    if (!firstName.empty()) {
+        if (!lastName.empty())
+            return firstName + " " + lastName;
+        else
+            return firstName;
+    }
+    else if (!lastName.empty())
+        return lastName;
+    return std::string();
 }
 
 std::vector<std::wstring> Utils::Split(std::wstring const &line, wchar_t delim, bool trim, bool skipEmpty, bool quotesHavePriority) {
@@ -71,7 +106,45 @@ std::vector<std::wstring> Utils::Split(std::wstring const &line, wchar_t delim, 
     return result;
 }
 
+std::vector<std::string> Utils::Split(std::string const &line, char delim, bool trim, bool skipEmpty, bool quotesHavePriority) {
+    std::vector<std::string> result;
+    std::string currStr;
+    auto AddStr = [&, trim, skipEmpty]() {
+        if (trim)
+            Utils::Trim(currStr);
+        if (!skipEmpty || !currStr.empty())
+            result.push_back(currStr);
+        currStr.clear();
+    };
+    bool inQuotes = false;
+    for (size_t i = 0; i < line.length(); i++) {
+        auto c = line[i];
+        if (c == '\r' || (delim != '\n' && c == '\n'))
+            break;
+        if (!inQuotes) {
+            if (quotesHavePriority && c == '"')
+                inQuotes = true;
+            else if (c == delim)
+                AddStr();
+            else
+                currStr += c;
+        }
+        else {
+            if (c == '"')
+                inQuotes = false;
+            else
+                currStr += c;
+        }
+    }
+    AddStr();
+    return result;
+}
+
 bool Utils::StartsWith(std::wstring const &str, std::wstring const &what) {
+    return !str.compare(0, what.size(), what);
+}
+
+bool Utils::StartsWith(std::string const &str, std::string const &what) {
     return !str.compare(0, what.size(), what);
 }
 
@@ -83,19 +156,41 @@ bool Utils::EndsWith(std::wstring const &str, std::wstring const &what) {
     return str.substr(strLen - whatLen) == what;
 }
 
-std::wstring Utils::CharToStr(char c) {
+bool Utils::EndsWith(std::string const &str, std::string const &what) {
+    auto strLen = str.length();
+    auto whatLen = what.length();
+    if (whatLen > strLen)
+        return false;
+    return str.substr(strLen - whatLen) == what;
+}
+
+std::wstring Utils::CharToStr(wchar_t c) {
     wchar_t str[2];
     str[0] = c;
     str[1] = 0;
     return str;
 }
 
+std::string Utils::CharToStrA(char c) {
+    char str[2];
+    str[0] = c;
+    str[1] = 0;
+    return str;
+}
 
 bool Utils::Compare(std::wstring const &str, size_t index, char c) {
     return str.length() > index && str[index] == c;
 }
 
+bool Utils::Compare(std::string const &str, size_t index, char c) {
+    return str.length() > index && str[index] == c;
+}
+
 bool IsHexadecimalLetter(wchar_t c) {
+    return (c >= L'a' && c <= L'f') || (c >= L'A' && c <= L'F');
+}
+
+bool IsHexadecimalLetter(char c) {
     return (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
 }
 
@@ -117,10 +212,34 @@ bool Utils::IsNumber(std::wstring const &str, bool hexadecimal) {
     return true;
 }
 
+bool Utils::IsNumber(std::string const &str, bool hexadecimal) {
+    if (str.empty())
+        return false;
+    std::string cmpStr;
+    if (hexadecimal && (StartsWith(str, "0x") || StartsWith(str, "0X")))
+        cmpStr = str.substr(2);
+    else
+        cmpStr = str;
+    for (char c : cmpStr) {
+        if (isdigit(c))
+            continue;
+        if (hexadecimal && IsHexadecimalLetter(c))
+            continue;
+        return false;
+    }
+    return true;
+}
+
 int Utils::ToNumber(std::wstring const &str) {
     std::wstring trimmed = str;
     Trim(trimmed);
     return ((StartsWith(trimmed, L"0x") || StartsWith(trimmed, L"0X")) ? wcstol(trimmed.substr(2).c_str(), nullptr, 16) : wcstol(trimmed.c_str(), nullptr, 10));
+}
+
+int Utils::ToNumber(std::string const &str) {
+    std::string trimmed = str;
+    Trim(trimmed);
+    return ((StartsWith(trimmed, "0x") || StartsWith(trimmed, "0X")) ? strtol(trimmed.substr(2).c_str(), nullptr, 16) : strtol(trimmed.c_str(), nullptr, 10));
 }
 
 void Utils::Trim(std::wstring &str) {
@@ -132,6 +251,15 @@ void Utils::Trim(std::wstring &str) {
         str = str.substr(0, end + 1);
 }
 
+void Utils::Trim(std::string &str) {
+    size_t start = str.find_first_not_of(" \t\r\n");
+    if (start != std::string::npos)
+        str = str.substr(start);
+    size_t end = str.find_last_not_of(" \t\r\n");
+    if (end != std::string::npos)
+        str = str.substr(0, end + 1);
+}
+
 std::wstring Utils::ToUpper(std::wstring const &str) {
     std::wstring result;
     for (size_t i = 0; i < str.length(); i++)
@@ -139,10 +267,24 @@ std::wstring Utils::ToUpper(std::wstring const &str) {
     return result;
 }
 
+std::string Utils::ToUpper(std::string const &str) {
+    std::string result;
+    for (size_t i = 0; i < str.length(); i++)
+        result += toupper(static_cast<unsigned char>(str[i]));
+    return result;
+}
+
 std::wstring Utils::ToLower(std::wstring const &str) {
     std::wstring result;
     for (size_t i = 0; i < str.length(); i++)
         result += tolower(static_cast<unsigned short>(str[i]));
+    return result;
+}
+
+std::string Utils::ToLower(std::string const &str) {
+    std::string result;
+    for (size_t i = 0; i < str.length(); i++)
+        result += tolower(static_cast<unsigned char>(str[i]));
     return result;
 }
 
@@ -155,7 +297,25 @@ float Utils::SafeConvertFloat(std::wstring const &str) {
     return result;
 }
 
+float Utils::SafeConvertFloat(std::string const &str) {
+    float result = 0.0f;
+    try {
+        result = std::stof(str);
+    }
+    catch (...) {}
+    return result;
+}
+
 double Utils::SafeConvertDouble(std::wstring const &str) {
+    double result = 0.0;
+    try {
+        result = std::stod(str);
+    }
+    catch (...) {}
+    return result;
+}
+
+double Utils::SafeConvertDouble(std::string const &str) {
     double result = 0.0;
     try {
         result = std::stod(str);
@@ -181,6 +341,16 @@ std::string Utils::WtoA(std::wstring const &str) {
 }
 
 void Utils::Replace(std::wstring& str, const std::wstring& from, const std::wstring& to) {
+    if (from.empty())
+        return;
+    size_t start_pos = 0;
+    while ((start_pos = str.find(from, start_pos)) != std::wstring::npos) {
+        str.replace(start_pos, from.length(), to);
+        start_pos += to.length();
+    }
+}
+
+void Utils::Replace(std::string &str, const std::string &from, const std::string &to) {
     if (from.empty())
         return;
     size_t start_pos = 0;
@@ -269,10 +439,36 @@ std::wstring Utils::Join(std::vector<std::wstring> const &strList, wchar_t delim
     return result;
 }
 
+std::string Utils::Join(std::vector<std::string> const &strList, char delim) {
+    std::string result;
+    bool first = true;
+    for (std::string const &str : strList) {
+        if (first)
+            first = false;
+        else
+            result += delim;
+        result += str;
+    }
+    return result;
+}
+
 std::wstring Utils::Join(std::vector<std::wstring> const &strList, std::wstring const &delim) {
     std::wstring result;
     bool first = true;
     for (std::wstring const &str : strList) {
+        if (first)
+            first = false;
+        else
+            result += delim;
+        result += str;
+    }
+    return result;
+}
+
+std::string Utils::Join(std::vector<std::string> const &strList, std::string const &delim) {
+    std::string result;
+    bool first = true;
+    for (std::string const &str : strList) {
         if (first)
             first = false;
         else
