@@ -59,12 +59,16 @@ FifamWriter::FifamWriter(Path const &filename, UInt gameId, FifamVersion const &
     mVersion = version;
 }
 
+FifamWriter::FifamWriter(Path const &filename) : FifamWriter(filename, 14, FifamVersion(), true) {}
+
 FifamWriter::FifamWriter(String *outputString, UInt gameId, FifamVersion const &version, Bool unicode) :
     FifamFileWorker(gameId)
 {
     mOutputStr = outputString;
     mVersion = version;
 }
+
+FifamWriter::FifamWriter(String *outputString) : FifamWriter(outputString, 14, FifamVersion(), true) {}
 
 void FifamWriter::SetReplaceQuotes(bool replace) {
     mReplaceQuotes = replace;
@@ -500,6 +504,10 @@ FifamReader::FifamReader(String *inputString, UInt gameId, Bool linesWithComment
 FifamReader::FifamReader(String *inputString, UInt gameId, FifamVersion const &version, Bool linesWithComments, Bool removeQuotes) {
     Open(inputString, gameId, version, linesWithComments, removeQuotes);
 }
+
+FifamReader::FifamReader(Path const &filename) : FifamReader(filename, 14) {}
+
+FifamReader::FifamReader(String *inputString) : FifamReader(inputString, 14) {}
 
 FifamReader::~FifamReader() {
     Close();

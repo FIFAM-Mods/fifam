@@ -131,16 +131,29 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     if (clubDefaultFacilitiesForUnknown > 1)
         clubDefaultFacilitiesForUnknown -= 1;
 
+    auto FacilityMap = [](Int val, Vector<Int> convMap, Int base = 0) {
+        if (!convMap.empty()) {
+            for (Int i = convMap.size() - 1; i >= 0; i--) {
+                if (val >= convMap[i])
+                    return base + i;
+            }
+        }
+        return base;
+    };
+
     // club facilities is based on training facilities (66,7%) and corporate facilities (33,3%)
-    dst->mClubFacilities = Utils::MapTo(team->mTraining + team->mCorporateFacilities / 2, 1, 30, 0, 6);
+    dst->mClubFacilities = FacilityMap(team->mTraining + team->mCorporateFacilities / 2, { 0, 6, 11, 16, 21, 25, 28 });
     Int youthFacilities = team->mYouthFacilities;
     if (youthFacilities <= 0)
         youthFacilities = clubDefaultFacilitiesForUnknown;
-    dst->mYouthCentre = Utils::MapTo(youthFacilities, 1, 20, 1, 10);
+    dst->mYouthCentre = FacilityMap(youthFacilities, { 0, 5, 8, 10, 12, 14, 16, 18, 19, 20}, 1);
     Int youthCoaching = team->mYouthCoaching;
     if (youthCoaching <= 0)
         youthCoaching = clubDefaultFacilitiesForUnknown;
-    dst->mYouthBoardingSchool = Utils::MapTo(youthCoaching, 1, 20, 0, 10);
+    Int youthRecruitment = team->mYouthRecruitment;
+    if (youthRecruitment <= 0)
+        youthRecruitment = clubDefaultFacilitiesForUnknown;
+    dst->mYouthBoardingSchool = FacilityMap(ceil(Float(youthCoaching + youthRecruitment) / 2.0f), { 0, 2, 3, 5, 7, 9, 11, 13, 15, 17, 19 });
     Int trainingGrounds = team->mTraining;
     if (trainingGrounds <= 0)
         trainingGrounds = clubDefaultFacilitiesForUnknown;
@@ -463,13 +476,21 @@ void Converter::ConvertReserveClub(UInt gameId, FifamClub * dst, foom::club * te
 
     // settlement
     if (team->mCity && team->mCity->mInhabitants > 0) {
-        if (team->mCity->mInhabitants >= 6) // 25'001+
+        if (team->mCity->mInhabitants >= 10) // 500'001+
+            dst->mSettlement = FifamClubSettlement::City;
+        else if (team->mCity->mInhabitants >= 6) // 25'001+
             dst->mSettlement = FifamClubSettlement::Town;
         else
             dst->mSettlement = FifamClubSettlement::Village;
+    } else {
+        if (dst->mStadiumSeatsCapacity <= 50000) {
+            if (dst->mStadiumSeatsCapacity > 20000)
+                dst->mSettlement = FifamClubSettlement::Town;
+            else
+                dst->mSettlement = FifamClubSettlement::Village;
+        } else
+            dst->mSettlement = FifamClubSettlement::City;
     }
-    else
-        dst->mSettlement = FifamClubSettlement::Village;
 
     // Youth players come from
     if (team->mBasedNation)
@@ -1271,6 +1292,25 @@ FifamClub *Converter::CreateAndConvertClub(UInt gameId, foom::club *team, foom::
         auto it = mAbbreviationMap.find(team->mID);
         if (it != mAbbreviationMap.end())
             FifamTrSetAll<String>(club->mAbbreviation, (*it).second);
+    }
+    {
+        auto it = mNamesMap_ger.find(team->mID);
+        if (it != mNamesMap_ger.end()) {
+            club->mName[FifamTranslation::German] = (*it).second;
+            club->mName2[FifamTranslation::German] = (*it).second;
+        }
+    }
+    {
+        auto it = mShortNamesMap_ger.find(team->mID);
+        if (it != mShortNamesMap_ger.end()) {
+            club->mShortName[FifamTranslation::German] = (*it).second;
+            club->mShortName2[FifamTranslation::German] = (*it).second;
+        }
+    }
+    {
+        auto it = mAbbreviationMap_ger.find(team->mID);
+        if (it != mAbbreviationMap_ger.end())
+            club->mAbbreviation[FifamTranslation::German] = (*it).second;
     }
 
     mFifamDatabase->AddClubToMap(club);

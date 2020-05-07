@@ -8,6 +8,7 @@
 #include "FifamCompRound.h"
 
 const UShort CURRENT_YEAR = 2019;
+const UInt DATABASE_VERSION = 0x2020110;
 
 class Converter {
 public:
@@ -23,6 +24,9 @@ public:
     Path mContentFolder;
     Path mContentArtsFolder;
     Path mFifaAssetsPath;
+    Bool mGenerateLeaguesFiles = false;
+    Bool mGenerateLeagueConfigFiles = true;
+    Bool mQuickTest = false;
 
     FifamDatabase *mPreviousDb = nullptr;
     Map<UInt, FifamPlayer *> mPreviousPlayers;
@@ -181,6 +185,9 @@ public:
     Map<Int, String> mAbbreviationMap;
     Map<Int, String> mShortNamesMap;
     Map<Int, String> mNamesMap;
+    Map<Int, String> mAbbreviationMap_ger;
+    Map<Int, String> mShortNamesMap_ger;
+    Map<Int, String> mNamesMap_ger;
     Map<UInt, Vector<UShort>> mCalendarsFirstSeason;
     Map<UInt, Vector<UShort>> mCalendarsSecondSeason;
     

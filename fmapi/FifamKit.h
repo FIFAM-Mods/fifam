@@ -21,17 +21,17 @@ public:
         // @since FM07
         UChar mSocks = 0;
         // @since FM07
-        Array<Color, 3> mShirtColors;
+        Array<GenColor, 3> mShirtColors;
         // @since FM07
-        Array<Color, 3> mSleevesColors;
+        Array<GenColor, 3> mSleevesColors;
         // @since FM07
-        Array<Color, 3> mShortsColors;
+        Array<GenColor, 3> mShortsColors;
         // @since FM07
-        Array<Color, 2> mSocksColors;
+        Array<GenColor, 2> mSocksColors;
         // @since FM07
-        Color mCaptainArmbandColor;
+        GenColor mCaptainArmbandColor;
         // @since FM07
-        Color mShirtNumberColor;
+        GenColor mShirtNumberColor;
         // @since FM07
         FifamKitBadgePosition mBadgePosition;
     };
@@ -40,7 +40,7 @@ public:
     // @since FM07
     UInt mSpecialKitId = 0;
 
-    inline static Vector<Pair<UInt, Color>> mKitColorTable = {
+    inline static Vector<Pair<UInt, GenColor>> mKitColorTable = {
         { 0,  { 255, 85, 85 }},
         { 1,  { 14, 177, 2 }},
         { 2,  { 1, 186, 220 }},
@@ -119,7 +119,7 @@ public:
         { FifamKitColor::Green4, { 0, 128, 96 }}, // Akhmat
         { FifamKitColor::Green4, { 0, 128, 88 }} // Konyaspor
     };
-    inline static Vector<Pair<UInt, Color>> mShirtNumberColorTable = {
+    inline static Vector<Pair<UInt, GenColor>> mShirtNumberColorTable = {
         { 1, { 255, 255, 255 }},
         { 2, { 0, 0, 0 }},
         { 3, { 255, 255, 0 }},
@@ -128,7 +128,7 @@ public:
         { 6, { 0, 0, 255 }}
     };
 
-    static Color GetShirtBackColor(UInt shirtId, Color const &firstColor, Color const &secondColor, Color const &thirdColor);
+    static GenColor GetShirtBackColor(UInt shirtId, GenColor const &firstColor, GenColor const &secondColor, GenColor const &thirdColor);
 
     void Read(FifamReader &reader);
     void Write(FifamWriter &writer);

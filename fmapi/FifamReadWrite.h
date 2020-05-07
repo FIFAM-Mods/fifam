@@ -34,6 +34,8 @@ class FifamWriter : public FifamFileWorker {
     Bool mUnicode = true;
     Bool mReplaceQuotes = true;
 public:
+    FifamWriter(Path const &filename);
+    FifamWriter(String *outputString);
     FifamWriter(Path const &filename, UInt gameId, FifamVersion const &version, Bool unicode = true);
     FifamWriter(String *outputString, UInt gameId, FifamVersion const &version, Bool unicode = true);
     void SetReplaceQuotes(bool replace);
@@ -207,6 +209,8 @@ public:
     UInt GetPosition();
     void SetPosition(UInt pos);
     UInt GetSize();
+    FifamReader(Path const &filename);
+    FifamReader(String *inputString);
     FifamReader(Path const &filename, UInt gameId, Bool linesWithComments = true, Bool removeQuotes = true);
     FifamReader(Path const &filename, UInt gameId, FifamVersion const &version, Bool linesWithComments = true, Bool removeQuotes = true);
     FifamReader(String *inputString, UInt gameId, Bool linesWithComments = true, Bool removeQuotes = true);

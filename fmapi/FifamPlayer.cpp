@@ -988,3 +988,60 @@ void FifamPlayer::ForAllAttributes(Function<void(UChar &, FifamPlayerAbilityID c
 String FifamPlayer::GetStringUniqueId(UInt gameId, Bool includeEmpicsId) {
     return FifamNames::GetPersonStringId(gameId, mFirstName, mLastName, mPseudonym, mBirthday, includeEmpicsId ? mEmpicsId : 0);
 }
+
+// must be called when: player age is known; player position is known; player history is known
+void FifamPlayer::ValidateExperience(FifamDate const &currentDate) {
+    struct ExperienceCalcEntry {
+        UChar exp0to6, minAge, maxAge;
+        UShort minRating, maxRating;
+    };
+
+    // experience table, sorted by experience value (0-6)
+    static ExperienceCalcEntry expCalcTable[] = {
+        { 0,17,19,0,10 },{ 0,20,21,0,15 },{ 0,22,22,0,5 },
+        { 1,17,17,10,9999 },{ 1,18,19,5,9999 },{ 1,20,22,5,75 },{ 1,23,24,0,75 },{ 1,25,25,0,50 },
+        { 2,20,20,75,9999 },{ 2,21,22,50,9999 },{ 2,23,24,50,150 },{ 2,25,26,0,150 },{ 2,27,27,0,100 },
+        { 3,22,22,200,9999 },{ 3,23,24,100,9999 },{ 3,25,27,100,250 },{ 3,28,29,0,250 },{ 3,30,30,0,200 },
+        { 4,25,25,250,9999 },{ 4,26,27,200,9999 },{ 4,28,30,200,400 },{ 4,31,32,0,400 },{ 4,33,33,0,300 },
+        { 5,28,28,400,9999 },{ 5,29,30,300,9999 },{ 5,31,33,300,650 },{ 5,34,35,0,650 },{ 5,36,36,0,500 },
+        { 6,31,31,650,9999 },{ 6,32,33,500,9999 },{ 6,34,34,400,9999 },{ 6,35,99,0,9999 }
+    };
+
+    // gather player info
+    UChar age = GetAge(currentDate);
+    Bool isGK = mMainPosition == FifamPlayerPosition::GK;
+    UInt rating = mNationalTeamMatches * 2;
+    for (auto const &h : mHistory.mEntries) {
+        rating += h.mMatches;
+        rating += h.mReserveMatches * 2;
+    }
+
+    // find table entries
+    ExperienceCalcEntry *firstEntry = nullptr;
+    ExperienceCalcEntry *lastEntry = nullptr;
+
+    for (UInt i = 0; i < std::size(expCalcTable); i++) {
+        if (age >= expCalcTable[i].minAge && age <= expCalcTable[i].maxAge && rating <= expCalcTable[i].maxRating) {
+            UInt minRating = expCalcTable[i].maxRating;
+            if (isGK)
+                minRating /= 2;
+            if (rating >= minRating) {
+                if (!firstEntry)
+                    firstEntry = &expCalcTable[i];
+                lastEntry = &expCalcTable[i];
+            }
+        }
+    }
+
+    // set new experience if needed
+    if (firstEntry) {
+        UChar currExpLevel = mGeneralExperience / 3;
+        if (currExpLevel < firstEntry->exp0to6)
+            mGeneralExperience = firstEntry->exp0to6 * 3;
+        else if (currExpLevel > lastEntry->exp0to6) {
+            mGeneralExperience = lastEntry->exp0to6 * 3 + 2;
+            if (mGeneralExperience > 18)
+                mGeneralExperience = 18;
+        }
+    }
+}

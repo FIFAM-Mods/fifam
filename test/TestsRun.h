@@ -37,7 +37,9 @@
 #include "tests\CreateStarheadsFile.h"
 #include "Translation.h"
 #include "tests\GetUnlinkedFaces.h"
+#include "tests\UpdateDbNames.h"
+#include "tests\Fifa07Convert.h"
 
 void RunTests() {
-    RunTest<GetUnlinkedFaces>();
+    RunTest<Fifa07Convert>();
 }

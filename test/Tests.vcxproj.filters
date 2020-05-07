@@ -145,6 +145,12 @@
     <ClInclude Include="tests\GetUnlinkedFaces.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\UpdateDbNames.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\Fifa07Convert.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

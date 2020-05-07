@@ -23,11 +23,13 @@ public:
     void ConvertOneStadium(Int foomId, UInt fifamClubId, Path const &inputPath, Path const &outputPath, String const &name, String const &stadName, Int rep, FifamWriter &writer);
     void ConvertStadiums(foom::db *db, Path const &inputPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minRep, bool overview);
 
+    void ConvertCountryFlags(FifamDatabase *db, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath);
+
     void ConvertPlayerPortraitsFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath);
     void ConvertClubBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath);
     void ConvertCompBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath);
 
-    void CopyLeagueSplitAndRelegationBadges(FifamDatabase *db, Path const &outputPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath);
+    void CopyLeagueSplitAndRelegationBadges(FifamDatabase *db, Path const &contentPath, UInt gameId, Path const &gameOutputPath);
     void DownloadClubBadgesFIFA(FifamDatabase *db, Path const &contentPath, UInt gameId, Path const &gameOutputPath);
     void DownloadPlayerPortraitsFIFA(FifamDatabase *db, Path const &contentPath, UInt gameId, Path const &gameOutputPath);
 

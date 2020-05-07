@@ -41,7 +41,6 @@ void Converter::ConvertPersonAttributes(FifamPerson * person, foom::person * p, 
     person->mLastName = FifamNames::LimitPersonName(FixPersonName(p->mSecondName, gameId), 19);
     if (!p->mCommonName.empty())
         person->mPseudonym = FifamNames::LimitPersonName(FixPersonName(p->mCommonName, gameId), (mCurrentGameId > 7) ? 29 : 19);
-    
     // nationality
     Vector<UInt> playerNations;
     if (p->mNation)
@@ -64,10 +63,10 @@ void Converter::ConvertPersonAttributes(FifamPerson * person, foom::person * p, 
     else
         playerLanguages.emplace_back(personCountry->mLanguages[0].ToInt(), 99);
     for (auto &l : p->mVecLanguages) {
-        if (l.mProficiency >= 5 && !l.mCannotSpeakLanguage && l.mLanguage->mConverterData.mFIFAManagerID != 0) {
+        if (l.mLanguage && l.mProficiency >= 5 && !l.mCannotSpeakLanguage && l.mLanguage->mConverterData.mFIFAManagerID != 0) {
             if (std::count_if(playerLanguages.begin(), playerLanguages.end(), [&](Pair<UInt, UInt> const &a) {
                 return a.first == l.mLanguage->mConverterData.mFIFAManagerID;
-                }) == 0)
+            }) == 0)
             {
                 playerLanguages.emplace_back(l.mLanguage->mConverterData.mFIFAManagerID, l.mProficiency);
             }
@@ -75,7 +74,7 @@ void Converter::ConvertPersonAttributes(FifamPerson * person, foom::person * p, 
     }
     std::sort(playerLanguages.begin(), playerLanguages.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
         return a.second > b.second;
-        });
+    });
     UInt numLanguages = Utils::Min(4u, playerLanguages.size());
     for (UInt i = 0; i < numLanguages; i++)
         person->mLanguages[i].SetFromInt(playerLanguages[i].first);

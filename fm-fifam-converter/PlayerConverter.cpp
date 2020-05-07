@@ -402,68 +402,6 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     if (hasCustomFace && hasCustomHair)
         player->mAppearance.mFaceVariation = FifamFaceVariation::Normal;
 
-    // experience
-    UInt totalExperiencePoints = 0;
-    totalExperiencePoints += p->mInternationalApps * 10;
-    for (auto &h : p->mVecPlayingHistory) {
-        if (!h.mYouthTeam && h.mApps > 0) {
-            if (h.mDivision) {
-                switch (h.mDivision->mCompetitionLevel) {
-                case 1:
-                    totalExperiencePoints += h.mApps * 5;
-                    break;
-                case 2:
-                    totalExperiencePoints += h.mApps * 2;
-                    break;
-                default:
-                    totalExperiencePoints += h.mApps;
-                }
-            }
-            else
-                totalExperiencePoints += h.mApps;
-        }
-    }
-    UInt minExperiencePoints = 0;
-    //if (totalExperiencePoints == 0) {
-    if (age >= 35)
-        minExperiencePoints = 2500; // 18 | 3
-    else if (age >= 34)
-        minExperiencePoints = 2150; // 15 | 2
-    else if (age >= 33)
-        minExperiencePoints = 2000; // 14 | 1
-    else if (age >= 32)
-        minExperiencePoints = 1850; // 13 | 1
-    else if (age >= 31)
-        minExperiencePoints = 1700; // 12 | 1
-    else if (age >= 30)
-        minExperiencePoints = 1550; // 11 | 0
-    else if (age >= 29)
-        minExperiencePoints = 1400; // 10 | 0
-    else if (age >= 28)
-        minExperiencePoints = 1250; // 9 | 0
-    else if (age >= 27)
-        minExperiencePoints = 950; // 7 | -1
-    else if (age >= 26)
-        minExperiencePoints = 800; // 6 | -1
-    else if (age >= 25)
-        minExperiencePoints = 700; // 5 | -2
-    else if (age >= 24)
-        minExperiencePoints = 550; // 4 | -2
-    else if (age >= 23)
-        minExperiencePoints = 400; // 3 | -2
-    else if (age >= 22)
-        minExperiencePoints = 250; // 2 | -4
-    else if (age >= 21)
-        minExperiencePoints = 100; // 1 | -4
-//}
-
-    const Float experience_mp = 1.1f;
-    minExperiencePoints = UInt(Float(minExperiencePoints) * experience_mp);
-
-    if (totalExperiencePoints < minExperiencePoints)
-        totalExperiencePoints = minExperiencePoints;
-    player->mGeneralExperience = Utils::MapTo(totalExperiencePoints, 0, UInt(Float(2500) * experience_mp), 0, 18);
-
     // potential
     player->mPotential = GetPlayerLevelFromCA(p->mPotentialAbility);
 
@@ -474,29 +412,164 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         else if (p->mOriginalPA == -95) // 160-190
             player->mTalent = 8; // 4,5 stars
         else if (p->mOriginalPA == -9) { // 150-180
-            if (p->mOriginalCA >= 130)
-                player->mTalent = 8; // 4,5 stars
-            else
-                player->mTalent = 7; // 4 stars
+            player->mTalent = 7; // 4 stars
+            if (age <= 14) {
+                if (p->mOriginalCA >= 95)
+                    player->mTalent = 8; // 4,5 stars
+            }
+            if (age == 15) {
+                if (p->mOriginalCA >= 100)
+                    player->mTalent = 8; // 4,5 stars
+            }
+            else if (age == 16) {
+                if (p->mOriginalCA >= 115)
+                    player->mTalent = 8; // 4,5 stars
+            }
+            else if (age == 17) {
+                if (p->mOriginalCA >= 125)
+                    player->mTalent = 8; // 4,5 stars
+            }
+            else if (age == 18) {
+                if (p->mOriginalCA >= 135)
+                    player->mTalent = 8; // 4,5 stars
+            }
+            else if (age == 19) {
+                if (p->mOriginalCA >= 140)
+                    player->mTalent = 8; // 4,5 stars
+            }
+            else if (age == 20) {
+                if (p->mOriginalCA >= 150)
+                    player->mTalent = 8; // 4,5 stars
+            }
+            else if (age == 21) {
+                if (p->mOriginalCA >= 160)
+                    player->mTalent = 8; // 4,5 stars
+            }
         }
         else if (p->mOriginalPA == -85) { // 140-170
-            if (p->mOriginalCA >= 135)
-                player->mTalent = 7; // 4 stars
-            else
-                player->mTalent = 6; // 3.5 stars
+            player->mTalent = 6; // 3,5 stars
+            if (age <= 14) {
+                if (p->mOriginalCA >= 90)
+                    player->mTalent = 7;
+            }
+            if (age == 15) {
+                if (p->mOriginalCA >= 95)
+                    player->mTalent = 7;
+            }
+            else if (age == 16) {
+                if (p->mOriginalCA >= 100)
+                    player->mTalent = 7;
+            }
+            else if (age == 17) {
+                if (p->mOriginalCA >= 110)
+                    player->mTalent = 7;
+            }
+            else if (age == 18) {
+                if (p->mOriginalCA >= 115)
+                    player->mTalent = 7;
+            }
+            else if (age == 19) {
+                if (p->mOriginalCA >= 130)
+                    player->mTalent = 7;
+            }
+            else if (age == 20) {
+                if (p->mOriginalCA >= 135)
+                    player->mTalent = 7;
+            }
+            else if (age == 21) {
+                if (p->mOriginalCA >= 140)
+                    player->mTalent = 7;
+            }
         }
         else if (p->mOriginalPA == -8) { // 130-160
-            if (p->mOriginalCA >= 120)
-                player->mTalent = 6; // 3.5 stars
-            else
-                player->mTalent = 5; // 3 stars
-        }
-        else if (p->mOriginalPA == -75) // 120-150
             player->mTalent = 5; // 3 stars
+            if (age <= 14) {
+                if (p->mOriginalCA >= 75)
+                    player->mTalent = 7;
+                else if (p->mOriginalCA >= 60)
+                    player->mTalent = 6;
+            }
+            if (age == 15) {
+                if (p->mOriginalCA >= 95)
+                    player->mTalent = 7;
+                else if (p->mOriginalCA >= 75)
+                    player->mTalent = 6;
+            } else if (age == 16) {
+                if (p->mOriginalCA >= 105)
+                    player->mTalent = 7;
+                else if (p->mOriginalCA >= 85)
+                    player->mTalent = 6;
+            } else if (age == 17) {
+                if (p->mOriginalCA >= 120)
+                    player->mTalent = 7;
+                else if (p->mOriginalCA >= 95)
+                    player->mTalent = 6;
+            } else if (age == 18) {
+                if (p->mOriginalCA >= 130)
+                    player->mTalent = 7;
+                else if (p->mOriginalCA >= 100)
+                    player->mTalent = 6;
+            } else if (age == 19) {
+                if (p->mOriginalCA >= 135)
+                    player->mTalent = 7;
+                else if (p->mOriginalCA >= 105)
+                    player->mTalent = 6;
+            } else if (age == 20) {
+                if (p->mOriginalCA >= 140)
+                    player->mTalent = 7;
+                else if (p->mOriginalCA >= 115)
+                    player->mTalent = 6;
+            } else if (age == 21) {
+                if (p->mOriginalCA >= 145)
+                    player->mTalent = 7;
+                else if (p->mOriginalCA >= 120)
+                    player->mTalent = 6;
+            } else if (age == 22) {
+                if (p->mOriginalCA >= 150)
+                    player->mTalent = 7;
+                else if (p->mOriginalCA >= 125)
+                    player->mTalent = 6;
+            }
+        }
+        else if (p->mOriginalPA == -75) { // 120-150
+            player->mTalent = 5; // 3 stars
+            if (age <= 14) {
+                if (p->mOriginalCA >= 65)
+                    player->mTalent = 6;
+            }
+            if (age == 15) {
+                if (p->mOriginalCA >= 80)
+                    player->mTalent = 6;
+            } else if (age == 16) {
+                if (p->mOriginalCA >= 95)
+                    player->mTalent = 6;
+            } else if (age == 17) {
+                if (p->mOriginalCA >= 100)
+                    player->mTalent = 6;
+            } else if (age == 18) {
+                if (p->mOriginalCA >= 110)
+                    player->mTalent = 6;
+            } else if (age == 19) {
+                if (p->mOriginalCA >= 115)
+                    player->mTalent = 6;
+            } else if (age == 20) {
+                if (p->mOriginalCA >= 120)
+                    player->mTalent = 6;
+            } else if (age == 21) {
+                if (p->mOriginalCA >= 125)
+                    player->mTalent = 6;
+            } else if (age == 22) {
+                if (p->mOriginalCA >= 130)
+                    player->mTalent = 6;
+            }
+        }
+        else if (p->mOriginalPA == -7) { // 110-140
+            player->mTalent = 5;
+        }
         else {
             UInt maxTalent = 9;
-            UChar *potantialAbilityRanges = nullptr;
-            static UChar potentialAbilityRanges1to10[9] = { 35, 65, 85, 105, 123, 140, 159, 174, 190 };
+            UChar *potantialAbilityRanges = nullptr;     // 35  60  80  100  119  136
+            static UChar potentialAbilityRanges1to10[9] = { 35, 60, 80, 100, 123, 137, 157, 172, 190 };  
             potantialAbilityRanges = potentialAbilityRanges1to10;
             player->mTalent = 0;
             for (UInt i = 0; i < maxTalent; i++) {
@@ -953,6 +1026,68 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         player->mPlayingStyle = bestStyle;
     }
 
+    // experience
+    UInt totalExperiencePoints = 0;
+    totalExperiencePoints += p->mInternationalApps * 10;
+    for (auto &h : p->mVecPlayingHistory) {
+        if (!h.mYouthTeam && h.mApps > 0) {
+            if (h.mDivision) {
+                switch (h.mDivision->mCompetitionLevel) {
+                case 1:
+                    totalExperiencePoints += h.mApps * 5;
+                    break;
+                case 2:
+                    totalExperiencePoints += h.mApps * 2;
+                    break;
+                default:
+                    totalExperiencePoints += h.mApps;
+                }
+            }
+            else
+                totalExperiencePoints += h.mApps;
+        }
+    }
+    UInt minExperiencePoints = 0;
+    if (age >= 35)
+        minExperiencePoints = 2500; // 18 | 3
+    else if (age >= 34)
+        minExperiencePoints = 2150; // 15 | 2
+    else if (age >= 33)
+        minExperiencePoints = 2000; // 14 | 1
+    else if (age >= 32)
+        minExperiencePoints = 1850; // 13 | 1
+    else if (age >= 31)
+        minExperiencePoints = 1700; // 12 | 1
+    else if (age >= 30)
+        minExperiencePoints = 1550; // 11 | 0
+    else if (age >= 29)
+        minExperiencePoints = 1400; // 10 | 0
+    else if (age >= 28)
+        minExperiencePoints = 1250; // 9 | 0
+    else if (age >= 27)
+        minExperiencePoints = 950; // 7 | -1
+    else if (age >= 26)
+        minExperiencePoints = 800; // 6 | -1
+    else if (age >= 25)
+        minExperiencePoints = 700; // 5 | -2
+    else if (age >= 24)
+        minExperiencePoints = 550; // 4 | -2
+    else if (age >= 23)
+        minExperiencePoints = 400; // 3 | -2
+    else if (age >= 22)
+        minExperiencePoints = 250; // 2 | -4
+    else if (age >= 21)
+        minExperiencePoints = 100; // 1 | -4
+
+    const Float experience_mp = 1.1f;
+    minExperiencePoints = UInt(Float(minExperiencePoints) * experience_mp);
+
+    if (totalExperiencePoints < minExperiencePoints)
+        totalExperiencePoints = minExperiencePoints;
+    player->mGeneralExperience = Utils::MapTo(totalExperiencePoints, 0, UInt(Float(2500) * experience_mp), 0, 18);
+
+    player->ValidateExperience(GetCurrentDate());
+
     //std::wcout << p->mID << std::endl;
 
     UChar desiredLevel = GetPlayerLevelFromCA(p->mCurrentAbility > 0 ? p->mCurrentAbility : 1);
@@ -1284,77 +1419,77 @@ FifamPlayer *Converter::CreateAndConvertFifaPlayer(UInt gameId, FifaPlayer * p, 
 
 UChar Converter::GetPlayerLevelFromCA(Int ca) {
     static Pair<UChar, UChar> playerCAtoLvlAry[99] = {
-        { 99, 200 },
-        { 98, 199 },
-        { 97, 198 },
-        { 96, 197 },
-        { 95, 196 },
-        { 94, 195 }, // 2
-        { 93, 192 },
-        { 92, 189 },
-        { 91, 185 }, // 2
-        { 90, 181 }, // 2
-        { 89, 180 }, // 3
-        { 88, 175 }, // 6
-        { 87, 170 }, // 12
-        { 86, 166 }, // 14
-        { 85, 162 }, // 19
-        { 84, 160 }, // 20
-        { 83, 157 }, // 31
-        { 82, 155 }, // 36
-        { 81, 152 }, // 55
-        { 80, 150 }, // 67
-        { 79, 147 }, // 85
-        { 78, 145 }, // 83
-        { 77, 143 }, // 104
-        { 76, 140 }, // 178
-        { 75, 137 }, // 232 73, 74, 75
-        { 74, 135 }, // 272
-        { 73, 133 }, // 250
-        { 72, 131 }, // 349
-        { 71, 129 }, // 513
-        { 70, 127 }, // 523
-        { 69, 125 }, // 732 66, 67
-        { 68, 122 }, // 996
-        { 67, 120 }, // 1090
-        { 66, 117 }, // 1568
-        { 65, 115 }, // 1700
-        { 64, 112 }, // 2165
-        { 63, 109 }, // 2802
-        { 62, 106 }, // 2998
-        { 61, 103 }, // 3898
-        { 60, 100 }, // 4608
-        { 59,  97 }, // 4347
-        { 58,  95 }, // 4762
-        { 57,  92 }, // 5766
-        { 56,  90 }, // 6673
-        { 55,  87 }, // 7614
-        { 54,  85 }, // 8247
-        { 53,  82 }, // 9422
-        { 52,  80 }, // 10445
-        { 51,  77 }, // 9986
-        { 50,  75 }, // 10890
-        { 49,  72 }, // 11760
-        { 48,  70 }, // 13467
-        { 47,  67 }, // 11626
-        { 46,  64 }, // 12639
-        { 45,  61 }, // 10224
-        { 44,  60 }, // 10599
-        { 43,  58 },
-        { 42,  56 },
-        { 41,  54 },
-        { 40,  52 },
-        { 39,  50 },
-        { 38,  48 },
-        { 37,  46 },
-        { 36,  44 },
-        { 35,  42 },
-        { 34,  40 },
-        { 33,  38 },
-        { 32,  36 },
-        { 31,  34 },
-        { 30,  32 },
-        { 29,  30 },
+        { 99, 199 },
+        { 98, 198 },
+        { 97, 197 },
+        { 96, 196 },
+        { 95, 195 },
+        { 94, 192 },
+        { 93, 190 },
+        { 92, 188 },
+        { 91, 184 },
+        { 90, 180 },
+        { 89, 177 },
+        { 88, 174 },
+        { 87, 170 },
+        { 86, 166 },
+        { 85, 163 },
+        { 84, 160 },
+        { 83, 157 },
+        { 82, 154 },
+        { 81, 151 },
+        { 80, 149 },
+        { 79, 146 }, // 147?
+        { 78, 143 },
+        { 77, 141 },
+        { 76, 139 },
+        { 75, 136 }, // 73, 74, 75
+        { 74, 133 },
+        { 73, 130 },
+        { 72, 127 },
+        { 71, 124 },
+        { 70, 122 },
+        { 69, 119 }, // 66, 67
+        { 68, 115 },
+        { 67, 111 },
+        { 66, 108 },
+        { 65, 105 },
+        { 64, 102 },
+        { 63,  99 },
+        { 62,  96 },
+        { 61,  93 },
+        { 60,  90 },
+        { 59,  88 },
+        { 58,  86 },
+        { 57,  84 },
+        { 56,  82 },
+        { 55,  80 },
+        { 54,  78 },
+        { 53,  76 },
+        { 52,  74 },
+        { 51,  72 },
+        { 50,  70 },
+        { 49,  68 },
+        { 48,  66 },
+        { 47,  64 },
+        { 46,  62 },
+        { 45,  60 },
+        { 44,  58 },
+        { 43,  56 },
+        { 42,  54 },
+        { 41,  52 },
+        { 40,  50 },
+        { 39,  48 },
+        { 38,  46 },
+        { 37,  44 },
+        { 36,  42 },
+        { 35,  40 },
+        { 34,  38 },
+        { 33,  36 },
+        { 32,  34 },
+        { 31,  32 },
+        { 30,  30 },
+        { 29,  29 },
         { 28,  28 },
         { 27,  27 },
         { 26,  26 },

@@ -1,6 +1,6 @@
 #include "FifamKit.h"
 
-Color FifamKit::GetShirtBackColor(UInt shirtId, Color const & firstColor, Color const & secondColor, Color const & thirdColor) {
+Color FifamKit::GetShirtBackColor(UInt shirtId, GenColor const & firstColor, GenColor const & secondColor, GenColor const & thirdColor) {
     if (shirtId == 64)
         return thirdColor;
     return firstColor;

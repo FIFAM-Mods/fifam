@@ -150,4 +150,7 @@ public:
     static Bool SortPlayersByLevel(FifamPlayer *player1, FifamPlayer *player2);
     void ForAllAttributes(Function<void(UChar &, FifamPlayerAbilityID const &)> callback);
     String GetStringUniqueId(UInt gameId, Bool includeEmpicsId = true);
+
+    // must be called when: player age is known; player position is known; player history is known
+    void ValidateExperience(FifamDate const &currentDate);
 };

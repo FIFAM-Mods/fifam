@@ -23,9 +23,9 @@ class FifamDbEnvironment {
 public:
     FifamDbEnvironment() {
         if (!DbType::isDefault())
-            mDatabase = new FifamDatabase(Game::id(), Utils::Format(L"D:\\Games\\dbs\\fm%02d\\database", Game::id()).c_str());
+            mDatabase = new FifamDatabase(Game::id(), Utils::Format(L"E:\\Games\\dbs\\fm%02d\\database", Game::id()).c_str());
         else
-            mDatabase = new FifamDatabase(Game::id(), Utils::Format(L"D:\\Games\\FIFA Manager %02d\\database", Game::id()).c_str());
+            mDatabase = new FifamDatabase(Game::id(), Utils::Format(L"E:\\Games\\FIFA Manager %02d\\database", Game::id()).c_str());
     }
 
     ~FifamDbEnvironment() {

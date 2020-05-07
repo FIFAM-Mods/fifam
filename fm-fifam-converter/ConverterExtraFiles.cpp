@@ -717,16 +717,16 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
             }
         }
     }
-    if (gameId > 7) {
+    if (!mQuickTest && gameId > 7) {
         std::wcout << L"Reading fm-fifa-players..." << std::endl;
-        FifamReader reader(infoPath / L"fm-fifa-players.txt", 0);
+        FifamReader reader(infoPath / L"fm-fifa-players.csv", 0);
         if (reader.Available()) {
             reader.SkipLine();
             while (!reader.IsEof()) {
                 if (!reader.EmptyLine()) {
                     String dummy;
                     String foomId, fifaId, editorFace, editorHair, editorBeard, editorSkin, editorEye;
-                    reader.ReadLineWithSeparator(L'\t', dummy, dummy, dummy, dummy, dummy, dummy, dummy,
+                    reader.ReadLine(dummy, dummy, dummy, dummy, dummy, dummy, dummy,
                         foomId, fifaId, editorSkin, editorFace, editorHair, editorBeard, editorEye);
                     if (!foomId.empty()) {
                         Int playerId = Utils::SafeConvertInt<Int>(foomId);
@@ -828,9 +828,9 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
             while (!reader.IsEof()) {
                 if (!reader.EmptyLine()) {
                     Int teamId = -1;
-                    String longName, shortName, abbr;
+                    String longName, shortName, abbr, longName_ger, shortName_ger, abbr_ger;
                     String d;
-                    reader.ReadLineWithSeparator(L'\t', d, d, d, d, d, d, d, teamId, longName, shortName, abbr);
+                    reader.ReadLineWithSeparator(L'\t', d, d, d, d, d, d, d, teamId, longName, shortName, abbr, longName_ger, shortName_ger, abbr_ger);
                     if (teamId != -1) {
                         if (!longName.empty())
                             mNamesMap[teamId] = longName;
@@ -838,6 +838,13 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                             mShortNamesMap[teamId] = shortName;
                         if (!abbr.empty())
                             mAbbreviationMap[teamId] = Utils::GetStringWithoutUnicodeChars(abbr);
+
+                        if (!longName_ger.empty())
+                            mNamesMap_ger[teamId] = longName_ger;
+                        if (!shortName_ger.empty())
+                            mShortNamesMap_ger[teamId] = shortName_ger;
+                        if (!abbr_ger.empty())
+                            mAbbreviationMap_ger[teamId] = Utils::GetStringWithoutUnicodeChars(abbr_ger);
                     }
                 }
                 else

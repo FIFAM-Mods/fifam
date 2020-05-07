@@ -9,14 +9,14 @@ public:
     CreateStarheadsFile() {
         std::wcout << L"Reading FIFA database..." << std::endl;
         FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
-        Path headsPath = "D:\\Games\\FIFA Manager 13\\data\\assets";
+        Path headsPath = "E:\\Games\\FIFA Manager 13\\data\\assets";
         vector<FifaPlayer *> starHeads;
         fifadb->ForAllPlayers([&](FifaPlayer &player) {
             if (exists(headsPath / ("m228__" + to_string(player.GetId()) + ".o")))
                 starHeads.push_back(&player);
         });
         std::wcout << L"Writing FaceIDs..." << std::endl;
-        FifamWriter writer(L"D:\\Games\\FIFA Manager 13\\fmdata\\eng\\FaceIDs.txt", 14, FifamVersion());
+        FifamWriter writer(L"E:\\Games\\FIFA Manager 13\\fmdata\\eng\\FaceIDs.txt", 14, FifamVersion());
         writer.WriteLine(starHeads.size());
         for (FifaPlayer *p : starHeads) {
             if (!p->m_commonName.empty())

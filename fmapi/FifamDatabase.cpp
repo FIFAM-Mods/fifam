@@ -117,7 +117,7 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
         }
     }
 
-    FifamReader countriesReader(dbPath / L"Countries.sav", gameId);
+    FifamReader countriesReader(dbPath / L"Countries.sav", gameId, GetGameDbVersion(gameId));
     if (countriesReader.Available()) {
         auto &reader = countriesReader;
         UInt countriesVer = 0;
@@ -287,7 +287,7 @@ void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &
     if (gameId >= 11) {
         if (!exists(dbPath / L"data"))
             create_directories(dbPath / L"data");
-        if (!exists(dbPath / L"fixture"))
+        if (mWritingOptions.mWriteFixtures && !exists(dbPath / L"fixture"))
             create_directories(dbPath / L"fixture");
         if (!exists(dbPath / L"script"))
             create_directories(dbPath / L"script");
@@ -468,10 +468,12 @@ void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &
                 country->Write(writer);
                 writer.Close();
                 if (gameId >= 11) {
-                    FifamWriter fixturesWriter(dbPath / L"fixture" / Utils::Format(L"CountryFixture%d.sav", countryFileId), gameId, version, unicode);
-                    if (fixturesWriter.Available()) {
-                        country->WriteFixtures(fixturesWriter);
-                        fixturesWriter.Close();
+                    if (mWritingOptions.mWriteFixtures) {
+                        FifamWriter fixturesWriter(dbPath / L"fixture" / Utils::Format(L"CountryFixture%d.sav", countryFileId), gameId, version, unicode);
+                        if (fixturesWriter.Available()) {
+                            country->WriteFixtures(fixturesWriter);
+                            fixturesWriter.Close();
+                        }
                     }
                     FifamWriter scriptWriter(dbPath / L"script" / Utils::Format(L"CountryScript%d.sav", countryFileId), gameId, version, unicode);
                     if (scriptWriter.Available()) {

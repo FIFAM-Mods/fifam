@@ -51,6 +51,7 @@ public:
         Bool mNonWriteablePlayersAreFreeAgents = false;
         Bool mNonWriteableStaffsAreFreeAgents = false;
         Bool mWriteAssessment = true;
+        Bool mWriteFixtures = true;
         UInt mMaxClubsInCountry[8] = { 512, 512, 512, 1024, 1024, 1024, 1024, 1024 };
         UInt mMaxPersonsInClub[8] = { 60, 96, 99, 99, 99, 99, 256, 256 };
     } mWritingOptions;

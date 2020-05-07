@@ -1163,5 +1163,75 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
         }
     }
 
+    // autocorrect league calendars
+
+    struct LeagueSpecialInfo {
+        Bool mHasGroup = false;
+        Set<FifamCompLeague *> mConnections;
+    };
+
+    Map<FifamCompLeague *, LeagueSpecialInfo> leagueSpecialInfo;
+
+    for (auto &p : playOffs) {
+        Set<FifamCompLeague *> playOffConnectedLeagues;
+        if (p->mIsLeague) {
+            for (auto &t : p->mLeague.mTeamEntries)
+                playOffConnectedLeagues.insert(t.mLeague);
+        } else {
+            for (auto &r : p->mRounds) {
+                for (auto &t : r.mTeamEntries)
+                    playOffConnectedLeagues.insert(t.mLeague);
+            }
+        }
+        if (playOffConnectedLeagues.size() > 1) {
+            for (FifamCompLeague *l1 : playOffConnectedLeagues) {
+                for (FifamCompLeague *l2 : playOffConnectedLeagues) {
+                    if (l1 != l2)
+                        leagueSpecialInfo[l1].mConnections.insert(l2);
+                }
+            }
+        }
+    }
+
+    if (!leagueSpecialInfo.empty()) {
+        Vector<Vector<FifamCompLeague *>> groups;
+
+        Function<void(FifamCompLeague *, FifamCompLeague *)> ProcessLeague = [&](FifamCompLeague *base, FifamCompLeague *current) {
+            if (!leagueSpecialInfo[current].mHasGroup) {
+                if (current == base)
+                    groups.resize(groups.size() + 1);
+                groups.back().push_back(current);
+                leagueSpecialInfo[current].mHasGroup = true;
+                for (auto l : leagueSpecialInfo[current].mConnections)
+                    ProcessLeague(base, l);
+            }
+        };
+
+        for (auto &[l, i] : leagueSpecialInfo)
+            ProcessLeague(l, l);
+
+        for (auto &g : groups) {
+            if (g.size() > 1) {
+                //String leaguesInGroup;
+                //for (auto &l : g)
+                //    leaguesInGroup += FifamTr(l->mName) + L" ";
+                //Error(L"Group in %s: %s", countryId.ToCStr(), leaguesInGroup.c_str());
+                UInt latestMatchDay[2] = { 0, 0 };
+                for (auto &l : g) {
+                    if (!l->mFirstSeasonMatchdays.empty() && l->mFirstSeasonMatchdays.back() > latestMatchDay[0])
+                        latestMatchDay[0] = l->mFirstSeasonMatchdays.back();
+                    if (!l->mSecondSeasonMatchdays.empty() && l->mSecondSeasonMatchdays.back() > latestMatchDay[1])
+                        latestMatchDay[1] = l->mSecondSeasonMatchdays.back();
+                }
+                for (auto &l : g) {
+                    if (!l->mFirstSeasonMatchdays.empty())
+                        l->mFirstSeasonMatchdays.back() = latestMatchDay[0];
+                    if (!l->mSecondSeasonMatchdays.empty())
+                        l->mSecondSeasonMatchdays.back() = latestMatchDay[1];
+                }
+            }
+        }
+    }
+
     return true;
 }

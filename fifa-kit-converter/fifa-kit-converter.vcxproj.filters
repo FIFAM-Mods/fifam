@@ -5,10 +5,12 @@
     <ClCompile Include="KitConverter.cpp" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="ModelReader.cpp" />
+    <ClCompile Include="commandline.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="KitConverter.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="ModelReader.h" />
+    <ClInclude Include="commandline.h" />
   </ItemGroup>
 </Project>

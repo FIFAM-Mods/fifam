@@ -14,16 +14,53 @@ public:
     }
 
     GenerateKitColors() {
-        FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
-        FifamDatabase::mReadingOptions.mReadPersons = false;
-        FifamDatabase *db = new FifamDatabase(13, L"D:\\Games\\FIFA Manager 13\\database");
-        FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
+        //FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
+        //FifamDatabase::mReadingOptions.mReadPersons = false;
+        //FifamDatabase *db = new FifamDatabase(13, L"E:\\Games\\FIFA Manager 13\\database");
+        //FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
 
-        std::string outputPath = "D:\\Games\\FIFA Manager 13\\ucp_popups\\colors\\vert\\";
+        std::string outputPathVert = "E:\\Games\\FIFA Manager 13\\ucp_popups\\colors\\vert\\";
+        std::string outputPathHor = "E:\\Games\\FIFA Manager 13\\ucp_popups\\colors\\hor\\";
+        std::string outputPathRot = "E:\\Games\\FIFA Manager 13\\ucp_popups\\colors\\rot\\";
 
-        if (!exists(outputPath))
-            create_directories(outputPath);
+        if (!exists(outputPathVert))
+            create_directories(outputPathVert);
+        if (!exists(outputPathVert))
+            create_directories(outputPathHor);
+        if (!exists(outputPathRot))
+            create_directories(outputPathRot);
 
+        auto GenerateGeneric = [&](UChar c1, UChar c2) {
+            auto const &clr1 = FifamKit::mKitColorTable[c1].second;
+            Image img(Geometry(8, 64), Magick::Color(clr1.r, clr1.g, clr1.b));
+            img.defineValue("png", "color-type", "2");
+            if (c1 != c2) {
+                auto const &clr2 = FifamKit::mKitColorTable[c2].second;
+                DrawRect(img, 0, 32, 8, 32, clr2.r, clr2.g, clr2.b);
+            }
+            auto imgName = Utils::WtoA(Utils::Format(L"clr_%d_%d.png", c1, c2));
+            //img.write(outputPathVert + imgName);
+            img.rotate(-90);
+            img.write(outputPathHor + imgName);
+            auto i = img.interpolate();
+            auto f = img.filterType();
+            img.interpolate(PixelInterpolateMethod::NearestInterpolatePixel);
+            img.filterType(FilterType::PointFilter);
+            img.resize(Geometry(512, 96));
+            img.interpolate(i);
+            img.filterType(f);
+            double distortArgs[] = { 22 };
+            img.distort(DistortMethod::ScaleRotateTranslateDistortion, 1, distortArgs);
+            img.extent(Geometry(64, 64), GravityType::CenterGravity);
+            img.write(outputPathRot + imgName);
+        };
+
+        for (UInt i = 0; i < 64; i++) {
+            for (UInt j = 0; j < 64; j++)
+                GenerateGeneric(i, j);
+        }
+
+        /*
         auto GenerateForClub = [&](FifamClub *club) {
             bool generated = false;
             String teamIDstrW = Utils::Format(L"%08X", club->mUniqueID);
@@ -225,7 +262,8 @@ public:
         }
         for (auto c : db->mClubs)
             GenerateForClub(c);
+        
 
-        delete db;
+        delete db;*/
     }
 };

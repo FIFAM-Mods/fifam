@@ -639,6 +639,20 @@ void Converter::ConvertLeagues(UInt gameId) {
         MAX_COMP_NAME_LENGTH = 29;
     }
 
+    FifamWriter *leagueConfigSplit = nullptr;
+    FifamWriter *leagueConfigTables = nullptr;
+
+    if (mGenerateLeagueConfigFiles) {
+        Path ucpFolder = mOutputGameFolder / L"plugins" / L"ucp";
+        create_directories(ucpFolder);
+        leagueConfigSplit = new FifamWriter(ucpFolder / L"league_split.csv", 14, FifamVersion());
+        leagueConfigTables = new FifamWriter(ucpFolder / L"league_tables.csv", 14, FifamVersion());
+        if (leagueConfigSplit->Available())
+            leagueConfigSplit->WriteLine(L"CountryId,CountryName");
+        if (leagueConfigTables->Available())
+            leagueConfigTables->WriteLine(L"CountryId,LeagueIndex,Pro,PPO,Rel,RPO,CountryName");
+    }
+
     for (auto &entry : mFoomDatabase->mNations) {
         auto &nation = entry.second;
         auto country = mFifamDatabase->GetCountry(nation.mConverterData.mFIFAManagerID);
@@ -688,12 +702,16 @@ void Converter::ConvertLeagues(UInt gameId) {
             Vector<FifamCompCup *> createdCups;
             FifamCompLeague *relLeague[2] = { nullptr, nullptr };
 
+            FifamWriter *leagueWriter = nullptr;
+
             const UInt MAX_LEAGUE_RATING = 71;
 
             if (maxLevel >= 0) {
 
-                //create_directories(L"leagues");
-                //FifamWriter leagueWriter(L"leagues\\" + FifamTr(country->mName) + L".txt", 14, FifamVersion());
+                if (mGenerateLeaguesFiles) {
+                    create_directories(L"leagues");
+                    leagueWriter = new FifamWriter(L"leagues\\" + FifamTr(country->mName) + L".txt", 14, FifamVersion());
+                }
 
                 // sort leagues
                 for (auto &e : divLeagues) {
@@ -740,6 +758,9 @@ void Converter::ConvertLeagues(UInt gameId) {
 
                         lg->mCompID = leagueID;
                         league->SetProperty<DivisionInfo *>(L"divInfo", lg);
+
+                        if (leagueConfigTables && leagueConfigTables->Available())
+                            leagueConfigTables->WriteLine(country->mId, leagueID.mIndex, lg->mPromoted, lg->mTotalTeamsPromotionPlayoff, lg->mRelegated, lg->mTotalTeamsRelegationPlayoff, FifamTr(country->mName));
 
                         // convert - old
 
@@ -880,6 +901,9 @@ void Converter::ConvertLeagues(UInt gameId) {
                                         FifamCompID(country->mId, FifamCompType::League, 0), relId == 1 ? lg->mSplit.first + 1 : 1, relLeague[relId]->mNumTeams));
                                     relLeague[relId]->GenerateFixtures();
                                 }
+
+                                if (leagueConfigSplit && leagueConfigSplit->Available())
+                                    leagueConfigSplit->WriteLine(country->mId, FifamTr(country->mName));
                             }
                         }
 
@@ -1113,20 +1137,20 @@ void Converter::ConvertLeagues(UInt gameId) {
                             if (!a) return false;
                             if (!b) return true;
                             return ((foom::club *)a)->mConverterData.mLeaguePos < ((foom::club *)b)->mConverterData.mLeaguePos;
-                            });
+                        });
 
-                            //if (leagueWriter.Available()) {
-                            //    leagueWriter.WriteLine(L";----------------------------------------------------------------------------------------");
-                            //    leagueWriter.WriteLine(Utils::Format(L"LEAGUE %d - %s (%d teams)", lg->mID, lg->mName, lg->mTeams));
-                            //    leagueWriter.WriteLine(L";----------------------------------------------------------------------------------------");
-                            //    for (auto entry : comp->mVecTeams) {
-                            //        foom::club *team = (foom::club *)entry;
-                            //        String teamLine = Utils::Format(L"%-10d - %s", team->mID, team->mName);
-                            //        if (team->mConverterData.mParentClub)
-                            //            teamLine += L" (RES)";
-                            //        leagueWriter.WriteLine(teamLine);
-                            //    }
-                            //}
+                        if (leagueWriter && leagueWriter->Available()) {
+                            leagueWriter->WriteLine(L";----------------------------------------------------------------------------------------");
+                            leagueWriter->WriteLine(Utils::Format(L"LEAGUE %d - %s (%d teams)", lg->mID, lg->mName, lg->mTeams));
+                            leagueWriter->WriteLine(L";----------------------------------------------------------------------------------------");
+                            for (auto entry : comp->mVecTeams) {
+                                foom::club *team = (foom::club *)entry;
+                                String teamLine = Utils::Format(L"%-10d - %s", team->mID, team->mName);
+                                if (team->mConverterData.mParentClub)
+                                    teamLine += L" (RES)";
+                                leagueWriter->WriteLine(teamLine);
+                            }
+                        }
 
                         for (auto entry : comp->mVecTeams) {
                             foom::club *team = (foom::club *)entry;
@@ -1805,20 +1829,20 @@ void Converter::ConvertLeagues(UInt gameId) {
                 else
                     country->mLeagueLevelWithReserveTeams = maxLevel + 1;
 
-                //if (leagueWriter.Available()) {
-                //    leagueWriter.WriteLine(L";----------------------------------------------------------------------------------------");
-                //    leagueWriter.WriteLine(L"NON-LEAGUE CLUBS");
-                //    leagueWriter.WriteLine(L";----------------------------------------------------------------------------------------");
-                //    for (auto &entry : mFoomDatabase->mClubs) {
-                //        auto &c = entry.second;
-                //        if (!c.mExtinct && c.mNation == &nation && !c.mConverterData.mFifamClub) {
-                //            String teamLine = Utils::Format(L"%-10d - %s", c.mID, c.mName);
-                //            if (c.mConverterData.mParentClub)
-                //                teamLine += L" (RES)";
-                //            leagueWriter.WriteLine(teamLine);
-                //        }
-                //    }
-                //}
+                if (leagueWriter && leagueWriter->Available()) {
+                    leagueWriter->WriteLine(L";----------------------------------------------------------------------------------------");
+                    leagueWriter->WriteLine(L"NON-LEAGUE CLUBS");
+                    leagueWriter->WriteLine(L";----------------------------------------------------------------------------------------");
+                    for (auto &entry : mFoomDatabase->mClubs) {
+                        auto &c = entry.second;
+                        if (!c.mExtinct && c.mNation == &nation && !c.mConverterData.mFifamClub) {
+                            String teamLine = Utils::Format(L"%-10d - %s", c.mID, c.mName);
+                            if (c.mConverterData.mParentClub)
+                                teamLine += L" (RES)";
+                            leagueWriter->WriteLine(teamLine);
+                        }
+                    }
+                }
 
             }
             else {
@@ -2219,8 +2243,13 @@ void Converter::ConvertLeagues(UInt gameId) {
             }
 
             GenerateCalendar(FifamNation::MakeFromInt(country->mId), mFifamDatabase, createdLeagues, createdCups, splitLeagues, vecPlayOffs);
+
+            delete leagueWriter;
         }
     }
+
+    delete leagueConfigSplit;
+    delete leagueConfigTables;
 
     if (!mFromFifaDatabase) {
     // verify calendars

@@ -1,6 +1,7 @@
 #include "GraphicsConverter.h"
 #include "FifamNames.h"
 #include "Magick++.h"
+#include "Error.h"
 
 using namespace Magick;
 
@@ -100,7 +101,7 @@ Bool GraphicsConverter::ConvertOneCompBadge(Path const &badgePath, Path const &o
 
 void GraphicsConverter::ConvertClubBadges(foom::db *db, Map<Int, Path> const &availableBadges, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minRep) {
     String gameFolder = Utils::Format(L"fm%02d", gameId);
-    Path badgesPath = contentPath  / L"badges" / L"badges" / L"clubs";
+    Path badgesPath = contentPath / gameFolder / L"badges" / L"badges" / L"clubs";
     Path outputPath;
     if (mOnlyUpdates || mOutputToGameFolder)
         outputPath = gameOutputPath / L"badges\\clubs";
@@ -286,28 +287,116 @@ void GraphicsConverter::ConvertCompBadges(FifamDatabase *db, Path const &fmGraph
         }
     }
     if (!mOnlyUpdates && gameId >= 10) { // logos for international competitions are not present in FM07-FM09 (trophy images are used instead)
-        ConvertOneCompBadge(foomBadgesPath / L"90_uefa.png", outputPath, L"FF24.tga", gameId); // UEFA Nations League
-        ConvertOneCompBadge(foomBadgesPath / L"95_uefa.png", outputPath, L"FF10.tga", gameId); // European Qualifiers
-        ConvertOneCompBadge(foomBadgesPath / L"1301385_fifa.png", outputPath, L"2018_FF11.tga", gameId); // FIFA World Cup 2018
-        ConvertOneCompBadge(foomBadgesPath / L"121092_fifa.png", outputPath, L"2018_FF0D.tga", gameId); // FIFA World Club Cup 2018
-        ConvertOneCompBadge(foomBadgesPath / L"1301389_conmebol.png", outputPath, L"2019_FF21.tga", gameId); // Copa America 2019
+
+        ConvertOneCompBadge(foomBadgesPath / L"1301385_fifa.png", outputPath, L"2018_FF11.tga", gameId); // FIFA World Cup 2022
+        ConvertOneCompBadge(foomBadgesPath / L"157097_fifa.png", outputPath, L"2019_FF1F.tga", gameId); // FIFA U20 World Cup 2019
+
         ConvertOneCompBadge(foomBadgesPath / L"1301388_uefa.png", outputPath, L"2020_FF12.tga", gameId); // UEFA Euro 2020
-        ConvertOneCompBadge(foomBadgesPath / L"157097_fifa.png", outputPath, L"FF1F_2019.tga", gameId); // FIFA U20 World Cup
+        ConvertOneCompBadge(foomBadgesPath / L"95_uefa.png", outputPath, L"FF10.tga", gameId); // UEFA Euro Qualifiers
+        ConvertOneCompBadge(foomBadgesPath / L"90_uefa.png", outputPath, L"FF24.tga", gameId); // UEFA Nations League
+        ConvertOneCompBadge(foomBadgesPath / L"90_uefa.png", outputPath, L"FF25.tga", gameId); // UEFA Nations League
+
+        ConvertOneCompBadge(foomBadgesPath / L"1301389_conmebol.png", outputPath, L"2020_FF21.tga", gameId); // Copa America 2020
+
+        ConvertOneCompBadge(foomBadgesPath / L"145509_concacaf.png", outputPath, L"FF2B.tga", gameId); // CONCACAF Gold Cup
+        ConvertOneCompBadge(foomBadgesPath / L"222984_concacaf.png", outputPath, L"FF29.tga", gameId); // CONCACAF Nations League
+        ConvertOneCompBadge(foomBadgesPath / L"222984_concacaf.png", outputPath, L"FF2A.tga", gameId); // CONCACAF Nations League
+
+        ConvertOneCompBadge(foomBadgesPath / L"102412_afc.png", outputPath, L"2019_FF2F.tga", gameId); // AFC Asian Cup
+
+        ConvertOneCompBadge(foomBadgesPath / L"147032_caf.png", outputPath, L"2021_FF2D.tga", gameId); // CAF African Cup of Nations
+
+        ConvertOneCompBadge(foomBadgesPath / L"129986_ofc.png", outputPath, L"FF31.tga", gameId); // OFC Nations Cup
+
+        ConvertOneCompBadge(foomBadgesPath / L"121092_fifa.png", outputPath, L"2020_FF0D.tga", gameId); // FIFA World Club Cup 2020
+
         ConvertOneCompBadge(foomBadgesPath / L"1301394_uefa.png", outputPath, L"F909.tga", gameId); // UEFA Champions League
         ConvertOneCompBadge(foomBadgesPath / L"1301396_uefa.png", outputPath, L"F90A.tga", gameId); // UEFA Europa League
         ConvertOneCompBadge(foomBadgesPath / L"1301397_uefa.png", outputPath, L"F90C.tga", gameId); // UEFA Super Cup
-        ConvertOneCompBadge(foomBadgesPath / L"102415_conmebol.png", outputPath, L"FA09.tga", gameId); // South America Champions League
-        ConvertOneCompBadge(foomBadgesPath / L"317567_conmebol.png", outputPath, L"FA0A.tga", gameId); // South America Europa League
-        ConvertOneCompBadge(foomBadgesPath / L"102418_conmebol.png", outputPath, L"FA0C.tga", gameId); // South America Super Cup
-        ConvertOneCompBadge(foomBadgesPath / L"51002641_concacaf.png", outputPath, L"FB09.tga", gameId); // North America Champions League
-        ConvertOneCompBadge(foomBadgesPath / L"222987_concacaf.png", outputPath, L"FB0C.tga", gameId); // North America Super Cup
-        ConvertOneCompBadge(foomBadgesPath / L"127299_caf.png", outputPath, L"FC09.tga", gameId); // Africa Champions League
-        ConvertOneCompBadge(foomBadgesPath / L"12017574_caf.png", outputPath, L"FC0A.tga", gameId); // Africa Europa League
-        ConvertOneCompBadge(foomBadgesPath / L"131273_caf.png", outputPath, L"FC0C.tga", gameId); // Africa Super Cup
-        ConvertOneCompBadge(foomBadgesPath / L"127286_afc.png", outputPath, L"FD09.tga", gameId); // Asia Champions League
-        ConvertOneCompBadge(foomBadgesPath / L"1001959_afc.png", outputPath, L"FD0A.tga", gameId); // Asia Europa League
-        ConvertOneCompBadge(foomBadgesPath / L"127285_ofc.png", outputPath, L"FE09.tga", gameId); // Oceania Champions League
-        ConvertOneCompBadge(contentPath / L"icc.png", outputPath, L"F923.tga", gameId); // International Champions Cup
+        ConvertOneCompBadge(foomBadgesPath / L"214404_uefa.png", outputPath, L"F926.tga", gameId); // UEFA Youth League
+
+        ConvertOneCompBadge(foomBadgesPath / L"102415_conmebol.png", outputPath, L"FA09.tga", gameId); // CONMEBOL Copa Libertadores
+        ConvertOneCompBadge(foomBadgesPath / L"317567_conmebol.png", outputPath, L"FA0A.tga", gameId); // CONMEBOL Copa Sudamericana
+        ConvertOneCompBadge(foomBadgesPath / L"102418_conmebol.png", outputPath, L"FA0C.tga", gameId); // CONMEBOL Super Cup
+        ConvertOneCompBadge(foomBadgesPath / L"19158846_conmebol.png", outputPath, L"FA26.tga", gameId); // CONMEBOL Youth League
+
+        ConvertOneCompBadge(foomBadgesPath / L"51002641_concacaf.png", outputPath, L"FB09.tga", gameId); // CONCACAF Champions League
+        ConvertOneCompBadge(foomBadgesPath / L"219740_concacaf.png", outputPath, L"FB0A.tga", gameId); // CONCACAF League
+        ConvertOneCompBadge(foomBadgesPath / L"222987_concacaf_mex_usa.png", outputPath, L"FB0C.tga", gameId); // CONCACAF Campeones Cup
+        ConvertOneCompBadge(foomBadgesPath / L"51078102_concacaf.png", outputPath, L"FB27.tga", gameId); // CONCACAF Leagues Cup
+        ConvertOneCompBadge(foomBadgesPath / L"45020033_cfu.png", outputPath, L"FB28.tga", gameId); // CFU Caribbean Club Championship
+
+        ConvertOneCompBadge(foomBadgesPath / L"127299_caf.png", outputPath, L"FC09.tga", gameId); // CAF Champions League
+        ConvertOneCompBadge(foomBadgesPath / L"12017574_caf.png", outputPath, L"FC0A.tga", gameId); // CAF Confederations Cup
+        ConvertOneCompBadge(foomBadgesPath / L"131273_caf.png", outputPath, L"FC0C.tga", gameId); // CAF Super Cup
+
+        ConvertOneCompBadge(foomBadgesPath / L"127286_afc.png", outputPath, L"FD09.tga", gameId); // AFC Champions League
+        ConvertOneCompBadge(foomBadgesPath / L"1001959_afc.png", outputPath, L"FD0A.tga", gameId); // AFC League
+
+        ConvertOneCompBadge(foomBadgesPath / L"127285_ofc.png", outputPath, L"FE09.tga", gameId); // OFC Champions League
+    }
+}
+
+void GraphicsConverter::ConvertCountryFlags(FifamDatabase *db, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
+    Map<Int, Path> availableAssociationLogos;
+    for (auto const &i : directory_iterator(fmGraphicsPath / L"dvx-logos" / L"associations" / L"primary" / L"@2x")) {
+        Int id = Utils::SafeConvertInt<Int>(i.path().filename().c_str());
+        if (id > 0 && i.path().extension() == ".png" && !availableAssociationLogos.contains(id))
+            availableAssociationLogos[id] = i.path();
+    }
+    Map<Int, Path> availableFlags;
+    for (auto const &i : directory_iterator(fmGraphicsPath / L"dvx-logos" / L"flags" / L"primary")) {
+        Int id = Utils::SafeConvertInt<Int>(i.path().filename().c_str());
+        if (id > 0 && i.path().extension() == ".png")
+            availableFlags[id] = i.path();
+    }
+    String gameFolder = Utils::Format(L"fm%02d", gameId);
+    Path badgesPath = contentPath / gameFolder / L"art_05" / L"art" / L"Lib" / L"CountryFlags";
+    Path outputPath;
+    if (mOutputToGameFolder)
+        outputPath = gameOutputPath / L"art" / L"Lib" / L"CountryFlags";
+    else
+        outputPath = badgesPath;
+    create_directories(outputPath / L"256x256");
+    create_directories(outputPath / L"128x128");
+    create_directories(outputPath / L"64x64");
+    create_directories(outputPath / L"32x32");
+    for (auto country : db->mCountries) {
+        if (country) {
+            foom::nation *nation = country->GetProperty<foom::nation *>(L"foom::nation", nullptr);
+            if (nation) {
+                auto itflag = availableFlags.find(nation->mID);
+                if (itflag != availableFlags.end()) {
+                    Image flagImg((*itflag).second.string());
+                    if (flagImg.isValid()) {
+                        UInt size[] = { 32, 64, 128 };
+                        for (UInt i = 0; i < std::size(size); i++) {
+                            Image x(flagImg);
+                            x.resize(Geometry(size[i], size[i]));
+                            x.extent(Geometry(size[i], size[i]), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
+                            x.write((outputPath / Utils::Format("%dx%d\\%d.tga", size[i], size[i], country->mId)).string());
+                        }
+                    }
+                }
+                std::string logoPath;
+                auto itlogo = availableAssociationLogos.find(nation->mID);
+                if (itlogo != availableAssociationLogos.end())
+                    logoPath = (*itlogo).second.string();
+                else {
+                    itlogo = availableFlags.find(nation->mID);
+                    if (itlogo != availableFlags.end())
+                        logoPath = (*itlogo).second.string();
+                }
+                if (!logoPath.empty()) {
+                    Image logoImg(logoPath);
+                    if (logoImg.isValid()) {
+                        logoImg.resize(Geometry(256, 256));
+                        logoImg.extent(Geometry(256, 256), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
+                        logoImg.write((outputPath / L"256x256" / Utils::Format("%d.tga", country->mId)).string());
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -522,27 +611,37 @@ void GraphicsConverter::ConvertTrophies(FifamDatabase *db, Path const &fmGraphic
         }
     }
     if (gameId >= 10) {
-        ConvertOneTrophy(foomTrophies / L"90.png", outputPath, L"FF24.tga", trophyRoomFolder); // UEFA Nations League
+        // TODO: update this when needed.
+
         ConvertOneTrophy(foomTrophies / L"1301385.png", outputPath, L"FF11.tga", trophyRoomFolder); // FIFA World Cup
+
+        ConvertOneTrophy(foomTrophies / L"90.png", outputPath, L"FF24.tga", trophyRoomFolder); // UEFA Nations League
+        ConvertOneTrophy(foomTrophies / L"90.png", outputPath, L"FF25.tga", trophyRoomFolder); // UEFA Nations League
+        
         ConvertOneTrophy(foomTrophies / L"131306.png", outputPath, L"FF20.tga", trophyRoomFolder); // FIFA Confederations Cup
         ConvertOneTrophy(foomTrophies / L"157097.png", outputPath, L"FF1F.tga", trophyRoomFolder); // FIFA U20 World Cup
         ConvertOneTrophy(foomTrophies / L"121092.png", outputPath, L"F90D.tga", trophyRoomFolder); // FIFA World Club Cup
         ConvertOneTrophy(foomTrophies / L"1301389.png", outputPath, L"FF21.tga", trophyRoomFolder); // Copa America
         ConvertOneTrophy(foomTrophies / L"1301388.png", outputPath, L"FF12.tga", trophyRoomFolder); // UEFA Euro
+
         ConvertOneTrophy(foomTrophies / L"1301394.png", outputPath, L"F909.tga", trophyRoomFolder); // UEFA Champions League
         ConvertOneTrophy(foomTrophies / L"1301396.png", outputPath, L"F90A.tga", trophyRoomFolder); // UEFA Europa League
         ConvertOneTrophy(foomTrophies / L"1301397.png", outputPath, L"F90C.tga", trophyRoomFolder); // UEFA Super Cup
+
         ConvertOneTrophy(foomTrophies / L"102415.png", outputPath, L"FA09.tga", trophyRoomFolder); // South America Champions League
         ConvertOneTrophy(foomTrophies / L"317567.png", outputPath, L"FA0A.tga", trophyRoomFolder); // South America Europa League
         ConvertOneTrophy(foomTrophies / L"102418.png", outputPath, L"FA0C.tga", trophyRoomFolder); // South America Super Cup
+
         ConvertOneTrophy(foomTrophies / L"51002641.png", outputPath, L"FB09.tga", trophyRoomFolder); // North America Champions League
+
         ConvertOneTrophy(foomTrophies / L"127299.png", outputPath, L"FC09.tga", trophyRoomFolder); // Africa Champions League
         ConvertOneTrophy(foomTrophies / L"12017574.png", outputPath, L"FC0A.tga", trophyRoomFolder); // Africa Europa League
         ConvertOneTrophy(foomTrophies / L"131273.png", outputPath, L"FC0C.tga", trophyRoomFolder); // Africa Super Cup
+
         ConvertOneTrophy(foomTrophies / L"127286.png", outputPath, L"FD09.tga", trophyRoomFolder); // Asia Champions League
         ConvertOneTrophy(foomTrophies / L"1001959.png", outputPath, L"FD0A.tga", trophyRoomFolder); // Asia Europa League
+
         ConvertOneTrophy(foomTrophies / L"127285.png", outputPath, L"FE09.tga", trophyRoomFolder); // Oceania Champions League
-        ConvertOneTrophy(contentPath / L"icc_trophy.png", outputPath, L"F923.tga", trophyRoomFolder); // International Champions Cup
     }
     else if (gameId >= 8) {
         ConvertOneTrophy(foomTrophies / L"131306.png", outputPath, L"world/ConfedCup.tga", trophyRoomFolder); // FIFA Confederations Cup
@@ -660,7 +759,7 @@ void GraphicsConverter::ConvertPortraits(foom::db *db, Path const &fmGraphicsPat
             counter++;
         }
         std::wcout << L"\b\b\b\b100%" << std::endl;
-        if (!mOnlyUpdates) {
+        if (false && !mOnlyUpdates) {
             max = db->mOfficials.size();
             counter = 0;
             std::wcout << L"Converting referee portraits...   0%";
@@ -1270,10 +1369,10 @@ void GraphicsConverter::ConvertCompBadgesFIFA(FifamDatabase *db, Path const &fif
     }
 }
 
-void GraphicsConverter::CopyLeagueSplitAndRelegationBadges(FifamDatabase *db, Path const &outputPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
+void GraphicsConverter::CopyLeagueSplitAndRelegationBadges(FifamDatabase *db, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
     String gameFolder = Utils::Format(L"fm%02d", gameId);
-    Path badgesPath = /*contentPath / gameFolder*/ outputPath / L"badges" / L"Leagues";
-    Path badgesOutputPath = outputPath / L"badges" / L"Leagues";
+    Path badgesPath = contentPath / gameFolder / L"badges" / L"badges" / L"Leagues";
+    Path badgesOutputPath = badgesPath;
     for (auto const &[compId, comp] : db->mCompMap) {
         if (compId.mRegion.ToInt() > 0 && compId.mRegion.ToInt() <= FifamDatabase::NUM_COUNTRIES
             && compId.mType == FifamCompType::Relegation

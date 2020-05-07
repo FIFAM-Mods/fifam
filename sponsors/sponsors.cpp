@@ -35,6 +35,11 @@ Int wmain(Int argc, WideChar **argv) {
     Magick::Image in96("templates\\sponsor96.tga");
     Magick::Image in64("templates\\sponsor64.tga");
 
+    if (!in96.isValid())
+        Error("sponsor96.tga is not available");
+    if (!in64.isValid())
+        Error("sponsor64.tga is not available");
+
     auto ScanFolder = [&](Path const &dir, Set<String> &out, Bool isDefault = false) {
         for (auto &i : recursive_directory_iterator(dir)) {
             auto const &p = i.path();
@@ -108,11 +113,12 @@ Int wmain(Int argc, WideChar **argv) {
                             Bool colorize = filenameParts.size() > 1 && filenameParts[1] == L"clr";
 
                             // 96x96
-
+                            
                             Magick::Image x96(in);
+                            //x96.flip(); // TEMPORARY fix
                             const UInt border_x96 = 4;
                             x96.resize(Magick::Geometry(96 - border_x96 * 2, 96 - border_x96 * 2));
-                            x96.extent(Magick::Geometry(96, 96), "transparent", MagickCore::GravityType::CenterGravity);
+                            x96.extent(Magick::Geometry(96, 96), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
                             Magick::Image out96(in96);
                             out96.composite(x96, MagickCore::GravityType::CenterGravity, MagickCore::CompositeOperator::OverCompositeOp);
                             out96.composite(x96, MagickCore::GravityType::CenterGravity, MagickCore::CompositeOperator::CopyAlphaCompositeOp);
@@ -121,9 +127,10 @@ Int wmain(Int argc, WideChar **argv) {
                             // 64x64
 
                             Magick::Image x64(in);
+                            //x64.flip(); // TEMPORARY fix
                             const UInt border_x64 = 3;
                             x64.resize(Magick::Geometry(64 - border_x64 * 2, 64 - border_x64 * 2));
-                            x64.extent(Magick::Geometry(64, 64), "transparent", MagickCore::GravityType::CenterGravity);
+                            x64.extent(Magick::Geometry(64, 64), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
                             Magick::Image out64(in64);
                             out64.composite(x64, MagickCore::GravityType::CenterGravity, MagickCore::CompositeOperator::OverCompositeOp);
                             out64.composite(x64, MagickCore::GravityType::CenterGravity, MagickCore::CompositeOperator::CopyAlphaCompositeOp);
@@ -136,8 +143,8 @@ Int wmain(Int argc, WideChar **argv) {
 
                             Magick::Image x200(in);
                             x200.resize(Magick::Geometry(188, 105));
-                            x200.extent(Magick::Geometry(188, 105), "transparent", MagickCore::GravityType::CenterGravity);
-                            Magick::Image out200(Magick::Geometry(200, 120), "transparent");
+                            x200.extent(Magick::Geometry(188, 105), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
+                            Magick::Image out200(Magick::Geometry(200, 120), Magick::Color(0, 0, 0, 0));
                             out200.composite(x200, Magick::Geometry(188, 105, 6, 14), MagickCore::CompositeOperator::OverCompositeOp);
                             if (!colorize)
                                 out200.write((outputDir / L"200x120" / filenameTga).string());
@@ -180,10 +187,10 @@ Int wmain(Int argc, WideChar **argv) {
                         {
                             // 512x85
                             Magick::Image x512(in);
-                            Magick::Image out512(Magick::Geometry(512, 85), "transparent");
+                            Magick::Image out512(Magick::Geometry(512, 85), Magick::Color(0, 0, 0, 0));
                             x512.resize(Magick::Geometry(430, 75));
                             UInt adWidth = x512.columns();
-                            x512.extent(Magick::Geometry(adWidth, 81), "transparent", MagickCore::GravityType::CenterGravity);
+                            x512.extent(Magick::Geometry(adWidth, 81), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
                             const UInt minDistanceBetweenBlocks = 70;
                             const UInt minDistanceBetweenBlocksHalf = minDistanceBetweenBlocks / 2;
                             UInt adHeight = x512.rows();
@@ -202,7 +209,7 @@ Int wmain(Int argc, WideChar **argv) {
                                 out512.composite(x512, MagickCore::GravityType::CenterGravity, MagickCore::CompositeOperator::OverCompositeOp);
                             }
                             out512.resize("512x68!");
-                            out512.extent(Magick::Geometry(512, 85), "transparent", MagickCore::GravityType::CenterGravity);
+                            out512.extent(Magick::Geometry(512, 85), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
                             const Bool writeAdBoardPng = false;
                             if (writeAdBoardPng)
                                 out512.write((outputDir / L"512x85" / (filename + L".png")).string());

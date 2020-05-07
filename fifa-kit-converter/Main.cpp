@@ -3,8 +3,9 @@
 #include "FifamNames.h"
 #include <exception>
 #include "FifaDatabase.h"
+#include "commandline.h"
 
-int main() {
+int main(int argc, char *argv[]) {
 
     UInt gameId = 13;
 
@@ -21,6 +22,13 @@ int main() {
     KitConverter::options.Allow2xSize = true;
     KitConverter::options.Force2x = true;
     KitConverter::options.V2 = true;
+
+    CommandLine cmd(argc, argv, { "i", "o", "game", "scale", "defaultVCol", "setVCol", "vColScale", "fshOutput", "fshLevels", "fshFormat", "fshTextures",
+    "fshAddTextures", "fshIgnoreTextures", "startsWith", "pad", "padFsh", "instances", "computationIndex", "hwnd", "fshUnpackImageFormat",
+    "forceShader" },
+        { "tristrip", "noTextures", "recursive", "createSubDir", "silent", "console", "onlyFirstTechnique", "dummyTextures", "jpegTextures", "embeddedTextures",
+        "swapYZ", "forceLighting", "noMetadata", "genTexNames", "writeFsh", "fshRescale", "fshDisableTextureIgnore", "preTransformVertices", "sortByName",
+        "sortByAlpha", "ignoreMatColor", "noMeshJoin", "head", "ignoreEmbeddedTextures", "ord", "keepTex0InMatOptions", "fshWriteToParentDir" });
 
     KitConverter kitConverter;
 
