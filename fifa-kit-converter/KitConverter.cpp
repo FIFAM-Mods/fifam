@@ -76,8 +76,9 @@ KitConverter::~KitConverter() {
 }
 
 void KitConverter::SetSizeMode(int mode) {
-    if (mode > 1 && options.Allow2xSize)
-        SizeMode = 2;
+    if (mode > 1 && options.Allow2xSize) {
+        SizeMode = mode;
+    }
     else
         SizeMode = 1;
 }
@@ -104,10 +105,10 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
                 inputShortsImg.resize(ScaledGeometry(1024, 512));
         }
 
-        Image outputFileImg(ScaledGeometry(512, 1024), options.Overlay ? "transparent" : "red");
+        Image outputFileImg(ScaledGeometry(512, 1024), options.Overlay ? Magick::Color(0, 0, 0, 0) : Magick::Color(255, 0, 0, 255));
 
         Image leftSockImg(inputShortsImg, ScaledGeometry(356, 174, 142, 5));
-        Image leftSockImg2(ScaledGeometry(356, 174 * 2), options.Overlay ? "transparent" : "black");
+        Image leftSockImg2(ScaledGeometry(356, 174 * 2), options.Overlay ? Magick::Color(0, 0, 0, 0) : Magick::Color(0, 0, 0, 255));
         ScaledComposite(leftSockImg2, leftSockImg, 0, 0, OverCompositeOp);
         ScaledComposite(leftSockImg2, leftSockImg, 0, 174, OverCompositeOp);
         ScaledResize(leftSockImg2, 101, 284);
@@ -115,7 +116,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
         ScaledComposite(outputFileImg, leftSockImg2, -12, 593, OverCompositeOp);
 
         Image rightSockImg(inputShortsImg, ScaledGeometry(356, 174, 1024 - 142 - 356, 5));
-        Image rightSockImg2(ScaledGeometry(356, 174 * 2), options.Overlay ? "transparent" : "black");
+        Image rightSockImg2(ScaledGeometry(356, 174 * 2), options.Overlay ? Magick::Color(0, 0, 0, 0) : Magick::Color(0, 0, 0, 255));
         ScaledComposite(rightSockImg2, rightSockImg, 0, 0, OverCompositeOp);
         ScaledComposite(rightSockImg2, rightSockImg, 0, 174, OverCompositeOp);
         ScaledResize(rightSockImg2, 101, 284);
@@ -149,7 +150,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
             Image tmpSL2(inputShirtImg, ScaledGeometry(210, 318, 188, 351));
             ScaledComposite(tmpSL2, tmpSL1, 0, 0, OverCompositeOp);
 
-            Image shortSleeveLeft(ScaledGeometry(210, 425), options.Overlay? "transparent" : "black");
+            Image shortSleeveLeft(ScaledGeometry(210, 425), options.Overlay? Magick::Color(0, 0, 0, 0) : Magick::Color(0, 0, 0, 255));
             ScaledComposite(shortSleeveLeft, tmpSL2, 0, 114, OverCompositeOp);
             ScaledComposite(shortSleeveLeft, tmpSL2, 0, -204, OverCompositeOp);
             shortSleeveLeft.rotate(-90);
@@ -166,7 +167,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
             Image tmpSR2(inputShirtImg, ScaledGeometry(210, 318, 1024 - 188 - 210, 351));
             ScaledComposite(tmpSR2, tmpSR1, 210 - 182, 0, OverCompositeOp);
 
-            Image shortSleeveRight(ScaledGeometry(210, 425), options.Overlay ? "transparent" : "black");
+            Image shortSleeveRight(ScaledGeometry(210, 425), options.Overlay ? Magick::Color(0, 0, 0, 0) : Magick::Color(0, 0, 0, 255));
             ScaledComposite(shortSleeveRight, tmpSR2, 0, 114, OverCompositeOp);
             ScaledComposite(shortSleeveRight, tmpSR2, 0, -204, OverCompositeOp);
             shortSleeveRight.rotate(90);
@@ -176,7 +177,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
         }
 
         Image sleeveLeftSource(inputShirtImg, ScaledGeometry(415, 322, 0, 352));
-        Image sleeveLeft(ScaledGeometry(415, 582), options.Overlay ? "transparent" : "black");
+        Image sleeveLeft(ScaledGeometry(415, 582), options.Overlay ? Magick::Color(0, 0, 0, 0) : Magick::Color(0, 0, 0, 255));
         ScaledComposite(sleeveLeft, sleeveLeftSource, 0, 0, OverCompositeOp);
         ScaledComposite(sleeveLeft, sleeveLeftSource, 0, 260, OverCompositeOp);
         sleeveLeft.rotate(-90);
@@ -184,7 +185,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
         ScaledComposite(outputFileImg, sleeveLeft, -63, 330, OverCompositeOp);
 
         Image sleeveRightSource(inputShirtImg, ScaledGeometry(415, 322, 1024 - 415, 352));
-        Image sleeveRight(ScaledGeometry(415, 582), options.Overlay ? "transparent" : "black");
+        Image sleeveRight(ScaledGeometry(415, 582), options.Overlay ? Magick::Color(0, 0, 0, 0) : Magick::Color(0, 0, 0, 255));
         ScaledComposite(sleeveRight, sleeveRightSource, 0, 0, OverCompositeOp);
         ScaledComposite(sleeveRight, sleeveRightSource, 0, 260, OverCompositeOp);
         sleeveRight.rotate(90);
@@ -226,7 +227,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
             ScaledComposite(outputFileImg, kitOverlayImg, 0, 0, OverCompositeOp);
         }
 
-        outputFileImg.fillColor("white");
+        outputFileImg.fillColor(Magick::Color(255, 255, 255, 255));
 
         if (!options.Overlay && options.AddWatermarkText) {
             outputFileImg.fontPointsize(14);
@@ -244,7 +245,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
             if (GetSizeMode() == 1)
                 inputShirtImg.resize(ScaledGeometry(1024, 1024));
         }
-        Image outputFileImg(ScaledGeometry(512, 512), "white");
+        Image outputFileImg(ScaledGeometry(512, 512), Magick::Color(255, 255, 255, 255));
 
         // left short sleeve
         Image slMask = ScaledImage(options.KitsPath + "kit_sleeve_mask.png");
@@ -255,7 +256,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
             Image tmpSL2(inputShirtImg, ScaledGeometry(210, 318, 188, 351));
             ScaledComposite(tmpSL2, tmpSL1, 0, 0, OverCompositeOp);
 
-            Image shortSleeveLeft(ScaledGeometry(210, 390 + 95), "black");
+            Image shortSleeveLeft(ScaledGeometry(210, 390 + 95), Magick::Color(0, 0, 0, 255));
             ScaledComposite(shortSleeveLeft, tmpSL2, 0, -204, OverCompositeOp);
             ScaledComposite(shortSleeveLeft, tmpSL2, 0, 95, OverCompositeOp);
             ScaledComposite(shortSleeveLeft, tmpSL2, 0, 299 + 95, OverCompositeOp);
@@ -268,7 +269,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
             //shortSleeveLeft.write(options.KitsPath + "test" + to_string(c++) + ".png");
 
             /*
-            Image shortSleeveLeft(ScaledGeometry(210, 390), "black");
+            Image shortSleeveLeft(ScaledGeometry(210, 390), Magick::Color(0, 0, 0, 255));
             ScaledComposite(shortSleeveLeft, tmpSL2, 0, 0, OverCompositeOp);
             ScaledComposite(shortSleeveLeft, tmpSL2, 0, 299, OverCompositeOp);
             shortSleeveLeft.rotate(-90);
@@ -285,7 +286,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
             Image tmpSR2(inputShirtImg, ScaledGeometry(210, 318, 1024 - 188 - 210, 351));
             ScaledComposite(tmpSR2, tmpSR1, 210 - 182, 0, OverCompositeOp);
 
-            Image shortSleeveRight(ScaledGeometry(210, 390 + 95), "black");
+            Image shortSleeveRight(ScaledGeometry(210, 390 + 95), Magick::Color(0, 0, 0, 255));
             ScaledComposite(shortSleeveRight, tmpSR2, 0, -204, OverCompositeOp);
             ScaledComposite(shortSleeveRight, tmpSR2, 0, 95, OverCompositeOp);
             ScaledComposite(shortSleeveRight, tmpSR2, 0, 299 + 95, OverCompositeOp);
@@ -333,7 +334,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
             inputShortsImg.resize(ScaledGeometry(1024, 512));
 
         Image leftSockImg(inputShortsImg, ScaledGeometry(356, 174, 142, 5));
-        Image leftSockImg2(ScaledGeometry(356, 174 * 3), "black");
+        Image leftSockImg2(ScaledGeometry(356, 174 * 3), Magick::Color(0, 0, 0, 255));
         ScaledComposite(leftSockImg2, leftSockImg, 0, 0, OverCompositeOp);
         ScaledComposite(leftSockImg2, leftSockImg, 0, 174, OverCompositeOp);
         ScaledComposite(leftSockImg2, leftSockImg, 0, 174 * 2, OverCompositeOp);
@@ -344,7 +345,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
         ScaledComposite(outputFileImg, leftSockImg2, 81, 2, OverCompositeOp);
 
         Image rightSockImg(inputShortsImg, ScaledGeometry(356, 174, 1024 - 142 - 356, 5));
-        Image rightSockImg2(ScaledGeometry(356, 174 * 3), "black");
+        Image rightSockImg2(ScaledGeometry(356, 174 * 3), Magick::Color(0, 0, 0, 255));
         ScaledComposite(rightSockImg2, rightSockImg, 0, 0, OverCompositeOp);
         ScaledComposite(rightSockImg2, rightSockImg, 0, 174, OverCompositeOp);
         ScaledComposite(rightSockImg2, rightSockImg, 0, 174 * 2, OverCompositeOp);
@@ -537,12 +538,12 @@ void KitConverter::ConvertClubKits(string const &clubIdName, int fifaId, int fif
     else {
         if (!options.ConvertOnlyMinikits) {
             if (options.SaveLocation == Documents && options.OutputGameId >= 9)
-                outputFile = string("C:\\Users\\Dmitri\\Documents\\FIFA MANAGER ") + gameIdStr + "\\Graphics\\3DMatch\\Kits\\";
+                outputFile = string("E:\\Documents\\FIFA MANAGER ") + gameIdStr + "\\Graphics\\3DMatch\\Kits\\";
             else {
                 if (options.OutputGameId >= 9)
-                    outputFile = string("D:\\Games\\FIFA Manager ") + gameIdStr + "\\data\\kits\\";
+                    outputFile = string("E:\\Games\\FIFA Manager ") + gameIdStr + "\\data\\kits\\";
                 else
-                    outputFile = string("D:\\Games\\FIFA Manager ") + gameIdStr + "\\user\\kits\\";
+                    outputFile = string("E:\\Games\\FIFA Manager ") + gameIdStr + "\\user\\kits\\";
             }
             outputFile += clubIdStr;
             if (options.ConvertHomeKit)
@@ -555,7 +556,7 @@ void KitConverter::ConvertClubKits(string const &clubIdName, int fifaId, int fif
                 ConvertFifaClubKit(fifaId, clubIdStr, 2, 0, outputFile + "_g");
         }
         if (options.OutputGameId >= 13 && (options.ConvertMinikits || options.ConvertOnlyMinikits)) {
-            outputFile = string("D:\\Games\\FIFA Manager ") + gameIdStr + "\\data\\minikits\\" + clubIdStr;
+            outputFile = string("E:\\Games\\FIFA Manager ") + gameIdStr + "\\data\\minikits\\" + clubIdStr;
             if (options.ConvertHomeKit)
                 ConvertFifaClubMiniKit(fifaId, clubIdStr, 0, 0, outputFile + "_h");
             if (options.ConverAwayKit)
@@ -569,7 +570,7 @@ void KitConverter::ConvertClubKits(string const &clubIdName, int fifaId, int fif
 }
 
 void KitConverter::ConvertRefereeKit(int fifaId) {
-    ConvertFifaClubKit(fifaId, std::to_string(fifaId), 5, 0, "D:\\Projects\\FIFA20\\ref_kits\\" + std::to_string(fifaId));
+    ConvertFifaClubKit(fifaId, std::to_string(fifaId), 5, 0, "E:\\Projects\\FIFA20\\ref_kits\\" + std::to_string(fifaId));
 }
 
 bool KitConverter::ConvertClubArmband(int fifaId, string const &clubIdStr, int set, int variation, string const &outputFile) {
@@ -615,7 +616,7 @@ void KitConverter::ConvertClubArmbands(string const &clubIdName, int fifaId, int
     sprintf_s(clubIdStr, "%08X", fifaManagerId);
     static char gameIdStr[10];
     sprintf_s(gameIdStr, "%02d", options.OutputGameId);
-    string outputFile = string("D:\\Games\\FIFA Manager ") + gameIdStr + "\\data\\kitarmband\\" + clubIdStr;
+    string outputFile = string("E:\\Games\\FIFA Manager ") + gameIdStr + "\\data\\kitarmband\\" + clubIdStr;
     ConvertClubArmband(fifaId, clubIdStr, 0, 0, outputFile + "_h");
     ConvertClubArmband(fifaId, clubIdStr, 1, 0, outputFile + "_a");
     ConvertClubArmband(fifaId, clubIdStr, 3, 0, outputFile + "_t");
@@ -631,7 +632,7 @@ bool KitConverter::ConvertClubKitNumbersSet(int fifaId, string const &clubIdStr,
     static unsigned int j_numbers[] = { 2, 6, 4, 0, 8, 3, 7, 5, 1, 9 };
     static unsigned int s_numbers[] = { 1, 2, 8, 3, 9, 4, 7, 6, 5, 0 };
     const unsigned int size = 128;
-    Image finalImg(ScaledGeometry(size * 10, size), "transparent");
+    Image finalImg(ScaledGeometry(size * 10, size), Magick::Color(0, 0, 0, 0));
     for (unsigned int i = 0; i < 10; i++) {
         fileName = fileNameBase + to_string((jersey ? j_numbers[i] : s_numbers[i]) + 1) + ".png";
         if (!exists(fileName))
@@ -654,7 +655,7 @@ bool KitConverter::ConvertClubKitNumbersSet(int kitnumersId, bool jersey, std::s
     static unsigned int j_numbers[] = { 2, 6, 4, 0, 8, 3, 7, 5, 1, 9 };
     static unsigned int s_numbers[] = { 1, 2, 8, 3, 9, 4, 7, 6, 5, 0 };
     const unsigned int size = 256;
-    Image channelsImg(ScaledGeometry(size * 10, size), "transparent");
+    Image channelsImg(ScaledGeometry(size * 10, size), Magick::Color(0, 0, 0, 0));
     for (unsigned int i = 0; i < 10; i++) {
         fileName = fileNameBase + to_string((jersey ? j_numbers[i] : s_numbers[i]) + 1) + ".png";
         if (!exists(fileName))
@@ -674,7 +675,7 @@ bool KitConverter::ConvertClubKitNumbersSet(int kitnumersId, bool jersey, std::s
     ScaledComposite(channelR, imgR, 0, 0, MultiplyCompositeOp);
     ScaledComposite(channelG, imgG, 0, 0, MultiplyCompositeOp);
     ScaledComposite(channelB, imgB, 0, 0, MultiplyCompositeOp);
-    Image finalImg(ScaledGeometry(size * 10, size), "transparent");
+    Image finalImg(ScaledGeometry(size * 10, size), Magick::Color(0, 0, 0, 0));
     ScaledComposite(finalImg, channelR, 0, 0, PlusCompositeOp);
     ScaledComposite(finalImg, channelG, 0, 0, PlusCompositeOp);
     ScaledComposite(finalImg, channelB, 0, 0, PlusCompositeOp);
@@ -691,16 +692,16 @@ void KitConverter::ConvertClubKitNumbers(int kitnumberId, int fifaManagerId, ::C
         sprintf_s(clubIdStr, "%08X", fifaManagerId);
         static char gameIdStr[10];
         sprintf_s(gameIdStr, "%02d", options.OutputGameId);
-        string outputFile = string("D:\\Games\\FIFA Manager ") + gameIdStr + "\\data\\kitnumbers\\jersey\\" + clubIdStr;
+        string outputFile = string("E:\\Games\\FIFA Manager ") + gameIdStr + "\\data\\kitnumbers\\jersey\\" + clubIdStr;
         ConvertClubKitNumbersSet(kitnumberId, true, outputFile + "_h", clr1, clr2, clr3);
         ConvertClubKitNumbersSet(kitnumberId, true, outputFile + "_a", clr1, clr2, clr3);
         ConvertClubKitNumbersSet(kitnumberId, true, outputFile + "_t", clr1, clr2, clr3);
         ConvertClubKitNumbersSet(kitnumberId, true, outputFile + "_g", clr1, clr2, clr3);
-        //string outputFileShorts = string("D:\\Games\\FIFA Manager ") + gameIdStr + "\\data\\kitnumbers\\shorts\\" + clubIdStr;
-        //ConvertClubKitNumbersSet(kitnumberId, false, outputFileShorts + "_h", clr1, clr2, clr3);
-        //ConvertClubKitNumbersSet(kitnumberId, false, outputFileShorts + "_a", clr1, clr2, clr3);
-        //ConvertClubKitNumbersSet(kitnumberId, false, outputFileShorts + "_t", clr1, clr2, clr3);
-        //ConvertClubKitNumbersSet(kitnumberId, false, outputFileShorts + "_g", clr1, clr2, clr3);
+        string outputFileShorts = string("E:\\Games\\FIFA Manager ") + gameIdStr + "\\data\\kitnumbers\\shorts\\" + clubIdStr;
+        ConvertClubKitNumbersSet(kitnumberId, false, outputFileShorts + "_h", clr1, clr2, clr3);
+        ConvertClubKitNumbersSet(kitnumberId, false, outputFileShorts + "_a", clr1, clr2, clr3);
+        ConvertClubKitNumbersSet(kitnumberId, false, outputFileShorts + "_t", clr1, clr2, clr3);
+        ConvertClubKitNumbersSet(kitnumberId, false, outputFileShorts + "_g", clr1, clr2, clr3);
     }
 }
 
@@ -711,12 +712,12 @@ void KitConverter::ConvertClubKitNumbers(int fifaId, int fifaManagerId) {
         sprintf_s(clubIdStr, "%08X", fifaManagerId);
         static char gameIdStr[10];
         sprintf_s(gameIdStr, "%02d", options.OutputGameId);
-        string outputFile = string("D:\\Games\\FIFA Manager ") + gameIdStr + "\\data\\kitnumbers\\jersey\\" + clubIdStr;
+        string outputFile = string("E:\\Games\\FIFA Manager ") + gameIdStr + "\\data\\kitnumbers\\jersey\\" + clubIdStr;
         ConvertClubKitNumbersSet(fifaId, clubIdStr, 0, 0, true, outputFile + "_h");
         ConvertClubKitNumbersSet(fifaId, clubIdStr, 0, 1, true, outputFile + "_a");
         ConvertClubKitNumbersSet(fifaId, clubIdStr, 0, 3, true, outputFile + "_t");
         ConvertClubKitNumbersSet(fifaId, clubIdStr, 0, 2, true, outputFile + "_g");
-        string outputFileShorts = string("D:\\Games\\FIFA Manager ") + gameIdStr + "\\data\\kitnumbers\\shorts\\" + clubIdStr;
+        string outputFileShorts = string("E:\\Games\\FIFA Manager ") + gameIdStr + "\\data\\kitnumbers\\shorts\\" + clubIdStr;
         ConvertClubKitNumbersSet(fifaId, clubIdStr, 0, 0, false, outputFileShorts + "_h");
         ConvertClubKitNumbersSet(fifaId, clubIdStr, 0, 1, false, outputFileShorts + "_a");
         ConvertClubKitNumbersSet(fifaId, clubIdStr, 0, 3, false, outputFileShorts + "_t");
@@ -736,7 +737,7 @@ bool KitConverter::ConvertClubKitNumbersSetCustom(string const &dirPath, string 
     static unsigned int j_numbers[] = { 2, 6, 4, 0, 8, 3, 7, 5, 1, 9 };
     static unsigned int s_numbers[] = { 1, 2, 8, 3, 9, 4, 7, 6, 5, 0 };
     unsigned int size = 128;
-    Image finalImg(ScaledGeometry(size * 10, size), "transparent");
+    Image finalImg(ScaledGeometry(size * 10, size), Magick::Color(0, 0, 0, 0));
     for (unsigned int i = 0; i < 10; i++) {
         fileName = dir + to_string(jersey ? j_numbers[i] : s_numbers[i]) + ".png";
         if (!exists(fileName))
@@ -749,12 +750,12 @@ bool KitConverter::ConvertClubKitNumbersSetCustom(string const &dirPath, string 
     }
     ScaledResize(finalImg, jersey ? 1024 : 256, jersey ? 128 : 32);
     string finalDir = jersey ? "jersey\\" : "shorts\\";
-    finalImg.write("D:\\Games\\FIFA Manager 13\\data\\kitnumbers_custom\\" + finalDir + dirName + "." + options.OutputFormat);
+    finalImg.write("E:\\Games\\FIFA Manager 13\\data\\kitnumbers_custom\\" + finalDir + dirName + "." + options.OutputFormat);
     return true;
 }
 
 void KitConverter::ConvertClubKitNumbersCustom() {
-    path customDir = "D:\\Projects\\FIFA20\\custom_kitnumbers\\";
+    path customDir = "E:\\Projects\\FIFA20\\custom_kitnumbers\\";
     for (auto const &p : directory_iterator(customDir)) {
         string folderPath = p.path().string();
         string folderName = p.path().filename().string();
@@ -764,13 +765,13 @@ void KitConverter::ConvertClubKitNumbersCustom() {
 }
 
 bool KitConverter::ConvertKitV2(string const &inputShirt, string const &inputShorts, string const &inputCrest, string const &outputFile, array<int, 8> logoPos, bool hasPositions) {
-    SetSizeMode(options.Force2x ? 2 : 1);
+    SetSizeMode(options.Force2x ? 4 : 1);
     if (options.OutputGameId >= 9) {
 
         int texW = 512 * GetSizeMode();
         int texH = 1024 * GetSizeMode();
 
-        Image fifaKitAllInOneImg(ScaledGeometry(1024, 1024 + 512), "red");
+        Image fifaKitAllInOneImg(ScaledGeometry(1024, 1024 + 512), Magick::Color(255, 0, 0, 255));
 
         Image fifaKitShirt(inputShirt);
         fifaKitShirt.resize(ScaledGeometry(1024, 1024));
@@ -926,7 +927,7 @@ bool KitConverter::ConvertKitV2(string const &inputShirt, string const &inputSho
 
         if (!skipPP) {
             Image finalImg(options.KitsPath + "tmpFifaKit2.tga");
-            Image resultImg(Geometry(texW, texH), "black");
+            Image resultImg(Geometry(texW, texH), Magick::Color(0, 0, 0, 255));
             int offset = 2;
 
             Image repaired(finalImg);
@@ -989,8 +990,8 @@ bool KitConverter::ConvertKitV2(string const &inputShirt, string const &inputSho
             //    ScaledComposite(resultImg, kitOverlayImg, 0, 0, OverCompositeOp);
             //}
 
-            resultImg.fillColor("white");
-            resultImg.strokeColor("transparent");
+            resultImg.fillColor(Magick::Color(255, 255, 255, 255));
+            resultImg.strokeColor(Magick::Color(0, 0, 0, 0));
             if (!options.Overlay && options.AddWatermarkText) {
                 resultImg.fontPointsize(14 * GetSizeMode());
                 resultImg.fontWeight(550);
@@ -1028,7 +1029,7 @@ void KitConverter::ConvertBanners(int fifaId, int fifaManagerId) {
             if (input.columns() != 1024 || input.rows() != 512)
                 resizeImage_noAspect(input, 1024, 512);
             path outputPath =
-                path(for_fsh ? "D:\\Games\\FIFA Manager 13\\data\\bnrs" : "D:\\Games\\FIFA Manager 13\\data\\banners") /
+                path(for_fsh ? "E:\\Games\\FIFA Manager 13\\data\\bnrs" : "E:\\Games\\FIFA Manager 13\\data\\banners") /
                 (for_fsh ? to_string(fifaId) : Utils::WtoA(Utils::Format(L"%08X", fifaManagerId)));
             create_directories(outputPath);
 

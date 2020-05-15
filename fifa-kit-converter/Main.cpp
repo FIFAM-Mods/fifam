@@ -14,14 +14,15 @@ int main(int argc, char *argv[]) {
     KitConverter::options.ConverAwayKit = true;
     KitConverter::options.ConvertGkKit = true;
     KitConverter::options.ConvertThirdKit = true;
-    KitConverter::options.SaveLocation = KitConverter::User;
+    KitConverter::options.SaveLocation = KitConverter::Documents;
     KitConverter::options.ConvertMinikits = true;
     KitConverter::options.ConvertOnlyMinikits = false;
-    KitConverter::options.OnlyCustomKits = true;
-    KitConverter::options.AllowCustomKits = true;
+    KitConverter::options.OnlyCustomKits = false;
+    KitConverter::options.AllowCustomKits = false;
     KitConverter::options.Allow2xSize = true;
     KitConverter::options.Force2x = true;
     KitConverter::options.V2 = true;
+    KitConverter::options.KitsPath = "E:\\Projects\\FIFA20\\kit\\";;
 
     CommandLine cmd(argc, argv, { "i", "o", "game", "scale", "defaultVCol", "setVCol", "vColScale", "fshOutput", "fshLevels", "fshFormat", "fshTextures",
     "fshAddTextures", "fshIgnoreTextures", "startsWith", "pad", "padFsh", "instances", "computationIndex", "hwnd", "fshUnpackImageFormat",
@@ -35,8 +36,8 @@ int main(int argc, char *argv[]) {
     FifamDatabase::mReadingOptions.mReadCountryCompetitions = false;
     FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
     FifamDatabase::mReadingOptions.mReadPersons = false;
-    //FifamDatabase *db = new FifamDatabase(gameId, Utils::Format(L"D:\\Games\\FIFA Manager %02d\\database text", gameId));
-    Path infoPath = L"D:\\Projects\\fifam\\db";
+    //FifamDatabase *db = new FifamDatabase(gameId, Utils::Format(L"E:\\Games\\FIFA Manager %02d\\database text", gameId));
+    Path infoPath = L"E:\\Projects\\fifam\\db";
     Map<UInt, UInt> mFifamClubs;
 
     //kitConverter.ConvertClubKits("", 15040, 0x00043E32);
@@ -46,8 +47,8 @@ int main(int argc, char *argv[]) {
     const bool annotate = false;
     const bool makispla = true;
     if (annotate) {
-        Magick::Image imgAnnotate(makispla? "D:\\Projects\\FIFA20\\kit\\kit_watermark_makispla.tga" : "D:\\Projects\\FIFA20\\kit\\kit_watermark.tga");
-        String inputAnnotate = LR"(C:\Users\Dmitri\Desktop\Kits_Bolton_Wanderers\data\kits)"; //L"D:\\Games\\FIFA Manager 13\\data\\kits"; //L"D:\\Projects\\fifam\\content\\fm13\\art_04\\data\\kits";
+        Magick::Image imgAnnotate(makispla? "E:\\Projects\\FIFA20\\kit\\kit_watermark_makispla.tga" : "E:\\Projects\\FIFA20\\kit\\kit_watermark.tga");
+        String inputAnnotate = LR"(C:\Users\Dmitri\Desktop\Kits_Bolton_Wanderers\data\kits)"; //L"E:\\Games\\FIFA Manager 13\\data\\kits"; //L"E:\\Projects\\fifam\\content\\fm13\\art_04\\data\\kits";
         for (auto const &p : directory_iterator(inputAnnotate)) {
             if (p.path().extension() == L".tga") {
                 Magick::Image finalImg(p.path().string());
@@ -60,7 +61,7 @@ int main(int argc, char *argv[]) {
 
     //return 0;
 
-    if (!KitConverter::options.OnlyCustomKits) {
+    if (false && !KitConverter::options.OnlyCustomKits) {
         std::wcout << L"Reading fifam_countries.txt..." << std::endl;
         {
             FifamReader reader(infoPath / L"fifam_countries.txt", 0);
@@ -98,7 +99,7 @@ int main(int argc, char *argv[]) {
             }
         }
     }
-    //FifaDatabase *fifadb = new FifaDatabase(L"D:\\Projects\\fifam\\db\\fifa");
+    FifaDatabase *fifadb = new FifaDatabase(L"E:\\Projects\\fifam\\db\\fifa");
 
     Map<UInt, FifamClub *> mClubsByFifaId;
 
@@ -155,7 +156,32 @@ int main(int argc, char *argv[]) {
     //kitConverter.ConvertClubKits("000E0001", 1, 0x000E0001);
     //kitConverter.ConvertClubKits("001B0005", 39, 0x001B0005);
     //kitConverter.ConvertClubKits("002D0004", 241, 0x002D0004);
+    //kitConverter.ConvertClubKits("002D000E", 243, 0x002D000E);
 
+    Vector<UInt> clubsForKitnumers = { 241, 243, 44, 45 };
+    for (auto i : clubsForKitnumers) {
+        auto fifaClub = fifadb->GetTeam(i);
+        if (fifaClub) {
+            for (int k = 0; k <= 3; k++) {
+                auto fifaKit = fifaClub->GetKit(k);
+                if (fifaKit) {
+                    kitConverter.ConvertClubKitNumbersSet(fifaKit->internal.shortsnumberfonttype, false,
+                        std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\shorts\\") + Utils::Format("t80__%d_%d", i, k),
+                        ::Color(fifaKit->internal.shortsnumbercolorprimr, fifaKit->internal.shortsnumbercolorprimg, fifaKit->internal.shortsnumbercolorprimb),
+                        ::Color(fifaKit->internal.shortsnumbercolorsecr, fifaKit->internal.shortsnumbercolorsecg, fifaKit->internal.shortsnumbercolorsecb),
+                        ::Color(fifaKit->internal.shortsnumbercolorterr, fifaKit->internal.shortsnumbercolorterg, fifaKit->internal.shortsnumbercolorterb));
+                }
+            }
+        }
+        
+    }
+
+    //kitConverter.ConvertClubKitNumbers(241, 0x002D0004);
+    //kitConverter.ConvertClubKitNumbers(243, 0x002D000E);
+    //kitConverter.ConvertClubKitNumbers(44, 0x001A0009);
+    //kitConverter.ConvertClubKitNumbers(45, 0x001A000A);
+
+    return 0;
     //for (auto country : db->mCountries) {
     //    if (country) {
     //        if (country->mNationalTeam.mFifaID != 0)
@@ -193,10 +219,10 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    //kitConverter.ConvertClubKitNumbersSet(1000, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", 0x002D0004)) + "_h", ::Color(247, 192, 53), ::Color(28, 53, 80), ::Color(0, 0, 0));
-    //kitConverter.ConvertClubKitNumbersSet(1000, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", 0x002D0004)) + "_a", ::Color(28, 53, 80), ::Color(247, 192, 53), ::Color(0, 0, 0));
-    //kitConverter.ConvertClubKitNumbersSet(1000, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", 0x002D0004)) + "_g", ::Color(32, 61, 90), ::Color(247, 192, 53), ::Color(0, 0, 0));
-    //kitConverter.ConvertClubKitNumbersSet(1000, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", 0x002D0004)) + "_t", ::Color(37, 43, 97), ::Color(247, 192, 53), ::Color(0, 0, 0));
+    //kitConverter.ConvertClubKitNumbersSet(1000, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", 0x002D0004)) + "_h", ::Color(247, 192, 53), ::Color(28, 53, 80), ::Color(0, 0, 0));
+    //kitConverter.ConvertClubKitNumbersSet(1000, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", 0x002D0004)) + "_a", ::Color(28, 53, 80), ::Color(247, 192, 53), ::Color(0, 0, 0));
+    //kitConverter.ConvertClubKitNumbersSet(1000, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", 0x002D0004)) + "_g", ::Color(32, 61, 90), ::Color(247, 192, 53), ::Color(0, 0, 0));
+    //kitConverter.ConvertClubKitNumbersSet(1000, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", 0x002D0004)) + "_t", ::Color(37, 43, 97), ::Color(247, 192, 53), ::Color(0, 0, 0));
 
 
     //kitConverter.ConvertClubKitNumbersCustom();
@@ -209,44 +235,44 @@ int main(int argc, char *argv[]) {
     //    }
     //}
     /*
-    kitConverter.ConvertClubKitNumbersSet(171, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(5))) + "_h", ::Color(220, 220, 220), ::Color(0, 59, 123), ::Color(0, 59, 123));
-    kitConverter.ConvertClubKitNumbersSet(171, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(5))) + "_a", ::Color(0, 59, 123), ::Color(220, 220, 220), ::Color(220, 220, 220));
-    kitConverter.ConvertClubKitNumbersSet(171, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(5))) + "_g", ::Color(12, 12, 12), ::Color(220, 220, 220), ::Color(12, 12, 12));
-    kitConverter.ConvertClubKitNumbersSet(171, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(5))) + "_t", ::Color(250, 79, 16), ::Color(12, 12, 12), ::Color(250, 79, 16));
-    kitConverter.ConvertClubKitNumbersSet(174, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(9))) + "_h", ::Color(220, 220, 220), ::Color(210, 29, 61), ::Color(220, 220, 220));
-    kitConverter.ConvertClubKitNumbersSet(174, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(9))) + "_a", ::Color(12, 12, 12), ::Color(220, 220, 220), ::Color(12, 12, 12));
-    kitConverter.ConvertClubKitNumbersSet(174, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(9))) + "_g", ::Color(12, 12, 12), ::Color(220, 220, 220), ::Color(12, 12, 12));
-    kitConverter.ConvertClubKitNumbersSet(174, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(9))) + "_t", ::Color(220, 220, 220), ::Color(12, 12, 12), ::Color(220, 220, 220));
-    kitConverter.ConvertClubKitNumbersSet(173, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(10))) + "_h", ::Color(74, 43, 120), ::Color(102, 158, 214), ::Color(102, 158, 214));
-    kitConverter.ConvertClubKitNumbersSet(173, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(10))) + "_a", ::Color(251, 212, 3), ::Color(107, 171, 220), ::Color(251, 212, 3));
-    kitConverter.ConvertClubKitNumbersSet(173, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(10))) + "_g", ::Color(51, 171, 210), ::Color(74, 43, 120), ::Color(51, 171, 210));
-    kitConverter.ConvertClubKitNumbersSet(173, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(10))) + "_t", ::Color(12, 12, 12), ::Color(251, 212, 3), ::Color(12, 12, 12));
-    kitConverter.ConvertClubKitNumbersSet(151, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(18))) + "_h", ::Color(15, 21, 55), ::Color(220, 220, 220), ::Color(15, 21, 55));
-    kitConverter.ConvertClubKitNumbersSet(151, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(18))) + "_a", ::Color(220, 220, 220), ::Color(15, 21, 55), ::Color(15, 21, 55));
-    kitConverter.ConvertClubKitNumbersSet(151, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(18))) + "_g", ::Color(15, 21, 55), ::Color(209, 151, 41), ::Color(15, 21, 55));
-    kitConverter.ConvertClubKitNumbersSet(151, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(18))) + "_t", ::Color(15, 21, 55), ::Color(45, 161, 203), ::Color(45, 161, 203));
-    kitConverter.ConvertClubKitNumbersSet(142, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(73))) + "_h", ::Color(220, 220, 220), ::Color(4, 24, 54), ::Color(220, 220, 220));
-    kitConverter.ConvertClubKitNumbersSet(142, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(73))) + "_a", ::Color(12, 12, 12), ::Color(172, 38, 34), ::Color(12, 12, 12));
-    kitConverter.ConvertClubKitNumbersSet(142, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(73))) + "_g", ::Color(12, 12, 12), ::Color(215, 156, 47), ::Color(12, 12, 12));
-    kitConverter.ConvertClubKitNumbersSet(142, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(73))) + "_t", ::Color(23, 44, 68), ::Color(220, 220, 220), ::Color(174, 38, 35));
-    kitConverter.ConvertClubKitNumbersSet(153, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(240))) + "_h", ::Color(220, 220, 220), ::Color(193, 33, 52), ::Color(193, 33, 52));
-    kitConverter.ConvertClubKitNumbersSet(153, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(240))) + "_a", ::Color(224, 36, 48), ::Color(12, 12, 12), ::Color(12, 12, 12));
-    kitConverter.ConvertClubKitNumbersSet(153, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(240))) + "_g", ::Color(12, 12, 12), ::Color(100, 113, 136), ::Color(100, 113, 136));
-    kitConverter.ConvertClubKitNumbersSet(153, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(240))) + "_t", ::Color(39, 45, 71), ::Color(138, 177, 213), ::Color(138, 177, 213));
-    kitConverter.ConvertClubKitNumbersSet(147, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(243))) + "_h", ::Color(140, 113, 73), ::Color(220, 220, 220), ::Color(140, 113, 73));
-    kitConverter.ConvertClubKitNumbersSet(147, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(243))) + "_a", ::Color(189, 155, 51), ::Color(14, 45, 82), ::Color(189, 155, 51));
-    kitConverter.ConvertClubKitNumbersSet(147, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(243))) + "_g", ::Color(12, 12, 12), ::Color(232, 162, 0), ::Color(211, 185, 58));
-    kitConverter.ConvertClubKitNumbersSet(147, true, std::string("D:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(243))) + "_t", ::Color(29, 60, 112), ::Color(105, 177, 177), ::Color(29, 60, 112));
+    kitConverter.ConvertClubKitNumbersSet(171, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(5))) + "_h", ::Color(220, 220, 220), ::Color(0, 59, 123), ::Color(0, 59, 123));
+    kitConverter.ConvertClubKitNumbersSet(171, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(5))) + "_a", ::Color(0, 59, 123), ::Color(220, 220, 220), ::Color(220, 220, 220));
+    kitConverter.ConvertClubKitNumbersSet(171, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(5))) + "_g", ::Color(12, 12, 12), ::Color(220, 220, 220), ::Color(12, 12, 12));
+    kitConverter.ConvertClubKitNumbersSet(171, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(5))) + "_t", ::Color(250, 79, 16), ::Color(12, 12, 12), ::Color(250, 79, 16));
+    kitConverter.ConvertClubKitNumbersSet(174, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(9))) + "_h", ::Color(220, 220, 220), ::Color(210, 29, 61), ::Color(220, 220, 220));
+    kitConverter.ConvertClubKitNumbersSet(174, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(9))) + "_a", ::Color(12, 12, 12), ::Color(220, 220, 220), ::Color(12, 12, 12));
+    kitConverter.ConvertClubKitNumbersSet(174, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(9))) + "_g", ::Color(12, 12, 12), ::Color(220, 220, 220), ::Color(12, 12, 12));
+    kitConverter.ConvertClubKitNumbersSet(174, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(9))) + "_t", ::Color(220, 220, 220), ::Color(12, 12, 12), ::Color(220, 220, 220));
+    kitConverter.ConvertClubKitNumbersSet(173, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(10))) + "_h", ::Color(74, 43, 120), ::Color(102, 158, 214), ::Color(102, 158, 214));
+    kitConverter.ConvertClubKitNumbersSet(173, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(10))) + "_a", ::Color(251, 212, 3), ::Color(107, 171, 220), ::Color(251, 212, 3));
+    kitConverter.ConvertClubKitNumbersSet(173, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(10))) + "_g", ::Color(51, 171, 210), ::Color(74, 43, 120), ::Color(51, 171, 210));
+    kitConverter.ConvertClubKitNumbersSet(173, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(10))) + "_t", ::Color(12, 12, 12), ::Color(251, 212, 3), ::Color(12, 12, 12));
+    kitConverter.ConvertClubKitNumbersSet(151, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(18))) + "_h", ::Color(15, 21, 55), ::Color(220, 220, 220), ::Color(15, 21, 55));
+    kitConverter.ConvertClubKitNumbersSet(151, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(18))) + "_a", ::Color(220, 220, 220), ::Color(15, 21, 55), ::Color(15, 21, 55));
+    kitConverter.ConvertClubKitNumbersSet(151, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(18))) + "_g", ::Color(15, 21, 55), ::Color(209, 151, 41), ::Color(15, 21, 55));
+    kitConverter.ConvertClubKitNumbersSet(151, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(18))) + "_t", ::Color(15, 21, 55), ::Color(45, 161, 203), ::Color(45, 161, 203));
+    kitConverter.ConvertClubKitNumbersSet(142, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(73))) + "_h", ::Color(220, 220, 220), ::Color(4, 24, 54), ::Color(220, 220, 220));
+    kitConverter.ConvertClubKitNumbersSet(142, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(73))) + "_a", ::Color(12, 12, 12), ::Color(172, 38, 34), ::Color(12, 12, 12));
+    kitConverter.ConvertClubKitNumbersSet(142, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(73))) + "_g", ::Color(12, 12, 12), ::Color(215, 156, 47), ::Color(12, 12, 12));
+    kitConverter.ConvertClubKitNumbersSet(142, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(73))) + "_t", ::Color(23, 44, 68), ::Color(220, 220, 220), ::Color(174, 38, 35));
+    kitConverter.ConvertClubKitNumbersSet(153, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(240))) + "_h", ::Color(220, 220, 220), ::Color(193, 33, 52), ::Color(193, 33, 52));
+    kitConverter.ConvertClubKitNumbersSet(153, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(240))) + "_a", ::Color(224, 36, 48), ::Color(12, 12, 12), ::Color(12, 12, 12));
+    kitConverter.ConvertClubKitNumbersSet(153, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(240))) + "_g", ::Color(12, 12, 12), ::Color(100, 113, 136), ::Color(100, 113, 136));
+    kitConverter.ConvertClubKitNumbersSet(153, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(240))) + "_t", ::Color(39, 45, 71), ::Color(138, 177, 213), ::Color(138, 177, 213));
+    kitConverter.ConvertClubKitNumbersSet(147, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(243))) + "_h", ::Color(140, 113, 73), ::Color(220, 220, 220), ::Color(140, 113, 73));
+    kitConverter.ConvertClubKitNumbersSet(147, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(243))) + "_a", ::Color(189, 155, 51), ::Color(14, 45, 82), ::Color(189, 155, 51));
+    kitConverter.ConvertClubKitNumbersSet(147, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(243))) + "_g", ::Color(12, 12, 12), ::Color(232, 162, 0), ::Color(211, 185, 58));
+    kitConverter.ConvertClubKitNumbersSet(147, true, std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\jersey2\\") + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(243))) + "_t", ::Color(29, 60, 112), ::Color(105, 177, 177), ::Color(29, 60, 112));
     */
     auto WriteOverlay = [](Path const &inputOverlay, String outputFileName) {
         Magick::Image overlayImg(inputOverlay.string());
         if (overlayImg.isValid()) {
             overlayImg.resize(Magick::Geometry(64, 64));
-            overlayImg.write("D:\\Games\\FIFA Manager 13\\data\\kitcompbadges\\" + Utils::WtoA(outputFileName) + ".tga");
+            overlayImg.write("E:\\Games\\FIFA Manager 13\\data\\kitcompbadges\\" + Utils::WtoA(outputFileName) + ".tga");
         }
     };
 
-    Path kitOverlayPath = L"D:\\Projects\\FIFA20\\compbadges";
+    Path kitOverlayPath = L"E:\\Projects\\FIFA20\\compbadges";
     /*
     for (auto const &p : directory_iterator(kitOverlayPath)) {
         static Map<UInt, UInt> compsMap = {

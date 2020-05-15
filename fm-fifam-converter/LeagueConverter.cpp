@@ -759,8 +759,40 @@ void Converter::ConvertLeagues(UInt gameId) {
                         lg->mCompID = leagueID;
                         league->SetProperty<DivisionInfo *>(L"divInfo", lg);
 
-                        if (leagueConfigTables && leagueConfigTables->Available())
-                            leagueConfigTables->WriteLine(country->mId, leagueID.mIndex, lg->mPromoted, lg->mTotalTeamsPromotionPlayoff, lg->mRelegated, lg->mTotalTeamsRelegationPlayoff, FifamTr(country->mName));
+                        if (leagueConfigTables && leagueConfigTables->Available()) {
+                            if (!mGenerateSpecialScripts || country->mId != FifamNation::Spain)
+                                leagueConfigTables->WriteLine(country->mId, leagueID.mIndex, lg->mPromoted, lg->mTotalTeamsPromotionPlayoff, lg->mRelegated, lg->mTotalTeamsRelegationPlayoff, FifamTr(country->mName));
+                            else {
+                                static Bool mSpainWritten = false;
+                                if (!mSpainWritten) {
+                                    leagueConfigTables->WriteLine(45, 0, 0, 0, 3, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 1, 2, 4, 4, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 2, 0, 4, 4, 1, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 3, 0, 4, 4, 1, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 4, 0, 4, 4, 1, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 5, 0, 4, 4, 1, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 6, 0, 4, 4, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 7, 0, 4, 3, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 8, 0, 4, 3, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 9, 0, 4, 3, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 10, 0, 4, 3, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 11, 0, 4, 3, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 12, 0, 4, 4, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 13, 0, 4, 4, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 14, 0, 4, 3, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 15, 0, 4, 3, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 16, 0, 4, 3, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 17, 0, 4, 3, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 18, 0, 4, 3, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 19, 0, 4, 3, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 20, 0, 4, 3, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 21, 0, 4, 3, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 22, 0, 4, 4, 0, L"Spain");
+                                    leagueConfigTables->WriteLine(45, 23, 0, 4, 3, 0, L"Spain");
+                                    mSpainWritten = true;
+                                }
+                            }
+                        }
 
                         // convert - old
 
@@ -2179,7 +2211,8 @@ void Converter::ConvertLeagues(UInt gameId) {
             Pair<FifamCompLeague *, FifamCompLeague *> splitLeagues = { relLeague[0], relLeague[1] };
 
             if (!mFromFifaDatabase) {
-                ProcessScriptWithSpecialFormat(country, createdLeagues, createdCups, splitLeagues, vecPlayOffs);
+                if (mGenerateSpecialScripts)
+                    ProcessScriptWithSpecialFormat(country, createdLeagues, createdCups, splitLeagues, vecPlayOffs);
 
                 auto ProcessCustomCalendars = [&](Map<UInt, Vector<UShort>> const &calendars, UChar season) {
                     for (auto const &[compId, comp] : mFifamDatabase->mCompMap) {

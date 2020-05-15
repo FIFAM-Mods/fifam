@@ -26,6 +26,7 @@ public:
     Path mFifaAssetsPath;
     Bool mGenerateLeaguesFiles = false;
     Bool mGenerateLeagueConfigFiles = true;
+    Bool mGenerateSpecialScripts = true;
     Bool mQuickTest = false;
 
     FifamDatabase *mPreviousDb = nullptr;

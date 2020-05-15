@@ -40,6 +40,7 @@ void Converter::Convert() {
     Bool GENERATE_IDS = GetIniInt(L"GENERATE_IDS", 0);
     mGenerateLeaguesFiles = GetIniInt(L"GENERATE_LEAGUES_FILES", 0);
     mGenerateLeagueConfigFiles = GetIniInt(L"GENERATE_LEAGUE_CONFIG_FILES", 1);
+    mGenerateSpecialScripts = GetIniInt(L"GENERATE_SPECIAL_SCRIPTS", 1);
     Bool EXPORT_FM_FIFA_PLAYERS = GetIniInt(L"EXPORT_FM_FIFA_PLAYERS", 0);
     Bool WRITE_DERBIES = GetIniInt(L"WRITE_DERBIES", 1);
     Bool INCREASE_CONTRACTS = GetIniInt(L"INCREASE_CONTRACTS", 0);
@@ -65,6 +66,9 @@ void Converter::Convert() {
     Bool REF_DB_SEASON_TICKETS = GetIniInt(L"REF_DB_SEASON_TICKETS", 0);
     Bool REF_DB_AVERAGE_ATTENDANCE = GetIniInt(L"REF_DB_AVERAGE_ATTENDANCE", 0);
     Bool REF_DB_POTENTIAL_FANS_COUNT = GetIniInt(L"REF_DB_POTENTIAL_FANS_COUNT", 0);
+    Bool REF_DB_CLUB_HISTORY_RECORDS = GetIniInt(L"REF_DB_CLUB_HISTORY_RECORDS", 1);
+    Bool REF_DB_CLUB_HISTORY_WINS = GetIniInt(L"REF_DB_CLUB_HISTORY_WINS", 0);
+    Bool REF_DB_CLUB_HISTORY_LEAGUE_STATS = GetIniInt(L"REF_DB_CLUB_HISTORY_LEAGUE_STATS", 0);
 
     mWarnings = GetIniInt(L"HIDE_WARNINGS", 1) == 0;
     mErrors = GetIniInt(L"HIDE_ERRORS", 0) == 0;
@@ -1757,6 +1761,33 @@ void Converter::Convert() {
                         c->mAverageAttendanceLastSeason = ref->mAverageAttendanceLastSeason;
                     if (REF_DB_POTENTIAL_FANS_COUNT)
                         c->mPotentialFansCount = ref->mPotentialFansCount;
+
+                    if (REF_DB_CLUB_HISTORY_RECORDS) {
+                        c->mHistory.mRecordAttendance = ref->mHistory.mRecordAttendance;
+                        c->mHistory.mRecordHomeWin = ref->mHistory.mRecordHomeWin;
+                        c->mHistory.mRecordHomeDefeat = ref->mHistory.mRecordHomeDefeat;
+                        c->mHistory.mRecordAwayWin = ref->mHistory.mRecordAwayWin;
+                        c->mHistory.mRecordAwayDefeat = ref->mHistory.mRecordAwayDefeat;
+                    }
+                    if (REF_DB_CLUB_HISTORY_WINS) {
+                        c->mHistory.mLeagueWinYears = ref->mHistory.mLeagueWinYears;
+                        c->mHistory.mCupWinYears = ref->mHistory.mCupWinYears;
+                        c->mHistory.mLeagueCupWinYears = ref->mHistory.mLeagueCupWinYears;
+                        c->mHistory.mSuperCupsWinYears = ref->mHistory.mSuperCupsWinYears;
+                        c->mHistory.mChampionsCupWinYears = ref->mHistory.mChampionsCupWinYears;
+                        c->mHistory.mEuroTrophyWinYears = ref->mHistory.mEuroTrophyWinYears;
+                        c->mHistory.mWorldChampionshipWinYears = ref->mHistory.mWorldChampionshipWinYears;
+                        c->mHistory.mWorldClubChampionshipWinYears = ref->mHistory.mWorldClubChampionshipWinYears;
+                    }
+                    if (REF_DB_CLUB_HISTORY_LEAGUE_STATS) {
+                        c->mLeagueTotalWins = ref->mLeagueTotalWins;
+                        c->mLeagueTotalDraws = ref->mLeagueTotalDraws;
+                        c->mLeagueTotalLoses = ref->mLeagueTotalLoses;
+                        c->mLeagueTotalPoints = ref->mLeagueTotalPoints;
+                        c->mLeagueTotalGoals = ref->mLeagueTotalGoals;
+                        c->mLeagueTotalGoalsAgainst = ref->mLeagueTotalGoalsAgainst;
+                        c->mLeagueTotalLeadershipsInTable = ref->mLeagueTotalLeadershipsInTable;
+                    }
                 }
             }
         }

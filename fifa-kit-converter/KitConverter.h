@@ -18,12 +18,12 @@ public:
     };
 
     static struct GlobalOptions {
-        std::string KitsPath = "D:\\Projects\\FIFA20\\kit\\";
-        std::string MiniKitsPath = "D:\\Projects\\FIFA20\\kits\\";
-        std::string CustomKitsPath = "D:\\Projects\\FIFA20\\custom\\kits\\";
-        std::string CustomMiniKitsPath = "D:\\Projects\\FIFA20\\custom\\kits\\mini\\";
-        std::string KitNumbersPath = "D:\\Projects\\FIFA20\\kitnumbers\\";
-        std::string BannersPath = "D:\\Projects\\FIFA20\\banners\\";
+        std::string KitsPath = "E:\\Projects\\FIFA20\\kit\\";
+        std::string MiniKitsPath = "E:\\Projects\\FIFA20\\kits\\";
+        std::string CustomKitsPath = "E:\\Projects\\FIFA20\\custom\\kits\\";
+        std::string CustomMiniKitsPath = "E:\\Projects\\FIFA20\\custom\\kits\\mini\\";
+        std::string KitNumbersPath = "E:\\Projects\\FIFA20\\kitnumbers\\";
+        std::string BannersPath = "E:\\Projects\\FIFA20\\banners\\";
         int OutputGameId = 14;
         int SaveLocation = User;
         std::string OutputFormat = "tga";
