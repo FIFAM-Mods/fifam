@@ -69,6 +69,11 @@ void Converter::Convert() {
     Bool REF_DB_CLUB_HISTORY_RECORDS = GetIniInt(L"REF_DB_CLUB_HISTORY_RECORDS", 1);
     Bool REF_DB_CLUB_HISTORY_WINS = GetIniInt(L"REF_DB_CLUB_HISTORY_WINS", 0);
     Bool REF_DB_CLUB_HISTORY_LEAGUE_STATS = GetIniInt(L"REF_DB_CLUB_HISTORY_LEAGUE_STATS", 0);
+    Bool REF_DB_AI_STRATEGY = GetIniInt(L"REF_DB_AI_STRATEGY", 1);
+    Bool REF_DB_LANDSCAPE = GetIniInt(L"REF_DB_LANDSCAPE", 1);
+    Bool REF_DB_SETTLEMENT = GetIniInt(L"REF_DB_SETTLEMENT", 1);
+
+    UInt NUM_SPARE_CLUBS_IN_UNPLAYABLE_COUNTRY = GetIniInt(L"NUM_SPARE_CLUBS_IN_UNPLAYABLE_COUNTRY", 24);
 
     mWarnings = GetIniInt(L"HIDE_WARNINGS", 1) == 0;
     mErrors = GetIniInt(L"HIDE_ERRORS", 0) == 0;
@@ -437,7 +442,7 @@ void Converter::Convert() {
                     if (b->mReputation > a->mReputation) return false;
                     return false;
                 });
-                UInt numSpareClubsToAdd = 8; // changed from 7
+                UInt numSpareClubsToAdd = NUM_SPARE_CLUBS_IN_UNPLAYABLE_COUNTRY; // changed from 7
                 //if (gameId <= 7)
                 //    numSpareClubsToAdd = 4;
                 
@@ -454,18 +459,9 @@ void Converter::Convert() {
                     if (numSpareClubsToAdd > 100)
                         numSpareClubsToAdd = 100;
                 }
-                else if (country->GetProperty<Bool>(L"SimulateLeague")
-                    || country->mId == FifamNation::Canada || country->mId == FifamNation::Cameroon
-                    || country->mId == FifamNation::Cote_d_Ivoire || country->mId == FifamNation::Ghana)
-                {
-                    numSpareClubsToAdd = 8;
-                }
-
-                UInt clubsCompareCount = 100;
 
                 // TODO: Remove this
                 if (country->mId == FifamNation::United_States) {
-                    clubsCompareCount = 101;
                     Vector<foom::club *> usaSpareClubs;
                     for (auto fc : spareClubs[country->mId - 1]) {
                         if (fc->mID == 72052048) { // Inter Miami
@@ -478,19 +474,8 @@ void Converter::Convert() {
                             usaSpareClubs.push_back(fc);
                     }
                     spareClubs[country->mId - 1] = usaSpareClubs;
+                    numSpareClubsToAdd++;
                 }
-
-                //static Set<FifamNation> prCountries = {
-                //    FifamNation::England, FifamNation::Spain, FifamNation::Italy, FifamNation::Germany, FifamNation::France,
-                //    FifamNation::Brazil, FifamNation::Argentina,
-                //    FifamNation::Russia, FifamNation::Ukraine, FifamNation::Belarus
-                //};
-                //
-                //if (prCountries.contains(FifamNation::MakeFromInt(country->mId)))
-                //    clubsCompareCount = 1'000;
-                
-                if (numSpareClubsToAdd < clubsCompareCount)
-                    numSpareClubsToAdd = clubsCompareCount;
 
                 if ((numSpareClubsToAdd + country->mClubs.size()) >= maxClubs)
                     numSpareClubsToAdd = maxClubs - country->mClubs.size();
@@ -1736,9 +1721,6 @@ void Converter::Convert() {
                     c->mWebsiteAndMail = ref->mWebsiteAndMail;
                     c->mFansites = ref->mFansites;
                     c->mFanMembers = ref->mFanMembers;
-                    c->mAiStrategy = ref->mAiStrategy;
-                    c->mLandscape = ref->mLandscape;
-                    c->mSettlement = ref->mSettlement;
                     c->mTransfersCountry = ref->mTransfersCountry;
                     c->mMascotName = ref->mMascotName;
                     c->mPlayerInText = ref->mPlayerInText;
@@ -1754,6 +1736,13 @@ void Converter::Convert() {
                     c->mFanName2Article = ref->mFanName2Article;
                     c->mTermForTeam1Article =  ref->mTermForTeam1Article;
                     c->mTermForTeam2Article =  ref->mTermForTeam2Article;
+
+                    if (REF_DB_AI_STRATEGY)
+                        c->mAiStrategy = ref->mAiStrategy;
+                    if (REF_DB_LANDSCAPE)
+                        c->mLandscape = ref->mLandscape;
+                    if (REF_DB_SETTLEMENT)
+                        c->mSettlement = ref->mSettlement;
 
                     if (REF_DB_SEASON_TICKETS)
                         c->mCountOfSoldSeasonTickets = ref->mCountOfSoldSeasonTickets;

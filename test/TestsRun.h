@@ -39,7 +39,8 @@
 #include "tests\GetUnlinkedFaces.h"
 #include "tests\UpdateDbNames.h"
 #include "tests\Fifa07Convert.h"
+#include "tests\Fifa07Kits.h"
 
 void RunTests() {
-    RunTest<Fifa07Convert>();
+    RunTest<Fifa07Kits>();
 }
