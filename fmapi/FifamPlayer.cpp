@@ -1013,7 +1013,7 @@ void FifamPlayer::ValidateExperience(FifamDate const &currentDate) {
     UInt rating = mNationalTeamMatches * 2;
     for (auto const &h : mHistory.mEntries) {
         rating += h.mMatches;
-        rating += h.mReserveMatches * 2;
+        rating += h.mReserveMatches / 2;
     }
 
     // find table entries
@@ -1022,7 +1022,7 @@ void FifamPlayer::ValidateExperience(FifamDate const &currentDate) {
 
     for (UInt i = 0; i < std::size(expCalcTable); i++) {
         if (age >= expCalcTable[i].minAge && age <= expCalcTable[i].maxAge && rating <= expCalcTable[i].maxRating) {
-            UInt minRating = expCalcTable[i].maxRating;
+            UInt minRating = expCalcTable[i].minRating;
             if (isGK)
                 minRating /= 2;
             if (rating >= minRating) {

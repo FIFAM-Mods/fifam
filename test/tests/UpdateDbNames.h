@@ -5,44 +5,55 @@ class UpdateDbNames {
 public:
     UpdateDbNames() {
         UInt const gameVersion = 13;
-        Path dbPathIn = L"E:\\Games\\FIFA Manager 13\\database";
+        Path dbPathNew = L"E:\\Games\\FIFA Manager 13\\database";
         Path dbPathOut = L"E:\\Games\\FIFA Manager 13\\database_NEW_CORR";
-        Path dbPathRef = L"E:\\Games\\FIFA Manager 13\\database_names";
+        Path dbPathOld = L"E:\\Games\\FIFA Manager 13\\database_old";
 
         FifamDatabase::mReadingOptions.mUseCustomFormations = true;
-        FifamDatabase *db = new FifamDatabase(gameVersion, dbPathIn);
+        FifamDatabase *dbnew = new FifamDatabase(gameVersion, dbPathNew);
         FifamDatabase::mReadingOptions.mReadPersons = false;
-        FifamDatabase *dbref = new FifamDatabase(gameVersion, dbPathRef);
+        FifamDatabase *dbold = new FifamDatabase(gameVersion, dbPathOld);
 
-        for (FifamClub *c : db->mClubs) {
-            auto ref = dbref->GetClubFromUID(c->mUniqueID);
-            if (ref) {
-                c->mCityName = ref->mCityName;
-                c->mTermForTeam1 = ref->mTermForTeam1;
-                c->mTermForTeam2 = ref->mTermForTeam2;
-                c->mFanName1 = ref->mFanName1;
-                c->mFanName2 = ref->mFanName2;
-                c->mStadiumName = ref->mStadiumName;
-            }
-            /*
-            FifamTrSetAll(c->mName, FifamTr(c->mName));
-            FifamTrSetAll(c->mName2, FifamTr(c->mName2));
-            FifamTrSetAll(c->mShortName, FifamTr(c->mShortName));
-            FifamTrSetAll(c->mShortName2, FifamTr(c->mShortName2));
-            FifamTrSetAll(c->mAbbreviation, FifamTr(c->mAbbreviation));
-            FifamTrSetAll(c->mTermForTeam1, FifamTr(c->mTermForTeam1));
-            FifamTrSetAll(c->mTermForTeam2, FifamTr(c->mTermForTeam2));
-            FifamTrSetAll(c->mFanName1, FifamTr(c->mFanName1));
-            FifamTrSetAll(c->mFanName2, FifamTr(c->mFanName2));
-            if (false) {
-                FifamTrSetAll(c->mStadiumName, FifamTr(c->mStadiumName));
-                FifamTrSetAll(c->mCityName, FifamTr(c->mCityName));
-            }
-            if (c->mTransfersCountry[0] == FifamNation::None)
-                c->mTransfersCountry[0] = FifamNation::MakeFromInt(c->mCountry->mId);
-            c->mSpecialSponsor = false;
-            */
+        Map<UInt, FifamPlayer *> oldPlayers;
+
+        for (FifamPlayer *p : dbold->mPlayers) {
+            if (p->mEmpicsId)
+                oldPlayers[p->mEmpicsId] = p;
         }
-        db->Write(gameVersion, FifamDatabase::GetGameDbVersion(gameVersion), dbPathOut);
+        // update clubs
+        for (FifamClub *c : dbnew->mClubs) {
+            auto oldc = dbold->GetClubFromUID(c->mUniqueID);
+            if (oldc) {
+                c->mClubColour = oldc->mClubColour;
+                c->mClubColour2 = oldc->mClubColour2;
+                c->mMerchandiseColour = oldc->mMerchandiseColour;
+                c->mHeaderColour = oldc->mHeaderColour;
+                c->mBackgroundColour = oldc->mBackgroundColour;
+                c->mAbbreviation = oldc->mAbbreviation;
+                c->mBadge = oldc->mBadge;
+                c->mName = oldc->mName;
+                c->mName2 = oldc->mName2;
+                c->mShortName = oldc->mShortName;
+                c->mShortName2 = oldc->mShortName2;
+                c->mStadiumName = oldc->mStadiumName;
+                c->mStadiumSeatsCapacity = oldc->mStadiumSeatsCapacity;
+                c->mStadiumStandingsCapacity = oldc->mStadiumStandingsCapacity;
+                c->mStadiumVipCapacity = oldc->mStadiumVipCapacity;
+                c->mKit = oldc->mKit;
+                // update club budget
+
+            }
+        }
+        // update players
+        for (FifamPlayer *p : dbnew->mPlayers) {
+            auto it = oldPlayers.find(p->mEmpicsId);
+            if (it != oldPlayers.end()) {
+                auto oldp = (*it).second;
+                p->mAppearance = oldp->mAppearance;
+                p->mSpecialFace = oldp->mSpecialFace;
+            }
+        }
+        // write new db
+        dbnew->Write(gameVersion, FifamDatabase::GetGameDbVersion(gameVersion), dbPathOut);
     }
 };

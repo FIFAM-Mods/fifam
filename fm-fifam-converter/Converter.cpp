@@ -430,6 +430,7 @@ void Converter::Convert() {
         if (country && country->mClubs.size() < maxClubs) {
             if (!spareClubs[country->mId - 1].empty()) {
                 std::sort(spareClubs[country->mId - 1].begin(), spareClubs[country->mId - 1].end(), [](foom::club *a, foom::club *b) {
+                    // TODO: make reputation over league level
                     UInt teamALeagueLevel = a->mDivision ? a->mDivision->mCompetitionLevel : 0;
                     UInt teamBLeagueLevel = b->mDivision ? b->mDivision->mCompetitionLevel : 0;
                     if (teamALeagueLevel == 0)
@@ -1428,197 +1429,14 @@ void Converter::Convert() {
     }
 
     // process player history and experience
-    std::wcout << L"Processing player history and experience..." << std::endl;
-    for (auto &entry : mFoomDatabase->mPlayers) {
-        auto &p = entry.second;
-        if (p.mConverterData.mFifamPerson) {
-            FifamPlayer *player = (FifamPlayer *)p.mConverterData.mFifamPerson;
-            // history - validate years
-            for (auto &h : p.mVecPlayingHistory) {
-                if (h.mYear <= 0) {
-                    if (mErrors)
-                        Error(L"Wrong date in player history\nPlayer: %s\nPlayerID: %d", p.mFullName.c_str(), p.mID);
-                    h.mYear = 1970;
-                }
-            };
-            // history - sort history entries
-            std::sort(p.mVecPlayingHistory.begin(), p.mVecPlayingHistory.end(), [](foom::player::playing_history const &a, foom::player::playing_history const &b) {
-                if (a.mYear < b.mYear) return true;
-                if (b.mYear < a.mYear) return true;
-                return a.mOrder < b.mOrder;
-            });
-
-            // history - separate by years
-            Map<Int, Vector<foom::player::playing_history *>> playerHistoryMap;
-            for (auto &h : p.mVecPlayingHistory) {
-                if (h.mYear <= CURRENT_YEAR && /*!h.mYouthTeam &&*/ h.mClub) { // ignore 'future' records and youth team
-                    auto historyClub = GetTeamClubLink(h.mClub);
-                    if (historyClub.IsValid() || h.mClub->mConverterData.mAdditionalHistoryReserveTeamType != 1)
-                        playerHistoryMap[h.mYear].push_back(&h);
-                }
-            }
-
-            auto GetPlayerHistorySeasonStartDate = [=](Int year) {
-                if (year == CURRENT_YEAR)
-                    return FifamDate(1, 1, CURRENT_YEAR);
-                return FifamDate(1, 7, year);
-            };
-
-            auto GetPlayerHistorySeasonEndDate = [=](Int year, bool hasCurrentYear) {
-                if (year == CURRENT_YEAR)
-                    return FifamDate(30, 6, CURRENT_YEAR);
-                else if (year == (CURRENT_YEAR - 1) && hasCurrentYear)
-                    return FifamDate(31, 12, year);
-                return FifamDate(30, 6, year + 1);
-            };
-
-            // history - fill player history
-            foom::player::playing_history *lastEntry = nullptr;
-            Vector<FifamPlayerHistoryEntry> history;
-            bool hasCurrent = playerHistoryMap.count(CURRENT_YEAR) > 0;
-            Int lastTransferFee = 0;
-            for (auto const &e : playerHistoryMap) {
-                UInt entryIndex = 0;
-                for (auto &h : e.second) {
-                    FifamPlayerHistoryEntry *last = nullptr;
-                    if (!history.empty())
-                        last = &history.back();
-                    FifamPlayerHistoryEntry *curr = nullptr;
-                    FifamClubLink historyClub;
-                    if (h->mClub)
-                        historyClub = GetTeamClubLink(h->mClub);
-                    if (!historyClub.IsValid()) {
-                        if (h->mClub->mConverterData.mAdditionalHistoryParentTeam && h->mClub->mConverterData.mAdditionalHistoryReserveTeamType == 0) {
-                            if (h->mClub->mConverterData.mAdditionalHistoryParentTeam->mConverterData.mFifamClub) {
-                                historyClub = FifamClubLink(
-                                    (FifamClub *)(h->mClub->mConverterData.mAdditionalHistoryParentTeam->mConverterData.mFifamClub), FifamClubTeamType::Reserve);
-                            }
-                        }
-                    }
-                    bool createNewEntry = true;
-                    bool sameClub = false;
-
-                    if (last) {
-                        if (historyClub.mPtr && historyClub.mPtr == last->mClub.mPtr) {
-                            sameClub = true;
-                            if (h->mOnLoan == last->mLoan)
-                                createNewEntry = false;
-                        }
-                        else if (lastEntry && lastEntry->mClub && h->mClub) {
-                            if (h->mClub == lastEntry->mClub || h->mClub->mConverterData.mParentClub == lastEntry->mClub || lastEntry->mClub->mConverterData.mParentClub == h->mClub) {
-                                sameClub = true;
-                                if (h->mOnLoan == last->mLoan)
-                                    createNewEntry = false;
-                            }
-                        }
-                    }
-                    Date startDate = GetPlayerHistorySeasonStartDate(h->mYear);
-                    Date endDate = GetPlayerHistorySeasonEndDate(h->mYear, hasCurrent);
-                    if (e.second.size() > 1 && endDate.month != 12) {
-                        if (entryIndex == (e.second.size() - 1))
-                            startDate.Set(1, 1, endDate.year);
-                        else
-                            endDate.Set(31, 12, endDate.year - 1);
-                    }
-                    if (!createNewEntry) {
-                        curr = last;
-                        curr->mEndDate = endDate;
-                    }
-                    else {
-                        curr = &history.emplace_back();
-                        curr->mClub = FifamClubLink(historyClub.mPtr);
-                        curr->mStartDate = startDate;
-                        curr->mEndDate = endDate;
-                        curr->mLoan = h->mOnLoan;
-                    }
-                    //if (!h->mYouthTeam) {
-                        bool firstTeam = true;
-                        if (h->mYouthTeam)
-                            firstTeam = false;
-                        else {
-                            if (historyClub.IsValid())
-                                firstTeam = historyClub.mTeamType == FifamClubTeamType::First;
-                            else
-                                firstTeam = !h->mClub || !h->mClub->mConverterData.mParentClub;
-                            if (firstTeam) { // MAYBE: also check division level?
-                                curr->mMatches += h->mApps;
-                                curr->mGoals += h->mGoals;
-                            } else {
-                                curr->mReserveMatches += h->mApps;
-                                curr->mReserveGoals += h->mGoals;
-                            }
-                        }
-                    //}
-                    if (h->mOnLoan) {
-                        if (h->mTransferFee > 0)
-                            curr->mTransferFee = foom::db::convert_money(h->mTransferFee);
-                    }
-                    else if (lastTransferFee > 0)
-                        curr->mTransferFee = foom::db::convert_money(lastTransferFee);
-                    if (!h->mOnLoan)
-                        lastTransferFee = h->mTransferFee;
-                    if (sameClub && !curr->mLoan && last->mLoan) {
-                        //Int lastFee = last->mTransferFee;
-                        //last->mTransferFee = curr->mTransferFee;
-                        //curr->mTransferFee = lastFee;
-                    }
-                    lastEntry = h;
-                    entryIndex++;
-                }
-            }
-
-            if (!history.empty()) {
-                if (player->mClub) {
-                    FifamPlayerHistoryEntry &last = history.back();
-                    if (last.mClub.mPtr != player->mClub || last.mLoan != player->mStartingConditions.mLoan.Enabled()) {
-                        FifamPlayerHistoryEntry &curr = history.emplace_back();
-                        curr.mClub = FifamClubLink(player->mClub);
-                        curr.mStartDate = FifamDate(1, 7, CURRENT_YEAR);
-                        curr.mEndDate = FifamDate(1, 7, CURRENT_YEAR);
-                        curr.mLoan = player->mStartingConditions.mLoan.Enabled();
-                        if (!curr.mLoan && lastTransferFee > 0)
-                            curr.mTransferFee = foom::db::convert_money(lastTransferFee);
-                    }
-                    history.back().mStillInThisClub = true;
-                }
-            }
-
-            // NOTE: check this
-            if (p.mCurrentAbility >= 0) {
-                for (auto const &h : history)
-                    player->mHistory.mEntries.push_back(h);
-            }
-
-            // national/international experience
-            UInt totalLeagueMatches = 0;
-            for (auto &careerEntry : history)
-                totalLeagueMatches += careerEntry.mMatches + careerEntry.mReserveMatches;
-            UInt totalInternationalMatches = player->mNationalTeamMatches;
-            if (totalLeagueMatches > 450)
-                player->mNationalExperience = 6;
-            else if (totalLeagueMatches > 350)
-                player->mNationalExperience = 5;
-            else if (totalLeagueMatches > 250)
-                player->mNationalExperience = 4;
-            else if (totalLeagueMatches > 150)
-                player->mNationalExperience = 3;
-            else if (totalLeagueMatches > 50)
-                player->mNationalExperience = 2;
-            else if (totalLeagueMatches > 20)
-                player->mNationalExperience = 1;
-            else
-                player->mNationalExperience = 0;
-
-            if (p.mInternationalApps > 85)
-                player->mInternationalExperience = 4;
-            else if (p.mInternationalApps >= 55)
-                player->mInternationalExperience = 3;
-            else if (p.mInternationalApps >= 30)
-                player->mInternationalExperience = 2;
-            else if (p.mInternationalApps >= 10)
-                player->mInternationalExperience = 1;
-        }
-    }
+    //std::wcout << L"Processing player history and experience..." << std::endl;
+    //for (auto &entry : mFoomDatabase->mPlayers) {
+    //    auto &p = entry.second;
+    //    if (p.mConverterData.mFifamPerson) {
+    //        FifamPlayer *player = (FifamPlayer *)p.mConverterData.mFifamPerson;
+    //        
+    //    }
+    //}
 
     // add players to national teams
     std::wcout << L"Adding players to national teams..." << std::endl;

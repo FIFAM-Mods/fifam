@@ -1026,6 +1026,196 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         player->mPlayingStyle = bestStyle;
     }
 
+    // player history
+    player->mNationalTeamMatches = p->mInternationalApps;
+    player->mNationalTeamGoals = p->mInternationalGoals;
+
+    // history - validate years
+    for (auto &h : p->mVecPlayingHistory) {
+        if (h.mYear <= 0) {
+            if (mErrors)
+                Error(L"Wrong date in player history\nPlayer: %s\nPlayerID: %d", p->mFullName.c_str(), p->mID);
+            h.mYear = 1970;
+        }
+    };
+    // history - sort history entries
+    std::sort(p->mVecPlayingHistory.begin(), p->mVecPlayingHistory.end(), [](foom::player::playing_history const &a, foom::player::playing_history const &b) {
+        if (a.mYear < b.mYear) return true;
+        if (b.mYear < a.mYear) return true;
+        return a.mOrder < b.mOrder;
+    });
+
+    // history - separate by years
+    Map<Int, Vector<foom::player::playing_history *>> playerHistoryMap;
+    for (auto &h : p->mVecPlayingHistory) {
+        if (h.mYear <= CURRENT_YEAR && /*!h.mYouthTeam &&*/ h.mClub) { // ignore 'future' records and youth team
+            auto historyClub = GetTeamClubLink(h.mClub);
+            if (historyClub.IsValid() || h.mClub->mConverterData.mAdditionalHistoryReserveTeamType != 1)
+                playerHistoryMap[h.mYear].push_back(&h);
+        }
+    }
+
+    auto GetPlayerHistorySeasonStartDate = [=](Int year) {
+        if (year == CURRENT_YEAR)
+            return FifamDate(1, 1, CURRENT_YEAR);
+        return FifamDate(1, 7, year);
+    };
+
+    auto GetPlayerHistorySeasonEndDate = [=](Int year, bool hasCurrentYear) {
+        if (year == CURRENT_YEAR)
+            return FifamDate(30, 6, CURRENT_YEAR);
+        else if (year == (CURRENT_YEAR - 1) && hasCurrentYear)
+            return FifamDate(31, 12, year);
+        return FifamDate(30, 6, year + 1);
+    };
+
+    // history - fill player history
+    foom::player::playing_history *lastEntry = nullptr;
+    Vector<FifamPlayerHistoryEntry> history;
+    bool hasCurrent = playerHistoryMap.count(CURRENT_YEAR) > 0;
+    Int lastTransferFee = 0;
+    for (auto const &e : playerHistoryMap) {
+        UInt entryIndex = 0;
+        for (auto &h : e.second) {
+            FifamPlayerHistoryEntry *last = nullptr;
+            if (!history.empty())
+                last = &history.back();
+            FifamPlayerHistoryEntry *curr = nullptr;
+            FifamClubLink historyClub;
+            if (h->mClub)
+                historyClub = GetTeamClubLink(h->mClub);
+            if (!historyClub.IsValid()) {
+                if (h->mClub->mConverterData.mAdditionalHistoryParentTeam && h->mClub->mConverterData.mAdditionalHistoryReserveTeamType == 0) {
+                    if (h->mClub->mConverterData.mAdditionalHistoryParentTeam->mConverterData.mFifamClub) {
+                        historyClub = FifamClubLink(
+                            (FifamClub *)(h->mClub->mConverterData.mAdditionalHistoryParentTeam->mConverterData.mFifamClub), FifamClubTeamType::Reserve);
+                    }
+                }
+            }
+            bool createNewEntry = true;
+            bool sameClub = false;
+
+            if (last) {
+                if (historyClub.mPtr && historyClub.mPtr == last->mClub.mPtr) {
+                    sameClub = true;
+                    if (h->mOnLoan == last->mLoan)
+                        createNewEntry = false;
+                }
+                else if (lastEntry && lastEntry->mClub && h->mClub) {
+                    if (h->mClub == lastEntry->mClub || h->mClub->mConverterData.mParentClub == lastEntry->mClub || lastEntry->mClub->mConverterData.mParentClub == h->mClub) {
+                        sameClub = true;
+                        if (h->mOnLoan == last->mLoan)
+                            createNewEntry = false;
+                    }
+                }
+            }
+            Date startDate = GetPlayerHistorySeasonStartDate(h->mYear);
+            Date endDate = GetPlayerHistorySeasonEndDate(h->mYear, hasCurrent);
+            if (e.second.size() > 1 && endDate.month != 12) {
+                if (entryIndex == (e.second.size() - 1))
+                    startDate.Set(1, 1, endDate.year);
+                else
+                    endDate.Set(31, 12, endDate.year - 1);
+            }
+            if (!createNewEntry) {
+                curr = last;
+                curr->mEndDate = endDate;
+            }
+            else {
+                curr = &history.emplace_back();
+                curr->mClub = FifamClubLink(historyClub.mPtr);
+                curr->mStartDate = startDate;
+                curr->mEndDate = endDate;
+                curr->mLoan = h->mOnLoan;
+            }
+            //if (!h->mYouthTeam) {
+            bool firstTeam = true;
+            if (h->mYouthTeam)
+                firstTeam = false;
+            else {
+                if (historyClub.IsValid())
+                    firstTeam = historyClub.mTeamType == FifamClubTeamType::First;
+                else
+                    firstTeam = !h->mClub || !h->mClub->mConverterData.mParentClub;
+                if (firstTeam) { // MAYBE: also check division level?
+                    curr->mMatches += h->mApps;
+                    curr->mGoals += h->mGoals;
+                }
+                else {
+                    curr->mReserveMatches += h->mApps;
+                    curr->mReserveGoals += h->mGoals;
+                }
+            }
+            //}
+            if (h->mOnLoan) {
+                if (h->mTransferFee > 0)
+                    curr->mTransferFee = foom::db::convert_money(h->mTransferFee);
+            }
+            else if (lastTransferFee > 0)
+                curr->mTransferFee = foom::db::convert_money(lastTransferFee);
+            if (!h->mOnLoan)
+                lastTransferFee = h->mTransferFee;
+            if (sameClub && !curr->mLoan && last->mLoan) {
+                //Int lastFee = last->mTransferFee;
+                //last->mTransferFee = curr->mTransferFee;
+                //curr->mTransferFee = lastFee;
+            }
+            lastEntry = h;
+            entryIndex++;
+        }
+    }
+
+    if (!history.empty()) {
+        if (player->mClub) {
+            FifamPlayerHistoryEntry &last = history.back();
+            if (last.mClub.mPtr != player->mClub || last.mLoan != player->mStartingConditions.mLoan.Enabled()) {
+                FifamPlayerHistoryEntry &curr = history.emplace_back();
+                curr.mClub = FifamClubLink(player->mClub);
+                curr.mStartDate = FifamDate(1, 7, CURRENT_YEAR);
+                curr.mEndDate = FifamDate(1, 7, CURRENT_YEAR);
+                curr.mLoan = player->mStartingConditions.mLoan.Enabled();
+                if (!curr.mLoan && lastTransferFee > 0)
+                    curr.mTransferFee = foom::db::convert_money(lastTransferFee);
+            }
+            history.back().mStillInThisClub = true;
+        }
+    }
+
+    // NOTE: check this
+    if (p->mCurrentAbility >= 0) {
+        for (auto const &h : history)
+            player->mHistory.mEntries.push_back(h);
+    }
+
+    // national/international experience
+    UInt totalLeagueMatches = 0;
+    for (auto &careerEntry : history)
+        totalLeagueMatches += careerEntry.mMatches + careerEntry.mReserveMatches;
+    UInt totalInternationalMatches = player->mNationalTeamMatches;
+    if (totalLeagueMatches > 450)
+        player->mNationalExperience = 6;
+    else if (totalLeagueMatches > 350)
+        player->mNationalExperience = 5;
+    else if (totalLeagueMatches > 250)
+        player->mNationalExperience = 4;
+    else if (totalLeagueMatches > 150)
+        player->mNationalExperience = 3;
+    else if (totalLeagueMatches > 50)
+        player->mNationalExperience = 2;
+    else if (totalLeagueMatches > 20)
+        player->mNationalExperience = 1;
+    else
+        player->mNationalExperience = 0;
+
+    if (p->mInternationalApps > 85)
+        player->mInternationalExperience = 4;
+    else if (p->mInternationalApps >= 55)
+        player->mInternationalExperience = 3;
+    else if (p->mInternationalApps >= 30)
+        player->mInternationalExperience = 2;
+    else if (p->mInternationalApps >= 10)
+        player->mInternationalExperience = 1;
+
     // experience
     UInt totalExperiencePoints = 0;
     totalExperiencePoints += p->mInternationalApps * 10;
@@ -1225,8 +1415,6 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     }
     if (!player->mRetiredFromNationalTeam && playerOriginalCountry && p->mDeclaredForNation)
         mNationalTeamPlayers[playerOriginalCountry->mId - 1].push_back(p);
-    player->mNationalTeamMatches = p->mInternationalApps;
-    player->mNationalTeamGoals = p->mInternationalGoals;
 
     // character
     if (p->mPressure >= 15)
@@ -1418,110 +1606,220 @@ FifamPlayer *Converter::CreateAndConvertFifaPlayer(UInt gameId, FifaPlayer * p, 
 }
 
 UChar Converter::GetPlayerLevelFromCA(Int ca) {
-    static Pair<UChar, UChar> playerCAtoLvlAry[99] = {
-        { 99, 199 },
-        { 98, 198 },
-        { 97, 197 },
-        { 96, 196 },
-        { 95, 195 },
-        { 94, 192 },
-        { 93, 190 },
-        { 92, 188 },
-        { 91, 184 },
-        { 90, 180 },
-        { 89, 177 },
-        { 88, 174 },
-        { 87, 170 },
-        { 86, 166 },
-        { 85, 163 },
-        { 84, 160 },
-        { 83, 157 },
-        { 82, 154 },
-        { 81, 151 },
-        { 80, 149 },
-        { 79, 146 }, // 147?
-        { 78, 143 },
-        { 77, 141 },
-        { 76, 139 },
-        { 75, 136 }, // 73, 74, 75
-        { 74, 133 },
-        { 73, 130 },
-        { 72, 127 },
-        { 71, 124 },
-        { 70, 122 },
-        { 69, 119 }, // 66, 67
-        { 68, 115 },
-        { 67, 111 },
-        { 66, 108 },
-        { 65, 105 },
-        { 64, 102 },
-        { 63,  99 },
-        { 62,  96 },
-        { 61,  93 },
-        { 60,  90 },
-        { 59,  88 },
-        { 58,  86 },
-        { 57,  84 },
-        { 56,  82 },
-        { 55,  80 },
-        { 54,  78 },
-        { 53,  76 },
-        { 52,  74 },
-        { 51,  72 },
-        { 50,  70 },
-        { 49,  68 },
-        { 48,  66 },
-        { 47,  64 },
-        { 46,  62 },
-        { 45,  60 },
-        { 44,  58 },
-        { 43,  56 },
-        { 42,  54 },
-        { 41,  52 },
-        { 40,  50 },
-        { 39,  48 },
-        { 38,  46 },
-        { 37,  44 },
-        { 36,  42 },
-        { 35,  40 },
-        { 34,  38 },
-        { 33,  36 },
-        { 32,  34 },
-        { 31,  32 },
-        { 30,  30 },
-        { 29,  29 },
-        { 28,  28 },
-        { 27,  27 },
-        { 26,  26 },
-        { 25,  25 },
-        { 24,  24 },
-        { 23,  23 },
-        { 22,  22 },
-        { 21,  21 },
-        { 20,  20 },
-        { 19,  19 },
-        { 18,  18 },
-        { 17,  17 },
-        { 16,  16 },
-        { 15,  15 },
-        { 14,  14 },
-        { 13,  13 },
-        { 12,  12 },
-        { 11,  11 },
-        { 10,  10 },
-        { 9,    9 },
-        { 8,    8 },
-        { 7,    7 },
-        { 6,    6 },
-        { 5,    5 },
-        { 4,    4 },
-        { 3,    3 },
-        { 2,    2 },
-        { 1,    1 }
-    };
-    for (UInt i = 0; i < 99; i++) {
-        if (ca >= playerCAtoLvlAry[i].second)
-            return playerCAtoLvlAry[i].first;
+    if (false) {
+        static Pair<UChar, UChar> playerCAtoLvlAry[99] = {
+            { 99, 200 },
+            { 98, 199 },
+            { 97, 198 },
+            { 96, 197 },
+            { 95, 196 },
+            { 94, 195 }, // 2
+            { 93, 192 },
+            { 92, 189 },
+            { 91, 185 }, // 2
+            { 90, 181 }, // 2
+            { 89, 180 }, // 3
+            { 88, 175 }, // 6
+            { 87, 170 }, // 12
+            { 86, 166 }, // 14
+            { 85, 162 }, // 19
+            { 84, 160 }, // 20
+            { 83, 157 }, // 31
+            { 82, 155 }, // 36
+            { 81, 152 }, // 55
+            { 80, 150 }, // 67
+            { 79, 147 }, // 85
+            { 78, 145 }, // 83
+            { 77, 143 }, // 104
+            { 76, 140 }, // 178
+            { 75, 137 }, // 232 73, 74, 75
+            { 74, 135 }, // 272
+            { 73, 133 }, // 250
+            { 72, 131 }, // 349
+            { 71, 129 }, // 513
+            { 70, 127 }, // 523
+            { 69, 125 }, // 732 66, 67
+            { 68, 122 }, // 996
+            { 67, 120 }, // 1090
+            { 66, 117 }, // 1568
+            { 65, 115 }, // 1700
+            { 64, 112 }, // 2165
+            { 63, 109 }, // 2802
+            { 62, 106 }, // 2998
+            { 61, 103 }, // 3898
+            { 60, 100 }, // 4608
+            { 59,  97 }, // 4347
+            { 58,  95 }, // 4762
+            { 57,  92 }, // 5766
+            { 56,  90 }, // 6673
+            { 55,  87 }, // 7614
+            { 54,  85 }, // 8247
+            { 53,  82 }, // 9422
+            { 52,  80 }, // 10445
+            { 51,  77 }, // 9986
+            { 50,  75 }, // 10890
+            { 49,  72 }, // 11760
+            { 48,  70 }, // 13467
+            { 47,  67 }, // 11626
+            { 46,  64 }, // 12639
+            { 45,  61 }, // 10224
+            { 44,  60 }, // 10599
+            { 43,  58 },
+            { 42,  56 },
+            { 41,  54 },
+            { 40,  52 },
+            { 39,  50 },
+            { 38,  48 },
+            { 37,  46 },
+            { 36,  44 },
+            { 35,  42 },
+            { 34,  40 },
+            { 33,  38 },
+            { 32,  36 },
+            { 31,  34 },
+            { 30,  32 },
+            { 29,  30 },
+            { 28,  28 },
+            { 27,  27 },
+            { 26,  26 },
+            { 25,  25 },
+            { 24,  24 },
+            { 23,  23 },
+            { 22,  22 },
+            { 21,  21 },
+            { 20,  20 },
+            { 19,  19 },
+            { 18,  18 },
+            { 17,  17 },
+            { 16,  16 },
+            { 15,  15 },
+            { 14,  14 },
+            { 13,  13 },
+            { 12,  12 },
+            { 11,  11 },
+            { 10,  10 },
+            { 9,    9 },
+            { 8,    8 },
+            { 7,    7 },
+            { 6,    6 },
+            { 5,    5 },
+            { 4,    4 },
+            { 3,    3 },
+            { 2,    2 },
+            { 1,    1 }
+        };
+        for (UInt i = 0; i < 99; i++) {
+            if (ca >= playerCAtoLvlAry[i].second)
+                return playerCAtoLvlAry[i].first;
+        }
+        return 1;
     }
-    return 1;
+    else {
+        static Pair<UChar, UChar> playerCAtoLvlAry[99] = {
+            { 99, 199 },
+            { 98, 198 },
+            { 97, 197 },
+            { 96, 196 },
+            { 95, 195 },
+            { 94, 192 },
+            { 93, 190 },
+            { 92, 188 },
+            { 91, 184 },
+            { 90, 180 },
+            { 89, 177 },
+            { 88, 174 },
+            { 87, 170 },
+            { 86, 166 },
+            { 85, 163 },
+            { 84, 160 },
+            { 83, 157 },
+            { 82, 154 },
+            { 81, 151 },
+            { 80, 149 },
+            { 79, 146 }, // 147?
+            { 78, 143 },
+            { 77, 141 },
+            { 76, 139 },
+            { 75, 136 }, // 73, 74, 75
+            { 74, 133 },
+            { 73, 130 },
+            { 72, 127 },
+            { 71, 124 },
+            { 70, 122 },
+            { 69, 119 }, // 66, 67
+            { 68, 115 },
+            { 67, 111 },
+            { 66, 108 },
+            { 65, 105 },
+            { 64, 102 },
+            { 63,  99 },
+            { 62,  96 },
+            { 61,  93 },
+            { 60,  90 },
+            { 59,  88 },
+            { 58,  86 },
+            { 57,  84 },
+            { 56,  82 },
+            { 55,  80 },
+            { 54,  78 },
+            { 53,  76 },
+            { 52,  74 },
+            { 51,  72 },
+            { 50,  70 },
+            { 49,  68 },
+            { 48,  66 },
+            { 47,  64 },
+            { 46,  62 },
+            { 45,  60 },
+            { 44,  58 },
+            { 43,  56 },
+            { 42,  54 },
+            { 41,  52 },
+            { 40,  50 },
+            { 39,  48 },
+            { 38,  46 },
+            { 37,  44 },
+            { 36,  42 },
+            { 35,  40 },
+            { 34,  38 },
+            { 33,  36 },
+            { 32,  34 },
+            { 31,  32 },
+            { 30,  30 },
+            { 29,  29 },
+            { 28,  28 },
+            { 27,  27 },
+            { 26,  26 },
+            { 25,  25 },
+            { 24,  24 },
+            { 23,  23 },
+            { 22,  22 },
+            { 21,  21 },
+            { 20,  20 },
+            { 19,  19 },
+            { 18,  18 },
+            { 17,  17 },
+            { 16,  16 },
+            { 15,  15 },
+            { 14,  14 },
+            { 13,  13 },
+            { 12,  12 },
+            { 11,  11 },
+            { 10,  10 },
+            { 9,    9 },
+            { 8,    8 },
+            { 7,    7 },
+            { 6,    6 },
+            { 5,    5 },
+            { 4,    4 },
+            { 3,    3 },
+            { 2,    2 },
+            { 1,    1 }
+        };
+        for (UInt i = 0; i < 99; i++) {
+            if (ca >= playerCAtoLvlAry[i].second)
+                return playerCAtoLvlAry[i].first;
+        }
+        return 1;
+    }
 }
