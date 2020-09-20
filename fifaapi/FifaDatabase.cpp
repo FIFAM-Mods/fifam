@@ -118,9 +118,17 @@ FifaDatabase::FifaDatabase(std::filesystem::path const &path) {
                     leaguesRead = true;
                 }
                 // read clubs
-                if (!teamsRead && file.Open(gamedbpath / strFolder / L"teams.txt")) {
-                    for (FifaDataFile::Line line; file.NextLine(line); )
-                        AddEntity(m_teams, line);
+                if (file.Open(gamedbpath / strFolder / L"teams.txt")) {
+                    for (FifaDataFile::Line line; file.NextLine(line); ) {
+                        FifaTeam *team = new FifaTeam(line);
+                        auto oldTeam = m_teams.find(team->GetId());
+                        if (oldTeam != m_teams.end())
+                            delete team;
+                        else {
+                            m_teams[team->GetId()] = team;
+                            team->m_gameId = m_currentGameVersion;
+                        }
+                    }
                     file.Close();
                     teamsRead = true;
                 }

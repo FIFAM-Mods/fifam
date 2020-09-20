@@ -5,13 +5,12 @@ class UpdateDbNames {
 public:
     UpdateDbNames() {
         UInt const gameVersion = 13;
-        Path dbPathNew = L"E:\\Games\\FIFA Manager 13\\database";
+        Path dbPathNew = L"E:\\Games\\FIFA Manager 13\\database_new";
         Path dbPathOut = L"E:\\Games\\FIFA Manager 13\\database_NEW_CORR";
         Path dbPathOld = L"E:\\Games\\FIFA Manager 13\\database_old";
 
         FifamDatabase::mReadingOptions.mUseCustomFormations = true;
         FifamDatabase *dbnew = new FifamDatabase(gameVersion, dbPathNew);
-        FifamDatabase::mReadingOptions.mReadPersons = false;
         FifamDatabase *dbold = new FifamDatabase(gameVersion, dbPathOld);
 
         Map<UInt, FifamPlayer *> oldPlayers;

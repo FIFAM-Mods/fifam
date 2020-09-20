@@ -32,6 +32,7 @@ public:
     FifamDatabase *mPreviousDb = nullptr;
     Map<UInt, FifamPlayer *> mPreviousPlayers;
     Map<UInt, ColorPair> mRefDbColors;
+    Set<UInt> mFreeAgentsToAdd;
 
     FifamClub *GetPreviousClub(UInt id);
     FifamPlayer *GetPreviousPlayer(UInt id);

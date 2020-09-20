@@ -4,6 +4,7 @@
 #include "ModelReader.h"
 #include "Color.h"
 #include <array>
+#include "FifamClub.h"
 
 class KitConverter {
     void resizeImage_noAspect(Magick::Image &image, int w, int h);
@@ -24,6 +25,7 @@ public:
         std::string CustomMiniKitsPath = "E:\\Projects\\FIFA20\\custom\\kits\\mini\\";
         std::string KitNumbersPath = "E:\\Projects\\FIFA20\\kitnumbers\\";
         std::string BannersPath = "E:\\Projects\\FIFA20\\banners\\";
+        std::string CrestsPath = "E:\\Projects\\FIFA20\\crest\\";
         int OutputGameId = 14;
         int SaveLocation = User;
         std::string OutputFormat = "tga";
@@ -69,5 +71,15 @@ public:
     void ConvertClubKitNumbers(int kitnumberId, int fifaManagerId, ::Color const &clr1, ::Color const &clr2, ::Color const &clr3);
     bool ConvertClubKitNumbersSetCustom(std::string const &dirPath, std::string const &dirName, bool jersey);
     void ConvertClubKitNumbersCustom();
-    void ConvertBanners(int fifaId, int fifaManagerId);
+    void ConvertBanners(int fifaId, int fifaManagerId, Magick::Color const &primCol = Magick::Color(), Magick::Color const &secCol = Magick::Color());
+    void ConvertAdboards() {
+        const Path inPath = "D:\\FIFA_ASSETS\\adboards";
+        for (auto const &e : directory_iterator(inPath)) {
+            auto const &p = e.path();
+            if (p.extension() == ".tga") {
+
+            }
+        }
+    }
+    void GenerateGenericBanners();
 };

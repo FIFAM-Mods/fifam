@@ -162,7 +162,7 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
         prom3->mInstructions.PushBack(new FifamInstruction::GET_CC_SPARE());
         prom3->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
     }
-    else if (countryId == FifamCompRegion::Spain) {
+    /*else if (countryId == FifamCompRegion::Spain) {
         FifamCompLeague *laliga = mFifamDatabase->GetCompetition(League(0))->AsLeague();
         if (!laliga)
             return ErrorMsg(L"LaLiga is not available");
@@ -379,7 +379,7 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
             cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_LEVEL_X_TO_Y(4, 1, 24));
             cup->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
         }
-    }
+    }*/
     else if (countryId == FifamCompRegion::United_States) {
         FifamCompLeague *league = mFifamDatabase->GetCompetition(League(0))->AsLeague();
         if (!league)

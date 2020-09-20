@@ -72,8 +72,12 @@ void Converter::Convert() {
     Bool REF_DB_AI_STRATEGY = GetIniInt(L"REF_DB_AI_STRATEGY", 1);
     Bool REF_DB_LANDSCAPE = GetIniInt(L"REF_DB_LANDSCAPE", 1);
     Bool REF_DB_SETTLEMENT = GetIniInt(L"REF_DB_SETTLEMENT", 1);
+    Bool REF_DB_STADIUM_NAME = GetIniInt(L"REF_DB_STADIUM_NAME", 0);
+    Bool REF_DB_STADIUM_CAPACITY = GetIniInt(L"REF_DB_STADIUM_CAPACITY", 0);
 
     UInt NUM_SPARE_CLUBS_IN_UNPLAYABLE_COUNTRY = GetIniInt(L"NUM_SPARE_CLUBS_IN_UNPLAYABLE_COUNTRY", 24);
+
+    UInt MIN_FREE_AGENT_CA = GetIniInt(L"MIN_FREE_AGENT_CA", 110);
 
     mWarnings = GetIniInt(L"HIDE_WARNINGS", 1) == 0;
     mErrors = GetIniInt(L"HIDE_ERRORS", 0) == 0;
@@ -412,7 +416,7 @@ void Converter::Convert() {
     for (auto &entry : mFoomDatabase->mClubs) {
         auto &c = entry.second;
         // team is active, has associated nation, not a reserve team
-        if (!c.mExtinct && c.mNation && !c.mConverterData.mParentClub) {
+        if (!c.mExtinct && c.mNation && c.mNation->mConverterData.mSpareClubs.empty() && !c.mConverterData.mParentClub) {
             // fix - set reserve teams for first teams
             if (!c.mConverterData.mChildClubs.empty() && !c.mConverterData.mMainChildClubInDB)
                 c.mConverterData.mMainChildClubInDB = c.mConverterData.mChildClubs[0].mClub;
@@ -428,56 +432,74 @@ void Converter::Convert() {
     for (auto &country : mFifamDatabase->mCountries) {
         UInt maxClubs = gameId >= 10 ? 1000 : 500;
         if (country && country->mClubs.size() < maxClubs) {
-            if (!spareClubs[country->mId - 1].empty()) {
-                std::sort(spareClubs[country->mId - 1].begin(), spareClubs[country->mId - 1].end(), [](foom::club *a, foom::club *b) {
-                    // TODO: make reputation over league level
-                    UInt teamALeagueLevel = a->mDivision ? a->mDivision->mCompetitionLevel : 0;
-                    UInt teamBLeagueLevel = b->mDivision ? b->mDivision->mCompetitionLevel : 0;
-                    if (teamALeagueLevel == 0)
-                        teamALeagueLevel = 9999;
-                    if (teamBLeagueLevel == 0)
-                        teamBLeagueLevel = 9999;
-                    if (teamALeagueLevel < teamBLeagueLevel) return true;
-                    if (teamBLeagueLevel < teamALeagueLevel) return false;
-                    if (a->mReputation > b->mReputation) return true;
-                    if (b->mReputation > a->mReputation) return false;
-                    return false;
-                });
+            auto nation = country->GetProperty<foom::nation *>(L"foom::nation", nullptr);
+            Bool hasPredefinedSpareClubs = nation && !nation->mConverterData.mSpareClubs.empty();
+            if (hasPredefinedSpareClubs) {
+                for (auto const &c : nation->mConverterData.mSpareClubs) {
+                    // team is active, has associated nation, not a reserve team; TODO: review this
+                    if (!c->mExtinct && !c->mConverterData.mParentClub) {
+                        // fix - set reserve teams for first teams
+                        if (!c->mConverterData.mChildClubs.empty() && !c->mConverterData.mMainChildClubInDB)
+                            c->mConverterData.mMainChildClubInDB = c->mConverterData.mChildClubs[0].mClub;
+                        if (!c->mConverterData.mFifamClub)
+                            spareClubs[country->mId - 1].push_back(c);
+                    }
+                }
+            }
+            if (!spareClubs[country->mId - 1].empty()) { 
                 UInt numSpareClubsToAdd = NUM_SPARE_CLUBS_IN_UNPLAYABLE_COUNTRY; // changed from 7
-                //if (gameId <= 7)
-                //    numSpareClubsToAdd = 4;
-                
-                if (mNumTeamsInLeagueSystem[country->mId - 1] > 8) {
-                    if (gameId > 7 || !mFromFifaDatabase)
-                        numSpareClubsToAdd = mNumTeamsInLeagueSystem[country->mId - 1];
-                    else {
-                        numSpareClubsToAdd = 0;
-                        if (!mLeaguesSystem[country->mId - 1].empty()) {
-                            for (auto &ll : (*(mLeaguesSystem[country->mId - 1].rbegin())).second)
-                                numSpareClubsToAdd += ll->mNumTeams / 2;
-                        }
-                    }
-                    if (numSpareClubsToAdd > 100)
-                        numSpareClubsToAdd = 100;
-                }
+                if (!hasPredefinedSpareClubs) {
+                    std::sort(spareClubs[country->mId - 1].begin(), spareClubs[country->mId - 1].end(), [](foom::club *a, foom::club *b) {
+                        // TODO: make reputation over league level
+                        UInt teamALeagueLevel = a->mDivision ? a->mDivision->mCompetitionLevel : 0;
+                        UInt teamBLeagueLevel = b->mDivision ? b->mDivision->mCompetitionLevel : 0;
+                        if (teamALeagueLevel == 0)
+                            teamALeagueLevel = 9999;
+                        if (teamBLeagueLevel == 0)
+                            teamBLeagueLevel = 9999;
+                        if (teamALeagueLevel < teamBLeagueLevel) return true;
+                        if (teamBLeagueLevel < teamALeagueLevel) return false;
+                        if (a->mReputation > b->mReputation) return true;
+                        if (b->mReputation > a->mReputation) return false;
+                        return false;
+                    });
 
-                // TODO: Remove this
-                if (country->mId == FifamNation::United_States) {
-                    Vector<foom::club *> usaSpareClubs;
-                    for (auto fc : spareClubs[country->mId - 1]) {
-                        if (fc->mID == 72052048) { // Inter Miami
-                            usaSpareClubs.push_back(fc);
-                            break;
-                        }
-                    }
-                    for (auto fc : spareClubs[country->mId - 1]) {
-                        if (fc->mID != 72052048) // Inter Miami
-                            usaSpareClubs.push_back(fc);
-                    }
-                    spareClubs[country->mId - 1] = usaSpareClubs;
-                    numSpareClubsToAdd++;
-                }
+                    //if (gameId <= 7)
+                    //    numSpareClubsToAdd = 4;
 
+                    if (mNumTeamsInLeagueSystem[country->mId - 1] > 8) {
+                        if (gameId > 7 || !mFromFifaDatabase)
+                            numSpareClubsToAdd = mNumTeamsInLeagueSystem[country->mId - 1];
+                        else {
+                            numSpareClubsToAdd = 0;
+                            if (!mLeaguesSystem[country->mId - 1].empty()) {
+                                for (auto &ll : (*(mLeaguesSystem[country->mId - 1].rbegin())).second)
+                                    numSpareClubsToAdd += ll->mNumTeams / 2;
+                            }
+                        }
+                        if (numSpareClubsToAdd > 100)
+                            numSpareClubsToAdd = 100;
+                    }
+
+                    // TODO: Remove this
+                    if (country->mId == FifamNation::United_States) {
+                        Vector<foom::club *> usaSpareClubs;
+                        for (auto fc : spareClubs[country->mId - 1]) {
+                            if (fc->mID == 72052048) { // Inter Miami
+                                usaSpareClubs.push_back(fc);
+                                break;
+                            }
+                        }
+                        for (auto fc : spareClubs[country->mId - 1]) {
+                            if (fc->mID != 72052048) // Inter Miami
+                                usaSpareClubs.push_back(fc);
+                        }
+                        spareClubs[country->mId - 1] = usaSpareClubs;
+                        numSpareClubsToAdd++;
+                    }
+                }
+                else
+                    numSpareClubsToAdd = maxClubs;
                 if ((numSpareClubsToAdd + country->mClubs.size()) >= maxClubs)
                     numSpareClubsToAdd = maxClubs - country->mClubs.size();
                 if (numSpareClubsToAdd > spareClubs[country->mId - 1].size())
@@ -1315,11 +1337,12 @@ void Converter::Convert() {
 
     // create free agents
     std::wcout << L"Creating free agents..." << std::endl;
+
     for (auto &entry : mFoomDatabase->mPlayers) {
         auto &p = entry.second;
         if (p.mConverterData.mFitsIntoDbLimit) {
             if (!p.mConverterData.mFifamPerson) {
-                if (!p.mContract.mClub && (p.mCurrentAbility >= 110 || (p.mNation && p.mNation->mConverterData.mFIFAManagerID == FifamCompRegion::Liechtenstein))) {
+                if (!p.mContract.mClub && (p.mCurrentAbility >= MIN_FREE_AGENT_CA || (p.mNation && p.mNation->mConverterData.mFIFAManagerID == FifamCompRegion::Liechtenstein)) || mFreeAgentsToAdd.contains(p.mID)) {
                     FifamPlayer *player = CreateAndConvertPlayer(gameId, &p, nullptr);
                 }
             }
@@ -1539,7 +1562,14 @@ void Converter::Convert() {
                     c->mWebsiteAndMail = ref->mWebsiteAndMail;
                     c->mFansites = ref->mFansites;
                     c->mFanMembers = ref->mFanMembers;
-                    c->mTransfersCountry = ref->mTransfersCountry;
+                    if (c->mTransfersCountry[0] == FifamNation::None)
+                        c->mTransfersCountry = ref->mTransfersCountry;
+                    else if (c->mTransfersCountry[1] == FifamNation::None) {
+                        if (ref->mTransfersCountry[0] != c->mTransfersCountry[0])
+                            c->mTransfersCountry[1] = ref->mTransfersCountry[0];
+                        else
+                            c->mTransfersCountry[1] = ref->mTransfersCountry[1];
+                    }
                     c->mMascotName = ref->mMascotName;
                     c->mPlayerInText = ref->mPlayerInText;
                     c->mFanName1 = ref->mFanName1;
@@ -1568,6 +1598,14 @@ void Converter::Convert() {
                         c->mAverageAttendanceLastSeason = ref->mAverageAttendanceLastSeason;
                     if (REF_DB_POTENTIAL_FANS_COUNT)
                         c->mPotentialFansCount = ref->mPotentialFansCount;
+
+                    if (REF_DB_STADIUM_NAME)
+                        c->mStadiumName = ref->mStadiumName;
+                    if (REF_DB_STADIUM_CAPACITY) {
+                        c->mStadiumSeatsCapacity = ref->mStadiumSeatsCapacity;
+                        c->mStadiumStandingsCapacity = ref->mStadiumStandingsCapacity;
+                        c->mStadiumVipCapacity = ref->mStadiumVipCapacity;
+                    }
 
                     if (REF_DB_CLUB_HISTORY_RECORDS) {
                         c->mHistory.mRecordAttendance = ref->mHistory.mRecordAttendance;

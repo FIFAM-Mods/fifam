@@ -765,7 +765,7 @@ void KitConverter::ConvertClubKitNumbersCustom() {
 }
 
 bool KitConverter::ConvertKitV2(string const &inputShirt, string const &inputShorts, string const &inputCrest, string const &outputFile, array<int, 8> logoPos, bool hasPositions) {
-    SetSizeMode(options.Force2x ? 4 : 1);
+    SetSizeMode(options.Force2x ? 2 : 1);
     if (options.OutputGameId >= 9) {
 
         int texW = 512 * GetSizeMode();
@@ -1016,8 +1016,8 @@ bool KitConverter::ConvertKitV2(string const &inputShirt, string const &inputSho
     return true;
 }
 
-void KitConverter::ConvertBanners(int fifaId, int fifaManagerId) {
-
+void KitConverter::ConvertBanners(int fifaId, int fifaManagerId, Magick::Color const &primCol, Magick::Color const &secCol) {
+#ifdef OLD_BANNERS
     const bool for_fsh = false;
     const bool resize = false;
 
@@ -1049,5 +1049,153 @@ void KitConverter::ConvertBanners(int fifaId, int fifaManagerId) {
             WriteBanner(outputPath / (prefix + "lga.tga"), input, 256 * 2, 128 * 1);
             WriteBanner(outputPath / (prefix + "lgb.tga"), input, 256 * 3, 128 * 1);
         }
+    }
+#else
+    const path assetsDir = "D:\\FIFA_ASSETS";
+    const path gameDir = "E:\\Games\\FIFA Manager 13";
+    auto bannersFilename = assetsDir / "banners" / "final" / ("banner_" + std::to_string(fifaId) + "_texture.dds");
+    auto crestFilename = assetsDir / "crest" / "final" / ("l" + std::to_string(fifaId) + ".dds");
+    auto flag1Filename = assetsDir / "flags" / "final" / ("flag_" + std::to_string(fifaId) + "_0.dds");
+    auto flag2Filename = assetsDir / "flags" / "final" / ("flag_" + std::to_string(fifaId) + "_1.dds");
+    auto flag3Filename = assetsDir / "flags" / "final" / ("flag_" + std::to_string(fifaId) + "_2.dds");
+    auto flag4Filename = assetsDir / "flags" / "final" / ("flag_" + std::to_string(fifaId) + "_3.dds");
+    if (exists(bannersFilename) && exists(crestFilename) && exists(flag1Filename) && exists(flag2Filename) && exists(flag3Filename) && exists(flag4Filename)) {
+        path outputDir = gameDir / "data" / "banners" / Utils::Format("%08X", fifaManagerId);
+        create_directories(outputDir);
+        Image bannersImg(bannersFilename.string());
+        if (bannersImg.columns() == 1024 && bannersImg.rows() == 1024) {
+            Image layout(Geometry(1024, 512), Magick::Color(0, 0, 0, 0));
+            auto LayoutComposite = [&](Int dstX, Int dstY, Int dstW, Int dstH, Int srcX, Int srcY, Int srcW, Int srcH) {
+                Image tmpImg(layout, Geometry(srcW, srcH, srcX, srcY));
+                if (dstW != srcW || dstH != srcH) {
+                    Geometry geom(dstW, dstH);
+                    geom.aspect(true);
+                    tmpImg.resize(geom);
+                }
+                layout.composite(tmpImg, dstX, dstY, CopyCompositeOp);
+            };
+            LayoutComposite(256 * 0, 128 * 0, 256, 128, 256 * 0, 128 * 0, 512, 256);
+            LayoutComposite(256 * 1, 128 * 0, 256, 128, 256 * 2, 128 * 0, 256, 128);
+            LayoutComposite(256 * 2, 128 * 0, 256, 128, 256 * 2, 128 * 1, 256, 128);
+            LayoutComposite(256 * 3, 128 * 0, 256, 128, 256 * 2, 128 * 2, 256, 128);
+            LayoutComposite(256 * 0, 128 * 1, 256, 128, 256 * 3, 128 * 2, 256, 128);
+            LayoutComposite(256 * 1, 128 * 1, 256, 128, 256 * 2, 128 * 3, 256, 128);
+            LayoutComposite(256 * 2, 128 * 1, 256, 128, 256 * 3, 128 * 3, 256, 128);
+            LayoutComposite(256 * 3, 128 * 1, 256, 128, 256 * 3, 128 * 4, 256, 128);
+            LayoutComposite(256 * 0, 128 * 2, 256, 128, 256 * 3, 128 * 5, 256, 128);
+            LayoutComposite(256 * 1, 128 * 2, 256, 128, 256 * 0, 128 * 2, 512, 128);
+            LayoutComposite(256 * 2, 128 * 2, 256, 128, 256 * 0, 128 * 3, 512, 128);
+            LayoutComposite(256 * 3, 128 * 2, 256, 128, 256 * 0, 128 * 6, 1024, 256);
+            LayoutComposite(512 * 0, 128 * 3, 512, 128, 256 * 0, 128 * 4, 256 * 3, 128);
+            LayoutComposite(512 * 1, 128 * 3, 512, 128, 256 * 0, 128 * 5, 256 * 3, 128);
+            layout.type(ImageType::TrueColorAlphaType);
+            layout.write((outputDir / "banners.tga").string());
+        }
+        else {
+            bannersImg.type(ImageType::TrueColorAlphaType);
+            bannersImg.write((outputDir / "banners.tga").string());
+        }
+        Image flag1Img(flag1Filename.string());
+        flag1Img.type(ImageType::TrueColorAlphaType);
+        flag1Img.write((outputDir / "flag1.tga").string());
+        Image flag2Img(flag2Filename.string());
+        flag2Img.type(ImageType::TrueColorAlphaType);
+        flag2Img.write((outputDir / "flag2.tga").string());
+        Image flag3Img(flag3Filename.string());
+        flag3Img.type(ImageType::TrueColorAlphaType);
+        flag3Img.write((outputDir / "flag3.tga").string());
+        Image flag4Img(flag4Filename.string());
+        flag4Img.type(ImageType::TrueColorAlphaType);
+        flag4Img.write((outputDir / "flag4.tga").string());
+        Image crestImg(crestFilename.string());
+        crestImg.type(ImageType::TrueColorAlphaType);
+        crestImg.write((outputDir / "crest.tga").string());
+        Image primImg(Geometry(4, 4), primCol);
+        primImg.type(ImageType::TrueColorAlphaType);
+        primImg.write((outputDir / "primary.tga").string());
+        Image secImg(Geometry(4, 4), secCol);
+        secImg.type(ImageType::TrueColorAlphaType);
+        secImg.write((outputDir / "secondary.tga").string());
+        Image cornerFlagImg(Geometry(128, 128), primCol);
+        crestImg.resize(Geometry(80, 80));
+        cornerFlagImg.composite(crestImg, (cornerFlagImg.columns() - crestImg.columns()) / 2, (cornerFlagImg.rows() - crestImg.rows()) / 2, OverCompositeOp);
+        auto flagOverlayFilename = assetsDir / "flags" / "flag_overlay.tga";
+        if (exists(flagOverlayFilename)) {
+            Image cornerFlagOverlayImg(flagOverlayFilename.string());
+            cornerFlagImg.composite(cornerFlagOverlayImg, 0, 0, MultiplyCompositeOp);
+        }
+        cornerFlagImg.type(ImageType::TrueColorAlphaType);
+        cornerFlagImg.write((outputDir / "cornerflag.tga").string());
+    }
+#endif
+}
+
+void KitConverter::GenerateGenericBanners() {
+    const path assetsDir = "D:\\FIFA_ASSETS";
+    const Path bannersDir = "D:\\FIFA_ASSETS\\banners";
+    const Path gameBannersDir = "E:\\Games\\FIFA Manager 13\\data\\banners";
+    for (UInt i = 0; i < 28; i++) {
+        Path outputDir = gameBannersDir / ("generic_" + std::to_string(i));
+        create_directories(outputDir);
+        auto colors = FifamClub::mTeamColorsTable[i].second;
+        if (colors.first.r == 0 && colors.first.g == 0 && colors.first.b == 0) {
+            colors.first.r = 20;
+            colors.first.g = 20;
+            colors.first.b = 20;
+        }
+        if (colors.second.r == 0 && colors.second.g == 0 && colors.second.b == 0) {
+            colors.second.r = 20;
+            colors.second.g = 20;
+            colors.second.b = 20;
+        }
+        colors.first.r = Utils::Clamp(colors.first.r + 10, 0, 255);
+        colors.first.g = Utils::Clamp(colors.first.g + 10, 0, 255);
+        colors.first.b = Utils::Clamp(colors.first.b + 10, 0, 255);
+        colors.second.r = Utils::Clamp(colors.second.r + 10, 0, 255);
+        colors.second.g = Utils::Clamp(colors.second.g + 10, 0, 255);
+        colors.second.b = Utils::Clamp(colors.second.b + 10, 0, 255);
+
+        Image bannersImg(Geometry(1024, 512), Magick::Color(colors.second.r, colors.second.g, colors.second.b));
+        Image bannersPrimColorImg(Geometry(1024, 512), Magick::Color(colors.first.r, colors.first.g, colors.first.b));
+        Image bannersMaskImg((bannersDir / "banners_mask.tga").string());
+        bannersPrimColorImg.composite(bannersMaskImg, 0, 0, CopyAlphaCompositeOp);
+        bannersImg.composite(bannersPrimColorImg, 0, 0, OverCompositeOp);
+        Image bannersWhiteImg((bannersDir / "banners_white.dds").string());
+        bannersImg.composite(bannersWhiteImg, 0, 0, MultiplyCompositeOp);
+        bannersImg.type(ImageType::TrueColorAlphaType);
+        bannersImg.write((outputDir / "banners.tga").string());
+        Image flag1Img(bannersImg, Geometry(256, 128, 0, 0));
+        resizeImage_noAspect(flag1Img, 128, 128);
+        flag1Img.type(ImageType::TrueColorAlphaType);
+        flag1Img.write((outputDir / "flag1.tga").string());
+        Image flag2Img(bannersImg, Geometry(256, 128, 256, 0));
+        resizeImage_noAspect(flag2Img, 128, 128);
+        flag2Img.type(ImageType::TrueColorAlphaType);
+        flag2Img.write((outputDir / "flag2.tga").string());
+        Image flag3Img(bannersImg, Geometry(256, 128, 256 * 2, 0));
+        resizeImage_noAspect(flag3Img, 128, 128);
+        flag3Img.type(ImageType::TrueColorAlphaType);
+        flag3Img.write((outputDir / "flag3.tga").string());
+        Image flag4Img(bannersImg, Geometry(256, 128, 256 * 3, 0));
+        resizeImage_noAspect(flag4Img, 128, 128);
+        flag4Img.type(ImageType::TrueColorAlphaType);
+        flag4Img.write((outputDir / "flag4.tga").string());
+        Image crestImg(Geometry(256, 256), Magick::Color(0, 0, 0, 0));
+        crestImg.type(ImageType::TrueColorAlphaType);
+        crestImg.write((outputDir / "crest.tga").string());
+        Image primImg(Geometry(4, 4), Magick::Color(colors.first.r, colors.first.g, colors.first.b));
+        primImg.type(ImageType::TrueColorAlphaType);
+        primImg.write((outputDir / "primary.tga").string());
+        Image secImg(Geometry(4, 4), Magick::Color(colors.second.r, colors.second.g, colors.second.b));
+        secImg.type(ImageType::TrueColorAlphaType);
+        secImg.write((outputDir / "secondary.tga").string());
+        Image cornerFlagImg(Geometry(128, 128), Magick::Color(colors.first.r, colors.first.g, colors.first.b));
+        auto flagOverlayFilename = assetsDir / "flags" / "flag_overlay.tga";
+        if (exists(flagOverlayFilename)) {
+            Image cornerFlagOverlayImg(flagOverlayFilename.string());
+            cornerFlagImg.composite(cornerFlagOverlayImg, 0, 0, MultiplyCompositeOp);
+        }
+        cornerFlagImg.type(ImageType::TrueColorAlphaType);
+        cornerFlagImg.write((outputDir / "cornerflag.tga").string());
     }
 }

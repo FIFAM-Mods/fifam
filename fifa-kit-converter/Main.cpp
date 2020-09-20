@@ -17,8 +17,8 @@ int main(int argc, char *argv[]) {
     KitConverter::options.SaveLocation = KitConverter::Documents;
     KitConverter::options.ConvertMinikits = true;
     KitConverter::options.ConvertOnlyMinikits = false;
-    KitConverter::options.OnlyCustomKits = false;
-    KitConverter::options.AllowCustomKits = false;
+    KitConverter::options.OnlyCustomKits = true;
+    KitConverter::options.AllowCustomKits = true;
     KitConverter::options.Allow2xSize = true;
     KitConverter::options.Force2x = true;
     KitConverter::options.V2 = true;
@@ -44,6 +44,9 @@ int main(int argc, char *argv[]) {
     //kitConverter.ConvertClubArmbands("", 15040, 0x00043E32);
     //return 0;
 
+    kitConverter.GenerateGenericBanners();
+    return 0;
+
     const bool annotate = false;
     const bool makispla = true;
     if (annotate) {
@@ -61,7 +64,7 @@ int main(int argc, char *argv[]) {
 
     //return 0;
 
-    if (false && !KitConverter::options.OnlyCustomKits) {
+    //if (false && !KitConverter::options.OnlyCustomKits) {
         std::wcout << L"Reading fifam_countries.txt..." << std::endl;
         {
             FifamReader reader(infoPath / L"fifam_countries.txt", 0);
@@ -98,7 +101,7 @@ int main(int argc, char *argv[]) {
                 }
             }
         }
-    }
+    //}
     FifaDatabase *fifadb = new FifaDatabase(L"E:\\Projects\\fifam\\db\\fifa");
 
     Map<UInt, FifamClub *> mClubsByFifaId;
@@ -158,40 +161,55 @@ int main(int argc, char *argv[]) {
     //kitConverter.ConvertClubKits("002D0004", 241, 0x002D0004);
     //kitConverter.ConvertClubKits("002D000E", 243, 0x002D000E);
 
-    Vector<UInt> clubsForKitnumers = { 241, 243, 44, 45 };
-    for (auto i : clubsForKitnumers) {
-        auto fifaClub = fifadb->GetTeam(i);
-        if (fifaClub) {
-            for (int k = 0; k <= 3; k++) {
-                auto fifaKit = fifaClub->GetKit(k);
-                if (fifaKit) {
-                    kitConverter.ConvertClubKitNumbersSet(fifaKit->internal.shortsnumberfonttype, false,
-                        std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\shorts\\") + Utils::Format("t80__%d_%d", i, k),
-                        ::Color(fifaKit->internal.shortsnumbercolorprimr, fifaKit->internal.shortsnumbercolorprimg, fifaKit->internal.shortsnumbercolorprimb),
-                        ::Color(fifaKit->internal.shortsnumbercolorsecr, fifaKit->internal.shortsnumbercolorsecg, fifaKit->internal.shortsnumbercolorsecb),
-                        ::Color(fifaKit->internal.shortsnumbercolorterr, fifaKit->internal.shortsnumbercolorterg, fifaKit->internal.shortsnumbercolorterb));
-                }
-            }
-        }
-        
-    }
+    //Vector<UInt> clubsForKitnumers = { 241, 243, 44, 45 };
+    //for (auto i : clubsForKitnumers) {
+    //    auto fifaClub = fifadb->GetTeam(i);
+    //    if (fifaClub) {
+    //        for (int k = 0; k <= 3; k++) {
+    //            auto fifaKit = fifaClub->GetKit(k);
+    //            if (fifaKit) {
+    //                kitConverter.ConvertClubKitNumbersSet(fifaKit->internal.shortsnumberfonttype, false,
+    //                    std::string("E:\\Games\\FIFA Manager 13\\data\\kitnumbers\\shorts\\") + Utils::Format("t80__%d_%d", i, k),
+    //                    ::Color(fifaKit->internal.shortsnumbercolorprimr, fifaKit->internal.shortsnumbercolorprimg, fifaKit->internal.shortsnumbercolorprimb),
+    //                    ::Color(fifaKit->internal.shortsnumbercolorsecr, fifaKit->internal.shortsnumbercolorsecg, fifaKit->internal.shortsnumbercolorsecb),
+    //                    ::Color(fifaKit->internal.shortsnumbercolorterr, fifaKit->internal.shortsnumbercolorterg, fifaKit->internal.shortsnumbercolorterb));
+    //            }
+    //        }
+    //    }
+    //    
+    //}
 
     //kitConverter.ConvertClubKitNumbers(241, 0x002D0004);
     //kitConverter.ConvertClubKitNumbers(243, 0x002D000E);
     //kitConverter.ConvertClubKitNumbers(44, 0x001A0009);
     //kitConverter.ConvertClubKitNumbers(45, 0x001A000A);
 
-    return 0;
-    //for (auto country : db->mCountries) {
-    //    if (country) {
-    //        if (country->mNationalTeam.mFifaID != 0)
-    //            kitConverter.ConvertBanners(country->mNationalTeam.mFifaID, country->mNationalTeam.mUniqueID);
-    //        for (auto club : country->mClubs) {
-    //            if (club->mFifaID != 0)
-    //                kitConverter.ConvertBanners(club->mFifaID, club->mUniqueID);
+    for (auto [clubId, fifaId] : mFifamClubs) {
+        auto fifaClub = fifadb->GetTeam(fifaId);
+        if (fifaClub) {
+            kitConverter.ConvertBanners(fifaId, clubId, 
+                Magick::Color(fifaClub->internal.teamcolor1r, fifaClub->internal.teamcolor1g, fifaClub->internal.teamcolor1b),
+                Magick::Color(fifaClub->internal.teamcolor2r, fifaClub->internal.teamcolor2g, fifaClub->internal.teamcolor2b));
+        }
+    }
+    //Set<UInt> usedFifaIDs;
+    //for (auto [clubId, fifaId] : mFifamClubs)
+    //    usedFifaIDs.insert(fifaId);
+    //path withoutFifaIdDir = "D:\\FIFA_ASSETS\\without_fifa_id";
+    //create_directories(withoutFifaIdDir);
+    //for (auto const &e : directory_iterator("D:\\FIFA_ASSETS\\crest\\final")) {
+    //    auto const &p = e.path();
+    //    if (p.extension() == ".dds") {
+    //        auto filename = p.stem().string();
+    //        if (filename.starts_with("l")) {
+    //            filename = filename.substr(1);
+    //            auto fifaId = Utils::SafeConvertInt<UInt>(filename);
+    //            if (fifaId != 0 && !usedFifaIDs.contains(fifaId) && exists("D:\\FIFA_ASSETS\\banners\\final\\banner_" + filename + "_texture.dds"))
+    //                copy(p, withoutFifaIdDir / p.filename(), copy_options::overwrite_existing);
     //        }
     //    }
     //}
+
     //kitConverter.ConvertBanners(101059, 0x0031000C);
     //kitConverter.ConvertBanners(101047, 0x00310004);
 
@@ -202,6 +220,8 @@ int main(int argc, char *argv[]) {
     //for (auto [clubId, fifaId] : mFifamClubs) {
     //    kitConverter.ConvertClubKits("", fifaId, clubId);
     //}
+
+    return 0;
 
     if (KitConverter::options.OnlyCustomKits) {
         for (auto const &p : directory_iterator(kitConverter.options.CustomKitsPath)) {

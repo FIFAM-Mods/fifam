@@ -211,6 +211,16 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     // Youth players are basques
     dst->mYouthPlayersAreBasques = team->is_basque();
 
+    auto countryId = FifamNation::MakeFromInt(country->mId);
+    if (countryId == FifamNation::Russia ||
+        countryId == FifamNation::Ukraine ||
+        countryId == FifamNation::Belarus ||
+        countryId == FifamNation::Kazakhstan ||
+        countryId == FifamNation::Azerbaijan)
+    {
+        dst->mTransfersCountry[0] = countryId;
+    }
+
     // League history
     for (auto &h : team->mVecTeamLeagueHistory) {
         if (h.mDivision && h.mDivision->mCompetitionLevel >= 1 && h.mDivision->mCompetitionLevel <= 3) {

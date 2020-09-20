@@ -135,6 +135,7 @@
     <ClInclude Include="tests\ShowDbVersion.h" />
     <ClInclude Include="tests\ShowPlayers.h" />
     <ClInclude Include="tests\DatabaseRewrite.h" />
+    <ClInclude Include="tests\UpdateBudgets.h" />
     <ClInclude Include="tests\UpdateDbNames.h" />
     <ClInclude Include="tests\WriteCountries.h" />
     <ClInclude Include="tests\WriteDbClubsTest.h" />

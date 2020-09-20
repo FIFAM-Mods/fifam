@@ -10,6 +10,7 @@ struct stadium;
 struct language;
 struct region;
 struct comp;
+struct club;
 
 struct nation : public team {
     String mThreeLetterName;
@@ -66,6 +67,7 @@ struct nation : public team {
             foom::team *leagueWinner = nullptr;
         } mDomesticComps;
         Vector<city *> mCities;
+        Vector<club *> mSpareClubs;
     } mConverterData;
 
     nation() {

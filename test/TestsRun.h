@@ -42,5 +42,5 @@
 #include "tests\Fifa07Kits.h"
 
 void RunTests() {
-    RunTest<UpdateDbNames>();
+    RunTest<WriteDbTest<FM13, FM13, true>>();
 }

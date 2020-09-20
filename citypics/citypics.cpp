@@ -29,7 +29,7 @@ Int wmain(Int argc, WideChar **argv) {
     String outputformat = L"jpg";
     Bool nolog = false, recursive = false;
 
-    SetConsoleTitleW(L"CityPics tool by Dmitry v1.0");
+    SetConsoleTitleW(L"CityPics tool by Dmitry v1.1");
 
     std::wcout << std::endl << L"Universal Converter Project" << std::endl << L"CityPics tool by Dmitry" << std::endl << L"Version 1.0" << std::endl << std::endl;
 

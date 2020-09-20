@@ -154,6 +154,9 @@
     <ClInclude Include="tests\Fifa07Kits.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\UpdateBudgets.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">
