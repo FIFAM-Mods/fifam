@@ -77,7 +77,7 @@ UInt FifaConverter::NextPersonId() {
 
 void FifaConverter::ConvertReferees(Converter *converter, FifamDatabase * fifam, FifaDatabase * fifa, UInt gameId) {
     fifa->ForAllReferees([&](FifaReferee &r) {
-        if (r.internal.gender == 0) {
+        if (r.m_gameId == FifaDatabase::m_lastSupportedGameVersion && r.internal.gender == 0) {
             UInt fifamCountryId = FifamCountryIdFromFifa(r.internal.nationalitycode);
             if (fifamCountryId != 0) {
                 FifamCountry *fifamCountry = fifam->GetCountry(fifamCountryId);
@@ -104,7 +104,7 @@ void FifaConverter::ConvertReferees(Converter *converter, FifamDatabase * fifam,
 }
 
 void FifaConverter::ConvertManager(Converter *converter, FifamDatabase * fifam, FifamClub * club, FifaManager * m, UInt gameId) {
-    if (m->internal.gender == 0 && !m->internal.surname.empty()) {
+    if (m->m_gameId == FifaDatabase::m_lastSupportedGameVersion && m->internal.gender == 0 && !m->internal.surname.empty()) {
         FifamStaff *manager = fifam->CreateStaff(club, NextPersonId());
         manager->mClubPosition = FifamClubStaffPosition::Manager;
         manager->mFirstName = FifamNames::LimitName(converter->FixPersonName(m->internal.firstname, gameId), 15);
@@ -592,11 +592,13 @@ void FifaConverter::WriteCurrentPlayersToHistory(FifaDatabase *fifaDb, Path cons
     };
 #pragma pack(pop)
     fifaDb->ForAllPlayers([&](FifaPlayer &p) {
-        playerRatingInfo info;
-        info.id = p.GetId();
-        info.rating = p.internal.overallrating;
-        info.potential = p.internal.potential;
-        fwrite(&info, 6, 1, file);
+        if (p.m_gameId == FifaDatabase::m_lastSupportedGameVersion) {
+            playerRatingInfo info;
+            info.id = p.GetId();
+            info.rating = p.internal.overallrating;
+            info.potential = p.internal.potential;
+            fwrite(&info, 6, 1, file);
+        }
     });
     fclose(file);
 }

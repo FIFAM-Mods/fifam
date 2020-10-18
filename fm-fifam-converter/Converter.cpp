@@ -91,11 +91,11 @@ void Converter::Convert() {
     mCurrentGameId = gameId;
     mFromFifaDatabase = fromFifaDatabase;
 
-    mFifaDatabase = new FifaDatabase(dbPath / L"fifa");
+    //mFifaDatabase = new FifaDatabase(dbPath / L"fifa");
     GraphicsConverter graphicsConverter;
-    graphicsConverter.DownloadPlayerPortraitsFIFA21(mFifaDatabase, "E:\\Games\\FIFA Manager 13");
-    delete mFifaDatabase;
-    return;
+    //graphicsConverter.DownloadPlayerPortraitsFIFA21(mFifaDatabase, "E:\\Games\\FIFA Manager 13");
+    //delete mFifaDatabase;
+    //return;
 
     FifamDatabase::mReadingOptions.mReadClubs = false;
     FifamDatabase::mReadingOptions.mReadCountryCompetitions = false;
@@ -386,23 +386,19 @@ void Converter::Convert() {
                     if (nation) {
                         if (nation->mConverterData.mHistoryNation)
                             nation = nation->mConverterData.mHistoryNation;
-                        if (nation->mContinent == c.mContinent) {
-                            if (c.mID == 1301385) // World Cup
-                                nation->mConverterData.mWorldCupWins.insert(h.mYear);
-                            else if (c.mType == 1301388 || c.mType == 1301389 || c.mType == 1301390 || c.mType == 102414 || c.mType == 145509 || c.mType == 129986) // Main continental international finals
-                                nation->mConverterData.mContinentalCupWins.insert(h.mYear);
-                        }
+                        if (c.mID == 1301385) // World Cup
+                            nation->mConverterData.mWorldCupWins.insert(h.mYear);
+                        else if (nation->mContinent == c.mContinent && (c.mID == 1301388 || c.mID == 1301389 || c.mID == 1301390 || c.mID == 102414 || c.mID == 145509 || c.mID == 129986)) // Main continental international finals
+                            nation->mConverterData.mContinentalCupWins.insert(h.mYear);
                     }
                     foom::nation *nationRunnerUp = (foom::nation *)h.mSecondPlaced;
                     if (nationRunnerUp) {
                         if (nationRunnerUp->mConverterData.mHistoryNation)
                             nationRunnerUp = nationRunnerUp->mConverterData.mHistoryNation;
-                        if (nationRunnerUp->mContinent == c.mContinent) {
-                            if (c.mID == 1301385) // World Cup
-                                nationRunnerUp->mConverterData.mWorldCupFinals.insert(h.mYear);
-                            else if (c.mType == 1301388 || c.mType == 1301389 || c.mType == 1301390 || c.mType == 102414 || c.mType == 145509 || c.mType == 129986) // Main continental international finals
-                                nationRunnerUp->mConverterData.mContinentalCupFinals.insert(h.mYear);
-                        }
+                        if (c.mID == 1301385) // World Cup
+                            nationRunnerUp->mConverterData.mWorldCupFinals.insert(h.mYear);
+                        else if (nationRunnerUp->mContinent == c.mContinent && (c.mID == 1301388 || c.mID == 1301389 || c.mID == 1301390 || c.mID == 102414 || c.mID == 145509 || c.mID == 129986)) // Main continental international finals
+                            nationRunnerUp->mConverterData.mContinentalCupFinals.insert(h.mYear);
                     }
                 }
             }
@@ -1532,7 +1528,7 @@ void Converter::Convert() {
         for (auto club : mFifamDatabase->mClubs) {
             if (club->mFifaID != 0) {
                 FifaTeam *fifaTeam = mFifaDatabase->GetTeam(club->mFifaID);
-                if (fifaTeam) {
+                if (fifaTeam && fifaTeam->m_gameId == FifaDatabase::m_lastSupportedGameVersion) {
                     if (fifaTeam->m_manager)
                         FifaConverter::ConvertManager(this, mFifamDatabase, club, fifaTeam->m_manager, gameId);
                     fifaTeam->ForAllPlayersEx([&](FifaPlayer &p, FifaPlayer::Position pos, UChar number) {
@@ -1542,7 +1538,7 @@ void Converter::Convert() {
                 }
                 if (club->mFifaID == 21) {
                     FifaTeam *resTeam = mFifaDatabase->GetTeam(110679);
-                    if (resTeam) {
+                    if (resTeam && resTeam->m_gameId == FifaDatabase::m_lastSupportedGameVersion) {
                         resTeam->ForAllPlayersEx([&](FifaPlayer &p, FifaPlayer::Position pos, UChar number) {
                             FifaConverter::ConvertPlayer(this, club, true, fifaTeam, &p, pos, number, gameId);
                         });
@@ -1551,7 +1547,7 @@ void Converter::Convert() {
             }
         }
         mFifaDatabase->ForAllMalePlayers([&](FifaPlayer &p) {
-            if (!Utils::Contains(attachedPlayers, &p)) {
+            if (p.m_gameId == FifaDatabase::m_lastSupportedGameVersion && !Utils::Contains(attachedPlayers, &p)) {
                 FifaConverter::ConvertPlayer(this, nullptr, false, nullptr, &p, FifaPlayer::POS_RES, 0, gameId);
             }
         });
@@ -2006,16 +2002,19 @@ void Converter::Convert() {
                     Int leagueLevel = 99;
                     if (team.mDivision && team.mDivision->mCompetitionLevel > 0)
                         leagueLevel = team.mDivision->mCompetitionLevel;
-    
+
                     FifaTeam *fifaClub = nullptr;
-                    if (team.mConverterData.mFIFAID != 0)
+                    if (team.mConverterData.mFIFAID != 0) {
                         fifaClub = mFifaDatabase->GetTeam(team.mConverterData.mFIFAID);
-    
+                        if (fifaClub && fifaClub->m_gameId != FifaDatabase::m_lastSupportedGameVersion)
+                            fifaClub = nullptr;
+                    }
+
                     for (foom::player *p : team.mConverterData.mContractedPlayers)
                         WriteOnePlayer(p, &team, leagueLevel, fifaClub);
                     for (foom::player *p : team.mConverterData.mLoanedPlayers)
                         WriteOnePlayer(p, &team, leagueLevel, fifaClub);
-    
+
                 }
             }
             FifaTeam *freeAgentsClub = mFifaDatabase->GetTeam(111592);
