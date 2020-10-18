@@ -99,6 +99,13 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     dst->mPotentialFansCount = dst->mAverageAttendanceLastSeason * 2;
     if (team->mReputation > 7'000)
         dst->mPotentialFansCount += (team->mReputation - 7'000) * 50;
+    Float fanBaseMp = 6.5f;
+    static const Float fanBaseLeagueMp[] = { 2.0f, 2.5f, 3.5f, 5.0f };
+    if (div && div->mLevel >= 1 && div->mLevel <= std::size(fanBaseLeagueMp))
+        fanBaseMp = fanBaseLeagueMp[div->mLevel - 1];
+    if (dst->mTraditionalClub)
+        fanBaseMp += 0.4f;
+    dst->mPotentialFansCount = UInt(Float(dst->mPotentialFansCount) * fanBaseMp);
     if (dst->mPotentialFansCount > 250'000)
         dst->mPotentialFansCount = 250'000;
 

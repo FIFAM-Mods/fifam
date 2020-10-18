@@ -4,7 +4,8 @@
 #include <sstream>
 #include <stdio.h>
 
-void FifaDataFile::Line::FromString(std::wstring const &str) {
+void FifaDataFile::Line::FromString(std::filesystem::path const &filepath, std::wstring const &str) {
+    filePath = filepath;
     currentParam = 0;
     parameters.clear();
     std::wstring param;
@@ -15,7 +16,7 @@ void FifaDataFile::Line::FromString(std::wstring const &str) {
 
 FifaDataFile::Line &FifaDataFile::Line::operator>>(int &out) {
     if (currentParam >= parameters.size())
-        Error("s: reached eop (total parameters: %d)", __FUNCTION__, parameters.size());
+        Error(L"FifaDataFile::Line::operator>>(int &):\nreached eop (total parameters: %d)\nin %s", parameters.size(), filePath.c_str());
     try {
         out = stoi(parameters[currentParam++]);
     }
@@ -28,7 +29,7 @@ FifaDataFile::Line &FifaDataFile::Line::operator>>(int &out) {
 
 FifaDataFile::Line &FifaDataFile::Line::operator>>(std::wstring &out) {
     if (currentParam >= parameters.size())
-        Error("s: reached eop (total parameters: %d)", __FUNCTION__, parameters.size());
+        Error(L"FifaDataFile::Line::operator>>(std::wstring &):\nreached eop (total parameters: %d)\nin %s", parameters.size(), filePath.c_str());
     out = parameters[currentParam++];
     return *this;
 }
@@ -42,6 +43,7 @@ bool FifaDataFile::Open(std::filesystem::path const &filepath) {
     _wfopen_s(&file, filepath.c_str(), L"r,ccs=UNICODE");
     if (!file)
         return false;
+    filePath = filepath;
     Line header;
     if (NextLine(header)) {
         columns.resize(header.parameters.size());
@@ -60,7 +62,7 @@ bool FifaDataFile::NextLine(Line &outLine) {
             break;
         std::wstring wstr = line;
         if (wstr.size() > 0) {
-            outLine.FromString(wstr);
+            outLine.FromString(filePath, wstr);
             return true;
         }
     }

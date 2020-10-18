@@ -941,4 +941,27 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
             }
         }
     }
+    {
+        std::wcout << L"Reading fm_history_narions.txt..." << std::endl;
+        FifamReader reader(infoPath / L"fm_history_narions.txt", 0);
+        if (reader.Available()) {
+            while (!reader.IsEof()) {
+                if (!reader.EmptyLine()) {
+                    Int nationID = -1;
+                    Int historyNationID = -1;
+                    reader.ReadLineWithSeparator(L'\t', nationID, historyNationID);
+                    if (nationID > 0 && historyNationID > 0) {
+                        foom::nation *n = mFoomDatabase->get<foom::nation>(nationID);
+                        if (n) {
+                            foom::nation *h = mFoomDatabase->get<foom::nation>(historyNationID);
+                            if (h)
+                                n->mConverterData.mHistoryNation = h;
+                        }
+                    }
+                }
+                else
+                    reader.SkipLine();
+            }
+        }
+    }
 }

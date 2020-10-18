@@ -135,8 +135,14 @@ public:
                             case 14:
                             case 15:
                             case 16:
+                            case 20:
                             case 21:
+                            case 22:
+                            case 24:
                                 collar = 7;
+                                break;
+                            case 23:
+                                collar = 0;
                                 break;
                             default:
                                 collar = 0;

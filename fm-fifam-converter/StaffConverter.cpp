@@ -665,8 +665,8 @@ void Converter::CreateStaffMembersForClub(UInt gameId, foom::team *team, FifamCl
     UInt maxAssistantCoaches = 1;
     UInt maxScouts = 1;
 
-    UChar maxReserveCoachAgeGroup = 0;
-    UChar maxYouthCoachAgeGroup = 0;
+    UInt reserveCoachPriority = 0;
+    UInt youthCoachPriority = 0;
 
     Bool hasHeadPhysio = false;
     Bool hasChiefDoctor = false;
@@ -681,11 +681,25 @@ void Converter::CreateStaffMembersForClub(UInt gameId, foom::team *team, FifamCl
     if (!isNationalTeam) {
         foom::club *reserveClub = ((foom::club *)team)->mConverterData.mMainChildClubInDB;
         if (reserveClub) {
+            std::sort(reserveClub->mVecContractedNonPlayers.begin(), reserveClub->mVecContractedNonPlayers.end(),
+                [](foom::non_player *a, foom::non_player *b) {
+                return a->mCurrentAbility > b->mCurrentAbility;
+            });
             for (auto &p : reserveClub->mVecContractedNonPlayers) {
-                if (IsConvertable(p, gameId) && p->mClubContract.mJob == 5) {
-                    staffReserveCoach = p;
-                    maxReserveCoachAgeGroup = 23;
-                    break;
+                if (IsConvertable(p, gameId)) { 
+                    if (p->mClubContract.mJob == 5 && reserveCoachPriority < 5232) {
+                        staffReserveCoach = p;
+                        reserveCoachPriority = 5232;
+                        break;
+                    }
+                    else if (p->mClubContract.mJob == 6 && reserveCoachPriority < 2242) {
+                        staffReserveCoach = p;
+                        reserveCoachPriority = 2242;
+                    }
+                    else if (p->mClubContract.mJob == 8 && reserveCoachPriority < 1242) {
+                        staffReserveCoach = p;
+                        reserveCoachPriority = 1242;
+                    }
                 }
             }
         }
@@ -769,34 +783,130 @@ void Converter::CreateStaffMembersForClub(UInt gameId, foom::team *team, FifamCl
                 if (!staffTeamDoctor)
                     staffTeamDoctor = p;
                 break;
-            case 101: // U23 manager
-                if (!staffReserveCoach || maxReserveCoachAgeGroup < 23) {
+            case 7: // Manager reserve team
+                if (!staffReserveCoach || reserveCoachPriority < 4241) {
                     staffReserveCoach = p;
-                    maxReserveCoachAgeGroup = 23;
+                    reserveCoachPriority = 4241;
+                }
+                break;
+            case 101: // U23 manager
+                if (!staffReserveCoach || reserveCoachPriority < 3231) {
+                    staffReserveCoach = p;
+                    reserveCoachPriority = 3231;
+                }
+                break;
+            case 221: // U22 manager
+                if (!staffReserveCoach || reserveCoachPriority < 3221) {
+                    staffReserveCoach = p;
+                    reserveCoachPriority = 3221;
                 }
                 break;
             case 107: // U21 manager
-                if (!staffReserveCoach || maxReserveCoachAgeGroup < 21) {
+                if (!staffReserveCoach || reserveCoachPriority < 3211) {
                     staffReserveCoach = p;
-                    maxReserveCoachAgeGroup = 21;
+                    reserveCoachPriority = 3211;
                 }
                 break;
             case 113: // U20 manager
-                if (!staffReserveCoach || maxReserveCoachAgeGroup < 20) {
+                if (!staffReserveCoach || reserveCoachPriority < 3201) {
                     staffReserveCoach = p;
-                    maxReserveCoachAgeGroup = 20;
+                    reserveCoachPriority = 3201;
+                }
+                break;
+            case 159: // assistant manager reserve team
+                if (!staffReserveCoach || reserveCoachPriority < 2241) {
+                    staffReserveCoach = p;
+                    reserveCoachPriority = 2241;
+                }
+                break;
+            case 102: // assistant manager U23
+                if (!staffReserveCoach || reserveCoachPriority < 2231) {
+                    staffReserveCoach = p;
+                    reserveCoachPriority = 2231;
+                }
+                break;
+            case 29: // assistant manager U22
+                if (!staffReserveCoach || reserveCoachPriority < 2221) {
+                    staffReserveCoach = p;
+                    reserveCoachPriority = 2221;
+                }
+                break;
+            case 108: // assistant manager U21
+                if (!staffReserveCoach || reserveCoachPriority < 2211) {
+                    staffReserveCoach = p;
+                    reserveCoachPriority = 2211;
+                }
+                break;
+            case 114: // assistant manager U20
+                if (!staffReserveCoach || reserveCoachPriority < 2201) {
+                    staffReserveCoach = p;
+                    reserveCoachPriority = 2201;
+                }
+                break;
+            case 160: // coach reserve team
+                if (!staffReserveCoach || reserveCoachPriority < 1241) {
+                    staffReserveCoach = p;
+                    reserveCoachPriority = 1241;
+                }
+                break;
+            case 103: // coach U23
+                if (!staffReserveCoach || reserveCoachPriority < 1231) {
+                    staffReserveCoach = p;
+                    reserveCoachPriority = 1231;
+                }
+                break;
+            case 224: // coach U22
+                if (!staffReserveCoach || reserveCoachPriority < 1221) {
+                    staffReserveCoach = p;
+                    reserveCoachPriority = 1221;
+                }
+                break;
+            case 109: // coach U21
+                if (!staffReserveCoach || reserveCoachPriority < 1211) {
+                    staffReserveCoach = p;
+                    reserveCoachPriority = 1211;
+                }
+                break;
+            case 115: // coach U20
+                if (!staffReserveCoach || reserveCoachPriority < 1201) {
+                    staffReserveCoach = p;
+                    reserveCoachPriority = 1201;
                 }
                 break;
             case 119: // U19 manager
-                if (!staffYouthCoach || maxYouthCoachAgeGroup < 19) {
+                if (!staffYouthCoach || youthCoachPriority < 3191) {
                     staffYouthCoach = p;
-                    maxYouthCoachAgeGroup = 19;
+                    youthCoachPriority = 3191;
                 }
                 break;
             case 24: // U18 manager
-                if (!staffYouthCoach || maxYouthCoachAgeGroup < 18) {
+                if (!staffYouthCoach || youthCoachPriority < 3181) {
                     staffYouthCoach = p;
-                    maxYouthCoachAgeGroup = 18;
+                    youthCoachPriority = 3181;
+                }
+                break;
+            case 120: // U19 assistant manager
+                if (!staffYouthCoach || youthCoachPriority < 2191) {
+                    staffYouthCoach = p;
+                    youthCoachPriority = 2191;
+                }
+                break;
+            case 125: // U18 assistant manager
+                if (!staffYouthCoach || youthCoachPriority < 2181) {
+                    staffYouthCoach = p;
+                    youthCoachPriority = 2181;
+                }
+                break;
+            case 121: // U19 coach
+                if (!staffYouthCoach || youthCoachPriority < 1191) {
+                    staffYouthCoach = p;
+                    youthCoachPriority = 1191;
+                }
+                break;
+            case 30: // U18 coach
+                if (!staffYouthCoach || youthCoachPriority < 1181) {
+                    staffYouthCoach = p;
+                    youthCoachPriority = 1181;
                 }
                 break;
             }

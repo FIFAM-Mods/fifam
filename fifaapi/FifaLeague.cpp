@@ -34,6 +34,27 @@ bool FifaLeague::IsNationalLeague() {
 
 void FifaLeague::Internal::Read(FifaDataFile::Line &line) {
     switch (FifaDatabase::m_currentGameVersion) {
+    case 11:
+        line >> countryid >> leaguename >> level >> leagueid >> buildupplay;
+        break;
+    case 12:
+        line >> countryid >> leaguename >> level >> leagueid >> buildupplay;
+        break;
+    case 13:
+        line >> countryid >> leaguename >> level >> leagueid >> leaguetimeslice >> iswithintransferwindow;
+        break;
+    case 14:
+        line >> countryid >> leaguename >> level >> leagueid >> leaguetimeslice >> iswithintransferwindow;
+        break;
+    case 15:
+        line >> countryid >> leaguename >> level >> leagueid >> leaguetimeslice >> iswithintransferwindow;
+        break;
+    case 16:
+        line >> countryid >> leaguename >> level >> leagueid >> leaguetimeslice >> iswithintransferwindow;
+        break;
+    case 17:
+        line >> countryid >> leaguename >> level >> leagueid >> leaguetimeslice >> iswithintransferwindow;
+        break;
     case 18:
         line >> countryid >> leaguename >> level >> iscompetitionscarfenabled >> isbannerenabled >> leagueid >> iscompetitionpoleflagenabled >> iscompetitioncrowdcardsenabled >> leaguetimeslice >> iswithintransferwindow;
         break;
@@ -41,6 +62,9 @@ void FifaLeague::Internal::Read(FifaDataFile::Line &line) {
         line >> countryid >> leaguename >> leaguetype >> level >> iscompetitionscarfenabled >> isbannerenabled >> leagueid >> iscompetitionpoleflagenabled >> iscompetitioncrowdcardsenabled >> leaguetimeslice >> iswithintransferwindow;
         break;
     case 20:
+        line >> countryid >> leaguename >> leaguetype >> level >> iscompetitionscarfenabled >> isbannerenabled >> leagueid >> iscompetitionpoleflagenabled >> iscompetitioncrowdcardsenabled >> leaguetimeslice >> iswithintransferwindow;
+        break;
+    case 21:
         line >> countryid >> leaguename >> leaguetype >> level >> iscompetitionscarfenabled >> isbannerenabled >> leagueid >> iscompetitionpoleflagenabled >> iscompetitioncrowdcardsenabled >> leaguetimeslice >> iswithintransferwindow;
         break;
     }

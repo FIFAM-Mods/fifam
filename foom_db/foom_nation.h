@@ -68,6 +68,7 @@ struct nation : public team {
         } mDomesticComps;
         Vector<city *> mCities;
         Vector<club *> mSpareClubs;
+        nation *mHistoryNation = nullptr;
     } mConverterData;
 
     nation() {

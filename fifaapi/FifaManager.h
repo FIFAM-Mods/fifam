@@ -9,41 +9,45 @@ class FifaTeam;
 class FifaManager {
 public:
     struct Internal {
+        int birthdate = 0;
+        int haireffecttypecode = 0;
+        int nationalitycode = 0;
+
         std::wstring firstname;
         std::wstring surname;
-        int managerid;
-        int headid;
-        int height;
-        int hashighqualityhead;
-        int gender;
-        int suitvariationid;
-        int teamid;
-        int suittypeid;
-        int eyecolorcode;
-        int headclasscode;
-        int skintonecode;
-        int bodytypecode;
+        int managerid = 0;
+        int headid = 0;
+        int height = 0;
+        int hashighqualityhead = 0;
+        int gender = 0;
+        int suitvariationid = 0;
+        int teamid = 0;
+        int suittypeid = 0;
+        int eyecolorcode = 0;
+        int headclasscode = 0;
+        int skintonecode = 0;
+        int bodytypecode = 0;
         // @since FIFA19
-        int faceposerpreset;
+        int faceposerpreset = 0;
         // @since FIFA20
         std::wstring commonname;
-        int skintypecode;
-        int haircolorcode;
-        int facialhairtypecode;
-        int hairtypecode;
-        int headtypecode;
-        int seasonaloutfitid;
-        int weight;
-        int headassetid;
-        int ethnicity;
-        int eyebrowcode;
-        int personalityid;
-        int nationality;
-        int sideburnscode;
-        int headvariation;
-        int outfitid;
-        int hairstylecode;
-        int facialhaircolorcode;
+        int skintypecode = 0;
+        int haircolorcode = 0;
+        int facialhairtypecode = 0;
+        int hairtypecode = 0;
+        int headtypecode = 0;
+        int seasonaloutfitid = 0;
+        int weight = 0;
+        int headassetid = 0;
+        int ethnicity = 0;
+        int eyebrowcode = 0;
+        int personalityid = 0;
+        int nationality = 0;
+        int sideburnscode = 0;
+        int headvariation = 0;
+        int outfitid = 0;
+        int hairstylecode = 0;
+        int facialhaircolorcode = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;
@@ -52,7 +56,8 @@ public:
     std::wstring m_lastName;
     std::wstring m_commonName;
     std::wstring m_quickName;
-    FifaTeam *m_team;
+    FifaTeam *m_team = nullptr;
+    unsigned int m_gameId = 0;
 
     FifaManager(FifaDataFile::Line &line);
     unsigned int GetId();

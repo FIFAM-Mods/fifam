@@ -5,13 +5,15 @@
 
 class FifaDataFile {
     FILE *file = nullptr;
+    std::filesystem::path filePath;
 public:
     class Line {
     public:
+        std::filesystem::path filePath;
         unsigned int currentParam = 0;
         std::vector<std::wstring> parameters;
 
-        void FromString(std::wstring const &str);
+        void FromString(std::filesystem::path const &filepath, std::wstring const &str);
         Line &operator>>(int &out);
         Line &operator>>(std::wstring &out);
     };

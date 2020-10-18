@@ -8,12 +8,14 @@
 class FifaVersion {
 public:
     struct Internal {
-        int minor;
-        int major;
+        int minor = 0;
+        int major = 0;
+        int isonline = 0;
+        // @since FIFA12
+        int exportdate = 0;
+        // @since FIFA13
         std::wstring schema;
-        int isonline;
-        int exportdate;
-        int artificialkey;
+        int artificialkey = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

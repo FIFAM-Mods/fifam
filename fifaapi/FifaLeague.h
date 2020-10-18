@@ -9,27 +9,30 @@
 class FifaLeague {
 public:
     struct Internal {
-        int countryid;
+        int buildupplay = 0;
+
+        int countryid = 0;
         std::wstring leaguename;
-        int level;
-        int iscompetitionscarfenabled;
-        int isbannerenabled;
-        int leagueid;
-        int iscompetitionpoleflagenabled;
-        int iscompetitioncrowdcardsenabled;
-        int leaguetimeslice;
-        int iswithintransferwindow;
+        int level = 0;
+        int iscompetitionscarfenabled = 0;
+        int isbannerenabled = 0;
+        int leagueid = 0;
+        int iscompetitionpoleflagenabled = 0;
+        int iscompetitioncrowdcardsenabled = 0;
+        int leaguetimeslice = 0;
+        int iswithintransferwindow = 0;
         // @since FIFA19
-        int leaguetype;
+        int leaguetype = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;
 
     std::wstring m_name;
-    unsigned int m_countryId;
+    unsigned int m_countryId = 0;
     std::vector<FifaReferee *> m_referees;
     std::vector<FifaTeam *> m_teams;
-    FifaTeam *m_champion;
+    FifaTeam *m_champion = nullptr;
+    unsigned int m_gameId = 0;
 
     FifaLeague(FifaDataFile::Line &line);
     unsigned int GetId();

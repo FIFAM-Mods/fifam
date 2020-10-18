@@ -3,9 +3,9 @@
 
 class Date {
 public:
-    unsigned char day;
-    unsigned char month;
-    unsigned short year;
+    unsigned char day = 0;
+    unsigned char month = 0;
+    unsigned short year = 0;
 
     Date();
     Date(unsigned int Day, unsigned int Month, unsigned int Year);

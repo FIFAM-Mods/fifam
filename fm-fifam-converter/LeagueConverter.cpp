@@ -381,6 +381,9 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
         }
     }*/
     else if (countryId == FifamCompRegion::United_States) {
+        FifamCompPool *pool = mFifamDatabase->GetCompetition(Pool(0))->AsPool();
+        if (!pool)
+            return ErrorMsg(L"Pool is not available");
         FifamCompLeague *league = mFifamDatabase->GetCompetition(League(0))->AsLeague();
         if (!league)
             return ErrorMsg(L"First league is not available");
@@ -393,6 +396,7 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
         UInt nextCupIndex = GetNextLeagueCupIndex();
         if (nextCupIndex > 3)
             return ErrorMsg(L"Not enough free league cups (next free index is " + Utils::Format(L"%d", nextCupIndex) + L")");
+        pool->mSorting = FifamPoolSorting::MapLeague;
         FifamCompID mlsCupId = FifamCompID(countryId, FifamCompType::LeagueCup, nextCupIndex);
         league->SetName(L"MLS Supporters' Shield");
         east->SetName(L"MLS Eastern Conference");

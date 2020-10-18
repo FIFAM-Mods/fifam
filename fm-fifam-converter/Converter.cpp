@@ -74,6 +74,7 @@ void Converter::Convert() {
     Bool REF_DB_SETTLEMENT = GetIniInt(L"REF_DB_SETTLEMENT", 1);
     Bool REF_DB_STADIUM_NAME = GetIniInt(L"REF_DB_STADIUM_NAME", 0);
     Bool REF_DB_STADIUM_CAPACITY = GetIniInt(L"REF_DB_STADIUM_CAPACITY", 0);
+    Bool REF_DB_WC_EC_STATISTICS = GetIniInt(L"REF_DB_WC_EC_STATISTICS", 0);
 
     UInt NUM_SPARE_CLUBS_IN_UNPLAYABLE_COUNTRY = GetIniInt(L"NUM_SPARE_CLUBS_IN_UNPLAYABLE_COUNTRY", 24);
 
@@ -90,7 +91,11 @@ void Converter::Convert() {
     mCurrentGameId = gameId;
     mFromFifaDatabase = fromFifaDatabase;
 
+    mFifaDatabase = new FifaDatabase(dbPath / L"fifa");
     GraphicsConverter graphicsConverter;
+    graphicsConverter.DownloadPlayerPortraitsFIFA21(mFifaDatabase, "E:\\Games\\FIFA Manager 13");
+    delete mFifaDatabase;
+    return;
 
     FifamDatabase::mReadingOptions.mReadClubs = false;
     FifamDatabase::mReadingOptions.mReadCountryCompetitions = false;
@@ -378,16 +383,26 @@ void Converter::Convert() {
             if (h.mYear > 0 && h.mYear <= CURRENT_YEAR && h.mFirstPlaced) {
                 if (h.mFirstPlaced->mIsNation) {
                     foom::nation *nation = (foom::nation *)h.mFirstPlaced;
-                    foom::nation *nationRunnerUp = (foom::nation *)h.mSecondPlaced;
-                    if (c.mID == 1301385) { // World Cup
-                        nation->mConverterData.mWorldCupWins.insert(h.mYear);
-                        if (nationRunnerUp)
-                            nationRunnerUp->mConverterData.mWorldCupFinals.insert(h.mYear);
+                    if (nation) {
+                        if (nation->mConverterData.mHistoryNation)
+                            nation = nation->mConverterData.mHistoryNation;
+                        if (nation->mContinent == c.mContinent) {
+                            if (c.mID == 1301385) // World Cup
+                                nation->mConverterData.mWorldCupWins.insert(h.mYear);
+                            else if (c.mType == 1301388 || c.mType == 1301389 || c.mType == 1301390 || c.mType == 102414 || c.mType == 145509 || c.mType == 129986) // Main continental international finals
+                                nation->mConverterData.mContinentalCupWins.insert(h.mYear);
+                        }
                     }
-                    else if (c.mType == 11) { // Main continental international finals
-                        nation->mConverterData.mContinentalCupWins.insert(h.mYear);
-                        if (nationRunnerUp)
-                            nationRunnerUp->mConverterData.mContinentalCupFinals.insert(h.mYear);
+                    foom::nation *nationRunnerUp = (foom::nation *)h.mSecondPlaced;
+                    if (nationRunnerUp) {
+                        if (nationRunnerUp->mConverterData.mHistoryNation)
+                            nationRunnerUp = nationRunnerUp->mConverterData.mHistoryNation;
+                        if (nationRunnerUp->mContinent == c.mContinent) {
+                            if (c.mID == 1301385) // World Cup
+                                nationRunnerUp->mConverterData.mWorldCupFinals.insert(h.mYear);
+                            else if (c.mType == 1301388 || c.mType == 1301389 || c.mType == 1301390 || c.mType == 102414 || c.mType == 145509 || c.mType == 129986) // Main continental international finals
+                                nationRunnerUp->mConverterData.mContinentalCupFinals.insert(h.mYear);
+                        }
                     }
                 }
             }
@@ -1632,6 +1647,22 @@ void Converter::Convert() {
                         c->mLeagueTotalGoals = ref->mLeagueTotalGoals;
                         c->mLeagueTotalGoalsAgainst = ref->mLeagueTotalGoalsAgainst;
                         c->mLeagueTotalLeadershipsInTable = ref->mLeagueTotalLeadershipsInTable;
+                    }
+                }
+            }
+        }
+        for (unsigned int c = 0; c < FifamDatabase::NUM_COUNTRIES; c++) {
+            if (c != FifamNation::Anguilla && c != FifamNation::Greenland) {
+                FifamCountry *country = mFifamDatabase->mCountries[c];
+                if (c) {
+                    FifamCountry *refCountry = mReferenceDatabase->mCountries[c];
+                    if (refCountry) {
+                        if (REF_DB_WC_EC_STATISTICS) {
+                            country->mNumContinentalChampions = refCountry->mNumContinentalChampions;
+                            country->mNumContinentalRunnersUp = refCountry->mNumContinentalRunnersUp;
+                            country->mNumWorldCups = refCountry->mNumWorldCups;
+                            country->mNumWorldCupRunnersUp = refCountry->mNumWorldCupRunnersUp;
+                        }
                     }
                 }
             }

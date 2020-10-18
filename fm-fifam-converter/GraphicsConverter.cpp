@@ -985,7 +985,9 @@ void GraphicsConverter::DownloadClubBadgesFIFA(FifamDatabase *db, Path const &co
     }
 }
 
-Bool DownloadAndSavePlayerPhoto(Int version, Char const *filepath, Char const *url) {
+Bool DownloadAndSavePlayerPhoto(Char const *filepath, Char const *url, bool resize = true) {
+    if (!resize)
+        return URLDownloadToFile(NULL, url, filepath, 0, NULL) == S_OK;
     if (URLDownloadToFile(NULL, url, "tmpFifaPortrait.png", 0, NULL) == S_OK) {
         Image portraitImg("tmpFifaPortrait.png");
         if (portraitImg.isValid() && portraitImg.columns() >= 160) {
@@ -1000,18 +1002,33 @@ Bool DownloadAndSavePlayerPhoto(Int version, Char const *filepath, Char const *u
 Bool DownloadAndSavePlayerPhoto(Int playerId, Char const *filepath) {
     char url[MAX_PATH];
     sprintf(url, "https://www.futwiz.com/assets/img/fifa%d/careerfaces/%d.png", 20, playerId);
-    if (!DownloadAndSavePlayerPhoto(20, filepath, url) && !exists(filepath)) {
+    if (!DownloadAndSavePlayerPhoto(filepath, url) && !exists(filepath)) {
         sprintf(url, "https://www.futwiz.com/assets/img/fifa%d/careerfaces/%d.png", 19, playerId);
-        if (!DownloadAndSavePlayerPhoto(19, filepath, url)) {
+        if (!DownloadAndSavePlayerPhoto(filepath, url)) {
             sprintf(url, "https://www.futwiz.com/assets/img/fifa%d/careerfaces/%d.png", 18, playerId);
-            if (!DownloadAndSavePlayerPhoto(15, filepath, url)) {
+            if (!DownloadAndSavePlayerPhoto(filepath, url)) {
                 sprintf(url, "http://futhead.cursecdn.com/static/img/%d/players/%d.png", 17, playerId);
-                if (!DownloadAndSavePlayerPhoto(17, filepath, url))
+                if (!DownloadAndSavePlayerPhoto(filepath, url))
                     return false;
             }
         }
     }
     return true;
+}
+
+Bool DownloadAndSavePlayerPhotoFIFA21(Int playerId, Path const &filepath) {
+    char url[MAX_PATH];
+    sprintf(url, "https://media.contentapi.ea.com/content/dam/ea/fifa/fifa-21/ratings-collective/f20assets/player-headshots/%d.png", playerId);
+    return DownloadAndSavePlayerPhoto(filepath.string().c_str(), url, false);
+}
+
+void GraphicsConverter::DownloadPlayerPortraitsFIFA21(FifaDatabase *db, Path const &gameOutputPath) {
+    Path outputPath = gameOutputPath / L"portraits" / L"club" / L"512x512";
+    create_directories(outputPath);
+    db->ForAllPlayers([&](FifaPlayer &p) {
+        std::cout << p.GetId() << std::endl;
+        DownloadAndSavePlayerPhotoFIFA21(p.GetId(), outputPath / (std::to_string(p.GetId()) + ".png"));
+    });
 }
 
 void GraphicsConverter::DownloadPlayerPortraitsFIFA(FifamDatabase *db, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {

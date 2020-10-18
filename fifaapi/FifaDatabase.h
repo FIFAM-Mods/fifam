@@ -12,8 +12,6 @@
 #include <functional>
 #include <filesystem>
 
-#define FIFA_DATABASE_LATEST_GAME_VERSION 20
-
 class FifaDatabase {
 public:
     FifaVersion m_version;
@@ -28,20 +26,34 @@ public:
     std::filesystem::path m_path;
 
     static unsigned int m_currentGameVersion;
-    static const unsigned int m_firstSupportedGameVersion = 18;
-    static const unsigned int m_lastSupportedGameVersion = FIFA_DATABASE_LATEST_GAME_VERSION;
+    static unsigned int m_firstSupportedGameVersion;
+    static unsigned int m_lastSupportedGameVersion;
 
-    FifaDatabase(std::filesystem::path const &path);
+    FifaDatabase(std::filesystem::path const &path, bool readFut = false);
     ~FifaDatabase();
 
     template <typename T>
     void AddEntity(std::map<unsigned int, T *> &list, FifaDataFile::Line &line) {
         T *entity = new T(line);
         auto oldEntity = list.find(entity->GetId());
-        if (oldEntity != list.end()) {
+        if (oldEntity != list.end())
             delete list[entity->GetId()];
-        }
         list[entity->GetId()] = entity;
+    }
+
+    template <typename T>
+    T *AddEntityVersioned(std::map<unsigned int, T *> &list, FifaDataFile::Line &line, unsigned int gameVersion) {
+        T *entity = new T(line);
+        auto oldEntity = list.find(entity->GetId());
+        if (oldEntity != list.end()) {
+            delete entity;
+            return nullptr;
+        }
+        else {
+            list[entity->GetId()] = entity;
+            entity->m_gameId = gameVersion;
+            return entity;
+        }
     }
 
     template <typename T>
