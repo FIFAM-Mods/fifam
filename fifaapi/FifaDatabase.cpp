@@ -48,6 +48,8 @@ FifaDatabase::FifaDatabase(std::filesystem::path const &path, bool readFut) {
             for (FifaDataFile::Line line; file.NextLine(line); ) {
                 if (m_currentGameVersion <= 12)
                     line >> name >> nameid;
+                else if (m_currentGameVersion <= 17)
+                    line >> name >> commentaryid >> nameid;
                 else
                     line >> name >> nameid >> commentaryid;
                 names[nameid] = name;
@@ -65,7 +67,7 @@ FifaDatabase::FifaDatabase(std::filesystem::path const &path, bool readFut) {
             std::vector<std::wstring> dbFolders;
 
             for (auto const& dbs : std::filesystem::directory_iterator(gamedbpath)) {
-                if (dbs.path().filename() != L"default" && dbs.path().filename() != L"_default" && dbs.path().filename() != L"fut" && dbs.path().filename() != L"_fut")
+                if (is_directory(dbs.path()) && dbs.path().filename() != L"default" && dbs.path().filename() != L"_default" && dbs.path().filename() != L"fut" && dbs.path().filename() != L"_fut")
                     dbFolders.push_back(dbs.path().filename().c_str());
             }
             std::sort(dbFolders.begin(), dbFolders.end(), std::greater<std::wstring>());

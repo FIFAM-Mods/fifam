@@ -384,6 +384,9 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
         FifamCompPool *pool = mFifamDatabase->GetCompetition(Pool(0))->AsPool();
         if (!pool)
             return ErrorMsg(L"Pool is not available");
+        FifamCompPool *pool2 = mFifamDatabase->GetCompetition(Pool(1))->AsPool();
+        if (!pool2)
+            return ErrorMsg(L"Pool 2 is not available");
         FifamCompLeague *league = mFifamDatabase->GetCompetition(League(0))->AsLeague();
         if (!league)
             return ErrorMsg(L"First league is not available");
@@ -397,6 +400,27 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
         if (nextCupIndex > 3)
             return ErrorMsg(L"Not enough free league cups (next free index is " + Utils::Format(L"%d", nextCupIndex) + L")");
         pool->mSorting = FifamPoolSorting::MapLeague;
+        if (pool->mInstructions.Empty())
+            return ErrorMsg(L"No instsructions in pool");
+        pool->mInstructions.ForAll([](FifamAbstractInstruction *ins, UInt index) {
+            if ((index == 0 || index == 1) && ins->GetID() == FifamInstructionID::ID_GET_TAB_X_TO_Y) {
+                FifamInstruction::GET_TAB_X_TO_Y *insGetTabXtoY = (FifamInstruction::GET_TAB_X_TO_Y *)ins;
+                insGetTabXtoY->mNumTeams = 11;
+            }
+        });
+        if (pool2->mInstructions.Empty())
+            return ErrorMsg(L"No instsructions in pool 2");
+        auto pool2insPos = pool2->mInstructions.FindFirstOccurencePosition(FifamInstructionID::ID_GET_TAB_X_TO_Y);
+        if (pool2insPos != 0)
+            return ErrorMsg(L"GET_TAB_X_TO_Y is not first instruction in pool 2");
+        auto pool2ins = (FifamInstruction::GET_TAB_X_TO_Y *)pool2->mInstructions.FindFirstOccurence(FifamInstructionID::ID_GET_TAB_X_TO_Y);
+        if (!pool2ins)
+            return ErrorMsg(L"Unable to get GET_TAB_X_TO_Y instruction in pool 2");
+        pool2ins->mLeagueStartPosition = 12;
+        pool2ins->mNumTeams = 1;
+        auto pool2ins2 = pool2ins->Clone();
+        pool2ins2->mLeague.mIndex = 0;
+        pool2->mInstructions.Insert(pool2ins2, 0);
         FifamCompID mlsCupId = FifamCompID(countryId, FifamCompType::LeagueCup, nextCupIndex);
         league->SetName(L"MLS Supporters' Shield");
         east->SetName(L"MLS Eastern Conference");
@@ -408,8 +432,8 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
 
         east->mInstructions.Clear();
         west->mInstructions.Clear();
-        east->mInstructions.PushBack(new FifamInstruction::GET_POOL(Pool(0), 0, 12));
-        west->mInstructions.PushBack(new FifamInstruction::GET_POOL(Pool(0), 12, 12));
+        east->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(0), 1, 24));
+        west->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(0), 1, 24));
 
         Array<Array<FifamCompRound *, 3>, 2> playOff = {};
 
@@ -597,27 +621,31 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
         if (!league)
             return ErrorMsg(L"League is not available");
 
-        FifamCompID leagueCupID = FifamCompID(countryId, FifamCompType::LeagueCup, 0);
-
-        FifamCompCup *leagueCup = mFifamDatabase->GetCompetition(leagueCupID)->AsCup();
-        if (!leagueCup)
-            return ErrorMsg(L"League cup is not available");
-
-        if (leagueCup->mRounds.size() != 2)
-            return ErrorMsg(L"League cup has incorrect format");
-
-        FifamCompCup *superCup = mFifamDatabase->GetCompetition(FifamCompID(countryId, FifamCompType::SuperCup, 0))->AsCup();
-        if (!superCup)
-            return ErrorMsg(L"Super cup is not available");
-
-        superCup->mInstructions.Clear();
-        superCup->mInstructions.PushBack(new FifamInstruction::GET_CHAMP(leagueCupID));
-        superCup->mInstructions.PushBack(new FifamInstruction::GET_TAB_LEVEL_X_TO_Y(0, 1, 24));
-        
-        league->mSuccessors.push_back(leagueCupID);
-
+        UInt nextCupIndex = GetNextLeagueCupIndex();
+        if (nextCupIndex != 0)
+            return ErrorMsg(L"League cup 0 is already used");
+        FifamCompID leagueCupId = FifamCompID(countryId, FifamCompType::LeagueCup, 0);
+        league->mSuccessors.push_back(leagueCupId);
+        FifamCompCup *leagueCup = mFifamDatabase->CreateCompetition(FifamCompDbType::Cup, leagueCupId, L"A-League Finals series")->AsCup();
         leagueCup->mPredecessors.push_back(League(0));
+        leagueCup->mRounds.resize(2);
+        leagueCup->mNumTeams = 4;
+
+        leagueCup->mRounds[0].mRoundID = FifamRoundID::Semifinal;
+        leagueCup->mRounds[0].mTeamsRound = 4;
+        leagueCup->mRounds[0].mNewTeamsRound = 4;
+        leagueCup->mRounds[0].mStartBeg = 0;
+        leagueCup->mRounds[0].mEndBeg = 2;
+        leagueCup->mRounds[0].mBonuses = { 0, 50000, 0, 20000 };
         leagueCup->mRounds[0].mFlags.Set(FifamBeg::NoShuffle, true);
+
+        leagueCup->mRounds[1].mRoundID = FifamRoundID::Final;
+        leagueCup->mRounds[1].mTeamsRound = 2;
+        leagueCup->mRounds[1].mNewTeamsRound = 0;
+        leagueCup->mRounds[1].mStartBeg = 2;
+        leagueCup->mRounds[1].mEndBeg = 3;
+        leagueCup->mRounds[1].mBonuses = { 0, 100000, 0, 50000 };
+
         leagueCup->mInstructions.Clear();
         leagueCup->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(0), 1, 1));
         leagueCup->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(0), 2, 1));
@@ -1115,7 +1143,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                         UInt numLeaguePromotedTeams = 0;
                         UInt numLeagueRelegatedTeams = 0;
 
-                        if (comp->mVecTeams.size() != lg->mTeams) {
+                        if (comp->mVecTeams.size() != lg->mTeams && !leagueWriter) {
                             if (mErrors) {
                                 Error(L"Different number of teams in league: %d / %d\nCompetitionName: %s\nCompetitionID: %d",
                                     comp->mVecTeams.size(), lg->mTeams, lg->mName.c_str(), lg->mID);
@@ -1186,6 +1214,10 @@ void Converter::ConvertLeagues(UInt gameId) {
                                     teamLine += L" (RES)";
                                 leagueWriter->WriteLine(teamLine);
                             }
+                        }
+
+                        if (leagueWriter && comp->mVecTeams.size() != lg->mTeams) {
+                            continue;
                         }
 
                         for (auto entry : comp->mVecTeams) {
@@ -1691,8 +1723,15 @@ void Converter::ConvertLeagues(UInt gameId) {
                         if (divLeagues.find(higherLevel) != divLeagues.end()) {
                             for (DivisionInfo *l : divLeagues[higherLevel]) {
                                 if (l->mRelegated > 0) {
-                                    pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(
-                                        l->mCompID, l->mTeams - l->mRelegated + 1, l->mRelegated));
+                                    if (i == 1 && relLeague[0]) {
+                                        // TODO: collect teams from both relegation and champions groups? (current implementation: only from relegation group)
+                                        pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(
+                                            relLeague[1]->mID, relLeague[1]->mNumTeams - l->mRelegated + 1, l->mRelegated));
+                                    }
+                                    else {
+                                        pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(
+                                            l->mCompID, l->mTeams - l->mRelegated + 1, l->mRelegated));
+                                    }
                                 }
                             }
                         }

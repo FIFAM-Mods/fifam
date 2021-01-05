@@ -9,19 +9,20 @@ public:
     ExportPlayerAccessories() {
 
         std::wcout << L"Reading FIFA database..." << std::endl;
+        FifaDatabase::m_firstSupportedGameVersion = FifaDatabase::m_lastSupportedGameVersion;
         FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
 
         std::wcout << L"Reading fm-fifa-players..." << std::endl;
         Vector<Pair<UInt, FifaPlayer *>> playersList;
-        Path infoPath = L"D:\\Projects\\fifam\\db";
-        FifamReader reader(infoPath / L"fm-fifa-players.txt", 0);
+        Path infoPath = L"E:\\Projects\\fifam\\db";
+        FifamReader reader(infoPath / L"fm-fifa-players.csv", 0);
         if (reader.Available()) {
             reader.SkipLine();
             while (!reader.IsEof()) {
                 if (!reader.EmptyLine()) {
                     String dummy;
                     String foomIdstr, fifaIdstr;
-                    reader.ReadLineWithSeparator(L'\t', dummy, dummy, dummy, dummy, dummy, dummy, dummy, foomIdstr, fifaIdstr);
+                    reader.ReadLine(dummy, dummy, dummy, dummy, dummy, dummy, dummy, foomIdstr, fifaIdstr);
                     if (!foomIdstr.empty() && !fifaIdstr.empty()) {
                         Int foomid = Utils::SafeConvertInt<Int>(foomIdstr);
                         if (foomid != -1) {
@@ -50,7 +51,7 @@ public:
 
         std::wcout << L"Processing output file..." << std::endl;
 
-        FifamWriter writer(L"D:\\Games\\FIFA Manager 13\\plugins\\ucp\\player_accessories.csv", 14, FifamVersion());
+        FifamWriter writer(L"E:\\Games\\FIFA Manager 13\\plugins\\ucp\\player_accessories.csv", 14, FifamVersion());
         writer.WriteLine(L"playerempicsid,comment,jerseystyle,sleeves,socks,acc1,acccolor1,acc2,acccolor2,acc3,acccolor3,acc4,acccolor4");
         if (writer.Available()) {
             for (auto const &entry : playersList) {
@@ -137,12 +138,12 @@ public:
 
             #ifdef SKIP_EMPTY
                 if (jerseytype != 0 || sleeves != 0 || socks != 0 || accessories[0].first != 0) {
-                #endif
+            #endif
                     writer.WriteLine(entry.first, Quoted(player->m_quickName), jerseytype, sleeves, socks,
                         accessories[0].first, accessories[0].second, accessories[1].first, accessories[1].second,
                         accessories[2].first, accessories[2].second, accessories[3].first, accessories[3].second
                     );
-                #ifdef SKIP_EMPTY
+            #ifdef SKIP_EMPTY
                 }
             #endif
             }
@@ -151,13 +152,13 @@ public:
         else
             ::Error(L"Unable to open output file");
 
-        FifamWriter writer2(L"D:\\Games\\FIFA Manager 13\\plugins\\ucp\\player_shoes.csv", 14, FifamVersion());
+        FifamWriter writer2(L"E:\\Games\\FIFA Manager 13\\plugins\\ucp\\player_shoes.csv", 14, FifamVersion());
         writer2.WriteLine(L"playerempicsid,shoeid,comment");
         if (writer2.Available()) {
             for (auto const &entry : playersList) {
                 FifaPlayer *player = entry.second;
                 UChar shoeid = player->internal.shoetypecode;
-                if (exists(Path(L"D:\\Games\\FIFA Manager 13\\data\\zdata") / Utils::Format(L"t20__%d.fsh", shoeid)))
+                if (shoeid != 0 && exists(Path(L"E:\\Games\\FIFA Manager 13\\data\\assets") / Utils::Format(L"t20__%d.fsh", shoeid)))
                     writer2.WriteLine(entry.first, shoeid, Quoted(player->m_quickName));
             }
             writer2.Close();

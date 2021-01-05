@@ -273,6 +273,9 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
     if (potential == 180 && p->mOriginalPA != 180)
         potential = p->mCurrentAbility;
 
+    staff->SetProperty<UInt>(L"foom::PA", potential);
+    staff->SetProperty<UInt>(L"foom::CA", p->mCurrentAbility);
+
     //static UChar potantialAbilityRanges[9] = { 35, 55, 75, 100, 115, 130, 145, 160, 175 };
     static UChar potantialAbilityRanges[9] = { 30, 50, 70, 90, 110, 130, 140, 160, 180 };
     staff->mTalent = 0;

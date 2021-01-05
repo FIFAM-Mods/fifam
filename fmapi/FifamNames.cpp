@@ -112,7 +112,7 @@ String FifamNames::GetLeagueLevelName(Vector<String> const & leagueNames, UInt l
         if (!levelName.empty()) {
             auto words = Utils::Split(levelName, L' ', true, true);
             if (!words.empty()) {
-                if (words.back() == L"Group")
+                if (words.back() == L"Group" || words.back() == L"Gr")
                     words.pop_back();
                 else
                     return levelName;

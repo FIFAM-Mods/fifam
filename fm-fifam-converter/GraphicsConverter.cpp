@@ -288,21 +288,21 @@ void GraphicsConverter::ConvertCompBadges(FifamDatabase *db, Path const &fmGraph
     }
     if (!mOnlyUpdates && gameId >= 10) { // logos for international competitions are not present in FM07-FM09 (trophy images are used instead)
 
-        ConvertOneCompBadge(foomBadgesPath / L"1301385_fifa.png", outputPath, L"2018_FF11.tga", gameId); // FIFA World Cup 2022
-        ConvertOneCompBadge(foomBadgesPath / L"157097_fifa.png", outputPath, L"2019_FF1F.tga", gameId); // FIFA U20 World Cup 2019
+        ConvertOneCompBadge(foomBadgesPath / L"1301385_fifa.png", outputPath, L"2022_FF11.tga", gameId); // FIFA World Cup 2022
+        ConvertOneCompBadge(foomBadgesPath / L"157097_fifa.png", outputPath, L"2021_FF1F.tga", gameId); // FIFA U20 World Cup 2021
 
-        ConvertOneCompBadge(foomBadgesPath / L"1301388_uefa.png", outputPath, L"2020_FF12.tga", gameId); // UEFA Euro 2020
+        //ConvertOneCompBadge(foomBadgesPath / L"1301388_uefa.png", outputPath, L"2024_FF12.tga", gameId); // UEFA Euro 2024
         ConvertOneCompBadge(foomBadgesPath / L"95_uefa.png", outputPath, L"FF10.tga", gameId); // UEFA Euro Qualifiers
         ConvertOneCompBadge(foomBadgesPath / L"90_uefa.png", outputPath, L"FF24.tga", gameId); // UEFA Nations League
         ConvertOneCompBadge(foomBadgesPath / L"90_uefa.png", outputPath, L"FF25.tga", gameId); // UEFA Nations League
 
-        ConvertOneCompBadge(foomBadgesPath / L"1301389_conmebol.png", outputPath, L"2020_FF21.tga", gameId); // Copa America 2020
+        //ConvertOneCompBadge(foomBadgesPath / L"1301389_conmebol.png", outputPath, L"2020_FF21.tga", gameId); // Copa America 2020
 
         ConvertOneCompBadge(foomBadgesPath / L"145509_concacaf.png", outputPath, L"FF2B.tga", gameId); // CONCACAF Gold Cup
         ConvertOneCompBadge(foomBadgesPath / L"222984_concacaf.png", outputPath, L"FF29.tga", gameId); // CONCACAF Nations League
         ConvertOneCompBadge(foomBadgesPath / L"222984_concacaf.png", outputPath, L"FF2A.tga", gameId); // CONCACAF Nations League
 
-        ConvertOneCompBadge(foomBadgesPath / L"102412_afc.png", outputPath, L"2019_FF2F.tga", gameId); // AFC Asian Cup
+        //ConvertOneCompBadge(foomBadgesPath / L"102412_afc.png", outputPath, L"2019_FF2F.tga", gameId); // AFC Asian Cup
 
         ConvertOneCompBadge(foomBadgesPath / L"147032_caf.png", outputPath, L"2021_FF2D.tga", gameId); // CAF African Cup of Nations
 
@@ -664,7 +664,7 @@ void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGrap
                 portraitsDir = Path(L"art") / L"picture";
             FifamPerson *fifamPerson = (FifamPerson *)person->mConverterData.mFifamPerson;
             String dstFolder = L"art_02";
-            if (gameId >= 13 && !fifamPerson->mWriteableStringID.empty()) {
+            if (false && gameId >= 13 && !fifamPerson->mWriteableStringID.empty()) {
                 if (fifamPerson->mWriteableStringID[0] >= L'F' && fifamPerson->mWriteableStringID[0] <= L'L')
                     dstFolder = L"art_03";
                 else if (fifamPerson->mWriteableStringID[0] >= L'M' && fifamPerson->mWriteableStringID[0] <= L'R')
@@ -759,19 +759,17 @@ void GraphicsConverter::ConvertPortraits(foom::db *db, Path const &fmGraphicsPat
             counter++;
         }
         std::wcout << L"\b\b\b\b100%" << std::endl;
-        if (false && !mOnlyUpdates) {
-            max = db->mOfficials.size();
-            counter = 0;
-            std::wcout << L"Converting referee portraits...   0%";
-            for (auto e : db->mOfficials) {
-                auto &p = e.second;
-                if (p.mCurrentAbility > minCA)
-                    ConvertRefereePortrait(&p, fmGraphicsPath, contentPath, gameId, gameOutputPath);
-                std::wcout << Utils::Format(L"\b\b\b\b%3d%%", (Int)((Float)counter / max * 100));
-                counter++;
-            }
-            std::wcout << L"\b\b\b\b100%" << std::endl;
+        max = db->mOfficials.size();
+        counter = 0;
+        std::wcout << L"Converting referee portraits...   0%";
+        for (auto e : db->mOfficials) {
+            auto &p = e.second;
+            if (p.mCurrentAbility > minCA)
+                ConvertRefereePortrait(&p, fmGraphicsPath, contentPath, gameId, gameOutputPath);
+            std::wcout << Utils::Format(L"\b\b\b\b%3d%%", (Int)((Float)counter / max * 100));
+            counter++;
         }
+        std::wcout << L"\b\b\b\b100%" << std::endl;
     }
 }
 
@@ -877,7 +875,7 @@ void GraphicsConverter::ConvertOneStadium(Int foomId, UInt fifamClubId, Path con
 
 void GraphicsConverter::ConvertStadiums(foom::db *db, Path const &inputPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minRep, bool overview) {
     Path outputPath = contentPath / L"stadiums";
-    Path inputImagesFolder = inputPath / (overview ? L"stadiums_overview" : L"stadiums_my");
+    Path inputImagesFolder = inputPath / (overview ? L"stadiums_overview" : L"stadiums");
     if (!exists(outputPath))
         create_directories(outputPath);
     if (!exists(outputPath / L"1920x1200"))
@@ -895,6 +893,12 @@ void GraphicsConverter::ConvertStadiums(foom::db *db, Path const &inputPath, Pat
             ConvertOneStadium(stadId, fifamClub->mUniqueID, inputImagesFolder, outputPath, club.mName, FifamTr(fifamClub->mStadiumName), club.mReputation, writer);
         }
     }
+    //for (auto& [id, nation] : db->mNations) {
+    //    if (nation.mReputation >= minRep && nation.mConverterData.mFifamCountry) {
+    //        auto fifamCountry = (FifamCountry*)nation.mConverterData.mFifamCountry;
+    //        ConvertOneStadium(id, (fifamCountry->mId << 16) | 0xFFFF, inputImagesFolder, outputPath, nation.mName, FifamTr(fifamCountry->mNationalTeam.mStadiumName), nation.mReputation, writer);
+    //    }
+    //}
     //for (auto &[id, country] : db->mNations) {
     //    auto fifamCountry = (FifamCountry *)country.mConverterData.mFifamCountry;
     //    if (fifamCountry) {
@@ -1063,6 +1067,33 @@ void GraphicsConverter::DownloadPlayerPortraitsFIFA(FifamDatabase *db, Path cons
             }
             catch (std::exception &e) {
                 ::Error(Utils::AtoW(e.what()) + String(L"\n") + p->mWriteableStringID);
+            }
+        }
+    }
+}
+
+void GraphicsConverter::ProcessFIFAXXLPortraits(foom::db *db, Path const& gameOutputPath) {
+    Path inputPath = L"D:\\FIFA_ASSETS\\PC\\xxl";
+    Path outputPath = gameOutputPath / L"portraits" / L"club" / L"512x512";
+    create_directories(outputPath);
+    if (exists(inputPath) && is_directory(inputPath)) {
+        Map<UInt, FifamPlayer *> fifaToFoomPlayers;
+        for (auto const &[pid, p] : db->mPlayers) {
+            if (p.mConverterData.mFifamPerson && p.mConverterData.mFifaPlayerId != 0)
+                fifaToFoomPlayers[p.mConverterData.mFifaPlayerId] = (FifamPlayer *)p.mConverterData.mFifamPerson;
+        }
+        for (auto const& i : directory_iterator(inputPath)) {
+            auto fp = i.path();
+            if (is_regular_file(fp) && fp.extension().string() == ".png") {
+                UInt picid = Utils::SafeConvertInt<UInt>(fp.stem().string());
+                if (picid > 0) {
+                    if (fifaToFoomPlayers.contains(picid))
+                        copy(fp, outputPath / (fifaToFoomPlayers[picid]->mWriteableStringID + L".png"), std::filesystem::copy_options::overwrite_existing);
+                    else
+                        ::Error(L"Can't find player by FIFA ID: %s", fp.c_str());
+                }
+                else
+                    ::Error(L"Incorrect pic ID: %s", fp.c_str());
             }
         }
     }

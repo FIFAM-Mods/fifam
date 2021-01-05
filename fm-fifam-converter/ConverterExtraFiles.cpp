@@ -14,11 +14,11 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                     Int FootballManagerID;
                     reader.ReadLineWithSeparator(L'\t', dummy, dummy, dummy, dummy, FootballManagerID, info.mFIFAID, dummy, info.mFIFAManagerID, info.mFIFAManagerReplacementID, info.mFIFATeamID);
                     if (FootballManagerID != 0) {
-                        if (gameId >= 11 && FootballManagerID == 217945) { // Kosovo
-                            info.mFIFAManagerID = 207;
-                            info.mFIFAManagerReplacementID = 207;
-                            info.mFIFAID = 219;
-                        }
+                        //if (gameId >= 11 && FootballManagerID == 217945) { // Kosovo
+                        //    info.mFIFAManagerID = 207;
+                        //    info.mFIFAManagerReplacementID = 207;
+                        //    info.mFIFAID = 219;
+                        //}
                         //else if (gameId <= 7 && FootballManagerID == 62002127) { // Montenegro
                         //    info.mFIFAManagerID = 207;
                         //    info.mFIFAManagerReplacementID = 207;
@@ -220,7 +220,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                         d.mSorting = FifamEqualPointsSorting::GoalDiff;
 
                     if (d.mLevel <= 0)
-                        d.mLevel = 256;
+                        d.mLevel = 255;
                     else
                         d.mLevel -= 1;
 
@@ -396,12 +396,15 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
             }
         }
     }
-    {
+    if (!mGenerateLeaguesFiles) {
         std::wcout << L"Reading league tables..." << std::endl;
         for (auto const &p : recursive_directory_iterator(infoPath / L"leagues")) {
             if (is_regular_file(p.path()) && p.path().extension() == ".txt") {
                 FifamReader reader(p.path(), 0);
                 if (reader.Available()) {
+                    //Message(p.path().string());
+                    String filename = p.path().stem().c_str();
+                    //mErrors = false;
                     foom::comp *league = nullptr;
                     DivisionInfo *div = nullptr;
                     foom::club *cupWinner = nullptr;
@@ -417,7 +420,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                         if (league && div) {
                             if (league->mVecTeams.size() != div->mTeams) {
                                 if (mErrors) {
-                                    Error(L"League tables:\nincorrect league teams count\nin %s\n%d - %d", div->mName.c_str(), league->mVecTeams.size(), div->mTeams);
+                                    Error(L"League tables:\nincorrect league teams count\nin %s\n%d - %d\nFile %s", div->mName.c_str(), league->mVecTeams.size(), div->mTeams, filename.c_str());
                                 }
                                 return false;
                             }
@@ -438,7 +441,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                             if (Utils::StartsWith(line, L"LEAGUE") || Utils::StartsWith(line, L"league")) {
                                 if (hasSpare) {
                                     if (mErrors) {
-                                        Error(L"League tables:\nspare clubs appear before league(s)");
+                                        Error(L"League tables:\nspare clubs appear before league(s)\nFile %s", filename.c_str());
                                     }
                                     break;
                                 }
@@ -447,14 +450,17 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                                 Int leagueId = -1;
                                 if (swscanf(line.c_str(), L"%*s %d", &leagueId) != 1) {
                                     if (mErrors) {
-                                        Error(L"League tables:\nincorrect league line format\nin %s\n%s", div->mName.c_str(), line.c_str());
+                                        if (div)
+                                            Error(L"League tables:\nincorrect league line format\nin %s\n%s\nFile %s", div->mName.c_str(), line.c_str(), filename.c_str());
+                                        else
+                                            Error(L"League tables:\nincorrect league line format\n%s\nFile %s", line.c_str(), filename.c_str());
                                     }
                                     break;
                                 }
                                 league = mFoomDatabase->get<foom::comp>(leagueId);
                                 if (!league) {
                                     if (mErrors) {
-                                        Error(L"League tables:\nunable to find league by id\nin %s\nid %u", div->mName.c_str(), leagueId);
+                                        Error(L"League tables:\nunable to find league by id\nid %u\nFile %s", leagueId, filename.c_str());
                                     }
                                     break;
                                 }
@@ -466,7 +472,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                                 }
                                 if (!div) {
                                     if (mErrors) {
-                                        Error(L"League tables:\nunable to find division by id\nin %s\nid %u", div->mName.c_str(), leagueId);
+                                        Error(L"League tables:\nunable to find division by id\nid %u\nFile %s", leagueId, filename.c_str());
                                     }
                                     break;
                                 }
@@ -474,7 +480,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                                     nation = league->mNation;
                                 else if (league->mNation != nation) {
                                     if (mErrors) {
-                                        Error(L"League tables:\nleague from different nation\nin %s\nid %u", div->mName.c_str(), leagueId);
+                                        Error(L"League tables:\nleague from different nation\nin %s\nid %u\nFile %s", div->mName.c_str(), leagueId, filename.c_str());
                                     }
                                     break;
                                 }
@@ -483,7 +489,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                             else if (Utils::StartsWith(line, L"SPARE") || Utils::StartsWith(line, L"spare")) {
                                 if (hasSpare) {
                                     if (mErrors) {
-                                        Error(L"League tables:\nduplicated spare clubs section");
+                                        Error(L"League tables:\nduplicated spare clubs section\nFile %s", filename.c_str());
                                     }
                                     break;
                                 }
@@ -493,7 +499,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                                     auto spareNation = mFoomDatabase->get<foom::nation>(nationId);
                                     if (spareNation && nation && spareNation != nation) {
                                         if (mErrors) {
-                                            Error(L"League tables:\nspare from different nation\nleagues nation: %s\nspare nation: %s", nation->mName.c_str(), spareNation->mName.c_str());
+                                            Error(L"League tables:\nspare from different nation\nleagues nation: %s\nspare nation: %s\nFile %s", nation->mName.c_str(), spareNation->mName.c_str(), filename.c_str());
                                         }
                                         break;
                                     }
@@ -502,7 +508,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                                 }
                                 if (!nation) {
                                     if (mErrors) {
-                                        Error(L"League tables:\nnation for spare clubs is not defined");
+                                        Error(L"League tables:\nnation for spare clubs is not defined\nFile %s", filename.c_str());
                                     }
                                     break;
                                 }
@@ -528,6 +534,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                                                         if (!prev->mVecReserveTeams.empty()) {
                                                             team = prev->mVecReserveTeams[0].mReserveClub;
                                                             teamId = team->mID;
+                                                            break;
                                                         }
                                                     }
                                                 }
@@ -536,36 +543,44 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                                         if (!team) {
                                             if (mErrors) {
                                                 if (spare)
-                                                    Error(L"League tables:\nunable to find team by id\nin spare (%s)\nid %u\n%s", nation->mName.c_str(), teamId, line.c_str());
+                                                    Error(L"League tables:\nunable to find team by id\nin spare (%s)\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                 else
-                                                    Error(L"League tables:\nunable to find team by id\nin %s\nid %u\n%s", div->mName.c_str(), teamId, line.c_str());
+                                                    Error(L"League tables:\nunable to find team by id\nin %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                             }
                                         }
                                         else {
+                                            if (team->mExtinct && (Utils::EndsWith(line, L" (RES)") || Utils::EndsWith(line, L"(REMOVE-EXTINCT)"))) {
+                                                team->mExtinct = false;
+                                                if (nation) {
+                                                    team->mNation = nation;
+                                                    team->mBasedNation = team->mNation;
+                                                    team->mContinentalCupNation = team->mNation;
+                                                }
+                                            }
                                             if (team->mExtinct) {
                                                 if (mErrors) {
                                                     if (spare)
-                                                        Error(L"League tables:\nextinct team in the spare\nin %s\nid %u\n%s", nation->mName.c_str(), teamId, line.c_str());
+                                                        Error(L"League tables:\nextinct team in the spare\nin %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                     else
-                                                        Error(L"League tables:\nextinct team in the league\nin %s\nid %u\n%s", div->mName.c_str(), teamId, line.c_str());
+                                                        Error(L"League tables:\nextinct team in the league\nin %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                 }
                                             }
                                             else {
                                                 if (team->mNation != nation) {
                                                     if (mErrors) {
                                                         if (spare)
-                                                            Error(L"League tables:\nteam from incorrect country in the spare\nin %s\nid %u\n%s", nation->mName.c_str(), teamId, line.c_str());
+                                                            Error(L"League tables:\nteam from incorrect country in the spare\nin %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                         else
-                                                            Error(L"League tables:\nteam from incorrect country in the league\nin %s\nid %u\n%s", div->mName.c_str(), teamId, line.c_str());
+                                                            Error(L"League tables:\nteam from incorrect country in the league\nin %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                     }
                                                 }
                                                 else {
                                                     if (Utils::Contains(usedTeamIDs, teamId)) {
                                                         if (mErrors) {
                                                             if (spare)
-                                                                Error(L"League tables:\nteam id was already registered in the spare\nin %s\nid %u\n%s", nation->mName.c_str(), teamId, line.c_str());
+                                                                Error(L"League tables:\nteam id was already registered in the spare\nin %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                             else
-                                                                Error(L"League tables:\nteam id was already registered in the league\nin %s\nid %u\n%s", div->mName.c_str(), teamId, line.c_str());
+                                                                Error(L"League tables:\nteam id was already registered in the league\nin %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                         }
                                                     }
                                                     else {
@@ -614,18 +629,18 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                                                         else {
                                                             if (mErrors) {
                                                                 if (spare)
-                                                                    Error(L"League tables:\nunknown status\nin spare %s\nid %u\n%s", nation->mName.c_str(), teamId, line.c_str());
+                                                                    Error(L"League tables:\nunknown status\nin spare %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                                 else
-                                                                    Error(L"League tables:\nunknown status\nin league %s\nid %u\n%s", div->mName.c_str(), teamId, line.c_str());
+                                                                    Error(L"League tables:\nunknown status\nin league %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                             }
                                                         }
                                                         if (possibleCupWinner) {
                                                             if (cupWinner) {
                                                                 if (mErrors) {
                                                                     if (spare)
-                                                                        Error(L"League tables:\ncup winner was already set\nin spare %s\nid %u\n%s", nation->mName.c_str(), teamId, line.c_str());
+                                                                        Error(L"League tables:\ncup winner was already set\nin spare %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                                     else
-                                                                        Error(L"League tables:\ncup winner was already set\nin league %s\nid %u\n%s", div->mName.c_str(), teamId, line.c_str());
+                                                                        Error(L"League tables:\ncup winner was already set\nin league %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                                 }
                                                             }
                                                             else {
@@ -636,9 +651,9 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                                                             if (cupRunnerUp) {
                                                                 if (mErrors) {
                                                                     if (spare)
-                                                                        Error(L"League tables:\ncup runner-up was already set\nin spare %s\nid %u\n%s", nation->mName.c_str(), teamId, line.c_str());
+                                                                        Error(L"League tables:\ncup runner-up was already set\nin spare %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                                     else
-                                                                        Error(L"League tables:\ncup runner-up was already set\nin league %s\nid %u\n%s", div->mName.c_str(), teamId, line.c_str());
+                                                                        Error(L"League tables:\ncup runner-up was already set\nin league %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                                 }
                                                             }
                                                             else {
@@ -653,9 +668,9 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                                     else {
                                         if (mErrors) {
                                             if (spare)
-                                                Error(L"League tables:\nunable to parse team id line\nin spare %s\nid %u\n%s", nation->mName.c_str(), teamId, line.c_str());
+                                                Error(L"League tables:\nunable to parse team id line\nin spare %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                             else
-                                                Error(L"League tables:\nunable to parse team id line\nin league %s\nid %u\n%s", div->mName.c_str(), teamId, line.c_str());
+                                                Error(L"League tables:\nunable to parse team id line\nin league %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                         }
                                     }
                                 }
@@ -942,8 +957,8 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
         }
     }
     {
-        std::wcout << L"Reading fm_history_narions.txt..." << std::endl;
-        FifamReader reader(infoPath / L"fm_history_narions.txt", 0);
+        std::wcout << L"Reading fm_history_nations.txt..." << std::endl;
+        FifamReader reader(infoPath / L"fm_history_nations.txt", 0);
         if (reader.Available()) {
             while (!reader.IsEof()) {
                 if (!reader.EmptyLine()) {
@@ -958,6 +973,23 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                                 n->mConverterData.mHistoryNation = h;
                         }
                     }
+                }
+                else
+                    reader.SkipLine();
+            }
+        }
+    }
+    {
+        std::wcout << L"Reading fifam_country_strength.txt..." << std::endl;
+        FifamReader reader(infoPath / L"fifam_country_strength.txt", 0);
+        if (reader.Available()) {
+            while (!reader.IsEof()) {
+                if (!reader.EmptyLine()) {
+                    Int countryID = -1;
+                    UInt strength = 0;
+                    reader.ReadLineWithSeparator(L'\t', countryID, strength);
+                    if (countryID >= 1 && countryID <= 207)
+                        mIPCountryStrength[countryID - 1] = strength;
                 }
                 else
                     reader.SkipLine();

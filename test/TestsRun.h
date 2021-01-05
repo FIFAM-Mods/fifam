@@ -40,7 +40,8 @@
 #include "tests\UpdateDbNames.h"
 #include "tests\Fifa07Convert.h"
 #include "tests\Fifa07Kits.h"
+#include "tests\RenameCityPictures.h"
 
 void RunTests() {
-    RunTest<WriteDbTest<FM13, FM13, true>>();
+    RunTest<DatabaseRewrite>();
 }

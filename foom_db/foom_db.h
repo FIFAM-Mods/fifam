@@ -145,7 +145,8 @@ struct db {
             Int compID;
             comp::history h;
             reader.ReadLine(compID, h.mYear, IntPtr(h.mFirstPlaced), IntPtr(h.mSecondPlaced), IntPtr(h.mThirdPlaced), IntPtr(h.mPlayOffWinner), IntPtr(h.mStageName), h.mYearOrder, h.mNoDataForYear, IntPtr(h.mHostStadium));
-            map_find(mComps, compID).mVecHistory.push_back(h);
+            if (mComps.contains(compID))
+                map_find(mComps, compID).mVecHistory.push_back(h);
         });
         ReaderCallback(L"fm_comp_history_additional", [&](FifamReader &reader) {
             Int compID;
@@ -290,7 +291,7 @@ struct db {
                 Int playerID = -1;
                 player::contract c;
                 reader.ReadLine(playerID, IntPtr(c.mClub), c.mJob, c.mSecondaryJob, c.mDateJoined, c.mContractExpires, c.mContractType, c.mWage, c.mOnRollingContract, c.mSquadStatus, c.mSquadNumber, c.mPreferredSquadNumber, c.mAppearanceFee, c.mGoalBonus, c.mCleanSheetBonus, c.mInternationalCapBonus, c.mYearlyWageRise, c.mPromotionWageRise, c.mRelegationWageDrop, c.mOneYearExtensionAfterLeagueGamesFinalSeason, c.mOptionalContractExtensionByClub, c.mMatchHighestEarnerClause, c.mWillLeaveAtEndOfContract, c.mMinimumFeeReleaseClause, c.mMinimumFeeReleaseClauseExpiryDate, c.mSellOnFeePercentage);
-                if (playerID != -1 && c.mClub != (club *)-1)
+                if (playerID != -1 && c.mClub != (club *)-1 && mClubs.contains(Int(c.mClub)))
                     map_find(mPlayers, playerID).mContract = c;
             });
             for (UInt i = 0; i < 10; i++) {
@@ -298,6 +299,10 @@ struct db {
                     Int playerID = -1;
                     player::playing_history h;
                     reader.ReadLine(playerID, h.mYear, h.mOrder, IntPtr(h.mClub), IntPtr(h.mDivision), h.mDateJoined, h.mDateLeft, h.mOnLoan, h.mYouthTeam, h.mApps, h.mGoals, h.mTransferFee);
+                    if (!mClubs.contains(Int(h.mClub)))
+                        *(Int *)(&h.mClub) = -1;
+                    if (!mComps.contains(Int(h.mDivision)))
+                        *(Int *)(&h.mDivision) = -1;
                     map_find(mPlayers, playerID).mVecPlayingHistory.push_back(h);
                 });
             }
@@ -317,19 +322,22 @@ struct db {
                 Int playerID = -1;
                 player::favourite_club f;
                 reader.ReadLine(playerID, IntPtr(f.mClub), f.mReason, f.mLevel);
-                map_find(mPlayers, playerID).mVecFavouriteClubs.push_back(f);
+                if (playerID != -1 && f.mClub != (club*)-1 && mClubs.contains(Int(f.mClub)))
+                    map_find(mPlayers, playerID).mVecFavouriteClubs.push_back(f);
             });
             ReaderCallback(L"fm_player_disliked_clubs", [&](FifamReader &reader) {
                 Int playerID = -1;
                 player::disliked_club d;
                 reader.ReadLine(playerID, IntPtr(d.mClub), d.mLevel);
-                map_find(mPlayers, playerID).mVecDislikedClubs.push_back(d);
+                if (playerID != -1 && d.mClub != (club*)-1 && mClubs.contains(Int(d.mClub)))
+                    map_find(mPlayers, playerID).mVecDislikedClubs.push_back(d);
             });
             ReaderCallback(L"fm_player_favourite_people", [&](FifamReader &reader) {
                 Int playerID = -1;
                 player::favourite_people f;
                 reader.ReadLine(playerID, IntPtr(f.mPerson), f.mLevel, f.mReason, f.mPermanent);
-                map_find(mPlayers, playerID).mVecFavouritePeople.push_back(f);
+                if (playerID != -1 && f.mPerson != (person*)-1 && (mPlayers.contains(Int(f.mPerson)) || mNonPlayers.contains(Int(f.mPerson))))
+                    map_find(mPlayers, playerID).mVecFavouritePeople.push_back(f);
             });
             ReaderCallback(L"fm_player_bans", [&](FifamReader &reader) {
                 Int playerID = -1;
@@ -355,13 +363,15 @@ struct db {
                 Int playerID = -1;
                 player::loan l;
                 reader.ReadLine(playerID, IntPtr(l.mClub), l.mStartDate, l.mEndDate, l.mSquadNumber, l.mWage, l.mMonthlyFee, l.mFeeToBuy);
-                map_find(mPlayers, playerID).mLoan = l;
+                if (playerID != -1 && l.mClub != (club*)-1 && mClubs.contains(Int(l.mClub)))
+                    map_find(mPlayers, playerID).mLoan = l;
             });
             ReaderCallback(L"fm_player_future_transfers", [&](FifamReader &reader) {
                 Int playerID = -1;
                 player::future_transfer f;
                 reader.ReadLine(playerID, IntPtr(f.mClub), f.mTransferDate, f.mContractEndDate, f.mTransferFee, f.mNewJob);
-                map_find(mPlayers, playerID).mFutureTransfer = f;
+                if (playerID != -1 && f.mClub != (club*)-1 && mClubs.contains(Int(f.mClub)))
+                    map_find(mPlayers, playerID).mFutureTransfer = f;
             });
             // read non players
             ReaderCallback(L"fm_non_players", [&](FifamReader &reader) {
@@ -386,19 +396,21 @@ struct db {
                 Int nonplayerID = -1;
                 non_player::favourite_club f;
                 reader.ReadLine(nonplayerID, IntPtr(f.mClub), f.mReason, f.mLevel);
-                map_find(mNonPlayers, nonplayerID).mVecFavouriteClubs.push_back(f);
+                if (nonplayerID != -1 && f.mClub != (club*)-1 && mClubs.contains(Int(f.mClub)))
+                    map_find(mNonPlayers, nonplayerID).mVecFavouriteClubs.push_back(f);
             });
             ReaderCallback(L"fm_nonplayer_disliked_clubs", [&](FifamReader &reader) {
                 Int nonplayerID = -1;
                 non_player::disliked_club d;
                 reader.ReadLine(nonplayerID, IntPtr(d.mClub), d.mLevel);
-                map_find(mNonPlayers, nonplayerID).mVecDislikedClubs.push_back(d);
+                if (nonplayerID != -1 && d.mClub != (club*)-1 && mClubs.contains(Int(d.mClub)))
+                    map_find(mNonPlayers, nonplayerID).mVecDislikedClubs.push_back(d);
             });
             ReaderCallback(L"fm_nonplayer_club_contracts", [&](FifamReader &reader) {
                 Int nonplayerID = -1;
                 non_player::club_contract c;
                 reader.ReadLine(nonplayerID, IntPtr(c.mClub), c.mJob, c.mSecondaryJob, c.mDateJoined, c.mContractExpires, c.mContractType, c.mOnRollingContract, c.mSquadStatus);
-                if (nonplayerID != -1 && c.mClub != (club *)-1)
+                if (nonplayerID != -1 && c.mClub != (club *)-1 && mClubs.contains(Int(c.mClub)))
                     map_find(mNonPlayers, nonplayerID).mClubContract = c;
             });
             ReaderCallback(L"fm_nonplayer_nation_contracts", [&](FifamReader &reader) {
@@ -412,7 +424,7 @@ struct db {
                 Int nonplayerID = -1;
                 non_player::days_at_club_or_nation d;
                 reader.ReadLine(nonplayerID, IntPtr(d.mClubOrNation), d.mDays);
-                if (nonplayerID != -1 && d.mClubOrNation != (nation *)-1)
+                if ((mClubs.contains(Int(d.mClubOrNation)) || mNations.contains(Int(d.mClubOrNation))) && nonplayerID != -1 && d.mClubOrNation != (nation *)-1)
                     map_find(mNonPlayers, nonplayerID).mDaysAtClubOrNation.push_back(d);
             });
             // read officials
@@ -470,7 +482,8 @@ struct db {
             ReaderCallback(L"names_cities_" + translations[tr], [&](FifamReader &reader) {
                 Int id = -1; String name;
                 reader.ReadLine(id, name);
-                mCities[id].mTranslatedNames[tr] = name;
+                if (mCities.contains(id))
+                    mCities[id].mTranslatedNames[tr] = name;
             });
             ReaderCallback(L"names_clubs_" + translations[tr], [&](FifamReader &reader) {
                 Int id = -1; String name; String shortName; String nickname;
@@ -656,6 +669,36 @@ struct db {
         for (auto &entry : mLanguages) {
             language &l = entry.second;
             resolve(l.mNation);
+        }
+
+        // swap rgb
+        auto swaprgb = [](Color &clr) {
+            std::swap(clr.r, clr.b);
+        };
+
+        for (auto &entry : mNations) {
+            nation &n = entry.second;
+            swaprgb(n.mForegroundColor);
+            swaprgb(n.mBackgroundColor);
+            for (auto &k : n.mVecKits) {
+                swaprgb(k.mBackground);
+                swaprgb(k.mForeground);
+                swaprgb(k.mOutline);
+                swaprgb(k.mNumberColour);
+                swaprgb(k.mNumberOutlineColour);
+            }
+        }
+        for (auto &entry : mClubs) {
+            club &c = entry.second;
+            swaprgb(c.mForegroundColor);
+            swaprgb(c.mBackgroundColor);
+            for (auto &k : c.mVecKits) {
+                swaprgb(k.mBackground);
+                swaprgb(k.mForeground);
+                swaprgb(k.mOutline);
+                swaprgb(k.mNumberColour);
+                swaprgb(k.mNumberOutlineColour);
+            }
         }
     }
 };

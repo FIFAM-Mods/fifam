@@ -7,7 +7,7 @@
 #include "FifamCompCup.h"
 #include "FifamCompRound.h"
 
-const UShort CURRENT_YEAR = 2019;
+const UShort CURRENT_YEAR = 2020;
 const UInt DATABASE_VERSION = 0x2020110;
 
 class Converter {
@@ -33,6 +33,8 @@ public:
     Map<UInt, FifamPlayer *> mPreviousPlayers;
     Map<UInt, ColorPair> mRefDbColors;
     Set<UInt> mFreeAgentsToAdd;
+    Array<UInt, 207> mIPCountryStrength = {};
+    Set<UInt> mFaceIDs;
 
     FifamClub *GetPreviousClub(UInt id);
     FifamPlayer *GetPreviousPlayer(UInt id);

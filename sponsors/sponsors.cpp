@@ -14,9 +14,9 @@ Int wmain(Int argc, WideChar **argv) {
     create_directories(outputDir / L"512x85");
     FifamWriter writer(outputDir / L"Sponsor List.txt", 14, FifamVersion());
     writer.SetReplaceQuotes(false);
-    writer.WriteLine(L"// UCP Season Patch - Sponsors List");
+    writer.WriteLine(L"// FIFA Manager 2021 - Sponsors List");
     writer.WriteLine(L"// ");
-    writer.WriteLine(L"// Authors: Dmitry, Ilyon, KEBAB, madebygrey");
+    writer.WriteLine(L"// Authors: Dmitry, Ilyon, KEBAB, madebygrey, fm-zocker.de");
     writer.WriteLine(L"// ");
     writer.WriteNewLine();
     writer.WriteLine(L"BEGIN( COUNTRIES )");
@@ -102,8 +102,11 @@ Int wmain(Int argc, WideChar **argv) {
                         }
                     }
 
-                    if (adboard && in.columns() == 512 && in.rows() == 85)
+                    if (adboard && in.columns() == 512 && in.rows() == 85) {
+                        in.type(MagickCore::ImageType::TrueColorAlphaType);
+                        in.compressType(MagickCore::CompressionType::NoCompression);
                         in.write((outputDir / L"512x85" / filenameTga).string());
+                    }
                     else {
 
                         in.trim();
@@ -120,8 +123,10 @@ Int wmain(Int argc, WideChar **argv) {
                             x96.resize(Magick::Geometry(96 - border_x96 * 2, 96 - border_x96 * 2));
                             x96.extent(Magick::Geometry(96, 96), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
                             Magick::Image out96(in96);
+                            out96.type(MagickCore::ImageType::TrueColorAlphaType);
                             out96.composite(x96, MagickCore::GravityType::CenterGravity, MagickCore::CompositeOperator::OverCompositeOp);
                             out96.composite(x96, MagickCore::GravityType::CenterGravity, MagickCore::CompositeOperator::CopyAlphaCompositeOp);
+                            out96.compressType(MagickCore::CompressionType::NoCompression);
                             out96.write((outputDir / L"96x96" / filenameTga).string());
 
                             // 64x64
@@ -132,8 +137,10 @@ Int wmain(Int argc, WideChar **argv) {
                             x64.resize(Magick::Geometry(64 - border_x64 * 2, 64 - border_x64 * 2));
                             x64.extent(Magick::Geometry(64, 64), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
                             Magick::Image out64(in64);
+                            out64.type(MagickCore::ImageType::TrueColorAlphaType);
                             out64.composite(x64, MagickCore::GravityType::CenterGravity, MagickCore::CompositeOperator::OverCompositeOp);
                             out64.composite(x64, MagickCore::GravityType::CenterGravity, MagickCore::CompositeOperator::CopyAlphaCompositeOp);
+                            out64.compressType(MagickCore::CompressionType::NoCompression);
                             out64.write((outputDir / L"64x64" / filenameTga).string());
                         }
 
@@ -146,6 +153,8 @@ Int wmain(Int argc, WideChar **argv) {
                             x200.extent(Magick::Geometry(188, 105), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
                             Magick::Image out200(Magick::Geometry(200, 120), Magick::Color(0, 0, 0, 0));
                             out200.composite(x200, Magick::Geometry(188, 105, 6, 14), MagickCore::CompositeOperator::OverCompositeOp);
+                            out200.type(MagickCore::ImageType::TrueColorAlphaType);
+                            out200.compressType(MagickCore::CompressionType::NoCompression);
                             if (!colorize)
                                 out200.write((outputDir / L"200x120" / filenameTga).string());
                             else {
@@ -211,8 +220,11 @@ Int wmain(Int argc, WideChar **argv) {
                             out512.resize("512x68!");
                             out512.extent(Magick::Geometry(512, 85), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
                             const Bool writeAdBoardPng = false;
-                            if (writeAdBoardPng)
+                            if (writeAdBoardPng) {
+                                out512.type(MagickCore::ImageType::TrueColorAlphaType);
+                                out512.compressType(MagickCore::CompressionType::NoCompression);
                                 out512.write((outputDir / L"512x85" / (filename + L".png")).string());
+                            }
 
                             if (border) {
                                 Magick::Color c(0, 0, 0, 0);
@@ -227,6 +239,8 @@ Int wmain(Int argc, WideChar **argv) {
                                 if (c.quantumAlpha() != 0) {
                                     Magick::Image out512_tga(Magick::Geometry(512, 85), c);
                                     out512_tga.composite(out512, MagickCore::GravityType::CenterGravity, MagickCore::CompositeOperator::OverCompositeOp);
+                                    out512_tga.type(MagickCore::ImageType::TrueColorAlphaType);
+                                    out512_tga.compressType(MagickCore::CompressionType::NoCompression);
                                     out512_tga.write((outputDir / L"512x85" / filenameTga).string());
                                     //Error(L"%s - %d %d %d", filename.c_str(), c.quantumRed(), c.quantumGreen(), c.quantumBlue());
                                 }
@@ -277,6 +291,8 @@ Int wmain(Int argc, WideChar **argv) {
                                     }
                                     Magick::Image out512_tga(Magick::Geometry(512, 85), c);
                                     out512_tga.composite(out512, MagickCore::GravityType::CenterGravity, MagickCore::CompositeOperator::OverCompositeOp);
+                                    out512_tga.type(MagickCore::ImageType::TrueColorAlphaType);
+                                    out512_tga.compressType(MagickCore::CompressionType::NoCompression);
                                     out512_tga.write((outputDir / L"512x85" / filenameTga).string());
                                     //Error(L"%s - %d %d %d", filename.c_str(), c.quantumRed(), c.quantumGreen(), c.quantumBlue());
                                 }
@@ -293,11 +309,15 @@ Int wmain(Int argc, WideChar **argv) {
                                 out512_white.draw(Magick::DrawableRectangle(0, 0, 512, 85));
                                 out512_white.composite(out512, MagickCore::GravityType::CenterGravity, MagickCore::CompositeOperator::CopyAlphaCompositeOp);
                                 out512_tga.composite(out512_white, MagickCore::GravityType::CenterGravity, MagickCore::CompositeOperator::OverCompositeOp);
+                                out512_tga.type(MagickCore::ImageType::TrueColorAlphaType);
+                                out512_tga.compressType(MagickCore::CompressionType::NoCompression);
                                 out512_tga.write((outputDir / L"512x85" / filenameTga).string());
                             }
                             else if (!quantize && !border) {
                                 Magick::Image out512_tga(Magick::Geometry(512, 85), Magick::Color(231, 231, 231));
                                 out512_tga.composite(out512, MagickCore::GravityType::CenterGravity, MagickCore::CompositeOperator::OverCompositeOp);
+                                out512_tga.type(MagickCore::ImageType::TrueColorAlphaType);
+                                out512_tga.compressType(MagickCore::CompressionType::NoCompression);
                                 out512_tga.write((outputDir / L"512x85" / filenameTga).string());
                             }
                         }

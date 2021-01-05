@@ -288,8 +288,65 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     // first - generate random appearance for ethnicity
     appearanceGenerator.Generate(player, ethnicity);
 
-    if (player->mAppearance.mHairStyle == 0) // 1?
-        player->mAppearance.mHairStyle = 28;
+    static unsigned char hairIdFromEditorId[] = {
+        0,26,120,132,43,25,29,92,46,28,41,16,1,121,82,60,117,123,36,63,40,72,47,114,86,150,37,106,124,65,45,105,38,31,77,88,18,118,133,115,140,61,134,64,135,137,75,155,122,101,113,24,154,148,21,39,141,151,146,129,93,149,17,143,67,70,85,2,119,156,54,57,90,144,152,102,94,42,78,97,147,116,130,145,111,131,127,107,126,104,138,158,153,128,23,112,66,157,30,89,74,136,14,22,53,35,100,13,19,142,58,62,110,55,108,68,20,10,8,69,83,98,15,71,48,7,59,139,44,95,103,73,27,84,125,81,4,34,99,109,52,96,51,12,9,6,91,56,32,80,33,11,76,49,87,3,5,79,159,50,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,240,241,242
+    };
+
+    // fix hair
+    if (player->mAppearance.mHairStyle == 0)
+        player->mAppearance.mHairStyle = hairIdFromEditorId[5 - 1];
+    else if (player->mAppearance.mHairStyle == hairIdFromEditorId[2 - 1])
+        player->mAppearance.mHairStyle = hairIdFromEditorId[6 - 1];
+    else if (player->mAppearance.mHairStyle == hairIdFromEditorId[3 - 1])
+        player->mAppearance.mHairStyle = hairIdFromEditorId[7 - 1];
+    else if (player->mAppearance.mHairStyle == hairIdFromEditorId[4 - 1])
+        player->mAppearance.mHairStyle = hairIdFromEditorId[9 - 1];
+    else if (player->mAppearance.mHairStyle == hairIdFromEditorId[8 - 1])
+        player->mAppearance.mHairStyle = hairIdFromEditorId[10 - 1];
+    else if (player->mAppearance.mHairStyle == hairIdFromEditorId[11 - 1])
+        player->mAppearance.mHairStyle = hairIdFromEditorId[12 - 1];
+
+    // fix hair color
+    if (player->mAppearance.mHairColor == 8)
+        player->mAppearance.mHairColor = FifamHairColor::Black;
+
+    // fix skin type
+    if (age >= 45)
+        player->mAppearance.mFaceVariation = 3;
+    else {
+        if (age >= 35)
+            player->mAppearance.mFaceVariation = FifamFaceVariation::Wrinkles;
+        else if (age >= 26) {
+            if (player->mAppearance.mFaceVariation != FifamFaceVariation::Freckles) {
+                if (age >= 32) {
+                    if (Random::Get(1, 100) > 75)
+                        player->mAppearance.mFaceVariation != FifamFaceVariation::Normal;
+                    else
+                        player->mAppearance.mFaceVariation != FifamFaceVariation::Wrinkles;
+                }
+                if (age >= 29) {
+                    if (Random::Get(1, 100) > 40)
+                        player->mAppearance.mFaceVariation != FifamFaceVariation::Normal;
+                    else
+                        player->mAppearance.mFaceVariation != FifamFaceVariation::Wrinkles;
+                }
+                else {
+                    if (Random::Get(1, 100) > 20)
+                        player->mAppearance.mFaceVariation != FifamFaceVariation::Normal;
+                    else
+                        player->mAppearance.mFaceVariation != FifamFaceVariation::Wrinkles;
+                }
+            }
+        }
+        else {
+            if (player->mAppearance.mFaceVariation == FifamFaceVariation::Wrinkles) {
+                if (Random::Get(1, 100) > 5)
+                    player->mAppearance.mFaceVariation != FifamFaceVariation::Normal;
+                else
+                    player->mAppearance.mFaceVariation != FifamFaceVariation::Freckles;
+            }
+        }
+    }
 
     // second - apply skin color and hair color (if available)
     bool skinColorSet = false;
@@ -365,24 +422,20 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     // third - convert appearance from FIFA (if available)
     if (p->mConverterData.mFifaPlayerId > 0) {
         FifaPlayer *fifaPlayer = mFifaDatabase->GetPlayer(p->mConverterData.mFifaPlayerId);
-        if (fifaPlayer) {
+        if (fifaPlayer)
             appearanceGenerator.SetFromFifaPlayer(player, fifaPlayer);
-            if (exists(mOutputGameFolder / Utils::Format(L"data\\assets\\m228__%d.o", p->mConverterData.mFifaPlayerId)))
-                player->mSpecialFace = p->mConverterData.mFifaPlayerId;
-            player->mComment = L"FIFAID: " + Utils::Format(L"%d", p->mConverterData.mFifaPlayerId);
-        }
+        if (mFaceIDs.contains(p->mConverterData.mFifaPlayerId))
+            player->mSpecialFace = p->mConverterData.mFifaPlayerId;
+        player->mComment = L"FIFAID:" + Utils::Format(L"%d", p->mConverterData.mFifaPlayerId);
     }
 
     // fourth - apply custom appearance (if available)
     bool hasCustomFace = false;
     bool hasCustomHair = false;
-    if (p->mConverterData.mEditorFace >= 1 && p->mConverterData.mEditorFace <= 219) {
+    if (p->mConverterData.mEditorFace >= 1 && p->mConverterData.mEditorFace <= 361) {
         player->mAppearance.mGenericFace = p->mConverterData.mEditorFace - 1;
         hasCustomFace = true;
     }
-    static unsigned char hairIdFromEditorId[] = {
-        0,26,120,132,43,25,29,92,46,28,41,16,1,121,82,60,117,123,36,63,40,72,47,114,86,150,37,106,124,65,45,105,38,31,77,88,18,118,133,115,140,61,134,64,135,137,75,155,122,101,113,24,154,148,21,39,141,151,146,129,93,149,17,143,67,70,85,2,119,156,54,57,90,144,152,102,94,42,78,97,147,116,130,145,111,131,127,107,126,104,138,158,153,128,23,112,66,157,30,89,74,136,14,22,53,35,100,13,19,142,58,162,62,110,55,108,68,20,10,8,69,83,98,15,71,48,7,59,139,44,95,103,73,27,84,125,81,4,34,99,161,109,52,96,51,12,9,6,91,56,32,80,33,11,76,49,87,3,5,79,159,50,160
-    };
     if (p->mConverterData.mEditorHair >= 1 && p->mConverterData.mEditorHair <= std::size(hairIdFromEditorId)) {
         player->mAppearance.mHairStyle = hairIdFromEditorId[p->mConverterData.mEditorHair - 1];
         hasCustomHair = true;

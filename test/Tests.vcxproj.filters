@@ -157,6 +157,12 @@
     <ClInclude Include="tests\UpdateBudgets.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="environment\FifaFifamIDsEnvironment.h">
+      <Filter>testenv</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\RenameCityPictures.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

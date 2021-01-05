@@ -98,6 +98,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="environment\FifaDbEnvironment.h" />
+    <ClInclude Include="environment\FifaFifamIDsEnvironment.h" />
     <ClInclude Include="environment\FifamDbEnvironment.h" />
     <ClInclude Include="environment\FoomDbEnvironment.h" />
     <ClInclude Include="environment\TestsEnvironment.h" />
@@ -131,6 +132,7 @@
     <ClInclude Include="tests\Parameters.h" />
     <ClInclude Include="tests\PlayerRelationsTest.h" />
     <ClInclude Include="tests\ReadWriteTest.h" />
+    <ClInclude Include="tests\RenameCityPictures.h" />
     <ClInclude Include="tests\RulesTest.h" />
     <ClInclude Include="tests\ShowDbVersion.h" />
     <ClInclude Include="tests\ShowPlayers.h" />

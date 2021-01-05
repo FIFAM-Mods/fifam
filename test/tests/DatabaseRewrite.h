@@ -9,9 +9,9 @@ public:
     DatabaseRewrite() {
         UInt const gameVersion = 13;
         UInt const minBudget = 10'000;
-        Path dbPathIn = L"D:\\Games\\FIFA Manager 13\\database";
-        Path dbPathOut = L"D:\\Games\\FIFA Manager 13\\database 2";
-        Path dbPathRef = L"D:\\Games\\FIFA Manager 13\\database ref";
+        Path dbPathIn = L"E:\\Games\\FIFA Manager 13 Clean 1\\database";
+        Path dbPathOut = L"E:\\Games\\FIFA Manager 13 Clean 1\\database 2";
+        Path dbPathRef = L"E:\\Games\\FIFA Manager 13 Clean 1\\database correct";
 
         FifamDatabase::mReadingOptions.mUseCustomFormations = true;
         FifamDatabase *db = new FifamDatabase(gameVersion, dbPathIn);
@@ -24,18 +24,24 @@ public:
                 if (p->mEmpicsId != 0)
                     ref_players[p->mEmpicsId] = p;
             }
-            for (FifamStaff *s : ref_db->mStaffs) {
-                String id = s->GetStringUniqueId(gameVersion);
-                auto it = ref_staff.find(id);
-                if (it != ref_staff.end())
-                    ::Error(L"Staff id duplicated: %s", id.c_str());
-                ref_staff[id] = s;
-            }
+            //for (FifamStaff *s : ref_db->mStaffs) {
+            //    String id = s->GetStringUniqueId(gameVersion);
+            //    auto it = ref_staff.find(id);
+            //    if (it != ref_staff.end())
+            //        ::Error(L"Staff id duplicated: %s", id.c_str());
+            //    ref_staff[id] = s;
+            //}
             for (FifamPlayer *p : db->mPlayers) {
                 if (p->mEmpicsId != 0) {
                     auto it = ref_players.find(p->mEmpicsId);
                     if (it != ref_players.end()) {
                         FifamPlayer *oldP = (*it).second;
+                        if (p->mSpecialFace != oldP->mSpecialFace) {
+                            ::Error(L"Special face was deassigned: %s", p->GetName().c_str());
+                            p->mSpecialFace = oldP->mSpecialFace;
+                        }
+                        p->mAppearance = oldP->mAppearance;
+                        continue;
                         //p->mHistory.mEntries.clear();
                         //for (auto h : oldP->mHistory.mEntries) {
                         //    if (h.mClub.IsValid()) {

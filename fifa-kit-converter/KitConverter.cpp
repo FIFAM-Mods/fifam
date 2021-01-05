@@ -480,7 +480,7 @@ bool KitConverter::ConvertFifaClubKit(int fifaId, string const &clubIdStr, int s
         }
     }
     if (!shirtFileName.empty() && !shortsFileName.empty()) {
-        printf("Converting club %s (%d)", clubIdStr.c_str(), set);
+        printf("Converting kit %s (%d)", clubIdStr.c_str(), set);
         bool result = false;
         if (options.V2)
             result = ConvertKitV2(shirtFileName, shortsFileName, crestFileName, outputFile, logoPos, hasPositions);
@@ -511,7 +511,7 @@ bool KitConverter::ConvertFifaClubMiniKit(int fifaId, string const &clubIdStr, i
     if (fifaId != 0 && !options.OnlyCustomKits && (miniKitPath.empty() || !exists(miniKitPath)))
         miniKitPath = options.MiniKitsPath + "j" + to_string(set) + "_" + to_string(fifaId) + "_" + to_string(variation) + ".dds";
     if (exists(miniKitPath)) {
-        printf("Converting club %d (%d)", fifaId, set);
+        printf("Converting minikit %s (%d)", clubIdStr.c_str(), set);
         Image mini(miniKitPath);
         if (mini.isValid()) {
             mini.write(outputFile + ".png");
@@ -593,7 +593,7 @@ bool KitConverter::ConvertClubArmband(int fifaId, string const &clubIdStr, int s
         }
     }
     if (fifaId != 0 && !options.OnlyCustomKits && shirtFileName.empty()) {
-        string kitFileName = "kit_" + to_string(fifaId) + "_" + to_string(set) + "_" + to_string(variation) + "_2.png";
+        string kitFileName = "shirts\\kit_" + to_string(fifaId) + "_" + to_string(set) + "_" + to_string(variation) + ".png";
         shirtFileName = options.KitsPath + kitFileName;
         if (!exists(shirtFileName))
             shirtFileName.clear();
@@ -648,16 +648,20 @@ bool KitConverter::ConvertClubKitNumbersSet(int fifaId, string const &clubIdStr,
 }
 
 bool KitConverter::ConvertClubKitNumbersSet(int kitnumersId, bool jersey, std::string const &outputFile, ::Color const &clr1, ::Color const &clr2, ::Color const &clr3) {
-    string fileNameBase = options.KitNumbersPath + "kitnumbers_" + to_string(kitnumersId) + "_";
-    string fileName = fileNameBase + "1.png";
-    if (!exists(fileName))
+    string fileNameBase = options.KitNumbersPath + "kitnumbers_" + to_string(kitnumersId) + "_numbers_";
+    string fileName = fileNameBase + "1.dds";
+    if (!exists(fileName)) {
+        //::Error("File not exists: " + fileName);
         return false;
+    }
+    //else
+    //    ::Error("File exists: " + fileName);
     static unsigned int j_numbers[] = { 2, 6, 4, 0, 8, 3, 7, 5, 1, 9 };
     static unsigned int s_numbers[] = { 1, 2, 8, 3, 9, 4, 7, 6, 5, 0 };
     const unsigned int size = 256;
     Image channelsImg(ScaledGeometry(size * 10, size), Magick::Color(0, 0, 0, 0));
     for (unsigned int i = 0; i < 10; i++) {
-        fileName = fileNameBase + to_string((jersey ? j_numbers[i] : s_numbers[i]) + 1) + ".png";
+        fileName = fileNameBase + to_string((jersey ? j_numbers[i] : s_numbers[i]) + 0) + ".dds";
         if (!exists(fileName))
             return false;
         Image img(fileName);
@@ -681,7 +685,9 @@ bool KitConverter::ConvertClubKitNumbersSet(int kitnumersId, bool jersey, std::s
     ScaledComposite(finalImg, channelB, 0, 0, PlusCompositeOp);
     ScaledComposite(finalImg, imgA, 0, 0, CopyAlphaCompositeOp);
     ScaledResize(finalImg, jersey ? 1024 : 256, jersey ? 128 : 32);
+    //::Error("Writing: " + outputFile + "." + options.OutputFormat);
     finalImg.write(outputFile + "." + options.OutputFormat);
+    //::Error("Wrote: " + outputFile + "." + options.OutputFormat);
     return true;
 }
 
@@ -755,7 +761,7 @@ bool KitConverter::ConvertClubKitNumbersSetCustom(string const &dirPath, string 
 }
 
 void KitConverter::ConvertClubKitNumbersCustom() {
-    path customDir = "E:\\Projects\\FIFA20\\custom_kitnumbers\\";
+    path customDir = "E:\\Projects\\FIFA21\\custom_kitnumbers\\";
     for (auto const &p : directory_iterator(customDir)) {
         string folderPath = p.path().string();
         string folderName = p.path().filename().string();

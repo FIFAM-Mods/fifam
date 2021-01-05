@@ -1,5 +1,5 @@
 #pragma once
-#include "FifamDbEnvironment.h"
+#include "FifaFifamIDsEnvironment.h"
 #include "FifaDbEnvironment.h"
 #include "FifamCompLeague.h"
 #include "Magick++.h"
@@ -14,11 +14,9 @@ public:
     }
 
     GenerateKitColors() {
-        //FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
-        //FifamDatabase::mReadingOptions.mReadPersons = false;
-        //FifamDatabase *db = new FifamDatabase(13, L"E:\\Games\\FIFA Manager 13\\database");
-        //FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
-
+        FifaDatabase::m_firstSupportedGameVersion = FifaDatabase::m_lastSupportedGameVersion;
+        FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
+        auto const &ids = GetEnvironment<FifaFifamIDsEnvironment>();
         std::string outputPathVert = "E:\\Games\\FIFA Manager 13\\ucp_popups\\colors\\vert\\";
         std::string outputPathHor = "E:\\Games\\FIFA Manager 13\\ucp_popups\\colors\\hor\\";
         std::string outputPathRot = "E:\\Games\\FIFA Manager 13\\ucp_popups\\colors\\rot\\";
@@ -55,215 +53,61 @@ public:
             img.write(outputPathRot + imgName);
         };
 
-        for (UInt i = 0; i < 64; i++) {
-            for (UInt j = 0; j < 64; j++)
-                GenerateGeneric(i, j);
-        }
+        //for (UInt i = 0; i < 64; i++) {
+        //    for (UInt j = 0; j < 64; j++)
+        //        GenerateGeneric(i, j);
+        //}
 
-        /*
-        auto GenerateForClub = [&](FifamClub *club) {
-            bool generated = false;
-            String teamIDstrW = Utils::Format(L"%08X", club->mUniqueID);
+        auto GenerateForClub = [&](UInt fifamID, UInt fifaID) {
+            String teamIDstrW = Utils::Format(L"%08X", fifamID);
             std::string teamIDstr = Utils::WtoA(teamIDstrW);
             std::wcout << teamIDstrW << std::endl;
-            if (club->mFifaID) {
-                FifaTeam *fifaTeam = fifadb->GetTeam(club->mFifaID);
-                if (fifaTeam) {
-                    for (FifaKit *fifaKit : fifaTeam->m_kits) {
-                        std::string suffix;
-                        if (fifaKit->internal.teamkittypetechid == 0)
-                            suffix = "_h";
-                        else if (fifaKit->internal.teamkittypetechid == 1)
-                            suffix = "_a";
-                        else if (fifaKit->internal.teamkittypetechid == 3)
-                            suffix = "_t";
-                        if (!suffix.empty()) {
-                            //if (exists("D:\\Games\\FIFA Manager 13\\data\\kits\\" + teamIDstr + suffix + ".tga")) {
-                                Image img(Geometry(8, 64), Magick::Color(fifaKit->internal.teamcolorprimr, fifaKit->internal.teamcolorprimg, fifaKit->internal.teamcolorprimb));
-                                img.defineValue("png", "color-type", "2");
-                                if (fifaKit->internal.teamcolorsecpercent >= 15)
-                                    DrawRect(img, 0, 32, 8, 32, fifaKit->internal.teamcolorsecr, fifaKit->internal.teamcolorsecg, fifaKit->internal.teamcolorsecb);
-                                img.write(outputPath + teamIDstr + suffix + ".png");
-                                generated = true;
-                            //}
-                        }
-                    }
-                }
-            }
-            if (!generated) {
-                for (UInt i = 0; i < 2; i++) {
-                    FifamKit::Set &kit = club->mKit.mSets[i];
-                    Image img(Geometry(8, 64), "white");
-                    img.defineValue("png", "color-type", "2");
-                    
-                    auto Draw1 = [&](int shirtColorId) {
-                        shirtColorId -= 1;
-                        if (kit.mShortsColors[0] == kit.mShirtColors[shirtColorId])
-                            DrawRect(img, 0, 0, 8, 64, kit.mShirtColors[shirtColorId].r, kit.mShirtColors[shirtColorId].g, kit.mShirtColors[shirtColorId].b);
-                        else {
-                            DrawRect(img, 0, 0, 8, 32, kit.mShirtColors[shirtColorId].r, kit.mShirtColors[shirtColorId].g, kit.mShirtColors[shirtColorId].b);
-                            DrawRect(img, 0, 32, 8, 32, kit.mShortsColors[0].r, kit.mShortsColors[0].g, kit.mShortsColors[0].b);
-                        }
-                    };
-                    auto Draw2 = [&](int shirtColorId, int shirtColorId2) {
-                        shirtColorId -= 1; shirtColorId2 -= 1;
-                        DrawRect(img, 0, 0, 8, 32, kit.mShirtColors[shirtColorId].r, kit.mShirtColors[shirtColorId].g, kit.mShirtColors[shirtColorId].b);
-                        DrawRect(img, 0, 32, 8, 32, kit.mShirtColors[shirtColorId2].r, kit.mShirtColors[shirtColorId2].g, kit.mShirtColors[shirtColorId2].b);
-                    };
-                    auto Draw3 = [&](int shirtColorId, int shirtColorId2, int shirtColorId3) {
-                        shirtColorId -= 1; shirtColorId2 -= 1;
-                        DrawRect(img, 0, 0, 8, 32, kit.mShirtColors[shirtColorId].r, kit.mShirtColors[shirtColorId].g, kit.mShirtColors[shirtColorId].b);
-                        DrawRect(img, 0, 32, 8, 32, kit.mShirtColors[shirtColorId2].r, kit.mShirtColors[shirtColorId2].g, kit.mShirtColors[shirtColorId2].b);
-                        //shirtColorId -= 1; shirtColorId2 -= 1; shirtColorId3 -= 1;
-                        //DrawRect(img, 0, 0, 8, 21, kit.mShirtColors[shirtColorId].r, kit.mShirtColors[shirtColorId].g, kit.mShirtColors[shirtColorId].b);
-                        //DrawRect(img, 0, 21, 8, 22, kit.mShirtColors[shirtColorId2].r, kit.mShirtColors[shirtColorId2].g, kit.mShirtColors[shirtColorId2].b);
-                        //DrawRect(img, 0, 21 + 22, 8, 21, kit.mShirtColors[shirtColorId3].r, kit.mShirtColors[shirtColorId3].g, kit.mShirtColors[shirtColorId3].b);
-                    };
-                    switch (kit.mShirt) {
-                    case 2:
-                    case 4:
-                    case 5:
-                    case 8:
-                    case 9:
-                    case 18:
-                    case 26:
-                    case 28:
-                    case 29:
-                    case 30:
-                    case 31:
-                    case 32:
-                    case 35:
-                    case 54:
-                    case 56:
-                    case 58:
-                    case 61:
-                    case 62:
-                    case 66:
-                        Draw1(1);
-                        break;
-                    case 1:
-                    case 6:
-                    case 10:
-                    case 11:
-                    case 13:
-                    case 20:
-                    case 27:
-                    case 33:
-                    case 34:
-                    case 37:
-                    case 38:
-                    case 39:
-                    case 40:
-                    case 42:
-                    case 43:
-                    case 44:
-                    case 45:
-                    case 46:
-                    case 47:
-                    case 50:
-                    case 52:
-                    case 64:
-                        if (kit.mShirtColors[0] == kit.mShirtColors[2])
-                            Draw1(1);
-                        else
-                            Draw2(1, 3);
-                        break;
-                    case 22:
-                    case 53:
-                    case 57:
-                    case 59:
-                    case 60:
-                        if (kit.mShirtColors[0] == kit.mShirtColors[1])
-                            Draw1(1);
-                        else
-                            Draw2(1, 2);
-                        break;
-                    case 23:
-                        if (kit.mShirtColors[0] == kit.mShirtColors[2])
-                            Draw1(1);
-                        else
-                            Draw2(3, 1);
-                        break;
-                    case 3:
-                    case 7:
-                    case 14:
-                    case 16:
-                    case 17:
-                    case 19:
-                    case 21:
-                    case 24:
-                    case 25:
-                    case 36:
-                    case 41:
-                    case 48:
-                    case 55:
-                    case 65:
-                        if (kit.mShirtColors[0] == kit.mShirtColors[2])
-                            Draw1(1);
-                        else
-                            Draw3(1, 3, 1);
-                        break;
-                    case 15:
-                    case 63:
-                        if (kit.mShirtColors[0] == kit.mShirtColors[1])
-                            Draw1(1);
-                        else
-                            Draw3(1, 2, 1);
-                        break;
-                    case 12:
-                    case 49:
-                    case 51:
-                        if (kit.mShirtColors[0] == kit.mShirtColors[1] && kit.mShirtColors[1] == kit.mShirtColors[2])
-                            Draw1(1);
-                        else if (kit.mShirtColors[0] == kit.mShirtColors[1])
-                            Draw2(1, 3);
-                        else if (kit.mShirtColors[0] == kit.mShirtColors[2])
-                            Draw2(1, 2);
-                        else if (kit.mShirtColors[1] == kit.mShirtColors[2])
-                            Draw2(1, 2);
-                        else
-                            Draw3(1, 2, 3);
-                        break;
-                    }
+            UInt countryId = (fifamID >> 16) & 0xFF;
+            UInt teamIndex = fifamID & 0xFFFF;
+            FifaTeam *fifaTeam = fifadb->GetTeam(fifaID);
+            if (fifaTeam) {
+                for (FifaKit *fifaKit : fifaTeam->m_kits) {
                     std::string suffix;
-                    if (i == FifamKit::Home)
+                    if (fifaKit->internal.teamkittypetechid == 0)
                         suffix = "_h";
-                    else
+                    else if (fifaKit->internal.teamkittypetechid == 1)
                         suffix = "_a";
-                    img.write(outputPath + teamIDstr + suffix + ".png");
-                }
-            }
-        };
-        for (auto c : db->mCountries) {
-            if (c) {
-                GenerateForClub(&c->mNationalTeam);
-
-                auto countryComps = c->GetCompetitions(true);
-                for (auto comp : countryComps) {
-                    if (comp.second->GetDbType() == FifamCompDbType::League) {
-                        FifamCompLeague *league = comp.second->AsLeague();
-                        for (auto club : league->mTeams) {
-                            if (club.IsValid()) {
-                                if (club.IsFirstTeam()) {
-                                    auto clubLeague = club.mPtr->GetProperty<FifamCompLeague *>(L"league", nullptr);
-                                    if (!clubLeague)
-                                        club.mPtr->SetProperty<FifamCompLeague *>(L"league", league);
-                                }
-                                else if (club.IsReserveTeam()) {
-                                    auto clubLeague = club.mPtr->GetProperty<FifamCompLeague *>(L"reserveleague", nullptr);
-                                    if (!clubLeague)
-                                        club.mPtr->SetProperty<FifamCompLeague *>(L"reserveleague", league);
-                                }
+                    else if (fifaKit->internal.teamkittypetechid == 3)
+                        suffix = "_t";
+                    if (!suffix.empty()) {
+                        if (exists("E:\\Projects\\fifam\\content\\fm13\\art_04\\data\\kits\\" + teamIDstr + suffix + ".tga")) {
+                            Image img(Geometry(8, 64), Magick::Color(fifaKit->internal.teamcolorprimr, fifaKit->internal.teamcolorprimg, fifaKit->internal.teamcolorprimb));
+                            img.defineValue("png", "color-type", "2");
+                            if (fifaKit->internal.teamcolorsecpercent >= 15)
+                                DrawRect(img, 0, 32, 8, 32, fifaKit->internal.teamcolorsecr, fifaKit->internal.teamcolorsecg, fifaKit->internal.teamcolorsecb);
+                            img.write(outputPathVert + teamIDstr + suffix + ".png");
+                            bool rotated = false;
+                            if (countryId == FifamNation::Spain && teamIndex != 0xFFFF) {
+                                img.rotate(-90);
+                                rotated = true;
+                                img.write(outputPathHor + teamIDstr + suffix + ".png");
+                            }
+                            if (countryId == FifamNation::Italy || teamIndex == 0xFFFF) {
+                                if (!rotated)
+                                    img.rotate(-90);
+                                auto i = img.interpolate();
+                                auto f = img.filterType();
+                                img.interpolate(PixelInterpolateMethod::NearestInterpolatePixel);
+                                img.filterType(FilterType::PointFilter);
+                                img.resize(Geometry(512, 96));
+                                img.interpolate(i);
+                                img.filterType(f);
+                                double distortArgs[] = { 22 };
+                                img.distort(DistortMethod::ScaleRotateTranslateDistortion, 1, distortArgs);
+                                img.extent(Geometry(64, 64), GravityType::CenterGravity);
+                                img.write(outputPathRot + teamIDstr + suffix + ".png");
                             }
                         }
                     }
                 }
             }
-        }
-        for (auto c : db->mClubs)
-            GenerateForClub(c);
-        
-
-        delete db;*/
+        };
+        for (auto const &c : ids.mFifaClubs)
+            GenerateForClub(c.second, c.first);
     }
 };

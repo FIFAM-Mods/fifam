@@ -2,6 +2,7 @@
 #include "FifamNames.h"
 #include "FifamUtils.h"
 #include "ConverterUtil.h"
+#include <fstream>
 
 void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div) {
     // name
@@ -96,16 +97,15 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
         dst->mCountOfSoldSeasonTickets = team->mNumberOfSeasonTicketHolders;
     else
         dst->mCountOfSoldSeasonTickets = dst->mAverageAttendanceLastSeason / 2;
-    dst->mPotentialFansCount = dst->mAverageAttendanceLastSeason * 2;
-    if (team->mReputation > 7'000)
-        dst->mPotentialFansCount += (team->mReputation - 7'000) * 50;
     Float fanBaseMp = 6.5f;
     static const Float fanBaseLeagueMp[] = { 2.0f, 2.5f, 3.5f, 5.0f };
-    if (div && div->mLevel >= 1 && div->mLevel <= std::size(fanBaseLeagueMp))
-        fanBaseMp = fanBaseLeagueMp[div->mLevel - 1];
+    if (div && div->mLevel >= 0 && div->mLevel < std::size(fanBaseLeagueMp))
+        fanBaseMp = fanBaseLeagueMp[div->mLevel];
     if (dst->mTraditionalClub)
         fanBaseMp += 0.4f;
-    dst->mPotentialFansCount = UInt(Float(dst->mPotentialFansCount) * fanBaseMp);
+    dst->mPotentialFansCount = UInt(Float(dst->mAverageAttendanceLastSeason) * fanBaseMp);
+    if (team->mReputation > 7'000)
+        dst->mPotentialFansCount += (team->mReputation - 7'000) * 50;
     if (dst->mPotentialFansCount > 250'000)
         dst->mPotentialFansCount = 250'000;
 
@@ -153,7 +153,7 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     Int youthFacilities = team->mYouthFacilities;
     if (youthFacilities <= 0)
         youthFacilities = clubDefaultFacilitiesForUnknown;
-    dst->mYouthCentre = FacilityMap(youthFacilities, { 0, 5, 8, 10, 12, 14, 16, 18, 19, 20}, 1);
+    dst->mYouthCentre = FacilityMap(youthFacilities, { 0, 5, 8, 10, 12, 14, 16, 18, 19, 20 }, 1);
     Int youthCoaching = team->mYouthCoaching;
     if (youthCoaching <= 0)
         youthCoaching = clubDefaultFacilitiesForUnknown;
@@ -264,6 +264,7 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     }
 
     // calculate international prestige
+    /* OLD FORMULA */
     static Pair<Int, UChar> internationalRep[20] = {
         { 9000, 20 },
         { 8750, 19 },
@@ -293,6 +294,67 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
             break;
         }
     }
+    
+    auto oldIp = dst->mInternationalPrestige;
+    // NEW FORMULA
+    Float IPLeagueStrength = 0.0f, IPAttendance = 0.0f, IPReputation = 0.0f, IPEuroCoeff = 0.0f, IPInfrastructure = 0.0f;
+    if (country && country->mId >= 1 && country->mId <= std::size(mIPCountryStrength)) {
+        static Float IPFactorLeagueLevel[] = { 1, 0.75f, 0.5f, 0.25f, 0.1f };
+        IPLeagueStrength = IPFactorLeagueLevel[std::size(IPFactorLeagueLevel) - 1];
+        if (div && div->mLevel < std::size(IPFactorLeagueLevel))
+            IPLeagueStrength = IPFactorLeagueLevel[div->mLevel];
+        IPLeagueStrength *= mIPCountryStrength[country->mId - 1];
+        auto FindInTable = [](Vector<UInt> const &table, UInt value) -> UInt {
+            for (Int v = table.size(); v > 0; v--) {
+                if (value >= table[v - 1])
+                    return v - 1;
+            }
+            return 0;
+        };
+        IPAttendance = Float(FindInTable(
+            { 0,1000,1500,2500,5000,6000,7000,8000,10000,12500,15000,18000,22000,27500,35000,42000,48000,52000,58000,64000,70000,76000,82000,88000,94000,100000 },
+            team->mAttendance
+        )) * 1.5f;
+        IPReputation = Float(FindInTable(
+            { 0,4000,4500,5000,5500,5800,6000,6200,6400,6600,6800,7000,7250,7500,7750,7900,8150,8300,8550,8750,9000,9250,9500,9750,10000,10250 },
+            team->mReputation
+        )) * (country->mContinent == FifamContinent::Europe ? 5.0f : 4.0f);
+        IPEuroCoeff = Float(FindInTable(
+            { 0,10,20,35,50,75,105,140,180,230,280,340,405,475,550,630,715,805,900,1000,1105,1215,1330,1450,1575,1700 },
+            UInt(
+                team->mEuroCoeff10 * 10.0f + team->mEuroCoeff9 * 9.0f + team->mEuroCoeff8 * 8.0f + team->mEuroCoeff7 * 7.0f + team->mEuroCoeff6 * 6.0f
+                + team->mEuroCoeff5 * 5.0f + team->mEuroCoeff4 * 4.0f + team->mEuroCoeff3 * 3.0f + team->mEuroCoeff2 * 2.0f + team->mEuroCoeff1 * 1.0f
+            )
+        )) * 1.5f;
+        IPInfrastructure = Float(FindInTable(
+            { 0,4,8,12,16,20,24,28,32,36,40,44,48,52,56,60,64,68,72,76,80,84,88,92,96,100 },
+            team->mTraining + team->mYouthCoaching + team->mYouthFacilities + team->mCorporateFacilities
+        )) * (country->mContinent == FifamContinent::Europe ? 1.0f : 1.5f);
+        if (country->mContinent == FifamContinent::Europe)
+            dst->mInternationalPrestige = UInt(roundf((IPLeagueStrength + IPAttendance + IPReputation + IPEuroCoeff + IPInfrastructure) / 10.0f));
+        else
+            dst->mInternationalPrestige = UInt(roundf((IPLeagueStrength + IPAttendance + IPReputation + IPInfrastructure) / 8.0f));
+        dst->mInternationalPrestige = Utils::Clamp(dst->mInternationalPrestige, 0, 20);
+    }
+    /*
+    static std::ofstream ipfile("ip.csv");
+    static bool firstTime = true;
+    if (firstTime) {
+        ipfile << "Country,Level,Club,Reputation,STR,ATT,REP,EUR,INF,OldIP,NewIP,Diff\n";
+        firstTime = false;
+    }
+    StringA ipcountryname;
+    if (dst->mCountry)
+        ipcountryname = Utils::WtoA(Utils::GetStringWithoutUnicodeChars(FifamTr(dst->mCountry->mName)));
+    Int ipleaguelevel = 255;
+    if (div)
+        ipleaguelevel = div->mLevel + 1;
+    ipfile << Utils::Format("\"%s\",%d,\"%s\",%d,%g,%g,%g,%g,%g,%d,%d,%d\n", ipcountryname, ipleaguelevel,
+        Utils::WtoA(Utils::GetStringWithoutUnicodeChars(FifamTr(dst->mName))),
+        team->mReputation,
+        IPLeagueStrength, IPAttendance, IPReputation, IPEuroCoeff, IPInfrastructure,
+        oldIp, dst->mInternationalPrestige, Int(dst->mInternationalPrestige) - Int(oldIp));
+    */
 
     // joint-stock company
     dst->mJointStockCompany = dst->mInternationalPrestige > 2 && team->mOwnershipType == 2 /*&& team->mReputation >= 5000*/; // Public Limited Company

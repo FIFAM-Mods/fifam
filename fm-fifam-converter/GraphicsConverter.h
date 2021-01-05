@@ -35,4 +35,5 @@ public:
     void DownloadPlayerPortraitsFIFA21(FifaDatabase *db, Path const &gameOutputPath);
 
     static FifamClubTeamColor GetBadgeColor(Path const &filepath);
+    void ProcessFIFAXXLPortraits(foom::db* db, Path const& gameOutputPath);
 };
