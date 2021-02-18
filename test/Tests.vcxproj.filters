@@ -163,6 +163,15 @@
     <ClInclude Include="tests\RenameCityPictures.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\BadgesFM07toFIFA07.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\CompareDB.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\DbGraphicsStats.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

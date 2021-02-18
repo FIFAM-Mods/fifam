@@ -626,3 +626,4 @@ void FifaConverter::ReadHistoryRatings(Path const &dbPath) {
         }
     }
 }
+

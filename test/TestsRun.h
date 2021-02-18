@@ -41,7 +41,10 @@
 #include "tests\Fifa07Convert.h"
 #include "tests\Fifa07Kits.h"
 #include "tests\RenameCityPictures.h"
+#include "tests\BadgesFM07toFIFA07.h"
+#include "tests\CompareDB.h"
+#include "tests\DbGraphicsStats.h"
 
 void RunTests() {
-    RunTest<DatabaseRewrite>();
+    RunTest<DbGraphicsStats>();
 }

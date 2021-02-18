@@ -1210,7 +1210,15 @@ void FifamDatabase::WriteExternalScriptFile(Path const &filepath, String const &
 
 FifamVersion FifamDatabase::GetGameDbVersion(UInt gameId) {
     FifamVersion version;
-    if (gameId == 7)
+    if (gameId == 3)
+        version.Set(0x2003, 0x01);
+    else if (gameId == 4)
+        version.Set(0x2004, 0x08);
+    else if (gameId == 5)
+        version.Set(0x2005, 0x06);
+    else if (gameId == 6)
+        version.Set(0x2006, 0x01);
+    else if (gameId == 7)
         version.Set(0x2007, 0x0C);
     else if (gameId == 8)
         version.Set(0x2007, 0x1E);
@@ -1230,5 +1238,5 @@ FifamVersion FifamDatabase::GetGameDbVersion(UInt gameId) {
 }
 
 Bool FifamDatabase::IsUnicodeUsedInGameVersion(UInt gameId) {
-    return gameId != 7;
+    return gameId >= 8;
 }

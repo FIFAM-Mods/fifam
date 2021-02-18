@@ -360,11 +360,11 @@ public:
     UInt ReadLineTranslationArray(FifamTrArray<String> &out, WideChar sep = L',');
 
     template<typename T>
-    Vector<T> ReadLineArray(WideChar sep = L',', Bool skipEmpty = false) {
+    Vector<T> ReadLineArray(WideChar sep = L',', Bool skipEmpty = false, Bool trim = true, Bool quotesHavePriority = true) {
         String line;
         GetLine(line);
         Vector<T> ary;
-        Vector<String> strArgs = Utils::Split(line, sep, true, skipEmpty);
+        Vector<String> strArgs = Utils::Split(line, sep, trim, skipEmpty, quotesHavePriority);
         ary.resize(strArgs.size());
         for (UInt i = 0; i < strArgs.size(); i++)
             StrToArg(strArgs[i], ary[i]);

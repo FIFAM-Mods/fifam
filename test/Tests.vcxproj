@@ -104,11 +104,14 @@
     <ClInclude Include="environment\TestsEnvironment.h" />
     <ClInclude Include="Tests.h" />
     <ClInclude Include="TestsRun.h" />
+    <ClInclude Include="tests\BadgesFM07toFIFA07.h" />
     <ClInclude Include="tests\BadgeTest.h" />
     <ClInclude Include="tests\CalendarDatabase.h" />
+    <ClInclude Include="tests\CompareDB.h" />
     <ClInclude Include="tests\CopyPortraitsLight.h" />
     <ClInclude Include="tests\CreateStarheadsFile.h" />
     <ClInclude Include="tests\DbConvert.h" />
+    <ClInclude Include="tests\DbGraphicsStats.h" />
     <ClInclude Include="tests\ExportClubIDs.h" />
     <ClInclude Include="tests\CompetitionsTest.h" />
     <ClInclude Include="tests\CompIDTest.h" />

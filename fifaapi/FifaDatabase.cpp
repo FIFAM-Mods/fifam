@@ -99,6 +99,23 @@ FifaDatabase::FifaDatabase(std::filesystem::path const &path, bool readFut) {
                     else
                         Error("%s: can't open database/version file", __FUNCTION__);
                 }
+                if (isFutVersion) {
+                    names.clear();
+                    if (!file.Open(gamedbpath / strFolder / L"playernames.txt")) {
+                        Error("Can't open fut database/playernames file for game id '%d'", i);
+                        continue;
+                    }
+                    for (FifaDataFile::Line line; file.NextLine(line); ) {
+                        if (m_currentGameVersion <= 12)
+                            line >> name >> nameid;
+                        else if (m_currentGameVersion <= 17)
+                            line >> name >> commentaryid >> nameid;
+                        else
+                            line >> name >> nameid >> commentaryid;
+                        names[nameid] = name;
+                    }
+                    file.Close();
+                }
                 auto playernames = names;
                 if (!isDefaultVersion && file.Open(gamedbpath / strFolder / L"dcplayernames.txt")) {
                     for (FifaDataFile::Line line; file.NextLine(line); ) {

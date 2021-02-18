@@ -52,16 +52,20 @@ public:
     FifamTrArray<String> mName;
     // @since FM07
     // @maxsize 29
-    FifamTrArray<String> mName2;
+    FifamTrArray<String> mName2; // mUnlicensedName
     // @since FM07
     // @maxsize 10
     FifamTrArray<String> mShortName;
     // @since FM07
     // @maxsize 10
-    FifamTrArray<String> mShortName2;
+    FifamTrArray<String> mShortName2; // mUnlicensedShortName
     // @since FM07
     // @maxsize 4
     FifamTrArray<String> mAbbreviation;
+    // @since FM05
+    // @until FM06
+    // @maxsize 5
+    FifamTrArray<String> mAbbreviation5Letters;
     // @since FM07
     // @maxsize 29
     FifamTrArray<String> mCityName;
@@ -100,7 +104,7 @@ public:
     // @since FM07
     FifamTrArray<UChar> mClubNameUsageInPhrase = {};
     // @since FM07
-    FifamTrArray<UChar> mClubNameUsageInPhrase2 = {};
+    FifamTrArray<UChar> mClubNameUsageInPhrase2 = {}; // mClubNameUnlicensedUsageInPhrase
     // @since FM07
     FifamClubLink mPartnershipClub;
     // @since FM07
@@ -145,6 +149,9 @@ public:
     Array<UInt, 3> mLeagueTotalGoalsAgainst = {};
     // @since FM07
     Array<UInt, 3> mLeagueTotalLeadershipsInTable = {};
+    // @since FM05
+    // @until FM07
+    UInt mLeagueTotalMatches = 0;
 
     /* Staadium */
 
@@ -291,6 +298,9 @@ public:
         // @until FM12
         // always empty in 07, unused
         String _4;
+        // @since FM04
+        // @until FM06
+        UShort _5 = 0;
 
         // @since FM07
         struct {

@@ -174,9 +174,17 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
             else
                 mUniqueID = id | (mCountry->mId << 16);
             reader.ReadLineTranslationArray(mName);
-            reader.ReadLineTranslationArray(mName2);
+            if (reader.IsVersionGreaterOrEqual(0x2006, 0x3))
+                reader.ReadLineTranslationArray(mName2);
+            else
+                mName2 = mName;
             reader.ReadLineTranslationArray(mShortName);
-            reader.ReadLineTranslationArray(mShortName2);
+            if (reader.IsVersionGreaterOrEqual(0x2006, 0x3))
+                reader.ReadLineTranslationArray(mShortName2);
+            else
+                mShortName2 = mShortName;
+            if (reader.IsVersionGreaterOrEqual(0x2005, 0x0) && !reader.IsVersionGreaterOrEqual(0x2006, 0x0))
+                reader.ReadLineTranslationArray(mAbbreviation5Letters);
             reader.ReadLineTranslationArray(mAbbreviationArticle);
             reader.ReadLineTranslationArray(mPlayerInTextArticle);
             if (reader.IsVersionGreaterOrEqual(0x2011, 0x05)) {
@@ -189,7 +197,10 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
                 reader.ReadLineTranslationArray(mFanName1Article);
             reader.ReadLineTranslationArray(mAbbreviation);
             reader.ReadLineTranslationArray(mClubNameUsageInPhrase);
-            reader.ReadLineTranslationArray(mClubNameUsageInPhrase2);
+            if (reader.IsVersionGreaterOrEqual(0x2006, 0x3))
+                reader.ReadLineTranslationArray(mClubNameUsageInPhrase2);
+            else
+                mClubNameUsageInPhrase2 = mClubNameUsageInPhrase;
             reader.ReadLineTranslationArray(mCityName);
             if (reader.IsVersionGreaterOrEqual(0x2011, 0x09)) {
                 reader.ReadLineTranslationArray(mPlayerInText);
@@ -219,9 +230,17 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
                 }
             }
             FifamUtils::SaveClubIDToClubLink(mPartnershipClub, reader.ReadLine<UInt>());
-            mRivalClubs.resize(4);
-            for (UInt i = 0; i < 4; i++)
+            mRivalClubs.resize(2);
+            for (UInt i = 0; i < 2; i++)
                 FifamUtils::SaveClubIDToClubLink(mRivalClubs[i], reader.ReadLine<UInt>());
+            if (reader.IsVersionGreaterOrEqual(0x2006, 1)) {
+                mRivalClubs.resize(mRivalClubs.size() + 1);
+                FifamUtils::SaveClubIDToClubLink(mRivalClubs[mRivalClubs.size() - 1], reader.ReadLine<UInt>());
+            }
+            if (reader.IsVersionGreaterOrEqual(0x2006, 3)) {
+                mRivalClubs.resize(mRivalClubs.size() + 1);
+                FifamUtils::SaveClubIDToClubLink(mRivalClubs[mRivalClubs.size() - 1], reader.ReadLine<UInt>());
+            }
             reader.ReadLine(mYearOfFoundation);
             reader.ReadFullLine(mAddress);
             reader.ReadFullLine(mTelephone);
@@ -230,16 +249,29 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
             reader.ReadFullLine(mNewspaper);
             reader.ReadFullLine(mMascotName);
             reader.ReadLine(mInitialCapital);
-            reader.ReadLine(mTransferBudget);
+            if (reader.IsVersionGreaterOrEqual(0x2006, 0x01))
+                reader.ReadLine(mTransferBudget);
             reader.ReadLine(mJointStockCompany);
-            reader.ReadLine(Unknown._2);
-            reader.ReadLine(mPenaltyType);
+            if (reader.IsVersionGreaterOrEqual(0x2005, 0x04))
+                reader.ReadLine(Unknown._2);
+            if (reader.IsVersionGreaterOrEqual(0x2007, 0x09))
+                reader.ReadLine(mPenaltyType);
+            else {
+                reader.ReadLine(mPenaltyPoints);
+                if (mPenaltyPoints != 0) {
+                    mPenaltyPoints = -mPenaltyPoints;
+                    mPenaltyType = FifamClubPenaltyType::Points;
+                }
+            }
             if (reader.IsVersionGreaterOrEqual(0x2011, 0x0B)) {
                 reader.ReadLine(mSponsorAmount);
                 reader.ReadLine(mSponsorDuration);
                 reader.ReadLine(mSpecialSponsor);
             }
-            reader.ReadLine(mPenaltyPoints);
+            if (reader.IsVersionGreaterOrEqual(0x2007, 0x09))
+                reader.ReadLine(mPenaltyPoints);
+            if (!reader.IsVersionGreaterOrEqual(0x2005, 0x00))
+                reader.SkipLines(2);
             if (reader.GetGameId() >= 9)
                 reader.ReadLine(mPotentialFansCount);
             else
@@ -253,12 +285,16 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
                 numLeagues = 2;
             for (UInt i = 0; i < numLeagues; i++)
                 reader.ReadLine(mLeagueTotalPoints[i]);
-            for (UInt i = 0; i < numLeagues; i++)
-                reader.ReadLine(mLeagueTotalWins[i]);
-            for (UInt i = 0; i < numLeagues; i++)
-                reader.ReadLine(mLeagueTotalDraws[i]);
-            for (UInt i = 0; i < numLeagues; i++)
-                reader.ReadLine(mLeagueTotalLoses[i]);
+            if (reader.IsVersionGreaterOrEqual(0x2007, 0x06)) {
+                for (UInt i = 0; i < numLeagues; i++)
+                    reader.ReadLine(mLeagueTotalWins[i]);
+                for (UInt i = 0; i < numLeagues; i++)
+                    reader.ReadLine(mLeagueTotalDraws[i]);
+                for (UInt i = 0; i < numLeagues; i++)
+                    reader.ReadLine(mLeagueTotalLoses[i]);
+            }
+            else
+                reader.ReadLine(mLeagueTotalMatches);
             for (UInt i = 0; i < numLeagues; i++)
                 reader.ReadLine(mLeagueTotalGoals[i]);
             for (UInt i = 0; i < numLeagues; i++)
@@ -267,9 +303,14 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
                 reader.ReadLine(mLeagueTotalLeadershipsInTable[i]);
             reader.ReadLine(mStadiumVenue);
             reader.ReadLine(mStadiumSeatsCapacity);
-            reader.ReadLineTranslationArray(mStadiumName);
-            reader.ReadLine(mStadiumType);
-            reader.ReadLine(clubFlags);
+            if (reader.IsVersionGreaterOrEqual(0x2005, 0x03)) {
+                reader.ReadLineTranslationArray(mStadiumName);
+                reader.ReadLine(mStadiumType);
+                reader.ReadLine(clubFlags);
+            }
+            else {
+                mCanBeDeletedInEditor = true;
+            }
             if (!reader.IsVersionGreaterOrEqual(0x2011, 0x0D)) {
                 mClubFacilities = Utils::MapTo(reader.ReadLine<UChar>(), 0, 5, 0, 6);
                 mMedicalDepartment = Utils::Clamp(reader.ReadLine<UChar>(), 0, 5);
@@ -297,34 +338,38 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
             }
             reader.ReadLine(lastSeasonFlags);
             mBadge.Read(reader);
-            mClubColour.SetFromTable(mTeamColorsTable, reader.ReadLine<UChar>());
-            mClubColour2.SetFromTable(mTeamColorsTable, reader.ReadLine<UChar>());
-            mMerchandiseColour.SetFromTable(mMerchandiseColorsTable, reader.ReadLine<UChar>());
-            if (reader.IsVersionGreaterOrEqual(0x2007, 0x0E)) {
-                mHeaderColour.SetFromTable(m08InterfaceColorsTable, reader.ReadLine<UChar>());
-                mBackgroundColour.SetFromTable(m08InterfaceColorsTable, reader.ReadLine<UChar>());
-            }
-            else {
-                if (reader.IsVersionGreaterOrEqual(0x2007, 2)) {
-                    mHeaderColour.SetFromTable(m07InterfaceColorsTable, reader.ReadLine<UChar>());
-                    mBackgroundColour.SetFromTable(m07InterfaceColorsTable, reader.ReadLine<UChar>());
+            if (reader.IsVersionGreaterOrEqual(0x2004, 0)) {
+                mClubColour.SetFromTable(mTeamColorsTable, reader.ReadLine<UChar>());
+                mClubColour2.SetFromTable(mTeamColorsTable, reader.ReadLine<UChar>());
+                mMerchandiseColour.SetFromTable(mMerchandiseColorsTable, reader.ReadLine<UChar>());
+                if (reader.IsVersionGreaterOrEqual(0x2007, 0x0E)) {
+                    mHeaderColour.SetFromTable(m08InterfaceColorsTable, reader.ReadLine<UChar>());
+                    mBackgroundColour.SetFromTable(m08InterfaceColorsTable, reader.ReadLine<UChar>());
                 }
                 else {
-                    mBackgroundColour = mClubColour.first;
-                    mHeaderColour = mClubColour.second;
+                    if (reader.IsVersionGreaterOrEqual(0x2007, 2)) {
+                        mHeaderColour.SetFromTable(m07InterfaceColorsTable, reader.ReadLine<UChar>());
+                        mBackgroundColour.SetFromTable(m07InterfaceColorsTable, reader.ReadLine<UChar>());
+                    }
+                    else {
+                        mBackgroundColour = mClubColour.first;
+                        mHeaderColour = mClubColour.second;
+                    }
                 }
             }
             mHistory.Read(reader);
             mGeoCoords.mLatitude.SetFromInt(reader.ReadLine<UInt>());
             mGeoCoords.mLongitude.SetFromInt(reader.ReadLine<UInt>());
             reader.ReadLine(mNationalPrestige);
-            if (reader.IsVersionGreaterOrEqual(0x2006, 2))
+            if (reader.IsVersionGreaterOrEqual(0x2006, 0x02))
                 reader.ReadLine(mInternationalPrestige);
             reader.ReadFullLine(Unknown._4);
             reader.ReadLine(mTransfersCountry[0]);
             reader.ReadLine(mTransfersCountry[1]);
             reader.ReadLine(mYouthPlayersCountry);
             reader.ReadLine(mFifaID);
+            if (reader.IsVersionGreaterOrEqual(0x2004, 0x04) && !reader.IsVersionGreaterOrEqual(0x2005, 0x03))
+                reader.ReadLine(Unknown._5);
             ReadClubMembers(reader);
             mKit.Read(reader);
             if (reader.IsVersionGreaterOrEqual(0x2007, 2)) {
@@ -409,6 +454,12 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
                 mPotentialFansCount += (mInternationalPrestige - 14) * 25'000;
             if (mPotentialFansCount > 250'000)
                 mPotentialFansCount = 250'000;
+        }
+        if (!reader.IsVersionGreaterOrEqual(0x2005, 0x0) || reader.IsVersionGreaterOrEqual(0x2006, 0x0)) {
+            for (UInt i = 1; i < FifamTranslation::NUM_TRANSLATIONS; i++) {
+                if (!mShortName[i].empty())
+                    mAbbreviation5Letters[i] = FifamNames::LimitName(mShortName[i], 5);
+            }
         }
 
         // TODO: calculate international prestige for clubs
@@ -568,10 +619,14 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
     else {
         if (writer.IsVersionGreaterOrEqual(0x2007, 0x12))
             writer.WriteLine(mUniqueID);
-        writer.WriteLineTranslationArray(mName);
-        writer.WriteLineTranslationArray(mName2);
-        writer.WriteLineTranslationArray(mShortName);
-        writer.WriteLineTranslationArray(mShortName2);
+        writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mName, FifamNames::LimitName, 29));
+        if (writer.IsVersionGreaterOrEqual(0x2006, 0x3))
+            writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mName2, FifamNames::LimitName, 29));
+        writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mShortName, FifamNames::LimitName, 10));
+        if (writer.IsVersionGreaterOrEqual(0x2006, 0x3))
+            writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mShortName2, FifamNames::LimitName, 10));
+        if (writer.IsVersionGreaterOrEqual(0x2005, 0x0) && !writer.IsVersionGreaterOrEqual(0x2006, 0x0))
+            writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mAbbreviation5Letters, FifamNames::LimitName, 5));
         writer.WriteLineTranslationArray(mAbbreviationArticle);
         writer.WriteLineTranslationArray(mPlayerInTextArticle);
         if (writer.IsVersionGreaterOrEqual(0x2011, 0x05)) {
@@ -582,10 +637,11 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         }
         else
             writer.WriteLineTranslationArray(mFanName1Article);
-        writer.WriteLineTranslationArray(mAbbreviation);
+        writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mAbbreviation, FifamNames::LimitName, 4));
         writer.WriteLineTranslationArray(mClubNameUsageInPhrase);
-        writer.WriteLineTranslationArray(mClubNameUsageInPhrase2);
-        writer.WriteLineTranslationArray(mCityName);
+        if (writer.IsVersionGreaterOrEqual(0x2006, 0x3))
+            writer.WriteLineTranslationArray(mClubNameUsageInPhrase2);
+        writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mCityName, FifamNames::LimitName, 29));
         if (writer.IsVersionGreaterOrEqual(0x2011, 0x09)) {
             writer.WriteLineTranslationArray(mPlayerInText);
             writer.WriteLineTranslationArray(mTermForTeam1);
@@ -608,8 +664,12 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         }
         writer.WriteLine(FifamUtils::GetWriteableID(mPartnershipClub));
         auto rivalClubs = FifamUtils::MakeWriteableIDsList(mRivalClubs);
-        for (UInt i = 0; i < 4; i++)
+        for (UInt i = 0; i < 2; i++)
             writer.WriteLine(rivalClubs[i]);
+        if (writer.IsVersionGreaterOrEqual(0x2006, 1))
+            writer.WriteLine(rivalClubs[2]);
+        if (writer.IsVersionGreaterOrEqual(0x2006, 3))
+            writer.WriteLine(rivalClubs[3]);
         writer.WriteLine(mYearOfFoundation);
         writer.WriteLine(mAddress);
         writer.WriteLine(mTelephone);
@@ -618,16 +678,36 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         writer.WriteLine(mNewspaper);
         writer.WriteLine(mMascotName);
         writer.WriteLine(mInitialCapital);
-        writer.WriteLine(mTransferBudget);
+        if (writer.IsVersionGreaterOrEqual(0x2006, 0x01))
+            writer.WriteLine(mTransferBudget);
         writer.WriteLine(mJointStockCompany);
         writer.WriteLine(Unknown._2);
-        writer.WriteLine(mPenaltyType);
+        if (writer.IsVersionGreaterOrEqual(0x2007, 0x09))
+            writer.WriteLine(mPenaltyType);
+        else {
+            Char penaltyPoints = mPenaltyPoints;
+            if (penaltyPoints != 0) {
+                penaltyPoints = -penaltyPoints;
+                if (penaltyPoints != 3 && penaltyPoints != 6) {
+                    if (penaltyPoints > 6)
+                        penaltyPoints = 6;
+                    else
+                        penaltyPoints = 3;
+                }
+            }
+            writer.WriteLine(penaltyPoints);
+        }
         if (writer.IsVersionGreaterOrEqual(0x2011, 0x0B)) {
             writer.WriteLine(mSponsorAmount);
             writer.WriteLine(mSponsorDuration);
             writer.WriteLine(mSpecialSponsor);
         }
-        writer.WriteLine(mPenaltyPoints);
+        if (writer.IsVersionGreaterOrEqual(0x2007, 0x09))
+            writer.WriteLine(mPenaltyPoints);
+        if (!writer.IsVersionGreaterOrEqual(0x2005, 0x00)) {
+            writer.WriteLine(0);
+            writer.WriteLine(0);
+        }
         if (writer.GetGameId() >= 9)
             writer.WriteLine(mPotentialFansCount);
         else
@@ -641,12 +721,16 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
             numLeagues = 2;
         for (UInt i = 0; i < numLeagues; i++)
             writer.WriteLine(mLeagueTotalPoints[i]);
-        for (UInt i = 0; i < numLeagues; i++)
-            writer.WriteLine(mLeagueTotalWins[i]);
-        for (UInt i = 0; i < numLeagues; i++)
-            writer.WriteLine(mLeagueTotalDraws[i]);
-        for (UInt i = 0; i < numLeagues; i++)
-            writer.WriteLine(mLeagueTotalLoses[i]);
+        if (writer.IsVersionGreaterOrEqual(0x2007, 0x06)) {
+            for (UInt i = 0; i < numLeagues; i++)
+                writer.WriteLine(mLeagueTotalWins[i]);
+            for (UInt i = 0; i < numLeagues; i++)
+                writer.WriteLine(mLeagueTotalDraws[i]);
+            for (UInt i = 0; i < numLeagues; i++)
+                writer.WriteLine(mLeagueTotalLoses[i]);
+        }
+        else
+            writer.WriteLine(mLeagueTotalMatches);
         for (UInt i = 0; i < numLeagues; i++)
             writer.WriteLine(mLeagueTotalGoals[i]);
         for (UInt i = 0; i < numLeagues; i++)
@@ -655,7 +739,7 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
             writer.WriteLine(mLeagueTotalLeadershipsInTable[i]);
         writer.WriteLine(mStadiumVenue);
         writer.WriteLine(mStadiumSeatsCapacity);
-        writer.WriteLineTranslationArray(mStadiumName);
+        writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mStadiumName, FifamNames::LimitName, 29));
         writer.WriteLine(mStadiumType);
         writer.WriteLine(clubFlags);
         if (!writer.IsVersionGreaterOrEqual(0x2011, 0x0D)) {
@@ -675,16 +759,18 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         }
         writer.WriteLine(lastSeasonFlags);
         mBadge.Write(writer);
-        writer.WriteLine(mClubColour.FindIndexInTable(mTeamColorsTable));
-        writer.WriteLine(mClubColour2.FindIndexInTable(mTeamColorsTable));
-        writer.WriteLine(mMerchandiseColour.FindIndexInTable(mMerchandiseColorsTable));
-        if (writer.IsVersionGreaterOrEqual(0x2007, 0x0E)) {
-            writer.WriteLine(mHeaderColour.FindIndexInTable(m08InterfaceColorsTable));
-            writer.WriteLine(mBackgroundColour.FindIndexInTable(m08InterfaceColorsTable));
-        }
-        else if (writer.IsVersionGreaterOrEqual(0x2007, 2)) {
-            writer.WriteLine(mHeaderColour.FindIndexInTable(m07InterfaceColorsTable));
-            writer.WriteLine(mBackgroundColour.FindIndexInTable(m07InterfaceColorsTable));
+        if (writer.IsVersionGreaterOrEqual(0x2004, 0x00)) {
+            writer.WriteLine(mClubColour.FindIndexInTable(mTeamColorsTable));
+            writer.WriteLine(mClubColour2.FindIndexInTable(mTeamColorsTable));
+            writer.WriteLine(mMerchandiseColour.FindIndexInTable(mMerchandiseColorsTable));
+            if (writer.IsVersionGreaterOrEqual(0x2007, 0x0E)) {
+                writer.WriteLine(mHeaderColour.FindIndexInTable(m08InterfaceColorsTable));
+                writer.WriteLine(mBackgroundColour.FindIndexInTable(m08InterfaceColorsTable));
+            }
+            else if (writer.IsVersionGreaterOrEqual(0x2007, 2)) {
+                writer.WriteLine(mHeaderColour.FindIndexInTable(m07InterfaceColorsTable));
+                writer.WriteLine(mBackgroundColour.FindIndexInTable(m07InterfaceColorsTable));
+            }
         }
         mHistory.Write(writer);
         writer.WriteLine(mGeoCoords.mLatitude.ToInt());
@@ -697,6 +783,8 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         writer.WriteLine(mTransfersCountry[1]);
         writer.WriteLine(mYouthPlayersCountry);
         writer.WriteLine(mFifaID);
+        if (writer.IsVersionGreaterOrEqual(0x2004, 0x04) && !writer.IsVersionGreaterOrEqual(0x2005, 0x03))
+            writer.WriteLine(Unknown._5);
         WriteClubMembers(writer);
         mKit.Write(writer);
         if (writer.IsVersionGreaterOrEqual(0x2007, 1)) {
