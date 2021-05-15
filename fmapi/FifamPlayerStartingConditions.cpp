@@ -84,7 +84,7 @@ UInt FifamPlayerStartingConditions::GetNumEnabledConditionsForWriting() {
     return result;
 }
 
-void FifamPlayerStartingConditions::Read(FifamReader &reader) {
+void FifamPlayerStartingConditions::Read(FifamReader &reader, UInt contractFlags) {
     if (reader.IsVersionGreaterOrEqual(0x2011, 0x03)) {
         UInt numConditions = reader.ReadLine<UInt>();
         for (UInt i = 0; i < numConditions; i++) {
@@ -124,7 +124,9 @@ void FifamPlayerStartingConditions::Read(FifamReader &reader) {
         }
     }
     else {
-        UChar startConditionFlags = reader.ReadLine<UChar>();
+        UChar startConditionFlags = 0;
+        //if ()
+        reader.ReadLine<UChar>();
         reader.SkipLine();
         UInt transferClub = reader.ReadLine<UInt>();
         FifamDate transferStartDate = reader.ReadLine<FifamDate>();
@@ -147,16 +149,20 @@ void FifamPlayerStartingConditions::Read(FifamReader &reader) {
             mLoan.Setup(transferStartDate, transferEndDate, FifamClubLink(nullptr), buyOption);
             FifamUtils::SaveClubIDToClubLink(mLoan.mLoanedClub, transferClub);
         }
-        if (startConditionFlags & 16) {
-            mFutureTransfer.Setup(transferStartDate, transferEndDate, FifamClubLink(nullptr), transferFee);
-            FifamUtils::SaveClubIDToClubLink(mFutureTransfer.mNewClub, transferClub);
+        if (reader.GetGameId() >= 7) {
+            if (startConditionFlags & 16) {
+                mFutureTransfer.Setup(transferStartDate, transferEndDate, FifamClubLink(nullptr), transferFee);
+                FifamUtils::SaveClubIDToClubLink(mFutureTransfer.mNewClub, transferClub);
+            }
+            if (startConditionFlags & 32) {
+                mFutureLoan.Setup(transferStartDate, transferEndDate, FifamClubLink(nullptr), buyOption, transferFee);
+                FifamUtils::SaveClubIDToClubLink(mFutureLoan.mLoanedClub, transferClub);
+            }
+            if (reader.GetGameId() >= 11) {
+                if (startConditionFlags & 64)
+                    mBanUntil.Setup(transferEndDate);
+            }
         }
-        if (startConditionFlags & 32) {
-            mFutureLoan.Setup(transferStartDate, transferEndDate, FifamClubLink(nullptr), buyOption, transferFee);
-            FifamUtils::SaveClubIDToClubLink(mFutureLoan.mLoanedClub, transferClub);
-        }
-        if (startConditionFlags & 64)
-            mBanUntil.Setup(transferEndDate);
     }
 }
 
@@ -237,7 +243,7 @@ void FifamPlayerStartingConditions::Write(FifamWriter &writer) {
             transferBuyOption = mLoan.mBuyOptionValue;
             numWrittenConditions++;
         }
-        else if (numWrittenConditions < numConditions && mFutureTransfer.mEnabled && FifamUtils::GetWriteableID(mFutureTransfer.mNewClub)) {
+        else if (writer.GetGameId() >= 7 && numWrittenConditions < numConditions && mFutureTransfer.mEnabled && FifamUtils::GetWriteableID(mFutureTransfer.mNewClub)) {
             startConditionFlags |= 16;
             transferStartDate = mFutureTransfer.mTransferDate;
             transferEndDate = mFutureTransfer.mNewContractEndDate;
@@ -245,7 +251,7 @@ void FifamPlayerStartingConditions::Write(FifamWriter &writer) {
             transferFee = mFutureTransfer.mTransferFee;
             numWrittenConditions++;
         }
-        else if (numWrittenConditions < numConditions && mFutureLoan.mEnabled && FifamUtils::GetWriteableID(mFutureLoan.mLoanedClub)) {
+        else if (writer.GetGameId() >= 7 && numWrittenConditions < numConditions && mFutureLoan.mEnabled && FifamUtils::GetWriteableID(mFutureLoan.mLoanedClub)) {
             startConditionFlags |= 32;
             transferStartDate = mFutureLoan.mStartDate;
             transferEndDate = mFutureLoan.mEndDate;
@@ -294,7 +300,8 @@ void FifamPlayerStartingConditions::Write(FifamWriter &writer) {
         writer.WriteLine(injuryEndDate);
         if (writer.IsVersionGreaterOrEqual(0x2007, 0x10))
             writer.WriteLine(transferBuyOption);
-        writer.WriteLine(transferFee);
+        if (writer.IsVersionGreaterOrEqual(0x2007, 0x00))
+            writer.WriteLine(transferFee);
     }
 }
 

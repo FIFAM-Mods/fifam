@@ -262,33 +262,38 @@ public:
             w.WriteLineWithSeparator(L'\t', L"newid", L"oldid", "change_type", L"empicsid", L"name", L"firstname", L"lastname", L"pseudonym", L"nickname", L"birthdate", L"nationality",
                 L"clubname", L"clubcountry", "clubleaguelevel", L"position", L"level", L"talent");
             for (auto const &p : db2->mPlayers) {
-                if (p->mEmpicsId != 0 && players.contains(p->mEmpicsId)) {
-                    FifamPlayer *oldp = players[p->mEmpicsId];
-                    if (p->mWriteableStringID != oldp->mWriteableStringID) {
-                        UInt clubLeagueLevel = 255;
-                        String clubName, clubCountry;
-                        if (p->mClub) {
-                            clubName = FifamTr(p->mClub->mName);
-                            clubCountry = FifamTr(p->mClub->mCountry->mName);
-                            if (clubLeague2.contains(p->mClub))
-                                clubLeagueLevel = clubLeague2[p->mClub]->mLeagueLevel + 1;
+                try {
+                    if (p->mEmpicsId != 0 && players.contains(p->mEmpicsId)) {
+                        FifamPlayer *oldp = players[p->mEmpicsId];
+                        if (p->mWriteableStringID != oldp->mWriteableStringID) {
+                            UInt clubLeagueLevel = 255;
+                            String clubName, clubCountry;
+                            if (p->mClub) {
+                                clubName = FifamTr(p->mClub->mName);
+                                clubCountry = FifamTr(p->mClub->mCountry->mName);
+                                if (clubLeague2.contains(p->mClub))
+                                    clubLeagueLevel = clubLeague2[p->mClub]->mLeagueLevel + 1;
+                            }
+                            String namePart1 = p->mWriteableStringID.substr(0, p->mWriteableStringID.size() - 8);
+                            String datePart1 = p->mWriteableStringID.substr(p->mWriteableStringID.size() - 8);
+                            String namePart2 = oldp->mWriteableStringID.substr(0, oldp->mWriteableStringID.size() - 8);
+                            String datePart2 = oldp->mWriteableStringID.substr(oldp->mWriteableStringID.size() - 8);
+                            String changeType;
+                            if (namePart1 != namePart2)
+                                changeType = L"name";
+                            if (datePart1 != datePart2) {
+                                if (changeType.empty())
+                                    changeType = L"date";
+                                else
+                                    changeType += L"+date";
+                            }
+                            w.WriteLineWithSeparator(L'\t', p->mWriteableStringID, oldp->mWriteableStringID, changeType, p->mEmpicsId, p->GetName(), p->mFirstName, p->mLastName, p->mPseudonym, p->mNickname,
+                                p->mBirthday.ToString(), NationName(db2, p->mNationality[0]), clubName, clubCountry, clubLeagueLevel, p->mMainPosition.ToStr(), p->GetLevel(), p->mTalent);
                         }
-                        String namePart1 = p->mWriteableStringID.substr(0, p->mWriteableStringID.size() - 8);
-                        String datePart1 = p->mWriteableStringID.substr(p->mWriteableStringID.size() - 8);
-                        String namePart2 = oldp->mWriteableStringID.substr(0, oldp->mWriteableStringID.size() - 8);
-                        String datePart2 = oldp->mWriteableStringID.substr(oldp->mWriteableStringID.size() - 8);
-                        String changeType;
-                        if (namePart1 != namePart2)
-                            changeType = L"name";
-                        if (datePart1 != datePart2) {
-                            if (changeType.empty())
-                                changeType = L"date";
-                            else
-                                changeType += L"+date";
-                        }
-                        w.WriteLineWithSeparator(L'\t', p->mWriteableStringID, oldp->mWriteableStringID, changeType, p->mEmpicsId, p->GetName(), p->mFirstName, p->mLastName, p->mPseudonym, p->mNickname,
-                            p->mBirthday.ToString(), NationName(db2, p->mNationality[0]), clubName, clubCountry, clubLeagueLevel, p->mMainPosition.ToStr(), p->GetLevel(), p->mTalent);
                     }
+                }
+                catch (exception e) {
+                    ::Error("%s\n%d", e.what(), p->mEmpicsId);
                 }
             }
         }

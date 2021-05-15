@@ -44,7 +44,9 @@
 #include "tests\BadgesFM07toFIFA07.h"
 #include "tests\CompareDB.h"
 #include "tests\DbGraphicsStats.h"
+#include "tests\WriteDbTest.h"
+#include "tests\Fifa07Portraits.h"
 
 void RunTests() {
-    RunTest<DbGraphicsStats>();
+    RunTest<CompareDB>();
 }

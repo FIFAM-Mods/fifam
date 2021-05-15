@@ -230,6 +230,12 @@ public:
     ::Color mHeaderColour;
     // @since FM07
     ::Color mBackgroundColour;
+    // @since FM04
+    // @until FM05
+    ::Color mBadgeColour1;
+    // @since FM04
+    // @until FM05
+    ::Color mBadgeColour2;
     // @since FM07
     FifamClubHistory mHistory;
     // @since FM07
@@ -501,6 +507,35 @@ public:
         { FifamClubInterfaceColor08::Forest, { 8, 136, 88 }},
         { FifamClubInterfaceColor08::Forest, { 8, 104, 64 }},
         { FifamClubInterfaceColor08::Indigo, { 80, 0, 128 }}
+    };
+    inline static Vector<Pair<UInt, ::Color>> m04InterfaceColorsTable = {
+        { 0,  { 190, 13, 13   } },
+        { 1,  { 190, 51, 129  } },
+        { 2,  { 255, 42, 26   } },
+        { 3,  { 255, 2, 2     } },
+        { 4,  { 205, 207, 124 } },
+        { 5,  { 150, 174, 16  } },
+        { 6,  { 11, 166, 3    } },
+        { 7,  { 104, 166, 106 } },
+        { 8,  { 143, 169, 173 } },
+        { 9,  { 0, 174, 255   } },
+        { 10, { 48, 53, 151   } },
+        { 11, { 176, 176, 176 } },
+        { 12, { 42, 85, 183   } },
+        { 13, { 152, 227, 255 } },
+        { 14, { 56, 37, 120   } },
+        { 15, { 128, 192, 216 } },
+        { 16, { 134, 56, 153  } },
+        { 17, { 204, 182, 254 } },
+        { 18, { 255, 246, 0   } },
+        { 19, { 255, 198, 0   } },
+        { 20, { 255, 138, 0   } },
+        { 21, { 193, 156, 28  } },
+        { 22, { 255, 255, 255 } },
+        { 23, { 0, 0, 0       } },
+        { 24, { 158, 93, 30   } },
+        { 25, { 98, 98, 98    } },
+        { 26, { 35, 82, 90    } },
     };
 
     void WriteClubMembers(FifamWriter &writer);

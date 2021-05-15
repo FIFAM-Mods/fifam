@@ -2,11 +2,12 @@
 #include "FifamPropertied.h"
 #include "FifamTypes.h"
 #include "FifamReadWrite.h"
+#include "FifamDbWriteable.h"
 
 class FifamCountry;
 
 // @since FM07
-class FifamStadium : public FifamPropertied {
+class FifamStadium : public FifamDbWriteable, public FifamPropertied {
 public:
     // @since FM07
     // @maxsize 29
@@ -40,6 +41,8 @@ public:
         // @until FM04
         String _2;
     } Unknown;
+
+    FifamCountry *mCountry = nullptr;
 
     void Read(FifamReader &reader);
     void Write(FifamWriter &writer);

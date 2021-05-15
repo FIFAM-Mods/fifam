@@ -12,7 +12,7 @@ void FifamCountryLeagueLevelInfo::Read(FifamReader &reader) {
         reader.ReadLine(mNumNonEUPlayersAllowed);
         reader.ReadLine(mNumRelegatedTeams);
         if (reader.IsVersionGreaterOrEqual(0x2007, 0))
-            reader.ReadLine(mRating); // TODO: auto-calculate this value for conversion
+            reader.ReadLine(mRating);
     }
     else
         reader.SkipLines(4);

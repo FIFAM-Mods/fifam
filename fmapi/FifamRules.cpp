@@ -1,23 +1,78 @@
 #include "FifamRules.h"
 #include "FifamUtils.h"
 #include "FifamDbWriteable.h"
+#include "FifamNames.h"
 
 void FifamRules::Read(FifamReader &reader) {
     if (reader.ReadStartIndex(L"RULES_AND_MISC")) {
         if (reader.ReadVersion()) {
-            for (UInt i = 0; i < FifamContinent::NUM_CONTINENTS; i++) {
-                reader.ReadLineTranslationArray(mContinentalCupNames[i].mFirstCup);
-                reader.ReadLineTranslationArray(mContinentalCupNames[i].mSecondCup);
+            if (!reader.IsVersionGreaterOrEqual(0x2005, 0x05)) {
+                reader.ReadLineTranslationArray(mContinentalCupNames[FifamContinent::Europe].mFirstCup);
+                reader.ReadLineTranslationArray(mContinentalCupNames[FifamContinent::Europe].mSecondCup);
+                if (reader.IsVersionGreaterOrEqual(0x2004, 0x00)) {
+                    reader.ReadLineTranslationArray(mContinentalCupNames[FifamContinent::SouthAmerica].mFirstCup);
+                    if (reader.IsVersionGreaterOrEqual(0x2004, 0x04))
+                        reader.ReadLineTranslationArray(mEuropeanSuperCupName);
+                }
+                if (reader.IsVersionGreaterOrEqual(0x2004, 0x07)) {
+                    reader.ReadLineTranslationArray(mContinentalCupNames[FifamContinent::Europe].mFirstCupDup);
+                    reader.ReadLineTranslationArray(mContinentalCupNames[FifamContinent::Europe].mSecondCupDup);
+                    reader.ReadLineTranslationArray(mContinentalCupNames[FifamContinent::SouthAmerica].mFirstCupDup);
+                    reader.ReadLineTranslationArray(mEuropeanSuperCupNameDup);
+                }
+                else {
+                    mContinentalCupNames[FifamContinent::Europe].mFirstCupDup = mContinentalCupNames[FifamContinent::Europe].mFirstCup;
+                    mContinentalCupNames[FifamContinent::Europe].mSecondCupDup = FifamNames::TransformTrArray(mContinentalCupNames[FifamContinent::Europe].mSecondCup, FifamNames::LimitName, 17);
+                    mEuropeanSuperCupNameDup = FifamNames::TransformTrArray(mEuropeanSuperCupName, FifamNames::LimitName, 17);
+                }
+                FifamUtils::SaveClubIDToClubLink(mContinentalCupChampions[FifamContinent::Europe].mFirstCup, reader.ReadLine<UInt>());
+                FifamUtils::SaveClubIDToClubLink(mContinentalCupChampions[FifamContinent::Europe].mSecondCup, reader.ReadLine<UInt>());
+                if (reader.IsVersionGreaterOrEqual(0x2004, 0x00))
+                    FifamUtils::SaveClubIDToClubLink(mContinentalCupChampions[FifamContinent::SouthAmerica].mFirstCup, reader.ReadLine<UInt>());
+                if (reader.GetGameId() >= 5) {
+                    FifamUtils::SaveClubIDToClubLink(mContinentalCupStadiums[FifamContinent::Europe].mFirstCup, reader.ReadLine<UInt>());
+                    FifamUtils::SaveClubIDToClubLink(mContinentalCupStadiums[FifamContinent::Europe].mSecondCup, reader.ReadLine<UInt>());
+                }
+                else {
+                    FifamUtils::SaveStadiumIDToPtr(mEuropeCup1Stadium, reader.ReadLine<UInt>());
+                    FifamUtils::SaveStadiumIDToPtr(mEuropeCup2Stadium, reader.ReadLine<UInt>());
+                }
+                if (reader.IsVersionGreaterOrEqual(0x2004, 0x00)) {
+                    if (reader.GetGameId() >= 5)
+                        FifamUtils::SaveClubIDToClubLink(mContinentalCupStadiums[FifamContinent::SouthAmerica].mFirstCup, reader.ReadLine<UInt>());
+                    else
+                        FifamUtils::SaveStadiumIDToPtr(mSouthAmericaCup1Stadium, reader.ReadLine<UInt>());
+                }
             }
-            reader.ReadLineTranslationArray(mEuropeanSuperCupName);
-            reader.SkipLines(13);
-            for (UInt i = 0; i < FifamContinent::NUM_CONTINENTS; i++) {
-                FifamUtils::SaveClubIDToClubLink(mContinentalCupChampions[i].mFirstCup, reader.ReadLine<UInt>());
-                FifamUtils::SaveClubIDToClubLink(mContinentalCupStadiums[i].mFirstCup, reader.ReadLine<UInt>());
-                FifamUtils::SaveClubIDToClubLink(mContinentalCupChampions[i].mSecondCup, reader.ReadLine<UInt>());
-                FifamUtils::SaveClubIDToClubLink(mContinentalCupStadiums[i].mSecondCup, reader.ReadLine<UInt>());
-                FifamUtils::SaveClubIDToClubLink(mContinentalCupChampions[i].mSuperCup, reader.ReadLine<UInt>());
-                FifamUtils::SaveClubIDToClubLink(mContinentalCupStadiums[i].mSuperCup, reader.ReadLine<UInt>());
+            else {
+                for (UInt i = 0; i < FifamContinent::NUM_CONTINENTS; i++) {
+                    reader.ReadLineTranslationArray(mContinentalCupNames[i].mFirstCup);
+                    reader.ReadLineTranslationArray(mContinentalCupNames[i].mSecondCup);
+                }
+                reader.ReadLineTranslationArray(mEuropeanSuperCupName);
+                if (reader.GetGameId() <= 7) {
+                    for (UInt i = 0; i < FifamContinent::NUM_CONTINENTS; i++) {
+                        reader.ReadLineTranslationArray(mContinentalCupNames[i].mFirstCupDup);
+                        reader.ReadLineTranslationArray(mContinentalCupNames[i].mSecondCupDup);
+                    }
+                    reader.ReadLineTranslationArray(mEuropeanSuperCupNameDup);
+                }
+                else {
+                    reader.SkipLines(13);
+                    for (UInt i = 0; i < FifamContinent::NUM_CONTINENTS; i++) {
+                        mContinentalCupNames[i].mFirstCupDup = mContinentalCupNames[i].mFirstCup;
+                        mContinentalCupNames[i].mSecondCupDup = FifamNames::TransformTrArray(mContinentalCupNames[i].mSecondCup, FifamNames::LimitName, 17);
+                    }
+                    mEuropeanSuperCupNameDup = FifamNames::TransformTrArray(mEuropeanSuperCupName, FifamNames::LimitName, 17);
+                }
+                for (UInt i = 0; i < FifamContinent::NUM_CONTINENTS; i++) {
+                    FifamUtils::SaveClubIDToClubLink(mContinentalCupChampions[i].mFirstCup, reader.ReadLine<UInt>());
+                    FifamUtils::SaveClubIDToClubLink(mContinentalCupStadiums[i].mFirstCup, reader.ReadLine<UInt>());
+                    FifamUtils::SaveClubIDToClubLink(mContinentalCupChampions[i].mSecondCup, reader.ReadLine<UInt>());
+                    FifamUtils::SaveClubIDToClubLink(mContinentalCupStadiums[i].mSecondCup, reader.ReadLine<UInt>());
+                    FifamUtils::SaveClubIDToClubLink(mContinentalCupChampions[i].mSuperCup, reader.ReadLine<UInt>());
+                    FifamUtils::SaveClubIDToClubLink(mContinentalCupStadiums[i].mSuperCup, reader.ReadLine<UInt>());
+                }
             }
             FifamUtils::SaveClubIDToClubLink(Unknown._1, reader.ReadLine<UInt>());
             FifamUtils::SaveClubIDToClubLink(Unknown._2, reader.ReadLine<UInt>());
@@ -58,20 +113,64 @@ void FifamRules::Read(FifamReader &reader) {
 void FifamRules::Write(FifamWriter &writer) {
     writer.WriteStartIndex(L"RULES_AND_MISC");
     writer.WriteVersion();
-    for (UInt i = 0; i < 2; i++) {
-        for (UInt i = 0; i < FifamContinent::NUM_CONTINENTS; i++) {
-            writer.WriteLineTranslationArray(mContinentalCupNames[i].mFirstCup);
-            writer.WriteLineTranslationArray(mContinentalCupNames[i].mSecondCup);
+    if (!writer.IsVersionGreaterOrEqual(0x2005, 0x05)) {
+        writer.WriteLineTranslationArray(mContinentalCupNames[FifamContinent::Europe].mFirstCup);
+        writer.WriteLineTranslationArray(mContinentalCupNames[FifamContinent::Europe].mSecondCup);
+        if (writer.IsVersionGreaterOrEqual(0x2004, 0x00)) {
+            writer.WriteLineTranslationArray(mContinentalCupNames[FifamContinent::SouthAmerica].mFirstCup);
+            if (writer.IsVersionGreaterOrEqual(0x2004, 0x04))
+                writer.WriteLineTranslationArray(mEuropeanSuperCupName);
         }
-        writer.WriteLineTranslationArray(mEuropeanSuperCupName);
+        if (writer.IsVersionGreaterOrEqual(0x2004, 0x07)) {
+            writer.WriteLineTranslationArray(mContinentalCupNames[FifamContinent::Europe].mFirstCupDup);
+            writer.WriteLineTranslationArray(mContinentalCupNames[FifamContinent::Europe].mSecondCupDup);
+            writer.WriteLineTranslationArray(mContinentalCupNames[FifamContinent::SouthAmerica].mFirstCupDup);
+            writer.WriteLineTranslationArray(mEuropeanSuperCupNameDup);
+        }
+        writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupChampions[FifamContinent::Europe].mFirstCup));
+        writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupChampions[FifamContinent::Europe].mSecondCup));
+        if (writer.IsVersionGreaterOrEqual(0x2004, 0x00))
+            writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupChampions[FifamContinent::SouthAmerica].mFirstCup));
+        if (writer.GetGameId() >= 5) {
+            writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupStadiums[FifamContinent::Europe].mFirstCup));
+            writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupStadiums[FifamContinent::Europe].mSecondCup));
+        }
+        else {
+            writer.WriteLine(FifamUtils::GetWriteableID(mEuropeCup1Stadium));
+            writer.WriteLine(FifamUtils::GetWriteableID(mEuropeCup2Stadium));
+        }
+        if (writer.IsVersionGreaterOrEqual(0x2004, 0x00)) {
+            if (writer.GetGameId() >= 5)
+                writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupStadiums[FifamContinent::SouthAmerica].mFirstCup));
+            else
+                writer.WriteLine(FifamUtils::GetWriteableID(mSouthAmericaCup1Stadium));
+        }
     }
-    for (UInt i = 0; i < FifamContinent::NUM_CONTINENTS; i++) {
-        writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupChampions[i].mFirstCup));
-        writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupStadiums[i].mFirstCup));
-        writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupChampions[i].mSecondCup));
-        writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupStadiums[i].mSecondCup));
-        writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupChampions[i].mSuperCup));
-        writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupStadiums[i].mSuperCup));
+    else {
+        if (writer.GetGameId() <= 7) {
+            for (UInt i = 0; i < FifamContinent::NUM_CONTINENTS; i++) {
+                writer.WriteLineTranslationArray(mContinentalCupNames[i].mFirstCupDup);
+                writer.WriteLineTranslationArray(mContinentalCupNames[i].mSecondCupDup);
+            }
+            writer.WriteLineTranslationArray(mEuropeanSuperCupNameDup);
+        }
+        else {
+            for (UInt i = 0; i < 2; i++) {
+                for (UInt i = 0; i < FifamContinent::NUM_CONTINENTS; i++) {
+                    writer.WriteLineTranslationArray(mContinentalCupNames[i].mFirstCup);
+                    writer.WriteLineTranslationArray(mContinentalCupNames[i].mSecondCup);
+                }
+                writer.WriteLineTranslationArray(mEuropeanSuperCupName);
+            }
+        }
+        for (UInt i = 0; i < FifamContinent::NUM_CONTINENTS; i++) {
+            writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupChampions[i].mFirstCup));
+            writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupStadiums[i].mFirstCup));
+            writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupChampions[i].mSecondCup));
+            writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupStadiums[i].mSecondCup));
+            writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupChampions[i].mSuperCup));
+            writer.WriteLine(FifamUtils::GetWriteableID(mContinentalCupStadiums[i].mSuperCup));
+        }
     }
     writer.WriteLine(FifamUtils::GetWriteableID(Unknown._1));
     writer.WriteLine(FifamUtils::GetWriteableID(Unknown._2));

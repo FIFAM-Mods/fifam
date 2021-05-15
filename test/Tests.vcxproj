@@ -63,7 +63,7 @@
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <AdditionalIncludeDirectories>E:\Projects\fifam\fifaapi;E:\Projects\fifam\fmapi;E:\Projects\fifam\generic;E:\Projects\fifam\test\environment;E:\Projects\fifam\foom_db;E:\Projects\ImageMagick-Windows-master\ImageMagick;E:\Projects\ImageMagick-Windows-master\ImageMagick\Magick++\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -85,7 +85,7 @@
       <SDLCheck>true</SDLCheck>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <AdditionalIncludeDirectories>E:\Projects\fifam\fifaapi;E:\Projects\fifam\fmapi;E:\Projects\fifam\generic;E:\Projects\fifam\test\environment;E:\Projects\fifam\foom_db;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;WIN32_LEAN_AND_MEAN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
@@ -122,6 +122,7 @@
     <ClInclude Include="tests\ExportXML.h" />
     <ClInclude Include="tests\Fifa07Convert.h" />
     <ClInclude Include="tests\Fifa07Kits.h" />
+    <ClInclude Include="tests\Fifa07Portraits.h" />
     <ClInclude Include="tests\FifaConverter.h" />
     <ClInclude Include="tests\FoomBasicTest.h" />
     <ClInclude Include="tests\GenerateKitColors.h" />

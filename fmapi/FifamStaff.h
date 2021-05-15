@@ -90,6 +90,7 @@ public:
     void Read(FifamReader &reader);
     void ReadWorker(FifamReader &reader);
     void ReadManager(FifamReader &reader);
+    void SetFromPlayer(FifamPlayer const &player);
     void ReadFromPlayer(FifamReader &reader);
     void Write(FifamWriter &writer);
     void WriteManager(FifamWriter &writer);

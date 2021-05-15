@@ -6,8 +6,11 @@ FifamCompDbType FifamCompLeague::GetDbType() const {
 }
 
 void FifamCompLeague::Read(FifamReader &reader, FifamDatabase *database, FifamNation nationId) {
-    if (!reader.IsVersionGreaterOrEqual(0x2011, 0x07))
+    if (!reader.IsVersionGreaterOrEqual(0x2011, 0x07)) {
         reader.ReadLineTranslationArray(mName);
+        if (reader.IsVersionGreaterOrEqual(0, 0x1) && !reader.IsVersionGreaterOrEqual(0x2006, 0x01))
+            reader.SkipLine();
+    }
     reader.ReadLine(mNumTeams);
     reader.ReadLine(mLeagueLevel);
     auto relFlags = reader.ReadLineArray<String>(L',', true);
@@ -108,8 +111,11 @@ void FifamCompLeague::Write(FifamWriter &writer, FifamDatabase *database, FifamN
     if (!writer.IsVersionGreaterOrEqual(0x2011, 0x07)) {
         if (!writer.IsVersionGreaterOrEqual(0, 0x01))
             writer.WriteLine(FifamTr(mName));
-        else
+        else {
             writer.WriteLineTranslationArray(mName);
+            if (!writer.IsVersionGreaterOrEqual(0x2006, 0x01))
+                writer.WriteLineTranslationArray(mName);
+        }
     }
     writer.WriteLine(mNumTeams);
     writer.WriteLine(mLeagueLevel);

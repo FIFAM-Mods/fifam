@@ -2330,6 +2330,22 @@ void Converter::Convert() {
         }
         duplicateIdsWriter.Close();
     }
+    {
+        FifamWriter reserveLeaguesWriter(outputPath / L"plugins\\ucp\\reserve_leagues.csv");
+        reserveLeaguesWriter.WriteLine(L"CountryId", L"ReserveLevelId", L"CountryName");
+        for (UInt countryId = 1; countryId <= FifamDatabase::NUM_COUNTRIES; countryId++) {
+            FifamCountry *country = mFifamDatabase->GetCountry(countryId);
+            if (country) {
+                UChar reserveLevelId = 255;
+                for (auto const &[id, c] : mFifamDatabase->mCompMap) {
+                    if (id.mType == FifamCompType::Pool && id.mRegion.ToInt() == countryId && c->AsPool() && c->AsPool()->mReserveTeamsAllowed && c->mCompetitionLevel < reserveLevelId)
+                        reserveLevelId = c->mCompetitionLevel;
+                }
+                reserveLeaguesWriter.WriteLine(countryId, (reserveLevelId == 255) ? 255 : (reserveLevelId + 1), FifamTr(country->mName));
+            }
+        }
+    }
+
 #if 1
     if (!mFromFifaDatabase) {
         graphicsConverter.mOnlyUpdates = GRAPHICS_UPDATE_ONLY;

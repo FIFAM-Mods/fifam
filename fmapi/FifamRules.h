@@ -3,12 +3,16 @@
 #include "FifamContinent.h"
 #include "FifamClubLink.h"
 #include "FifamReadWrite.h"
+#include "FifamStadium.h"
 
 class FifamRules {
 public:
     struct ContinentalCupNames {
         FifamTrArray<String> mFirstCup;
         FifamTrArray<String> mSecondCup;
+        // @until FM08
+        FifamTrArray<String> mFirstCupDup;
+        FifamTrArray<String> mSecondCupDup;
     };
 
     struct ContinentalCupClubs {
@@ -21,6 +25,8 @@ public:
     Array<ContinentalCupNames, FifamContinent::NUM_CONTINENTS> mContinentalCupNames;
     // @since FM07
     FifamTrArray<String> mEuropeanSuperCupName;
+    // @until FM08
+    FifamTrArray<String> mEuropeanSuperCupNameDup;
     // @since FM07
     Array<ContinentalCupClubs, FifamContinent::NUM_CONTINENTS> mContinentalCupChampions;
     Array<ContinentalCupClubs, FifamContinent::NUM_CONTINENTS> mContinentalCupStadiums;
@@ -40,6 +46,11 @@ public:
     Array<UShort, 16> mInternationalFriendliesFirstSeason;
     // @since FM09
     Array<UShort, 16> mInternationalFriendliesSecondSeason;
+    // @since FM03
+    // @until FM05
+    FifamStadium *mEuropeCup1Stadium = nullptr;
+    FifamStadium *mEuropeCup2Stadium = nullptr;
+    FifamStadium *mSouthAmericaCup1Stadium = nullptr;
 
     struct {
         // @since FM07

@@ -89,7 +89,7 @@ void FifamPlayerAttributes::Read(FifamReader &reader) {
             Throwing
         );
     }
-    else {
+    else if (reader.IsVersionGreaterOrEqual(0x2006, 0x00)) {
         reader.ReadLine(ShotPower);
         reader.ReadLine(LongShots);
         reader.ReadLine(Dribbling);
@@ -133,6 +133,9 @@ void FifamPlayerAttributes::Read(FifamReader &reader) {
         reader.ReadLine(Punching);
         reader.ReadLine(ShotStopping);
         reader.ReadLine(Throwing);
+    }
+    else {
+        
     }
 }
 

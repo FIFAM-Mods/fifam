@@ -218,10 +218,10 @@ void FifamStaff::ReadManager(FifamReader &reader) {
     mLinkedCountry = mNationality[0];
 }
 
-void FifamStaff::ReadFromPlayer(FifamReader &reader) {
-    FifamPlayer player;
-    player.Read(reader);
+void FifamStaff::SetFromPlayer(FifamPlayer const &player) {
     mClubPosition.SetFromInt(player.mPersonType.ToInt());
+    mPersonType = player.mPersonType;
+    mID = player.mID;
     mFirstName = player.mFirstName;
     mLastName = player.mLastName;
     mPseudonym = player.mPseudonym;
@@ -241,6 +241,13 @@ void FifamStaff::ReadFromPlayer(FifamReader &reader) {
     mLanguages = player.mLanguages;
     mTalent = player.mTalent;
     mJoinedClubDate = player.mContract.mJoined;
+    mClub = player.mClub;
+}
+
+void FifamStaff::ReadFromPlayer(FifamReader &reader) {
+    FifamPlayer player;
+    player.Read(reader);
+    SetFromPlayer(player);
 }
 
 void FifamStaff::Write(FifamWriter &writer) {

@@ -30,7 +30,8 @@ FifamCompPool *FifamCompetition::AsPool() {
 
 void FifamCompetition::Read(FifamReader &reader, FifamDatabase *database, FifamNation nationId) {
     reader.ReadLine(mNumSubsAllowed);
-    reader.ReadLine(mCompetitionLevel);
+    if (!reader.IsVersionGreaterOrEqual(0x2003, 0x00) || reader.IsVersionGreaterOrEqual(0x2006, 0x00))
+        reader.ReadLine(mCompetitionLevel);
     auto predecessors = FifamUtils::ExtractCompetitionIDs(reader.ReadFullLine(), FifamCompRegion::MakeFromInt(nationId.ToInt()));
     mPredecessors.resize(predecessors.size());
     for (UInt i = 0; i < mPredecessors.size(); i++)
@@ -44,7 +45,8 @@ void FifamCompetition::Read(FifamReader &reader, FifamDatabase *database, FifamN
 
 void FifamCompetition::Write(FifamWriter &writer, FifamDatabase *database, FifamNation nationId) {
     writer.WriteLine(mNumSubsAllowed);
-    writer.WriteLine(mCompetitionLevel);
+    if (!writer.IsVersionGreaterOrEqual(0x2003, 0x00) || writer.IsVersionGreaterOrEqual(0x2006, 0x00))
+        writer.WriteLine(mCompetitionLevel);
     if (!mPredecessors.empty()) {
         auto predecessors = FifamUtils::MakeWriteableIDsList(mPredecessors, writer.GetGameId());
         Vector<FifamCompID> compIDs;

@@ -52,6 +52,14 @@ UInt FifamUtils::GetSavedPlayerIDFromPtr(FifamPlayer *&ptr) {
     return reinterpret_cast<UInt>(ptr);
 }
 
+void FifamUtils::SaveStadiumIDToPtr(FifamStadium *&ptr, UInt ID) {
+    ptr = reinterpret_cast<FifamStadium *>(ID);
+}
+
+UInt FifamUtils::GetSavedStadiumIDFromPtr(FifamStadium *&ptr) {
+    return reinterpret_cast<UInt>(ptr);
+}
+
 UChar FifamUtils::GetCountryIDFromClubID(UInt clubID) {
     return (clubID >> 16) & 0xFF;
 }
@@ -80,7 +88,7 @@ Bool FifamUtils::ExtractCompetitionID(FifamCompID &outID, String const &line, Fi
     return ExtractCompetitionID(outID, line, linePos, region);
 }
 
-FifamCompID FifamUtils::ExtractCompetitionID(String &line, FifamCompRegion const &region) {
+FifamCompID FifamUtils::ExtractCompetitionID(String const &line, FifamCompRegion const &region) {
     FifamCompID result;
     ExtractCompetitionID(result, line, region);
     return result;

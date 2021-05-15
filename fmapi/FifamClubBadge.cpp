@@ -155,13 +155,19 @@ String FifamClubBadge::ToStr() {
 String FifamClubBadge::GetBadgePath(UInt gameId) {
     if (mType == FifamClubBadgeType::NoBadge)
         return L"";
-    else if (mType == FifamClubBadgeType::EALogo)
-        return L"generic\\Badge%d\\generic256.tga";
+    else if (mType == FifamClubBadgeType::EALogo) {
+        if (gameId <= 6)
+            return L"generic\\badge256\\generic256.tga";
+        else
+            return L"generic\\Badge%d\\generic256.tga";
+    }
     else if (mType == FifamClubBadgeType::Club)
         return mClubFileName;
     else {
         String line;
-        if (gameId <= 9)
+        if (gameId <= 6)
+            line += L"color\\badge256\\";
+        else if (gameId <= 9)
             line += L"Color\\Badge%d\\";
         else
             line += L"generic\\256x256\\";
@@ -367,6 +373,10 @@ void FifamClubBadge::SetBadgePath(String const &str) {
         badgeName = line.substr(16);
     else if (Utils::StartsWith(line, L"generic\\256x256\\"))
         badgeName = line.substr(16);
+    else if (Utils::StartsWith(line, L"color\\badge256\\"))
+        badgeName = line.substr(15);
+    else if (Utils::StartsWith(line, L"generic\\badge256\\"))
+        badgeName = line.substr(17);
     else {
         SetClub(str);
         return;

@@ -113,7 +113,7 @@ void FifamPlayer::Read(FifamReader &reader) {
                 FifamUtils::SaveClubIDToClubLink(mTransferRumors[1], reader.ReadLine<UInt>());
                 FifamUtils::SaveClubIDToClubLink(mTransferRumors[2], reader.ReadLine<UInt>());
             }
-            mStartingConditions.Read(reader);
+            mStartingConditions.Read(reader, 0);
             mHistory.Read(reader);
             mContract.Read(reader);
             reader.ReadLine(mManagerMotivationSkills, mManagerCoachingSkills, mManagerGoalkeepersTraining, mManagerNegotiationSkills);
@@ -344,14 +344,16 @@ void FifamPlayer::Read(FifamReader &reader) {
                 mContract.mOptionClub = 1;
             if (mContract.mOptionPlayer == 0 && Utils::CheckFlag(contractFlags, 0x80))
                 mContract.mOptionPlayer = 1;
-            mStartingConditions.Read(reader);
+            mStartingConditions.Read(reader, contractFlags);
             reader.ReadLine(mShoeType);
             reader.ReadLine(mLongSleeves);
-            mHistory.Read(reader);
-            reader.ReadLine(mComment);
+            if (reader.IsVersionGreaterOrEqual(0x2005, 0x00))
+                mHistory.Read(reader);
+            if (reader.IsVersionGreaterOrEqual(0x2004, 0x00))
+                reader.ReadLine(mComment);
             if (reader.IsVersionGreaterOrEqual(0x2011, 0x01))
                 reader.ReadLine(mPlayerAgent);
-            else
+            else if (reader.IsVersionGreaterOrEqual(0x2006, 0x00))
                 reader.ReadLine(Unknown._1);
 
             //if (playerBasicFlags >= 8)
@@ -897,11 +899,13 @@ void FifamPlayer::Write(FifamWriter &writer) {
         mStartingConditions.Write(writer);
         writer.WriteLine(mShoeType);
         writer.WriteLine(mLongSleeves);
-        mHistory.Write(writer);
-        writer.WriteLine(mComment);
+        if (writer.IsVersionGreaterOrEqual(0x2005, 0x00))
+            mHistory.Write(writer);
+        if (writer.IsVersionGreaterOrEqual(0x2004, 0x00))
+            writer.WriteLine(mComment);
         if (writer.IsVersionGreaterOrEqual(0x2011, 0x01))
             writer.WriteLine(mPlayerAgent);
-        else
+        else if (writer.IsVersionGreaterOrEqual(0x2006, 0x00))
             writer.WriteLine(Unknown._1);
     }
     writer.WriteEndIndex(L"PLAYER");

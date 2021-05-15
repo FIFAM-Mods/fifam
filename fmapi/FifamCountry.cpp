@@ -23,6 +23,7 @@ FifamReferee *FifamCountry::AddReferee() {
 
 FifamStadium *FifamCountry::AddStadium() {
     FifamStadium *stadium = new FifamStadium;
+    stadium->mCountry = this;
     mStadiums.push_back(stadium);
     mDatabase->mStadiums.insert(stadium);
     return stadium;
@@ -62,6 +63,11 @@ Bool FifamCountry::Read(FifamReader &reader) {
                             reader.ReadEndIndex(Utils::Format(L"COMP%d", i));
                         }
                     }
+                    UInt numLevelNames = reader.ReadLine<UInt>();
+                    for (UInt i = 0; i < numLevelNames; i++) {
+                        auto &levelName = mLeagueLevelNames.emplace_back();
+                        reader.ReadLineTranslationArray(levelName);
+                    }
                     reader.ReadEndIndex(L"COMPETITION");
                 }
             }
@@ -83,6 +89,26 @@ Bool FifamCountry::Read(FifamReader &reader) {
                                     comp->mName[i] = compInfo[i + 1];
                             }
                         }
+                    }
+                }
+            }
+            if (reader.GetGameId() <= 5) {
+                Int maxLeagueLevel = -1;
+                auto countryComps = GetCompetitions();
+                for (auto const &cc : countryComps) {
+                    if (cc.second->GetDbType() == FifamCompDbType::League && cc.first.mType == FifamCompType::League) {
+                        if (cc.second->AsLeague()->mLeagueLevel > maxLeagueLevel)
+                            maxLeagueLevel = cc.second->AsLeague()->mLeagueLevel;
+                    }
+                }
+                if (maxLeagueLevel >= 0) {
+                    UInt numLeagueLevels = maxLeagueLevel + 1;
+                    if (numLeagueLevels > 5)
+                        numLeagueLevels = 5;
+                    for (UInt ll = 0; ll < numLeagueLevels; ll++) {
+                        FifamTrArray<String> levelName;
+                        FifamTrSetAll(levelName, Utils::Format(L"Division %d", ll + 1));
+                        mLeagueLevelNames.push_back(levelName);
                     }
                 }
             }
@@ -351,10 +377,6 @@ Bool FifamCountry::Read(FifamReader &reader) {
             }
             reader.ReadEndIndex(countryMiscSectionName);
 
-            if (!reader.IsVersionGreaterOrEqual(0x2006, 0)) {
-                // create pools
-            }
-
             if (!reader.IsVersionGreaterOrEqual(0x2007, 0)) {
                 Array<Float, 10> mp = { 1.0f, 0.9f, 0.82f, 0.75f, 0.68f, 0.57f, 0.46f, 0.3f, 0.2f, 0.1f };
                 for (UInt i = 0; i < 10; i++)
@@ -449,10 +471,12 @@ Bool FifamCountry::Write(FifamWriter &writer) {
         WriteComps(compFACups);
         WriteComps(compLECups);
         WriteComps(compSupercups);
-        UInt numLevelNames = Utils::Min(maxLeagueLevels, mLeagueLevelNames.size());
-        writer.WriteLine(numLevelNames);
-        for (UInt i = 0; i < numLevelNames; i++)
-            writer.WriteLineTranslationArray(mLeagueLevelNames[i]);
+        if (writer.GetGameId() >= 6) {
+            UInt numLevelNames = Utils::Min(maxLeagueLevels, mLeagueLevelNames.size());
+            writer.WriteLine(numLevelNames);
+            for (UInt i = 0; i < numLevelNames; i++)
+                writer.WriteLineTranslationArray(mLeagueLevelNames[i]);
+        }
         writer.WriteEndIndex(L"COMPETITION");
     }
     else {

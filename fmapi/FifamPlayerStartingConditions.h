@@ -89,6 +89,6 @@ public:
     static FifamPlayerInjuryType GetDefaultInjuryType(Int injuryDays);
     static FifamPlayerInjuryType TranslateInjuryTypeForGame(FifamPlayerInjuryType const &injury, UInt gameId, Int injuryDays);
     UInt GetNumEnabledConditionsForWriting();
-    void Read(FifamReader &reader);
+    void Read(FifamReader &reader, UInt contractFlags);
     void Write(FifamWriter &writer);
 };

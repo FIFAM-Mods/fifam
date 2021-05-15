@@ -9,8 +9,28 @@ void FifamClub::ReadClubMembers(FifamReader &reader) {
     for (UInt i = 0; i < playersCount; i++) {
         UInt id = reader.ReadLine<UInt>();
         if (FifamDatabase::mReadingOptions.mReadPersons) {
-            auto player = mCountry->mDatabase->CreatePlayer(this, id);
-            player->Read(reader);
+            if (reader.IsVersionGreaterOrEqual(0x2006, 1)) {
+                auto player = mCountry->mDatabase->CreatePlayer(this, id);
+                player->Read(reader);
+            }
+            else {
+                FifamPlayer *player = new FifamPlayer;
+                player->Read(reader);
+                if (player->mPersonType == FifamPersonType::Player) {
+                    player->mID = id;
+                    mCountry->mDatabase->mPlayers.insert(player);
+                    auto it = mCountry->mDatabase->mPersonsMap.find(id);
+                    if (it != mCountry->mDatabase->mPersonsMap.end())
+                        Error(L"FifamDatabase::CreatePlayer: ID is already in use (%d)", id);
+                    mCountry->mDatabase->mPersonsMap[id] = player;
+                    mPlayers.push_back(player);
+                    player->mClub = this;
+                }
+                else {
+                    auto staff = mCountry->mDatabase->CreateStaff(this, id);
+                    staff->SetFromPlayer(*player);
+                }
+            }
         }
         else {
             FifamPlayer dummyPlayer;
@@ -39,22 +59,33 @@ void FifamClub::WriteClubMembers(FifamWriter &writer) {
         if (player->GetIsWriteable())
             players.push_back(player);
     }
-    writer.WriteLine(players.size());
+    Vector<FifamStaff *> staffs;
+    for (auto staff : mStaffs) {
+        if (staff->GetIsWriteable() && 
+            (writer.IsVersionGreaterOrEqual(0x2006, 1) || 
+            (staff->mClubPosition == FifamClubStaffPosition::Manager ||
+             staff->mClubPosition == FifamClubStaffPosition::ChiefExec ||
+             staff->mClubPosition == FifamClubStaffPosition::President)))
+        {
+            staffs.push_back(staff);
+        }
+    }
+    if (writer.IsVersionGreaterOrEqual(0x2006, 1))
+        writer.WriteLine(players.size());
+    else
+        writer.WriteLine(players.size() + staffs.size());
     for (auto player : players) {
         writer.WriteLine(FifamUtils::GetWriteableID(player));
         player->Write(writer);
     }
-    if (writer.IsVersionGreaterOrEqual(0x2006, 1)) {
-        Vector<FifamStaff *> staffs;
-        for (auto staff : mStaffs) {
-            if (staff->GetIsWriteable())
-                staffs.push_back(staff);
-        }
+    if (writer.IsVersionGreaterOrEqual(0x2006, 1))
         writer.WriteLine(staffs.size());
-        for (auto staff : staffs) {
-            writer.WriteLine(FifamUtils::GetWriteableID(staff));
+    for (auto staff : staffs) {
+        writer.WriteLine(FifamUtils::GetWriteableID(staff));
+        if (writer.IsVersionGreaterOrEqual(0x2006, 1))
             staff->Write(writer);
-        }
+        else
+            staff->WriteToPlayer(writer);
     }
 }
 
@@ -339,22 +370,39 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
             reader.ReadLine(lastSeasonFlags);
             mBadge.Read(reader);
             if (reader.IsVersionGreaterOrEqual(0x2004, 0)) {
-                mClubColour.SetFromTable(mTeamColorsTable, reader.ReadLine<UChar>());
-                mClubColour2.SetFromTable(mTeamColorsTable, reader.ReadLine<UChar>());
-                mMerchandiseColour.SetFromTable(mMerchandiseColorsTable, reader.ReadLine<UChar>());
-                if (reader.IsVersionGreaterOrEqual(0x2007, 0x0E)) {
-                    mHeaderColour.SetFromTable(m08InterfaceColorsTable, reader.ReadLine<UChar>());
-                    mBackgroundColour.SetFromTable(m08InterfaceColorsTable, reader.ReadLine<UChar>());
-                }
-                else {
-                    if (reader.IsVersionGreaterOrEqual(0x2007, 2)) {
-                        mHeaderColour.SetFromTable(m07InterfaceColorsTable, reader.ReadLine<UChar>());
-                        mBackgroundColour.SetFromTable(m07InterfaceColorsTable, reader.ReadLine<UChar>());
+                if (reader.IsVersionGreaterOrEqual(0x2005, 0)) {
+                    mClubColour.SetFromTable(mTeamColorsTable, reader.ReadLine<UChar>());
+                    mClubColour2.SetFromTable(mTeamColorsTable, reader.ReadLine<UChar>());
+                    mMerchandiseColour.SetFromTable(mMerchandiseColorsTable, reader.ReadLine<UChar>());
+                    if (reader.IsVersionGreaterOrEqual(0x2007, 0x0E)) {
+                        mHeaderColour.SetFromTable(m08InterfaceColorsTable, reader.ReadLine<UChar>());
+                        mBackgroundColour.SetFromTable(m08InterfaceColorsTable, reader.ReadLine<UChar>());
                     }
                     else {
-                        mBackgroundColour = mClubColour.first;
-                        mHeaderColour = mClubColour.second;
+                        if (reader.IsVersionGreaterOrEqual(0x2007, 2)) {
+                            mHeaderColour.SetFromTable(m07InterfaceColorsTable, reader.ReadLine<UChar>());
+                            mBackgroundColour.SetFromTable(m07InterfaceColorsTable, reader.ReadLine<UChar>());
+                        }
+                        else {
+                            mBackgroundColour = mClubColour.first;
+                            mHeaderColour = mClubColour.second;
+                        }
                     }
+                }
+                else {
+                    mBadgeColour1.SetFromTable(m04InterfaceColorsTable, reader.ReadLine<UChar>());
+                    mBadgeColour2.SetFromTable(m04InterfaceColorsTable, reader.ReadLine<UChar>());
+                    mBackgroundColour.SetFromTable(m04InterfaceColorsTable, reader.ReadLine<UChar>());
+                    mClubColour.first = mBadgeColour1;
+                    mClubColour.second = mBadgeColour2;
+                    mClubColour2 = mClubColour;
+                    mMerchandiseColour = mBackgroundColour;
+                    auto white = Color::Distance(mBackgroundColour, { 255, 255, 255 });
+                    auto black = Color::Distance(mBackgroundColour, { 0, 0, 0 });
+                    if (black < white)
+                        mHeaderColour = { 255, 255, 255 };
+                    else
+                        mHeaderColour = { 0, 0, 0 };
                 }
             }
             mHistory.Read(reader);
@@ -460,6 +508,34 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
                 if (!mShortName[i].empty())
                     mAbbreviation5Letters[i] = FifamNames::LimitName(mShortName[i], 5);
             }
+        }
+        if (reader.IsVersionGreaterOrEqual(0x2005, 0x0)) {
+            mBadgeColour1 = mClubColour.first;
+            mBadgeColour2 = mClubColour.second;
+        }
+        else if (!reader.IsVersionGreaterOrEqual(0x2004, 0x0)) {
+            mBadgeColour1.SetFromTable(m04InterfaceColorsTable, reader.ReadLine<UChar>());
+            mBadgeColour2.SetFromTable(m04InterfaceColorsTable, reader.ReadLine<UChar>());
+            mBackgroundColour.SetFromTable(m04InterfaceColorsTable, reader.ReadLine<UChar>());
+            mClubColour.first = mKit.mSets[0].mShirtColors[0];
+            if (Color::Distance(mClubColour.first, mKit.mSets[0].mShirtColors[1]) > 100)
+                mClubColour.second = mKit.mSets[0].mShirtColors[1];
+            else if (Color::Distance(mClubColour.first, mKit.mSets[0].mShirtColors[2]) > 100)
+                mClubColour.second = mKit.mSets[0].mShirtColors[2];
+            else {
+                auto white = Color::Distance(mClubColour.first, { 255, 255, 255 });
+                auto black = Color::Distance(mClubColour.first, { 0, 0, 0 });
+                if (black < white)
+                    mClubColour.second = { 255, 255, 255 };
+                else
+                    mClubColour.second = { 0, 0, 0 };
+            }
+            mClubColour2 = mClubColour;
+            mBackgroundColour = mClubColour.first;
+            mHeaderColour = mClubColour.second;
+            mMerchandiseColour = mBackgroundColour;
+            mBadgeColour1 = mClubColour.first;
+            mBadgeColour2 = mClubColour.second;
         }
 
         // TODO: calculate international prestige for clubs
@@ -759,7 +835,7 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         }
         writer.WriteLine(lastSeasonFlags);
         mBadge.Write(writer);
-        if (writer.IsVersionGreaterOrEqual(0x2004, 0x00)) {
+        if (writer.IsVersionGreaterOrEqual(0x2005, 0x00)) {
             writer.WriteLine(mClubColour.FindIndexInTable(mTeamColorsTable));
             writer.WriteLine(mClubColour2.FindIndexInTable(mTeamColorsTable));
             writer.WriteLine(mMerchandiseColour.FindIndexInTable(mMerchandiseColorsTable));
@@ -771,6 +847,11 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
                 writer.WriteLine(mHeaderColour.FindIndexInTable(m07InterfaceColorsTable));
                 writer.WriteLine(mBackgroundColour.FindIndexInTable(m07InterfaceColorsTable));
             }
+        }
+        else if (writer.IsVersionGreaterOrEqual(0x2004, 0x00)) {
+            writer.WriteLine(mBadgeColour1.FindIndexInTable(m04InterfaceColorsTable));
+            writer.WriteLine(mBadgeColour2.FindIndexInTable(m04InterfaceColorsTable));
+            writer.WriteLine(mBackgroundColour.FindIndexInTable(m04InterfaceColorsTable));
         }
         mHistory.Write(writer);
         writer.WriteLine(mGeoCoords.mLatitude.ToInt());

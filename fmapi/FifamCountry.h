@@ -239,6 +239,8 @@ public:
     Bool mHasCountryData = false;
     // Country id (first country = 1)
     UInt mId = 0;
+    // available league levels
+    UInt mNumLeagueLevels = 0;
     // max league levels to write
     UInt mNumWriteableLeagueLevels = 0;
     // our database

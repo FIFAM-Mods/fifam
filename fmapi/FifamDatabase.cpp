@@ -271,6 +271,9 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
     ResolveClubLinkList(mRules.mFairnessAwardWinners, gameId);
     ResolveClubLink(mRules.Unknown._1, gameId);
     ResolveClubLink(mRules.Unknown._2, gameId);
+    ResolveStadiumPtr(mRules.mEuropeCup1Stadium, gameId);
+    ResolveStadiumPtr(mRules.mEuropeCup2Stadium, gameId);
+    ResolveStadiumPtr(mRules.mSouthAmericaCup1Stadium, gameId);
     std::wcout << L"Resolving historic links" << std::endl;
     for (auto &worldPlayer : mHistoric.mFifaWorldPlayers)
         ResolveClubUniqueID(worldPlayer.mClub, gameId);
@@ -569,7 +572,7 @@ void FifamDatabase::SetupWriteableStatus(UInt gameId) {
             country->mNumWriteableLeagueLevels = (gameId > 7) ? 16 : 5;
             country->mNationalTeam.SetIsWriteable(true);
             country->mNationalTeam.SetWriteableID(0xFFFF | (country->mId << 16));
-            country->mNationalTeam.SetWriteableUniqueID(TranslateClubID(country->mNationalTeam.mUniqueID, LATEST_GAME_VERSION, gameId));
+            country->mNationalTeam.SetWriteableUniqueID(TranslateCountryEntityID(country->mNationalTeam.mUniqueID, LATEST_GAME_VERSION, gameId));
         }
     }
     for (auto club : mClubs) {
@@ -583,7 +586,20 @@ void FifamDatabase::SetupWriteableStatus(UInt gameId) {
         }
         club->SetIsWriteable(id != 0);
         club->SetWriteableID(id);
-        club->SetWriteableUniqueID(TranslateClubID(club->mUniqueID, LATEST_GAME_VERSION, gameId));
+        club->SetWriteableUniqueID(TranslateCountryEntityID(club->mUniqueID, LATEST_GAME_VERSION, gameId));
+    }
+    for (auto stadium : mStadiums) {
+        UInt id = 0;
+        if (stadium->mCountry) {
+            auto it = std::find(stadium->mCountry->mStadiums.begin(), stadium->mCountry->mStadiums.end(), stadium);
+            if (it != stadium->mCountry->mStadiums.end()) {
+                auto index = std::distance(stadium->mCountry->mStadiums.begin(), it);
+                id = (index + 1) | (stadium->mCountry->mId << 16);
+            }
+        }
+        stadium->SetIsWriteable(id != 0);
+        stadium->SetWriteableID(id);
+        stadium->SetWriteableUniqueID(id);
     }
 
     UInt lastEmpicsId = 0;
@@ -640,6 +656,8 @@ void FifamDatabase::ResetWriteableStatus() {
         club->SetIsWriteable(true);
     for (auto personEntry : mPersonsMap)
         personEntry.second->SetIsWriteable(true);
+    for (auto stadium : mStadiums)
+        stadium->SetIsWriteable(true);
 }
 
 UInt FifamDatabase::GetClubsInCountryLimit(UInt gameId) {
@@ -840,7 +858,7 @@ FifamClubLink FifamDatabase::ClubFromID(UInt ID) {
             UShort index = ID & 0xFFFF;
             if (index == 0xFFFF)
                 result.mPtr = &mCountries[countryId - 1]->mNationalTeam;
-            if (index > 0 && index <= mCountries[countryId - 1]->mClubs.size())
+            else if (index > 0 && index <= mCountries[countryId - 1]->mClubs.size())
                 result.mPtr = mCountries[countryId - 1]->mClubs[index - 1];
         }
     }
@@ -853,6 +871,18 @@ FifamPlayer *FifamDatabase::PlayerFromID(UInt ID) {
         if (it != mPersonsMap.end()) {
             if (it->second->mPersonType == FifamPersonType::Player)
                 return reinterpret_cast<FifamPlayer *>(it->second);;
+        }
+    }
+    return nullptr;
+}
+
+FifamStadium *FifamDatabase::StadiumFromID(UInt ID) {
+    if (ID != 0) {
+        UChar countryId = (ID >> 16) & 0xFF;
+        if (countryId > 0 && countryId <= NUM_COUNTRIES && mCountries[countryId - 1]) {
+            UShort index = ID & 0xFFFF;
+            if (index > 0 && index <= mCountries[countryId - 1]->mClubs.size())
+                return mCountries[countryId - 1]->mStadiums[index - 1];
         }
     }
     return nullptr;
@@ -878,7 +908,19 @@ UInt FifamDatabase::PlayerToID(FifamPlayer const *player) {
     return player->mID;
 }
 
-UInt FifamDatabase::TranslateClubID(UInt ID, UInt gameFrom, UInt gameTo) {
+UInt FifamDatabase::StadiumToID(FifamStadium const *stadium) {
+    if (stadium->mCountry) {
+        FifamCountry *country = stadium->mCountry;
+        auto it = std::find(country->mStadiums.begin(), country->mStadiums.end(), stadium);
+        if (it != country->mStadiums.end()) {
+            auto index = std::distance(country->mStadiums.begin(), it);
+            return (index + 1) | (country->mId << 16);
+        }
+    }
+    return 0;
+}
+
+UInt FifamDatabase::TranslateCountryEntityID(UInt ID, UInt gameFrom, UInt gameTo) {
     if (gameFrom > 8 && gameTo > 8)
         return ID;
     UChar region = (ID >> 16) & 0xFF;
@@ -888,16 +930,16 @@ UInt FifamDatabase::TranslateClubID(UInt ID, UInt gameFrom, UInt gameTo) {
 }
 
 void FifamDatabase::ResolveClubUniqueID(FifamClubLink &clubLink, UInt gameFrom, UInt gameTo) {
-    UInt clubUID = TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(clubLink), gameFrom, gameTo);
+    UInt clubUID = TranslateCountryEntityID(FifamUtils::GetSavedClubIDFromClubLink(clubLink), gameFrom, gameTo);
     GetClubFromUID(clubLink, clubUID);
 }
 
 void FifamDatabase::ResolveClubUniqueID(UInt &uid, UInt gameFrom, UInt gameTo) {
-    uid = TranslateClubID(uid, gameFrom, gameTo);
+    uid = TranslateCountryEntityID(uid, gameFrom, gameTo);
 }
 
 void FifamDatabase::ResolveClubLink(FifamClubLink &clubLink, UInt gameFrom, UInt gameTo) {
-    clubLink = ClubFromID(TranslateClubID(FifamUtils::GetSavedClubIDFromClubLink(clubLink), gameFrom, gameTo));
+    clubLink = ClubFromID(TranslateCountryEntityID(FifamUtils::GetSavedClubIDFromClubLink(clubLink), gameFrom, gameTo));
 }
 
 void FifamDatabase::ResolvePlayerPtr(FifamPlayer *&player) {
@@ -928,6 +970,10 @@ void FifamDatabase::ResolveCompetitionList(Vector<FifamCompID> &vec, UInt gameId
         if (!oldVec[i].IsNull() && (!unique || !Utils::Contains(vec, oldVec[i])))
             vec.push_back(oldVec[i]);
     }
+}
+
+void FifamDatabase::ResolveStadiumPtr(FifamStadium *&stadium, UInt gameFrom, UInt gameTo) {
+    stadium = StadiumFromID(TranslateCountryEntityID(FifamUtils::GetSavedStadiumIDFromPtr(stadium), gameFrom, gameTo));
 }
 
 FifamClub *FifamDatabase::GetClubFromUID(UInt uid) {
@@ -1217,7 +1263,7 @@ FifamVersion FifamDatabase::GetGameDbVersion(UInt gameId) {
     else if (gameId == 5)
         version.Set(0x2005, 0x06);
     else if (gameId == 6)
-        version.Set(0x2006, 0x01);
+        version.Set(0x2006, 0x04);
     else if (gameId == 7)
         version.Set(0x2007, 0x0C);
     else if (gameId == 8)

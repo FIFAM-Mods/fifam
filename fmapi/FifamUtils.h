@@ -8,6 +8,7 @@ class FifamClubLink;
 class FifamPlayer;
 class FifamCompID;
 class FifamDbWriteable;
+class FifamStadium;
 
 class FifamUtils {
 public:
@@ -17,11 +18,13 @@ public:
     static UInt GetSavedClubIDFromClubLink(FifamClubLink &link);
     static void SavePlayerIDToPtr(FifamPlayer *&ptr, UInt ID);
     static UInt GetSavedPlayerIDFromPtr(FifamPlayer *&ptr);
+    static void SaveStadiumIDToPtr(FifamStadium *&ptr, UInt ID);
+    static UInt GetSavedStadiumIDFromPtr(FifamStadium *&ptr);
     static UChar GetCountryIDFromClubID(UInt clubID);
     static String GetPlayerName(FifamPlayer *player);
     static Bool ExtractCompetitionID(FifamCompID &outID, String const &line, UInt &linePos, FifamCompRegion const &region = FifamCompRegion::None);
     static Bool ExtractCompetitionID(FifamCompID &outID, String const &line, FifamCompRegion const &region = FifamCompRegion::None);
-    static FifamCompID ExtractCompetitionID(String &line, FifamCompRegion const &region = FifamCompRegion::None);
+    static FifamCompID ExtractCompetitionID(String const &line, FifamCompRegion const &region = FifamCompRegion::None);
     static UInt ExtractCompetitionIDs(Vector<FifamCompID> &outIDs, String const &line, FifamCompRegion const &region = FifamCompRegion::None);
     static Vector<FifamCompID> ExtractCompetitionIDs(String const &line, FifamCompRegion const &region = FifamCompRegion::None);
     static String JoinCompetitionIDs(Vector<FifamCompID> const &compIDs, String const &sep = L",");

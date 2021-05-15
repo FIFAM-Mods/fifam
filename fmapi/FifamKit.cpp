@@ -51,8 +51,12 @@ void FifamKit::Read(FifamReader &reader) {
                 for (UInt j = 0; j < 2; j++)
                     reader.ReadLine(socksColors[i][j]);
                 reader.ReadLine(armbandColor[i]);
-                reader.ReadLine(shirtNumberColor[i]);
-                reader.ReadLine(mSets[i].mBadgePosition);
+                if (reader.IsVersionGreaterOrEqual(0x2007, 0x05)) {
+                    reader.ReadLine(shirtNumberColor[i]);
+                    reader.ReadLine(mSets[i].mBadgePosition);
+                }
+                else
+                    shirtNumberColor[i] = 0;
             }
             reader.ReadLine(mSpecialKitId);
         }
@@ -168,8 +172,10 @@ void FifamKit::Write(FifamWriter &writer) {
             for (UInt j = 0; j < 2; j++)
                 writer.WriteLine(socksColors[i][j]);
             writer.WriteLine(armbandColor[i]);
-            writer.WriteLine(shirtNumberColor[i]);
-            writer.WriteLine(mSets[i].mBadgePosition);
+            if (writer.IsVersionGreaterOrEqual(0x2007, 0x05)) {
+                writer.WriteLine(shirtNumberColor[i]);
+                writer.WriteLine(mSets[i].mBadgePosition);
+            }
         }
         writer.WriteLine(mSpecialKitId);
     }
