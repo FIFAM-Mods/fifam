@@ -46,7 +46,8 @@
 #include "tests\DbGraphicsStats.h"
 #include "tests\WriteDbTest.h"
 #include "tests\Fifa07Portraits.h"
+#include "tests\PlayerIdTest.h"
 
 void RunTests() {
-    RunTest<CompareDB>();
+    RunTest<PlayerIdTest>();
 }

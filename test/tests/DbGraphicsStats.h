@@ -45,22 +45,26 @@ public:
 
         Vector<Path> badgesClubPathClean = {
             R"(E:\Projects\fifam\content\fm13\badges_clean\badges\clubs\256x256)",
-            R"(E:\Projects\fifam\content\fm13\update_badges_clean\badges\clubs\256x256)"
+            R"(E:\Projects\fifam\content\fm13\update_badges_clean\badges\clubs\256x256)",
+            R"(E:\Projects\fifam\content\fm13\update_badges_clean\badges2\clubs\256x256)"
         };
 
         Vector<Path> badgesClubPathDvx = {
             R"(E:\Projects\fifam\content\fm13\badges\badges\clubs\256x256)",
-            R"(E:\Projects\fifam\content\fm13\update_badges\badges\clubs\256x256)"
+            R"(E:\Projects\fifam\content\fm13\update_badges\badges\clubs\256x256)",
+            R"(E:\Projects\fifam\content\fm13\update_badges2\badges\clubs\256x256)"
         };
 
         Vector<Path> badgesLeaguePathClean = {
             R"(E:\Projects\fifam\content\fm13\badges_clean\badges\Leagues\256x256)",
-            R"(E:\Projects\fifam\content\fm13\update_badges_clean\badges\Leagues\256x256)"
+            R"(E:\Projects\fifam\content\fm13\update_badges_clean\badges\Leagues\256x256)",
+            R"(E:\Projects\fifam\content\fm13\update_badges_clean2\badges\Leagues\256x256)"
         };
 
         Vector<Path> badgesLeaguePathDvx = {
             R"(E:\Projects\fifam\content\fm13\badges\badges\Leagues\256x256)",
-            R"(E:\Projects\fifam\content\fm13\update_badges\badges\Leagues\256x256)"
+            R"(E:\Projects\fifam\content\fm13\update_badges\badges\Leagues\256x256)",
+            R"(E:\Projects\fifam\content\fm13\update_badges2\badges\Leagues\256x256)"
         };
 
         Vector<Path> portraitsPlayerPathSortitoutsi = {
@@ -68,28 +72,32 @@ public:
             R"(E:\Projects\fifam\content\fm13\art_03\portraits\club\160x160)",
             R"(E:\Projects\fifam\content\fm13\art_06\portraits\club\160x160)",
             R"(E:\Projects\fifam\content\fm13\art_07\portraits\club\160x160)",
-            R"(E:\Projects\fifam\content\fm13\update_portraits\portraits\club\160x160)"
+            R"(E:\Projects\fifam\content\fm13\update_portraits\portraits\club\160x160)",
+            R"(E:\Projects\fifam\content\fm13\update_portraits2\portraits\club\160x160)"
         };
 
         Vector<Path> portraitsPlayerPathFMZ = {
             R"(E:\Projects\fifam\content\fm13\art_02_fifam_style\portraits\club\160x160)",
-            R"(E:\Projects\fifam\content\fm13\update_portraits_fifam_style\portraits\club\160x160)"
+            R"(E:\Projects\fifam\content\fm13\update_portraits_fifam_style\portraits\club\160x160)",
+            R"(E:\Projects\fifam\content\fm13\update_portraits_fifam_style2\portraits\club\160x160)"
         };
 
         Vector<Path> portraitsRefereePath = {
             R"(E:\Projects\fifam\content\fm13\art_05\portraits\Referees\160x160)",
-            R"(E:\Projects\fifam\content\fm13\update\portraits\Referees\160x160)"
+            R"(E:\Projects\fifam\content\fm13\update\portraits\Referees\160x160)",
+            R"(E:\Projects\fifam\content\fm13\update2\portraits\Referees\160x160)"
         };
 
         Vector<Path> portraitsXXLPath = {
             R"(E:\Projects\fifam\content\fm13\art_05\portraits\club\512x512)",
-            R"(E:\Projects\fifam\content\fm13\update\portraits\club\512x512)"
+            R"(E:\Projects\fifam\content\fm13\update\portraits\club\512x512)",
+            R"(E:\Projects\fifam\content\fm13\update2\portraits\club\512x512)"
         };
 
         wcout << endl;
         wcout << L"Graphics statistics:" << endl;
         wcout << endl;
-
+        /*
         {
             UInt numClubBadgesClean = 0, numLeagueBadgesClean = 0, numClubBadgesDvx = 0, numLeagueBadgesDvx = 0;
             for (auto const &[id, c] : db->mCompMap) {
@@ -158,7 +166,7 @@ public:
             }
             wcout << L"Portraits XXL: " << numXXLPortraits << endl;
             wcout << endl;
-        }
+        }*/
         UInt numStaffPortraitsSortitoutsi = 0;
         UInt numPlayerPortraitsSortitoutsi = 0;
         UInt numStaffPortraitsFMZ = 0;
@@ -222,9 +230,9 @@ public:
                 if (p->mEmpicsId != 0) {
                     String empicsIdStr = Utils::Format(L"-%u", p->mEmpicsId);
                     if (p->mWriteableStringID.ends_with(empicsIdStr))
-                        id2 = id.substr(0, id.size() - empicsIdStr.size());
+                        id2 = id.substr(0, id.size() - empicsIdStr.size()) + L".png";
                 }
-                UInt status = PictureStatus(portraitsPlayerPathSortitoutsi, id + L".png", id2 + L".png");
+                UInt status = PictureStatus(portraitsPlayerPathSortitoutsi, id + L".png", id2);
                 if (status != 1) {
                     UInt clubLeagueLevel = 255;
                     String clubName, clubCountry;
@@ -242,7 +250,7 @@ public:
                     numPlayerPortraitsSortitoutsi++;
             }
         }
-        {
+        /*{
             FifamWriter w(L"players_without_portrait_fmz.csv");
             w.WriteLine(L"id", L"empicsId", L"name", L"status", L"birthdate", L"nationality", L"club", L"country", L"league", L"position", L"level", L"talent");
             for (auto const &p : db->mPlayers) {
@@ -251,9 +259,9 @@ public:
                 if (p->mEmpicsId != 0) {
                     String empicsIdStr = Utils::Format(L"-%u", p->mEmpicsId);
                     if (p->mWriteableStringID.ends_with(empicsIdStr))
-                        id2 = id.substr(0, id.size() - empicsIdStr.size());
+                        id2 = id.substr(0, id.size() - empicsIdStr.size()) + L".png";
                 }
-                UInt status = PictureStatus(portraitsPlayerPathFMZ, id + L".png", id2 + L".png");
+                UInt status = PictureStatus(portraitsPlayerPathFMZ, id + L".png", id2);
                 if (status != 1) {
                     UInt clubLeagueLevel = 255;
                     String clubName, clubCountry;
@@ -270,7 +278,7 @@ public:
                 if (status != 0)
                     numPlayerPortraitsFMZ++;
             }
-        }
+        }*/
         wcout << L"Portraits Sortitoutsi: " << (numPlayerPortraitsSortitoutsi + numStaffPortraitsSortitoutsi) << endl;
         wcout << L"  Players: " << numPlayerPortraitsSortitoutsi << endl;
         wcout << L"  Staff: " << numStaffPortraitsSortitoutsi << endl;

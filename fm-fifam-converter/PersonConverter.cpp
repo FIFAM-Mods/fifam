@@ -4,14 +4,11 @@
 
 String Converter::FixPersonName(String const &name, UInt gameId) {
     String result;
+    static Set<WideChar> restrictedChars = { L',', L'|', L':', L'<', L'>', L'/', L'\\', L'?', L'*' };
     for (auto c : name) {
-        if (c != L',' && c != '|') {
-            if (gameId >= 13) {
-                if (c == L'ș')
-                    result += L"s";
-                else
-                    result += c;
-            }
+        if (!restrictedChars.contains(c)) {
+            if (gameId >= 13)
+                result += c;
             else {
                 if (c == L'ș')
                     result += L"s";
@@ -24,7 +21,7 @@ String Converter::FixPersonName(String const &name, UInt gameId) {
                 else if (c == L'Ș')
                     result += L'S';
                 else if (c == L'ð')
-                    result += L'o';
+                    result += L'd';
                 else
                     result += c;
             }
