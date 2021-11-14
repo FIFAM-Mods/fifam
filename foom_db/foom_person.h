@@ -15,7 +15,7 @@ struct person {
     String mSecondName;
     String mCommonName;
     String mFullName;
-    Bool mFemale = 0;
+    Int mGender = 0;
     Date mDateOfBirth;
     nation *mNation = 0;
     language *mLanguage = 0;
@@ -38,7 +38,12 @@ struct person {
 
     Vector<language> mVecLanguages;
 
-    Vector<nation *> mVecSecondNations;
+    struct second_nation {
+        foom::nation *mNation = 0;
+        Int mInfo = -1;
+    };
+
+    Vector<second_nation> mVecSecondNations;
 
     struct favourite_club {
         club *mClub = 0;

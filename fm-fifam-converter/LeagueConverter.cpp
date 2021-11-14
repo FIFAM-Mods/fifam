@@ -144,8 +144,9 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
         liga3pool->mInstructions.PushBack(new FifamInstruction::GET_LOSER(Relegation(1)));
         liga3pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(1), bundesliga2->mNumTeams - DivInfo(bundesliga2)->mRelegated + 1, DivInfo(bundesliga2)->mRelegated));
         liga3pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(2), DivInfo(liga3)->mPromoted + DivInfo(liga3)->mTotalTeamsPromotionPlayoff + 1, liga3->mNumTeams - (DivInfo(liga3)->mPromoted + DivInfo(liga3)->mTotalTeamsPromotionPlayoff + DivInfo(liga3)->mRelegated + DivInfo(liga3)->mTotalTeamsRelegationPlayoff)));
+        liga3pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(5), 1, 1));
         liga3pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(League(6), 1, 1));
-        liga3pool->mInstructions.PushBack(new FifamInstruction::GET_CC_SPARE()); // get directly promoted 3 teams from 3 leagues
+        liga3pool->mInstructions.PushBack(new FifamInstruction::GET_CC_SPARE()); // get directly promoted 1 team from 3 leagues
         liga3pool->mInstructions.PushBack(new FifamInstruction::GET_WINNER(Relegation(2)));
         liga3pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
 
@@ -159,7 +160,7 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
                 regionalliga[i]->mSuccessors.push_back(Relegation(2));
         }
         prom3->mInstructions.Clear();
-        prom3->mInstructions.PushBack(new FifamInstruction::GET_CC_SPARE());
+        prom3->mInstructions.PushBack(new FifamInstruction::GET_CC_SPARE()); // get 2 teams from 2 leagues
         prom3->mInstructions.PushBack(new FifamInstruction::GET_TAB_SPARE());
     }
     /*else if (countryId == FifamCompRegion::Spain) {
@@ -498,8 +499,7 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
         if (nextCupIndex > 1)
             return ErrorMsg(L"Not enough free league cups (next free index is " + Utils::Format(L"%d", nextCupIndex) + L")");
         FifamCompID fnlCupId = FifamCompID(countryId, FifamCompType::LeagueCup, nextCupIndex);
-        FifamCompID matchPremierCupId = FifamCompID(countryId, FifamCompType::LeagueCup, nextCupIndex + 1);
-        FifamCompID pariMatchCupId = FifamCompID(countryId, FifamCompType::LeagueCup, nextCupIndex + 2);
+        FifamCompID pariMatchCupId = FifamCompID(countryId, FifamCompType::LeagueCup, nextCupIndex + 1);
         FifamCompCup *fnlCup = mFifamDatabase->CreateCompetition(FifamCompDbType::Cup, fnlCupId, L"Olimp Kubok FNL")->AsCup();
         fnlCup->mRounds.resize(4);
         fnlCup->mNumTeams = 16;
@@ -530,25 +530,7 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
         fnlCup->mInstructions.PushBack(new FifamInstruction::GET_TAB_LEVEL_X_TO_Y(1, 1, 24));
         fnlCup->SetProperty<UChar>(L"min_level", 1);
         fnlCup->SetProperty<UChar>(L"max_level", 1);
-        FifamCompCup *matchPremierCup = mFifamDatabase->CreateCompetition(FifamCompDbType::Cup, matchPremierCupId, L"Fonbet Kubok Match Premier")->AsCup();
-        matchPremierCup->mRounds.resize(2);
-        matchPremierCup->mNumTeams = 4;
-        matchPremierCup->mRounds[0].mRoundID = FifamRoundID::Semifinal;
-        matchPremierCup->mRounds[0].mTeamsRound = 4;
-        matchPremierCup->mRounds[0].mNewTeamsRound = 4;
-        matchPremierCup->mRounds[0].mStartBeg = 0;
-        matchPremierCup->mRounds[0].mEndBeg = 2;
-        matchPremierCup->mRounds[0].mBonuses = { 0, 0, 0, 40000 };
-        matchPremierCup->mRounds[1].mRoundID = FifamRoundID::Final;
-        matchPremierCup->mRounds[1].mTeamsRound = 2;
-        matchPremierCup->mRounds[1].mNewTeamsRound = 0;
-        matchPremierCup->mRounds[1].mStartBeg = 2;
-        matchPremierCup->mRounds[1].mEndBeg = 3;
-        matchPremierCup->mRounds[1].mBonuses = { 0, 30000, 0, 10000 };
-        matchPremierCup->mInstructions.PushBack(new FifamInstruction::GET_INTERNATIONAL_TEAMS(FifamNation::Russia, 4));
-        matchPremierCup->SetProperty<UChar>(L"min_level", 0);
-        matchPremierCup->SetProperty<UChar>(L"max_level", 0);
-        FifamCompCup *pariMatchCup = mFifamDatabase->CreateCompetition(FifamCompDbType::Cup, pariMatchCupId, L"Kubor Parimatch Premier")->AsCup();
+        FifamCompCup *pariMatchCup = mFifamDatabase->CreateCompetition(FifamCompDbType::Cup, pariMatchCupId, L"Kubok Parimatch Premier")->AsCup();
         pariMatchCup->mRounds.resize(2);
         pariMatchCup->mNumTeams = 4;
         pariMatchCup->mRounds[0].mRoundID = FifamRoundID::Semifinal;
@@ -556,18 +538,17 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
         pariMatchCup->mRounds[0].mNewTeamsRound = 4;
         pariMatchCup->mRounds[0].mStartBeg = 0;
         pariMatchCup->mRounds[0].mEndBeg = 2;
-        pariMatchCup->mRounds[0].mBonuses = { 0, 0, 0, 20000 };
+        pariMatchCup->mRounds[0].mBonuses = { 0, 0, 0, 45000 };
         pariMatchCup->mRounds[1].mRoundID = FifamRoundID::Final;
         pariMatchCup->mRounds[1].mTeamsRound = 2;
         pariMatchCup->mRounds[1].mNewTeamsRound = 0;
         pariMatchCup->mRounds[1].mStartBeg = 2;
         pariMatchCup->mRounds[1].mEndBeg = 3;
-        pariMatchCup->mRounds[1].mBonuses = { 0, 15000, 0, 5000 };
-        pariMatchCup->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(FifamCompID(FifamCompRegion::Russia, FifamCompType::League, 0), 1, 24));
+        pariMatchCup->mRounds[1].mBonuses = { 0, 55000, 0, 25000 };
+        pariMatchCup->mInstructions.PushBack(new FifamInstruction::GET_INTERNATIONAL_TEAMS(FifamNation::Russia, 4));
         pariMatchCup->SetProperty<UChar>(L"min_level", 0);
         pariMatchCup->SetProperty<UChar>(L"max_level", 0);
         cups.push_back(fnlCup);
-        cups.push_back(matchPremierCup);
         cups.push_back(pariMatchCup);
     }
     else if (countryId == FifamCompRegion::Australia) {
@@ -792,38 +773,39 @@ void Converter::ConvertLeagues(UInt gameId) {
                         league->SetProperty<DivisionInfo *>(L"divInfo", lg);
 
                         if (leagueConfigTables && leagueConfigTables->Available()) {
-                            if (!mGenerateSpecialScripts || country->mId != FifamNation::Spain)
-                                leagueConfigTables->WriteLine(country->mId, leagueID.mIndex, lg->mPromoted, lg->mTotalTeamsPromotionPlayoff, lg->mRelegated, lg->mTotalTeamsRelegationPlayoff, FifamTr(country->mName));
-                            else {
-                                static Bool mSpainWritten = false;
-                                if (!mSpainWritten) {
-                                    leagueConfigTables->WriteLine(45, 0, 0, 0, 3, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 1, 2, 4, 4, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 2, 0, 4, 4, 1, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 3, 0, 4, 4, 1, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 4, 0, 4, 4, 1, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 5, 0, 4, 4, 1, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 6, 0, 4, 4, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 7, 0, 4, 3, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 8, 0, 4, 3, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 9, 0, 4, 3, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 10, 0, 4, 3, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 11, 0, 4, 3, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 12, 0, 4, 4, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 13, 0, 4, 4, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 14, 0, 4, 3, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 15, 0, 4, 3, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 16, 0, 4, 3, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 17, 0, 4, 3, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 18, 0, 4, 3, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 19, 0, 4, 3, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 20, 0, 4, 3, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 21, 0, 4, 3, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 22, 0, 4, 4, 0, L"Spain");
-                                    leagueConfigTables->WriteLine(45, 23, 0, 4, 3, 0, L"Spain");
-                                    mSpainWritten = true;
-                                }
-                            }
+                            //if (!mGenerateSpecialScripts || country->mId != FifamNation::Spain)
+                            leagueConfigTables->WriteLine(country->mId, leagueID.mIndex, lg->mPromoted, lg->mTotalTeamsPromotionPlayoff, lg->mRelegated, lg->mTotalTeamsRelegationPlayoff, FifamTr(country->mName));
+                            //else {
+                            //    static Bool mSpainWritten = false;
+                            //    if (!mSpainWritten) {
+                            //        // TODO: remove/update this?
+                            //        leagueConfigTables->WriteLine(45, 0, 0, 0, 3, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 1, 2, 4, 4, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 2, 0, 4, 4, 1, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 3, 0, 4, 4, 1, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 4, 0, 4, 4, 1, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 5, 0, 4, 4, 1, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 6, 0, 4, 4, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 7, 0, 4, 3, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 8, 0, 4, 3, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 9, 0, 4, 3, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 10, 0, 4, 3, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 11, 0, 4, 3, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 12, 0, 4, 4, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 13, 0, 4, 4, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 14, 0, 4, 3, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 15, 0, 4, 3, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 16, 0, 4, 3, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 17, 0, 4, 3, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 18, 0, 4, 3, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 19, 0, 4, 3, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 20, 0, 4, 3, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 21, 0, 4, 3, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 22, 0, 4, 4, 0, L"Spain");
+                            //        leagueConfigTables->WriteLine(45, 23, 0, 4, 3, 0, L"Spain");
+                            //        mSpainWritten = true;
+                            //    }
+                            //}
                         }
 
                         // convert - old
@@ -879,6 +861,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                         league->SetProperty(L"endDate", lg->mEndDate);
                         league->SetProperty(L"winterBreakStart", lg->mWinterBreakStart);
                         league->SetProperty(L"winterBreakEnd", lg->mWinterBreakEnd);
+                        league->SetProperty(L"calendarMatches", lg->mCalendarMatches);
                         createdLeagues.push_back(league);
                         mLeaguesSystem[country->mId - 1][league->mLeagueLevel].push_back(league);
 
@@ -942,6 +925,13 @@ void Converter::ConvertLeagues(UInt gameId) {
                                     else
                                         relNameGer = FifamNames::LimitName(lg->mShortName + roundNamesGer[relId], MAX_LEAGUE_NAME_LENGTH);
                                     relLeague[relId]->mName[FifamTranslation::German] = relNameGer;
+                                    if (mSplitNames.contains(lg->mID)) {
+                                        FifamTrArray<String> splitNames = (relId == 0) ? mSplitNames[lg->mID].first : mSplitNames[lg->mID].second;
+                                        for (UInt n = 0; n < FifamTranslation::NUM_TRANSLATIONS; n++) {
+                                            if (!splitNames[n].empty())
+                                                relLeague[relId]->mName[n] = FifamNames::LimitName(splitNames[n], MAX_LEAGUE_NAME_LENGTH);
+                                        }
+                                    }
                                     relLeague[relId]->mCompetitionLevel = league->mCompetitionLevel;
                                     relLeague[relId]->mLeagueLevel = league->mLeagueLevel;
                                     relLeague[relId]->mNumSubsAllowed = league->mNumSubsAllowed;
@@ -1439,7 +1429,9 @@ void Converter::ConvertLeagues(UInt gameId) {
                                 Error(L"Number of teams in Play-Off is not the same with number added teams - %d/%d (Play-Off %d in %s)", po->mLeague.mTotalTeams, po->mLeague.mTeamEntries.size(), po->mID, FifamTr(country->mName).c_str());
                             else {
                                 FifamCompID compRelID = FifamCompID(country->mId, FifamCompType::Relegation, relIndex++);
-                                FifamCompLeague *rel = mFifamDatabase->CreateCompetition(FifamCompDbType::League, compRelID, FifamNames::LimitName(po->mName, MAX_COMP_NAME_LENGTH))->AsLeague();
+                                FifamCompLeague *rel = mFifamDatabase->CreateCompetition(FifamCompDbType::League, compRelID)->AsLeague();
+                                for (UInt n = 0; n < FifamTranslation::NUM_TRANSLATIONS; n++)
+                                    rel->mName[n] = FifamNames::LimitName(po->mName[n], MAX_COMP_NAME_LENGTH);
                                 rel->mCompetitionLevel = po->mMaxLeagueLevel;
                                 rel->mNumSubsAllowed = po->mSubs;
                                 rel->mNumTeams = po->mLeague.mTotalTeams;
@@ -1502,24 +1494,37 @@ void Converter::ConvertLeagues(UInt gameId) {
                                     roundType = FifamRoundID::_4;
                                 else if (ir == 4)
                                     roundType = FifamRoundID::_5;
-                                String roundName = po->mName;
-                                String roundStageName;
-                                if (po->mRounds.size() > 1)
-                                    roundStageName = L"Rd " + Utils::Format(L"%u", ir + 1);
-                                if (ir == po->mRounds.size() - 1 && roundTeams == 2) {
-                                    roundType = FifamRoundID::Final;
+                                String roundName[FifamTranslation::NUM_TRANSLATIONS];
+                                for (UInt n = 0; n < FifamTranslation::NUM_TRANSLATIONS; n++) {
+                                    roundName[n] = po->mName[n];
+                                    String roundStageName;
                                     if (po->mRounds.size() > 1)
-                                        roundStageName = L"Final";
+                                        roundStageName = L"Rd " + Utils::Format(L"%u", ir + 1);
+                                    if (ir == po->mRounds.size() - 1 && roundTeams == 2) {
+                                        roundType = FifamRoundID::Final;
+                                        if (po->mRounds.size() > 1) {
+                                            if (n == FifamTranslation::German)
+                                                roundStageName = L"Finale";
+                                            else
+                                                roundStageName = L"Final";
+                                        }
+                                    }
+                                    else if (po->mRounds.size() > 1 && ir == po->mRounds.size() - 2 && roundTeams == 4 && po->mRounds[ir + 1].mNewTeams == 0) {
+                                        roundType = FifamRoundID::Semifinal;
+                                        if (po->mRounds.size() > 1) {
+                                            if (n == FifamTranslation::German)
+                                                roundStageName = L"Halbfinale";
+                                            else
+                                                roundStageName = L"Semi";
+                                        }
+                                    }
+                                    if (!roundStageName.empty())
+                                        roundName[n] += L" " + roundStageName;
                                 }
-                                else if (po->mRounds.size() > 1 && ir == po->mRounds.size() - 2 && roundTeams == 4 && po->mRounds[ir + 1].mNewTeams == 0) {
-                                    roundType = FifamRoundID::Semifinal;
-                                    if (po->mRounds.size() > 1)
-                                        roundStageName = L"Semi";
-                                }
-                                if (!roundStageName.empty())
-                                    roundName += L" " + roundStageName;
                                 FifamCompID compRelID = FifamCompID(country->mId, FifamCompType::Relegation, relIndex++);
-                                FifamCompRound *rel = mFifamDatabase->CreateCompetition(FifamCompDbType::Round, compRelID, FifamNames::LimitName(roundName, MAX_COMP_NAME_LENGTH))->AsRound();
+                                FifamCompRound *rel = mFifamDatabase->CreateCompetition(FifamCompDbType::Round, compRelID)->AsRound();
+                                for (UInt n = 0; n < FifamTranslation::NUM_TRANSLATIONS; n++)
+                                    rel->mName[n] = FifamNames::LimitName(roundName[n], MAX_COMP_NAME_LENGTH);
                                 rel->mCompetitionLevel = po->mMaxLeagueLevel;
                                 rel->mNumSubsAllowed = po->mSubs;
                                 rel->mNumTeams = roundTeams;

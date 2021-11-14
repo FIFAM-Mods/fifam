@@ -120,6 +120,8 @@ void FifamPlayer::Read(FifamReader &reader) {
             reader.ReadLine(mManagerFavouriteFormation);
             reader.ReadLine(mChairmanStability);
             reader.ReadFullLine(mComment);
+            if (reader.IsVersionGreaterOrEqual(0x2013, 0x0C))
+                reader.ReadLine(mFootballManagerID);
         }
         else {
             reader.ReadFullLine(mFirstName);
@@ -680,6 +682,8 @@ void FifamPlayer::Write(FifamWriter &writer) {
             writer.WriteLine(mManagerFavouriteFormation);
         writer.WriteLine(mChairmanStability);
         writer.WriteLine(mComment);
+        if (writer.IsVersionGreaterOrEqual(0x2013, 0x0C))
+            writer.WriteLine(mFootballManagerID);
     }
     else {
         writer.WriteLine(mFirstName);

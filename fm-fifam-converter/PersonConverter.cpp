@@ -32,6 +32,7 @@ String Converter::FixPersonName(String const &name, UInt gameId) {
 
 void Converter::ConvertPersonAttributes(FifamPerson * person, foom::person * p, UInt gameId) {
     p->mConverterData.mFifamPerson = person;
+    person->mFootballManagerID = p->mID;
     FifamCountry *personCountry = mFifamDatabase->GetCountry(p->mNation->mConverterData.mFIFAManagerReplacementID);
     // names
     person->mFirstName = FifamNames::LimitPersonName(FixPersonName(p->mFirstName, gameId), 15);
@@ -39,19 +40,51 @@ void Converter::ConvertPersonAttributes(FifamPerson * person, foom::person * p, 
     if (!p->mCommonName.empty())
         person->mPseudonym = FifamNames::LimitPersonName(FixPersonName(p->mCommonName, gameId), (mCurrentGameId > 7) ? 29 : 19);
     // nationality
-    Vector<UInt> playerNations;
-    if (p->mNation)
-        playerNations.push_back(p->mNation->mConverterData.mFIFAManagerReplacementID);
-    for (auto &n : p->mVecSecondNations) {
-        if (n->mConverterData.mFIFAManagerID != 0 && !Utils::Contains(playerNations, n->mConverterData.mFIFAManagerID))
-            playerNations.push_back(n->mConverterData.mFIFAManagerID);
+    static Map<Int, Int> nationInfoToPriority = {
+        { 83, 2010  },
+        { 89, 2000  },
+        { 80, 70    },
+        { 85, 60    },
+        { 0 , 50    },
+        { -1, 40    },
+        { 87, 30    },
+        { 81, 20    },
+        { 84, 10    },
+        { 88, -1010 },
+        { 90, -1020 },
+        { 82, -1030 },
+        { 86, -1040 }
+    };
+    auto PriorityForNation = [&](Int info, UInt number) {
+        Int result = nationInfoToPriority.contains(info) ? nationInfoToPriority[info] : nationInfoToPriority[-1];
+        if (number == 0)
+            result += 1000;
+        else
+            result += Utils::Min(number, 9u);
+        return result;
+    };
+    Vector<Pair<UInt, Int>> playerNations;
+    if (p->mNation) {
+        Int nationInfo = -1;
+        if (p->mIsPlayer)
+            nationInfo = ((foom::player *)p)->mNationalityInfo;
+        playerNations.emplace_back(p->mNation->mConverterData.mFIFAManagerReplacementID, PriorityForNation(nationInfo, 0));
+    }
+    for (UInt i = 0; i < p->mVecSecondNations.size(); i++) {
+        auto &s = p->mVecSecondNations[i];
+        if (s.mNation->mConverterData.mFIFAManagerID != 0 && !Utils::Contains(playerNations, s.mNation->mConverterData.mFIFAManagerID))
+            playerNations.emplace_back(s.mNation->mConverterData.mFIFAManagerID, PriorityForNation(s.mInfo, i + 1));
     }
     if (playerNations.empty())
         person->mNationality[0] = FifamNation::England;
+    else if (playerNations.size() == 1)
+        person->mNationality[0].SetFromInt(playerNations[0].first);
     else {
-        person->mNationality[0].SetFromInt(playerNations[0]);
-        if (playerNations.size() > 1)
-            person->mNationality[1].SetFromInt(playerNations[1]);
+        std::sort(playerNations.begin(), playerNations.end(), [](Pair<UInt, Int> const &a, Pair<UInt, Int> const &b) {
+            return a.second >= b.second;
+        });
+        person->mNationality[0].SetFromInt(playerNations[0].first);
+        person->mNationality[1].SetFromInt(playerNations[1].first);
     }
     // languages
     Vector<Pair<UInt, UInt>> playerLanguages;
@@ -83,9 +116,9 @@ void Converter::ConvertPersonAttributes(FifamPerson * person, foom::person * p, 
 }
 
 Bool Converter::IsConvertable(foom::person * p, UInt gameId) {
-    return gameId >= 13 || !p->mFemale;
+    return gameId >= 13 || !p->mGender;
 }
 
 Bool Converter::IsConvertable(foom::official * o, UInt gameId) {
-    return gameId >= 13 || !o->mFemale;
+    return gameId >= 13 || !o->mGender;
 }

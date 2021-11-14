@@ -4,6 +4,7 @@
 void Converter::ConvertReferee(FifamReferee *dst, foom::official *official, UInt gameId) {
     official->mConverterData.mFifamReferee = dst;
     dst->SetProperty(L"foom::official", official);
+    dst->mFootballManagerID = official->mID;
     dst->mFirstName = FifamNames::LimitPersonName(FixPersonName(official->mFirstName, gameId), 19);
     dst->mLastName = FifamNames::LimitPersonName(FixPersonName(official->mSecondName, gameId), 19);
     if (official->mFIFACategory && official->mContinentalOfficial && official->mCurrentAbility > 140)

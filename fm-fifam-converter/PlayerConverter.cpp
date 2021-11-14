@@ -172,7 +172,7 @@ Int Converter::LinearConvertPlayerAttribute(Int attr, UInt gameId) {
     if (originalAttr > 20)
         originalAttr = 20;
     static Pair<Int, Int> fmRatingAry[20] = {
-        {  1,  7 }, // 1
+        {  5,  7 }, // 1
         {  8, 13 }, // 2
         { 14, 19 }, // 3
         { 21, 26 }, // 4
@@ -397,24 +397,28 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     }
 
     bool hairSet = false;
-    if (p->mHairLength == 0) {
-        player->mAppearance.mHairStyle = 0; // 1?
+    if (p->mHairLength == 4) { // Bald
+        player->mAppearance.mHairStyle = hairIdFromEditorId[1 - 1];
+        hairSet = true;
+    }
+    else if (p->mHairLength == 0) { // Fuzz
+        player->mAppearance.mHairStyle = hairIdFromEditorId[6 - 1];
         hairSet = true;
     }
 
     bool hairColorSet = false;
     if (p->mHairColour >= 1 && p->mHairColour <= 6) {
-        if (p->mHairColour == 1)
+        if (p->mHairColour == 1 || p->mHairColour == 7 || p->mHairColour == 8)
             player->mAppearance.mHairColor = FifamHairColor::Blonde;
-        else if (p->mHairColour == 2)
+        else if (p->mHairColour == 2 || p->mHairColour == 9 || p->mHairColour == 10)
             player->mAppearance.mHairColor = FifamHairColor::Lightbrown;
-        else if (p->mHairColour == 3)
+        else if (p->mHairColour == 3 || p->mHairColour == 11 || p->mHairColour == 12)
             player->mAppearance.mHairColor = FifamHairColor::Darkbrown;
-        else if (p->mHairColour == 4)
+        else if (p->mHairColour == 4 || p->mHairColour == 13 || p->mHairColour == 14)
             player->mAppearance.mHairColor = FifamHairColor::Red;
-        else if (p->mHairColour == 5)
+        else if (p->mHairColour == 5 || p->mHairColour == 15 || p->mHairColour == 16)
             player->mAppearance.mHairColor = FifamHairColor::Black;
-        else if (p->mHairColour == 6)
+        else if (p->mHairColour == 6 || p->mHairColour == 17 || p->mHairColour == 18)
             player->mAppearance.mHairColor = 8;
         hairColorSet = true;
     }
@@ -1370,6 +1374,8 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
                                 attr = Utils::Clamp((Int)attr + levelCorrection, 1, 99);
                                 if (attr == 99 && Random::Get(0, 1) == 1)
                                     attr = 98;
+                                else if (attr < 7)
+                                    attr = 5 + Random::Get(0, 2);
                             }
                         }
                         else {
@@ -1377,6 +1383,8 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
                                 attr = Utils::Clamp((Int)attr + levelCorrection, 1, 99);
                                 if (attr == 99 && Random::Get(0, 1) == 1)
                                     attr = 98;
+                                else if (attr < 7)
+                                    attr = 5 + Random::Get(0, 2);
                             }
                         }
                     }

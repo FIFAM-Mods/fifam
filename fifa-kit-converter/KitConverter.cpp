@@ -570,7 +570,7 @@ void KitConverter::ConvertClubKits(string const &clubIdName, int fifaId, int fif
 }
 
 void KitConverter::ConvertRefereeKit(int fifaId) {
-    ConvertFifaClubKit(fifaId, std::to_string(fifaId), 5, 0, "E:\\Projects\\FIFA20\\ref_kits\\" + std::to_string(fifaId));
+    ConvertFifaClubKit(fifaId, std::to_string(fifaId), 5, 0, "E:\\Projects\\FIFA21\\ref_kits\\" + std::to_string(fifaId));
 }
 
 bool KitConverter::ConvertClubArmband(int fifaId, string const &clubIdStr, int set, int variation, string const &outputFile) {
@@ -1134,6 +1134,29 @@ void KitConverter::ConvertBanners(int fifaId, int fifaManagerId, Magick::Color c
         cornerFlagImg.write((outputDir / "cornerflag.tga").string());
     }
 #endif
+}
+
+void KitConverter::ConvertAdboards(Map<UInt, UInt> const &fifaClubToFifam, Map<UInt, Vector<UInt>> const &compsMap) {
+    const Path inPath = "D:\\FIFA_ASSETS\\adboards\\512x1024";
+    for (auto const &[fifaId, fifamIds] : compsMap) {
+        Path p = inPath / Utils::Format("adboard_%d_0.tga", fifaId);
+        if (exists(p)) {
+            if (fifamIds.size() == 1)
+                rename(p, inPath / Utils::Format("%08X.tga", fifamIds[0]));
+            else {
+                for (auto const &fifamId : fifamIds)
+                    copy(p, inPath / Utils::Format("%08X.tga", fifamId), copy_options::overwrite_existing);
+                remove(p);
+            }
+        }
+    }
+    for (auto const &[fifaId, fifamId] : fifaClubToFifam) {
+        Path p = inPath / Utils::Format("adboard_%d_0.tga", 1000000 + fifaId);
+        if (exists(p)) {
+            UInt leagueId = 0x00010000 | ((fifamId & 0x00FF0000) << 8);
+            rename(p, inPath / Utils::Format("%08X_%08X.tga", fifamId, leagueId));
+        }
+    }
 }
 
 void KitConverter::GenerateGenericBanners() {

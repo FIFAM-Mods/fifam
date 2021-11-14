@@ -12,7 +12,24 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     SetNameAndTranslation(dst->mShortName, team->mShortName, team->mTranslatedShortNames, 10);
     dst->mShortName2 = dst->mShortName;
     // abbr
-    FifamTrSetAll(dst->mAbbreviation, FifamNames::GetClubAbbr(team->mShortName));
+    String threeLetterName;
+    Array<String, 6> threeLetterTranslationNames;
+    if (!team->mThreeLetterName.empty()) {
+        threeLetterName = team->mThreeLetterName;
+        threeLetterTranslationNames = team->mTranslatedThreeLetterNames;
+    }
+    else if (!team->mOriginalThreeLetterName.empty()) {
+        threeLetterName = team->mOriginalThreeLetterName;
+        threeLetterTranslationNames = team->mTranslatedOriginalThreeLetterNames;
+    }
+    else if (!team->mAlternativeThreeLetterName.empty()) {
+        threeLetterName = team->mAlternativeThreeLetterName;
+        threeLetterTranslationNames = team->mTranslatedAlternativeThreeLetterNames;
+    }
+    if (!threeLetterName.empty())
+        SetNameAndTranslation(dst->mAbbreviation, threeLetterName, threeLetterTranslationNames, 4);
+    else
+        FifamTrSetAll(dst->mAbbreviation, FifamNames::GetClubAbbr(team->mShortName));
     // year of foundation & traditional club
     if (team->mYearFounded <= 0)
         dst->mYearOfFoundation = 2000;
@@ -157,10 +174,7 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     Int youthCoaching = team->mYouthCoaching;
     if (youthCoaching <= 0)
         youthCoaching = clubDefaultFacilitiesForUnknown;
-    Int youthRecruitment = team->mYouthRecruitment;
-    if (youthRecruitment <= 0)
-        youthRecruitment = clubDefaultFacilitiesForUnknown;
-    dst->mYouthBoardingSchool = FacilityMap(ceil(Float(youthCoaching + youthRecruitment) / 2.0f), { 0, 2, 3, 5, 7, 9, 11, 13, 15, 17, 19 });
+    dst->mYouthBoardingSchool = FacilityMap(youthCoaching, { 0, 2, 3, 5, 7, 9, 11, 13, 15, 17, 19 });
     Int trainingGrounds = team->mTraining;
     if (trainingGrounds <= 0)
         trainingGrounds = clubDefaultFacilitiesForUnknown;
@@ -415,6 +429,7 @@ void Converter::ConvertReserveClub(UInt gameId, FifamClub * dst, foom::club * te
         switch (team->mConverterData.mChildType) {
         case foom::club::converter_data::child_type::second:
         case foom::club::converter_data::child_type::second_affiliated:
+        case foom::club::converter_data::child_type::extinct_b_or_c:
         case foom::club::converter_data::child_type::other:
             teamTypeName = secondTypeName;
             break;

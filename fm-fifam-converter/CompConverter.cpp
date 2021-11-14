@@ -152,6 +152,10 @@ Bool IsArabCountry(FifamNation const &nationId) {
 Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * database, Vector<FifamCompLeague *> const &leagues,
     Vector<FifamCompCup *> const &cups, Pair<FifamCompLeague *, FifamCompLeague *> const &split, Vector<PlayOffInfo *> const &playOffs)
 {
+    struct MatchdaysOption {
+        Int level = 0;
+        Int matchdaysType = 0;
+    };
 
     if (leagues.empty() && cups.empty())
         return false;
@@ -192,8 +196,25 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
         }
     };
 
-    auto MarkPossibleWeekEndMatchday = [&](Array<Array<UInt, 366>, 2> & c, Bool season, UShort matchdayId, Bool bSunday, UInt & index, UShort days = 1) {
+    auto MarkPossibleWeekEndMatchday = [&](Array<Array<UInt, 366>, 2> & c, Bool season, UShort matchdayId, MatchdaysOption &option, UInt & index, UShort days = 1) {
         if (matchdayId >= 1) {
+
+            //Bool bSunday = false;
+            //if (option.matchdaysType == 0) // default
+            //    bSunday = option.level == 0;
+            //if (option.matchdaysType == 1) // prior_saturday
+            //    bSunday = option.level == 0 && matchdayId >= 2 && c[season][matchdayId - 2] != 0;
+            //if (option.matchdaysType == 2 || option.matchdaysType == 4) // prior_sunday, force sunday
+            //    bSunday = true;
+            //if (option.matchdaysType == 3) // force saturday
+            //    bSunday = false;
+
+            Bool bSunday = option.matchdaysType == 4;
+            if (option.matchdaysType != 3 && option.matchdaysType != 4) {
+                bSunday = option.matchdaysType == 2 || (option.matchdaysType == 0 && option.level == 0);
+                if (option.level == 0 && !bSunday && matchdayId >= 2 && c[season][matchdayId - 2] != 0)
+                    bSunday = true;
+            }
             if (bSunday)
                 matchdayId++;
             if (matchdayId <= 365) {
@@ -235,9 +256,15 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
         }
     };
 
-    auto MarkPossibleMidWeekMatchday = [&](Array<Array<UInt, 366>, 2> & c, Bool season, UShort matchdayId, Bool bSunday, UInt & index, UShort days = 1) {
+    auto MarkPossibleMidWeekMatchday = [&](Array<Array<UInt, 366>, 2> & c, Bool season, UShort matchdayId, MatchdaysOption &option, UInt & index, UShort days = 1) {
         matchdayId += 3;
         if (matchdayId >= 1) {
+            Bool bSunday = option.matchdaysType == 4;
+            if (option.matchdaysType != 3 && option.matchdaysType != 4) {
+                bSunday = option.matchdaysType == 2 || (option.matchdaysType == 0 && option.level == 0);
+                if (option.level == 0 && !bSunday && matchdayId >= 2 && c[season][matchdayId - 2] != 0)
+                    bSunday = true;
+            }
             if (bSunday)
                 matchdayId++;
             if (matchdayId <= 365) {
@@ -403,7 +430,8 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
                         else if (compID.mRegion == FifamCompRegion::Europe
                             && (compID.mType == FifamCompType::ChampionsLeague || compID.mType == FifamCompType::UefaCup
                                 || compID.mType == FifamCompType::EuroSuperCup || compID.mType == FifamCompType::Continental1
-                                || compID.mType == FifamCompType::Continental2))
+                                || compID.mType == FifamCompType::Continental2 || compID.mType == FifamCompType::ICC
+                                || compID.mType == FifamCompType::ConferenceLeague))
                         {
                             PutCompToCalendar(cc, comp);
                         }
@@ -504,7 +532,11 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
             //}
 
             // play matches in Sunday or Saturday?
-            Bool bSunday = l->mLeagueLevel == 0; // play matches for first league on Sunday
+            MatchdaysOption option;
+            option.level = l->mLeagueLevel;
+            option.matchdaysType = l->GetProperty<Int>(L"calendarMatches", 0);
+            if (l->mID.mRegion == FifamCompRegion::India && l->mLeagueLevel == 1 && l->mID.mIndex == 1)
+                option.level = 0;
 
             Int startMatchday1 = 48; // End of August
             Int startMatchday2 = 27; // End of July
@@ -554,36 +586,36 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
             for (UInt s = 0; s < 2; s++) {
                 // phase 1 - add possible match every 2 weeks
                 for (Int m = startMatchday1; m <= endMatchday; m += 14)
-                    MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+                    MarkPossibleWeekEndMatchday(cc, s, m, option, matchdayIndex[s]);
 
                 // phase 2 - add possible match every week
                 for (Int m = startMatchday1; m <= endMatchday; m += 7)
-                    MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+                    MarkPossibleWeekEndMatchday(cc, s, m, option, matchdayIndex[s]);
 
                 // phase 3 - add possible matches in August (reverse direction)
                 if (!customStartDate) {
                     for (Int m = startMatchday1 - 7; m >= startMatchday2; m -= 7)
-                        MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+                        MarkPossibleWeekEndMatchday(cc, s, m, option, matchdayIndex[s]);
                 }
 
                 // phase 4 - add possible mid-week matches every 2 weeks
                 for (Int m = startMatchday2 + 14; m <= endMatchday; m += 14)
-                    MarkPossibleMidWeekMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+                    MarkPossibleMidWeekMatchday(cc, s, m, option, matchdayIndex[s]);
 
                 // phase 5 - add possible matches in July (reverse direction)
                 if (!customStartDate) {
                     for (Int m = startMatchday2 - 7; m >= startMatchday3; m -= 7)
-                        MarkPossibleWeekEndMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+                        MarkPossibleWeekEndMatchday(cc, s, m, option, matchdayIndex[s]);
                 }
 
                 // phase 6 - add possible mid-week matches every week
                 for (Int m = startMatchday1; m <= endMatchday; m += 7)
-                    MarkPossibleMidWeekMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+                    MarkPossibleMidWeekMatchday(cc, s, m, option, matchdayIndex[s]);
 
                 // phase 7 - add possible mid-week matches every week in July and August (reverse direction)
                 if (!customStartDate) {
                     for (Int m = startMatchday1 - 7; m >= startMatchday3; m -= 7)
-                        MarkPossibleMidWeekMatchday(cc, s, m, bSunday, matchdayIndex[s]);
+                        MarkPossibleMidWeekMatchday(cc, s, m, option, matchdayIndex[s]);
                 }
             }
 
@@ -712,7 +744,8 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
                     || (compID.mRegion == FifamCompRegion::Europe
                         && (compID.mType == FifamCompType::ChampionsLeague || compID.mType == FifamCompType::UefaCup
                             || compID.mType == FifamCompType::EuroSuperCup || compID.mType == FifamCompType::Continental1
-                            || compID.mType == FifamCompType::Continental2 || compID.mType == FifamCompType::ICC))
+                            || compID.mType == FifamCompType::Continental2 || compID.mType == FifamCompType::ICC
+                            || compID.mType == FifamCompType::ConferenceLeague))
                     )
                 {
                     PutCompToCalendar(calendar, comp);

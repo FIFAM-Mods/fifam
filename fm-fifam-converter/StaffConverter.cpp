@@ -516,7 +516,7 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
     staff->mSkills.Negotiation = ConvertStaffAttribute(p->mBuyingPlayers);
     staff->mSkills.Sponsoring = ConvertStaffAttribute(p->mBusiness);
 
-    staff->mSkills.GeneralScouting = ConvertStaffAttribute(Utils::Max(p->mJudgingPlayerAbility, p->mJudgingTeamData));
+    staff->mSkills.GeneralScouting = ConvertStaffAttribute(Utils::Max(p->mJudgingPlayerAbility, p->mAnalysingData));
     staff->mSkills.TalentEstimation = ConvertStaffAttribute(p->mJudgingPlayerPotential);
 
     staff->mSkills.FieldSkillsEstimation = Utils::Clamp(staff->mSkills.GeneralScouting - 10 + Random::Get(0, 20), 5, 99);
@@ -525,7 +525,7 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
     staff->mSkills.PhysicalSkillsEstimation = Utils::Clamp(staff->mSkills.GeneralScouting - 10 + Random::Get(0, 20), 5, 99);
     staff->mSkills.Networking = ConvertStaffAttribute(
         BestFrom_Avg<Int>(
-            { p->mPresentingData, p->mJudgingPlayerData, p->mJudgingTeamData }, 1, true)
+            { p->mAnalysingData, p->mJudgingPlayerPotential, p->mJudgingPlayerAbility }, 1, true)
     );
 
     if (staff->mClubPosition == FifamClubStaffPosition::SportsDirector) {
@@ -580,7 +580,40 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
                 attr = (UChar)newAttrValue;
         }
         });
-
+    /*
+    we can iterate on each staff role, check out which attributes are relevant for the role, and for each attribute,
+    multiply its value by foom role "experience" and by attribute weight for this role, attach the result value to this attribute
+    then for each attribute use the greatest of result values
+    so if a person is not a medic (experience at medic role is 5 for example), then all attributes related to medic will be multiplied by 5/20
+    */
+    enum StaffSkillsEnum {
+        StaffSkill_Tactics, StaffSkill_FieldPlayerTraining, StaffSkill_GoalkeeperTraining, StaffSkill_FitnessTraining, StaffSkill_SkillEstimation, StaffSkill_TeamEstimation, StaffSkill_MotivationAbility, StaffSkill_BoneInjury, StaffSkill_KneeInjury, StaffSkill_MuscleInjury, StaffSkill_InjuryPrevention, StaffSkill_RegenerationAbility, StaffSkill_Arbitrate, StaffSkill_Negotiation, StaffSkill_Marketing, StaffSkill_Sponsoring, StaffSkill_Construction, StaffSkill_PR, StaffSkill_FanContact, StaffSkill_SportsLaw, StaffSkill_LaborLaw, StaffSkill_GeneralScouting, StaffSkill_TalentEstimation, StaffSkill_FieldSkillsEstimation, StaffSkill_GoalkeeperSkillsEstimation, StaffSkill_MentalSkillsEstimation, StaffSkill_PhysicalSkillsEstimation, StaffSkill_Networking
+    };
+    static Map<FifamClubStaffPosition, Int> fifamStaffPositionToFoom = {
+        { FifamClubStaffPosition::AssistantCoach,      p->mJobCoach },
+        { FifamClubStaffPosition::AmateurCoach,        p->mJobManager },
+        { FifamClubStaffPosition::YouthCoach,          p->mJobCoach },
+        { FifamClubStaffPosition::FitnessCoach,        p->mJobFitnessCoach },
+        { FifamClubStaffPosition::GoalkeeperCoach,     p->mJobGkCoach },
+        { FifamClubStaffPosition::TeamDoctor,          p->mJobSportsScientist },
+        { FifamClubStaffPosition::Masseur,             p->mJobPhysio },
+        { FifamClubStaffPosition::Psychologist,        1 },
+        { FifamClubStaffPosition::SportsDirector,      p->mJobDirectorOfFootball },
+        { FifamClubStaffPosition::GeneralScout,        p->mJobScout },
+    };
+    Map<UChar *, Vector<UChar>> staffSkills;
+    FifamClubStaffPosition::ForAllValues([&](FifamClubStaffPosition const &clubStaffPosition) {
+        if (fifamStaffPositionToFoom.contains(clubStaffPosition)) {
+            staff->ForAllAttributes([&](UChar &attr1, Float weight) {
+                if (weight > 0.0f)
+                    staffSkills[&attr1].push_back(Utils::Clamp((UChar)((Float)attr1 * (Float)fifamStaffPositionToFoom[clubStaffPosition] / 20.0f), 1, 99));
+            });
+        }
+    });
+    for (auto &[attr, values] : staffSkills) {
+        std::sort(values.begin(), values.end(), std::greater<UChar>());
+        *attr = values[0];
+    }
     Int staffCurrLevel = staff->GetStaffLevel();
     Int staffDesiredLevel = GetStaffLevelFromCA(p->mCurrentAbility);
     if (staffCurrLevel > 0 && staffCurrLevel != staffDesiredLevel) {
@@ -947,9 +980,9 @@ void Converter::CreateStaffMembersForClub(UInt gameId, foom::team *team, FifamCl
         CreateAndConvertStaff(staffAssistantCoaches[i], dst, FifamClubStaffPosition::AssistantCoach, gameId);
     for (UInt i = 0; i < Utils::Min(maxScouts, staffChiefScouts.size()); i++)
         CreateAndConvertStaff(staffChiefScouts[i], dst, FifamClubStaffPosition::GeneralScout, gameId);
-    if (staffReserveCoach)
+    if (staffReserveCoach && !isNationalTeam)
         CreateAndConvertStaff(staffReserveCoach, dst, FifamClubStaffPosition::AmateurCoach, gameId);
-    if (staffYouthCoach)
+    if (staffYouthCoach && !isNationalTeam)
         CreateAndConvertStaff(staffYouthCoach, dst, FifamClubStaffPosition::YouthCoach, gameId);
     if (staffGoalkeeperCoach)
         CreateAndConvertStaff(staffGoalkeeperCoach, dst, FifamClubStaffPosition::GoalkeeperCoach, gameId);

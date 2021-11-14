@@ -72,14 +72,6 @@ public:
     bool ConvertClubKitNumbersSetCustom(std::string const &dirPath, std::string const &dirName, bool jersey);
     void ConvertClubKitNumbersCustom();
     void ConvertBanners(int fifaId, int fifaManagerId, Magick::Color const &primCol = Magick::Color(), Magick::Color const &secCol = Magick::Color());
-    void ConvertAdboards() {
-        const Path inPath = "D:\\FIFA_ASSETS\\adboards";
-        for (auto const &e : directory_iterator(inPath)) {
-            auto const &p = e.path();
-            if (p.extension() == ".tga") {
-
-            }
-        }
-    }
+    void ConvertAdboards(Map<UInt, UInt> const &fifaClubToFifam, Map<UInt, Vector<UInt>> const &compsMap);
     void GenerateGenericBanners();
 };

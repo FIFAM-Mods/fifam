@@ -81,6 +81,7 @@ void Converter::Convert() {
     Bool REF_DB_CLUB_HISTORY_LEAGUE_STATS = GetIniInt(L"REF_DB_CLUB_HISTORY_LEAGUE_STATS", 0);
     Bool REF_DB_AI_STRATEGY = GetIniInt(L"REF_DB_AI_STRATEGY", 1);
     Bool REF_DB_LANDSCAPE = GetIniInt(L"REF_DB_LANDSCAPE", 1);
+    Bool REF_DB_FOUNDATION_YEAR = GetIniInt(L"REF_DB_FOUNDATION_YEAR", 1);
     Bool REF_DB_SETTLEMENT = GetIniInt(L"REF_DB_SETTLEMENT", 1);
     Bool REF_DB_STADIUM_NAME = GetIniInt(L"REF_DB_STADIUM_NAME", 0);
     Bool REF_DB_STADIUM_CAPACITY = GetIniInt(L"REF_DB_STADIUM_CAPACITY", 0);
@@ -90,6 +91,9 @@ void Converter::Convert() {
     UInt NUM_SPARE_CLUBS_IN_UNPLAYABLE_COUNTRY = GetIniInt(L"NUM_SPARE_CLUBS_IN_UNPLAYABLE_COUNTRY", 24);
 
     UInt MIN_FREE_AGENT_CA = GetIniInt(L"MIN_FREE_AGENT_CA", 110);
+    UInt MIN_SPARE_STAFF_CA = GetIniInt(L"MIN_SPARE_STAFF_CA", 100);
+    UInt SPARE_STAFF_FROM_CLUBS = GetIniInt(L"SPARE_STAFF_FROM_CLUBS", 0);
+    UInt SPARE_STAFF_FROM_NTS = GetIniInt(L"SPARE_STAFF_FROM_NTS", 0);
 
     mWarnings = GetIniInt(L"HIDE_WARNINGS", 1) == 0;
     mErrors = GetIniInt(L"HIDE_ERRORS", 0) == 0;
@@ -259,6 +263,8 @@ void Converter::Convert() {
     for (auto &entry : mFoomDatabase->mClubs) {
         auto &c = entry.second;
         // for all affiliated clubs
+        // 22 - Regional Academy
+        // 24 - Extinct B or C Club
         for (auto &a : c.mVecAffiliations) {
             if (a.mAffiliatedClub && a.mIsMainClub) {
                 if (a.mStartDate <= GetCurrentDate() && (a.mEndDate == FmEmptyDate() || a.mEndDate > GetCurrentDate())) {
@@ -275,6 +281,10 @@ void Converter::Convert() {
                     else if (a.mAffiliationType == 5 || a.mAffiliationType == 7) {
                         child = a.mAffiliatedClub;
                         childType = foom::club::converter_data::child_type::third;
+                    }
+                    else if (a.mAffiliationType == 24) {
+                        child = a.mAffiliatedClub;
+                        childType = foom::club::converter_data::child_type::extinct_b_or_c;
                     }
                     if (child) {
                         if (child->mConverterData.mParentClub) {
@@ -710,6 +720,8 @@ void Converter::Convert() {
                 Int bestFriendshipRep = 0;
                 // for all affiliated clubs
                 for (auto &a : team.mVecAffiliations) {
+                    // 16 - Good relations
+                    // 17 - Likely Friendly
                     if (a.mAffiliatedClub && a.mAffiliatedClub->mConverterData.mFifamClub && (a.mAffiliationType == 1 || a.mAffiliationType == 16)) {
                         FifamClub *affiliatedFifamClub = (FifamClub *)a.mAffiliatedClub->mConverterData.mFifamClub;
                         if (dst->mCountry->mId == affiliatedFifamClub->mCountry->mId) {
@@ -1366,8 +1378,36 @@ void Converter::Convert() {
                 }
                 else
                     a->mShirtNumberFirstTeam = GetNumberForPlayer(a, a->mShirtNumberFirstTeam, FirstTeamNumbersUsed);
+                // Update (FM 22): fill empty history
+                if (a->mHistory.mEntries.empty()) {
+                    if (a->mStartingConditions.mLoan.Enabled()) {
+                        a->mHistory.mEntries.resize(2);
+                        auto &h1 = a->mHistory.mEntries[0];
+                        auto &h2 = a->mHistory.mEntries[1];
+                        h1.mClub = a->mStartingConditions.mLoan.mLoanedClub;
+                        h2.mClub = FifamClubLink(dst);
+                        h2.mLoan = true;
+                        if (a->mStartingConditions.mLoan.mStartDate > FifamDate(1, 7, CURRENT_YEAR))
+                            h2.mStartDate = FifamDate(1, 7, CURRENT_YEAR);
+                        else
+                            h2.mStartDate = a->mStartingConditions.mLoan.mStartDate;
+                        h2.mEndDate = FifamDate(30, 6, CURRENT_YEAR + 1);
+                        h2.mStillInThisClub = true;
+                        h1.mEndDate.SetDays(h2.mStartDate.GetDays() - 1);
+                        if (a->mContract.mJoined < h1.mEndDate)
+                            h1.mStartDate = a->mContract.mJoined;
+                        else
+                            h1.mStartDate = h1.mEndDate.DecreasedByOneYear();
+                    }
+                    else {
+                        auto &h = a->mHistory.mEntries.emplace_back();
+                        h.mClub = FifamClubLink(dst);
+                        h.mStartDate = a->mContract.mJoined;
+                        h.mEndDate = FifamDate(30, 6, CURRENT_YEAR + 1);
+                        h.mStillInThisClub = true;
+                    }
+                }
             }
-
             CreateStaffMembersForClub(gameId, &team, dst, false);
         }
     }
@@ -1426,7 +1466,7 @@ void Converter::Convert() {
     for (auto &entry : mFoomDatabase->mNonPlayers) {
         auto &p = entry.second;
         if (IsConvertable(&p, gameId) && !p.mConverterData.mFifamPerson) {
-            if (!p.mClubContract.mClub && !p.mNationContract.mNation && p.mCurrentAbility >= 100) {
+            if ((!p.mClubContract.mClub || SPARE_STAFF_FROM_CLUBS) && (!p.mNationContract.mNation || SPARE_STAFF_FROM_NTS) && p.mCurrentAbility >= MIN_SPARE_STAFF_CA) {
                 auto bestPosition = Utils::GetMaxElementId<Int, FifamClubStaffPosition>({
                     { p.mJobManager, FifamClubStaffPosition::Manager },
                     { p.mJobAssistantManager, FifamClubStaffPosition::AssistantCoach },
@@ -1554,13 +1594,18 @@ void Converter::Convert() {
 
     // convert referees
     std::wcout << L"Converting referees..." << std::endl;
-    for (auto &entry : mFoomDatabase->mOfficials) {
-        auto &official = entry.second;
-        if (IsConvertable(&official, gameId) && official.mNation) {
-            auto country = mFifamDatabase->GetCountry(official.mNation->mConverterData.mFIFAManagerReplacementID);
-            if (country) {
+    Vector<foom::official *> refsSorted;
+    for (auto &entry : mFoomDatabase->mOfficials)
+        refsSorted.push_back(&entry.second);
+    std::sort(refsSorted.begin(), refsSorted.end(), [](foom::official *a, foom::official *b) {
+        return a->mCurrentAbility > b->mCurrentAbility;
+    });
+    for (auto official : refsSorted) {
+        if (IsConvertable(official, gameId) && official->mNation) {
+            auto country = mFifamDatabase->GetCountry(official->mNation->mConverterData.mFIFAManagerReplacementID);
+            if (country && country->mReferees.size() < 256) {
                 FifamReferee *referee = country->AddReferee();
-                ConvertReferee(referee, &official, gameId);
+                ConvertReferee(referee, official, gameId);
             }
         }
     }
@@ -1647,6 +1692,9 @@ void Converter::Convert() {
                         c->mLandscape = ref->mLandscape;
                     if (REF_DB_SETTLEMENT)
                         c->mSettlement = ref->mSettlement;
+
+                    if (REF_DB_FOUNDATION_YEAR)
+                        c->mYearOfFoundation = ref->mYearOfFoundation;
 
                     if (REF_DB_SEASON_TICKETS)
                         c->mCountOfSoldSeasonTickets = ref->mCountOfSoldSeasonTickets;
@@ -2052,8 +2100,14 @@ void Converter::Convert() {
                     if (team.mConverterData.mFIFAID != 0) {
                         UInt fmClubFifaId = team.mConverterData.mFIFAID;
                         switch (fmClubFifaId) {
+                        case 39: // Atalanta
+                            fmClubFifaId = 115845;
+                            break;
                         case 45: // Juventus
                             fmClubFifaId = 114153;
+                            break;
+                        case 46: // Lazio
+                            fmClubFifaId = 115841;
                             break;
                         case 52: // AS Roma
                             fmClubFifaId = 114912;
@@ -2220,7 +2274,7 @@ void Converter::Convert() {
         // find female names
         for (FifamStaff *staff : mFifamDatabase->mStaffs) {
             auto fmstaff = staff->GetProperty<foom::non_player *>(L"foom::non_player");
-            if (fmstaff && fmstaff->mFemale) {
+            if (fmstaff && fmstaff->mGender) {
                 if (!staff->mFirstName.empty())
                     femaleNamesMap[staff->mFirstName] = true;
                 if (!staff->mLastName.empty())
@@ -2231,7 +2285,7 @@ void Converter::Convert() {
         }
         for (FifamReferee *ref : mFifamDatabase->mReferees) {
             auto fmofficial = ref->GetProperty<foom::official *>(L"foom::official");
-            if (fmofficial && fmofficial->mFemale) {
+            if (fmofficial && fmofficial->mGender) {
                 if (!ref->mFirstName.empty())
                     femaleNamesMap[ref->mFirstName] = true;
                 if (!ref->mLastName.empty())
@@ -2241,7 +2295,7 @@ void Converter::Convert() {
         // find male names
         for (FifamPlayer *player : mFifamDatabase->mPlayers) {
             auto fmplayer = player->GetProperty<foom::player *>(L"foom::player");
-            if (fmplayer && !fmplayer->mFemale) {
+            if (fmplayer && !fmplayer->mGender) {
                 if (!player->mFirstName.empty()) {
                     auto it = femaleNamesMap.find(player->mFirstName);
                     if (it != femaleNamesMap.end())
@@ -2261,7 +2315,7 @@ void Converter::Convert() {
         }
         for (FifamStaff *staff : mFifamDatabase->mStaffs) {
             auto fmstaff = staff->GetProperty<foom::non_player *>(L"foom::non_player");
-            if (fmstaff && !fmstaff->mFemale) {
+            if (fmstaff && !fmstaff->mGender) {
                 if (!staff->mFirstName.empty()) {
                     auto it = femaleNamesMap.find(staff->mFirstName);
                     if (it != femaleNamesMap.end())
@@ -2281,7 +2335,7 @@ void Converter::Convert() {
         }
         for (FifamReferee *ref : mFifamDatabase->mReferees) {
             auto fmofficial = ref->GetProperty<foom::official *>(L"foom::official");
-            if (fmofficial && !fmofficial->mFemale) {
+            if (fmofficial && !fmofficial->mGender) {
                 if (!ref->mFirstName.empty()) {
                     auto it = femaleNamesMap.find(ref->mFirstName);
                     if (it != femaleNamesMap.end())

@@ -39,9 +39,7 @@ struct non_player : public person {
     Int mHardnessOfTraining = 0;
     Int mJudgingPlayerAbility = 0;
     Int mJudgingPlayerPotential = 0;
-    Int mJudgingPlayerData = 0;
-    Int mJudgingTeamData = 0;
-    Int mPresentingData = 0;
+    Int mAnalysingData = 0;
     Int mLevelOfDiscipline = 0;
     Int mManManagement = 0;
     Int mMindGames = 0;

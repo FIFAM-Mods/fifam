@@ -21,6 +21,8 @@ void FifamStaff::Read(FifamReader &reader) {
         }
         else
             ReadManager(reader);
+        if (reader.IsVersionGreaterOrEqual(0x2013, 0x0C))
+            reader.ReadLine(mFootballManagerID);
         reader.ReadEndIndex(L"STAFF");
     }
 }
@@ -264,6 +266,8 @@ void FifamStaff::Write(FifamWriter &writer) {
     }
     else
         WriteManager(writer);
+    if (writer.IsVersionGreaterOrEqual(0x2013, 0x0C))
+        writer.WriteLine(mFootballManagerID);
     writer.WriteEndIndex(L"STAFF");
 }
 

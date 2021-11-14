@@ -148,6 +148,14 @@ public:
         int stadiummowpattern_code = 0;
         int stadiumgoalnetpattern = 0;
         int pitchlinecolor = 0;
+        // @since FIFA22
+        int hassubstitutionboard = 0;
+        int chancecreation = 0;
+        int buildupplay = 0;
+        int crowdregion = 0;
+        int uefa_uecl_wins = 0;
+        int haslargeflag = 0;
+
 
         void Read(FifaDataFile::Line &line);
     } internal;

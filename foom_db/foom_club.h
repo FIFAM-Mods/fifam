@@ -14,6 +14,11 @@ struct player;
 
 struct club : public team {
     String mSixLetterName;
+    Array<String, 6> mTranslatedSixLetterNames;
+    String mOriginalThreeLetterName;
+    Array<String, 6> mTranslatedOriginalThreeLetterNames;
+    String mAlternativeThreeLetterName;
+    Array<String, 6> mTranslatedAlternativeThreeLetterNames;
     Bool mExtinct = 0;
     nation *mNation = 0;
     nation *mBasedNation = 0;
@@ -55,6 +60,8 @@ struct club : public team {
     Int mRecordAttendanceYear = 0;
     Int mBadge = 0;
     Int mSupporterExpectations = 0;
+    Bool mInstituteClub = 0;
+    Int mScoutingSystem = 0;
 
     Bool mIsReserveDummyClub = false;
     Bool mIsReserveToCreateClub = false;
@@ -181,6 +188,7 @@ struct club : public team {
             u21_b,
             u19_b,
             u18_b,
+            extinct_b_or_c,
             other
         } mChildType = other;
         struct child_club {

@@ -11,7 +11,7 @@ struct official {
     String mSecondName;
     String mCommonName;
     String mFullName;
-    Bool mFemale = 0;
+    Int mGender = 0;
     nation *mNation = nullptr;
     Int mCurrentAbility = 0;
     Int mPotentialAbility = 0;

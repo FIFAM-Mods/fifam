@@ -188,14 +188,14 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
             while (!reader.IsEof()) {
                 if (!reader.EmptyLine()) {
                     DivisionInfo d;
-                    String e, type, sorting, split, promotionPlayoff, relegationPlayoff;
+                    String e, type, sorting, split, promotionPlayoff, relegationPlayoff, calendarMatches;
                     reader.ReadLineWithSeparator(L'\t', e, d.mNationID, d.mName, d.mShortName, OptionalInt(d.mID), type, d.mLevel, e, e,
                         d.mTeams, d.mRep, d.mPriority, d.mOrder, OptionalInt(d.mRounds), split, OptionalInt(d.mSplitRounds.first),
                         OptionalInt(d.mSplitRounds.second), d.mPromoted, promotionPlayoff, d.mPromotionID, d.mRelegated, relegationPlayoff,
                         d.mRelegationID, d.mStartDate, d.mEndDate, d.mWinterBreakStart, d.mWinterBreakEnd, OptionalInt(d.mNumSubs),
                         OptionalInt(d.mForeignersLimit), OptionalInt(d.mNonEuSigns), OptionalInt(d.mDomesticPlayers), OptionalInt(d.mU21Players),
                         OptionalInt(d.mReserveTeamsAllowed), sorting, d.mAttendanceMp, d.mTransfersMp, d.mTvBonus, d.mWinBouns, d.mPlaceBonus,
-                        d.mOneYearCalendar);
+                        d.mOneYearCalendar, calendarMatches);
 
                     type = Utils::ToLower(type);
                     if (type == L"league")
@@ -264,6 +264,18 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                         }
                     }
 
+                    Utils::Trim(calendarMatches);
+                    calendarMatches = Utils::ToLower(calendarMatches);
+
+                    if (calendarMatches == L"prior_saturday")
+                        d.mCalendarMatches = 1;
+                    else if (calendarMatches == L"prior_sunday")
+                        d.mCalendarMatches = 2;
+                    else if (calendarMatches == L"force_saturday")
+                        d.mCalendarMatches = 3;
+                    else if (calendarMatches == L"force_sunday")
+                        d.mCalendarMatches = 4;
+
                     mDivisions.push_back(d);
                 }
                 else
@@ -281,7 +293,9 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                 if (!reader.EmptyLine()) {
                     PlayOffInfo p;
                     String e, format;
-                    reader.ReadLineWithSeparator(L'\t', e, p.mNationID, p.mID, p.mName, format, OptionalInt(p.mSubs));
+                    reader.ReadLineWithSeparator(L'\t', e, p.mNationID, p.mID, p.mName[FifamTranslation::English], format, OptionalInt(p.mSubs),
+                        p.mName[FifamTranslation::German], p.mName[FifamTranslation::French], p.mName[FifamTranslation::Spanish],
+                        p.mName[FifamTranslation::Italian], p.mName[FifamTranslation::Polish]);
                     Bool formatError = false;
                     Utils::Trim(format);
                     if (!format.empty()) {
@@ -354,8 +368,48 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                             Error(L"Incorrect play-off format: \"" + format + L"\"");
                         }
                     }
-                    else
+                    else {
+                        for (UInt l = 0; l < FifamTranslation::NUM_TRANSLATIONS; l++) {
+                            if (l != FifamTranslation::English && p.mName[l].empty())
+                                p.mName[l] = p.mName[FifamTranslation::English];
+                        }
                         mPlayOffs.push_back(p);
+                    }
+                }
+                else
+                    reader.SkipLine();
+            }
+        }
+    }
+    if (!mFromFifaDatabase)
+    {
+        std::wcout << L"Reading fifam_split_names.txt..." << std::endl;
+        FifamReader reader(infoPath / L"fifam_split_names.txt", 0);
+        if (reader.Available()) {
+            reader.SkipLine();
+            while (!reader.IsEof()) {
+                if (!reader.EmptyLine()) {
+                    FifamTrArray<String> s1, s2;
+                    UInt leagueId = 0;
+                    reader.ReadLineWithSeparator(L'\t', leagueId, s1[FifamTranslation::English], s1[FifamTranslation::German],
+                        s1[FifamTranslation::French], s1[FifamTranslation::Spanish], s1[FifamTranslation::Italian], s1[FifamTranslation::Polish],
+                        s2[FifamTranslation::English], s2[FifamTranslation::German], s2[FifamTranslation::French], s2[FifamTranslation::Spanish],
+                        s2[FifamTranslation::Italian], s2[FifamTranslation::Polish]);
+                    if (leagueId != 0) {
+                        if (!s1[FifamTranslation::English].empty()) {
+                            for (UInt l = 0; l < FifamTranslation::NUM_TRANSLATIONS; l++) {
+                                if (l != FifamTranslation::English && s1[l].empty())
+                                    s1[l] = s1[FifamTranslation::English];
+                            }
+                        }
+                        if (!s2[FifamTranslation::English].empty()) {
+                            for (UInt l = 0; l < FifamTranslation::NUM_TRANSLATIONS; l++) {
+                                if (l != FifamTranslation::English && s2[l].empty())
+                                    s2[l] = s2[FifamTranslation::English];
+                            }
+                        }
+                        mSplitNames[leagueId] = { s1, s2 };
+                    }
                 }
                 else
                     reader.SkipLine();

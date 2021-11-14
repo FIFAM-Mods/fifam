@@ -14,6 +14,7 @@ struct player : public person {
     Int mSkinTone = 0;
     Int mAgent = 0;
     Bool mDeclaredForNation = 0;
+    Int mNationalityInfo = 0;
     Bool mInternationalRetirement = 0;
     Date mInternationalRetirementDate;
     Int mInternationalApps = 0;

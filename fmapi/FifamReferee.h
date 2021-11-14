@@ -17,6 +17,8 @@ public:
     String mLastName;
     // @since FM07
     FifamRefereeType mType;
+    // @since FM22
+    Int mFootballManagerID = -1;
 
     FifamCountry *mCountry = nullptr;
 

@@ -13,6 +13,8 @@ struct team {
     Array<String, 6> mTranslatedNames;
     String mShortName;
     Array<String, 6> mTranslatedShortNames;
+    String mThreeLetterName;
+    Array<String, 6> mTranslatedThreeLetterNames;
     String mNickname;
     Array<String, 6> mTranslatedNicknames;
     Int mReputation = 0;

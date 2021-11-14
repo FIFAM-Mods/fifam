@@ -110,6 +110,7 @@
     <ClInclude Include="tests\CompareDB.h" />
     <ClInclude Include="tests\CopyPortraitsLight.h" />
     <ClInclude Include="tests\CreateStarheadsFile.h" />
+    <ClInclude Include="tests\DatesTest.h" />
     <ClInclude Include="tests\DbConvert.h" />
     <ClInclude Include="tests\DbGraphicsStats.h" />
     <ClInclude Include="tests\ExportClubIDs.h" />
@@ -123,6 +124,7 @@
     <ClInclude Include="tests\Fifa07Convert.h" />
     <ClInclude Include="tests\Fifa07Kits.h" />
     <ClInclude Include="tests\Fifa07Portraits.h" />
+    <ClInclude Include="tests\FifaCommentaryFile.h" />
     <ClInclude Include="tests\FifaConverter.h" />
     <ClInclude Include="tests\FoomBasicTest.h" />
     <ClInclude Include="tests\GenerateKitColors.h" />
@@ -142,6 +144,7 @@
     <ClInclude Include="tests\ShowDbVersion.h" />
     <ClInclude Include="tests\ShowPlayers.h" />
     <ClInclude Include="tests\DatabaseRewrite.h" />
+    <ClInclude Include="tests\TeamColors.h" />
     <ClInclude Include="tests\UpdateBudgets.h" />
     <ClInclude Include="tests\UpdateDbNames.h" />
     <ClInclude Include="tests\WriteCountries.h" />

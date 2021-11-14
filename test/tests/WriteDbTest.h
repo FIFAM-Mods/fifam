@@ -46,15 +46,27 @@ public:
         FifamWriter w("articles_check.txt");
         w.WriteLineWithSeparator(L'\t', L"Club", L"Country", L"Language", L"Check", L"Value", L"ClubName");
         for (auto country : db->mCountries) {
-            FifamClub *c = &country->mNationalTeam;
-            Check(c->mAbbreviationArticle, c->mAbbreviation, w, L"AbbreviationArticle (1)", c->mName, FifamTr(c->mCountry->mName));
-            Check(c->mPlayerInTextArticle, c->mPlayerInText, w, L"PlayerInTextArticle (2)", c->mName, FifamTr(c->mCountry->mName));
-            Check(c->mTermForTeam1Article, c->mTermForTeam1, w, L"TermForTeam1Article (3)", c->mName, FifamTr(c->mCountry->mName));
-            Check(c->mTermForTeam2Article, c->mTermForTeam2, w, L"TermForTeam2Article (4)", c->mName, FifamTr(c->mCountry->mName));
-            Check(c->mFanName1Article, c->mFanName1, w, L"FanName1Article (5)", c->mName, FifamTr(c->mCountry->mName));
-            Check(c->mFanName2Article, c->mFanName2, w, L"FanName2Article (6)", c->mName, FifamTr(c->mCountry->mName));
-            Check(c->mClubNameUsageInPhrase, c->mName, w, L"ClubNameUsageInPhrase (7)", c->mName, FifamTr(c->mCountry->mName));
-            Check(c->mClubNameUsageInPhrase2, c->mName2, w, L"ClubNameUsageInPhrase2 (8)", c->mName, FifamTr(c->mCountry->mName));
+            for (FifamClub *c : country->mClubs) {
+                Check(c->mAbbreviationArticle, c->mAbbreviation, w, L"AbbreviationArticle (1)", c->mName, FifamTr(c->mCountry->mName));
+                Check(c->mPlayerInTextArticle, c->mPlayerInText, w, L"PlayerInTextArticle (2)", c->mName, FifamTr(c->mCountry->mName));
+                Check(c->mTermForTeam1Article, c->mTermForTeam1, w, L"TermForTeam1Article (3)", c->mName, FifamTr(c->mCountry->mName));
+                Check(c->mTermForTeam2Article, c->mTermForTeam2, w, L"TermForTeam2Article (4)", c->mName, FifamTr(c->mCountry->mName));
+                Check(c->mFanName1Article, c->mFanName1, w, L"FanName1Article (5)", c->mName, FifamTr(c->mCountry->mName));
+                Check(c->mFanName2Article, c->mFanName2, w, L"FanName2Article (6)", c->mName, FifamTr(c->mCountry->mName));
+                Check(c->mClubNameUsageInPhrase, c->mName, w, L"ClubNameUsageInPhrase (7)", c->mName, FifamTr(c->mCountry->mName));
+                Check(c->mClubNameUsageInPhrase2, c->mName2, w, L"ClubNameUsageInPhrase2 (8)", c->mName, FifamTr(c->mCountry->mName));
+            }
+            {
+                FifamClub *c = &country->mNationalTeam;
+                Check(c->mAbbreviationArticle, c->mAbbreviation, w, L"AbbreviationArticle (1)", c->mName, FifamTr(c->mCountry->mName));
+                Check(c->mPlayerInTextArticle, c->mPlayerInText, w, L"PlayerInTextArticle (2)", c->mName, FifamTr(c->mCountry->mName));
+                Check(c->mTermForTeam1Article, c->mTermForTeam1, w, L"TermForTeam1Article (3)", c->mName, FifamTr(c->mCountry->mName));
+                Check(c->mTermForTeam2Article, c->mTermForTeam2, w, L"TermForTeam2Article (4)", c->mName, FifamTr(c->mCountry->mName));
+                Check(c->mFanName1Article, c->mFanName1, w, L"FanName1Article (5)", c->mName, FifamTr(c->mCountry->mName));
+                Check(c->mFanName2Article, c->mFanName2, w, L"FanName2Article (6)", c->mName, FifamTr(c->mCountry->mName));
+                Check(c->mClubNameUsageInPhrase, c->mName, w, L"ClubNameUsageInPhrase (7)", c->mName, FifamTr(c->mCountry->mName));
+                Check(c->mClubNameUsageInPhrase2, c->mName2, w, L"ClubNameUsageInPhrase2 (8)", c->mName, FifamTr(c->mCountry->mName));
+            }
         }
         //db->Write(13, FifamDatabase::GetGameDbVersion(13), "database_fixed_articles");
     }

@@ -4,7 +4,7 @@
 #include "Utils.h"
 
 unsigned int FifaDatabase::m_firstSupportedGameVersion = 11;
-unsigned int FifaDatabase::m_lastSupportedGameVersion = 21;
+unsigned int FifaDatabase::m_lastSupportedGameVersion = 22;
 unsigned int FifaDatabase::m_currentGameVersion = m_lastSupportedGameVersion;
 
 FifaDatabase::FifaDatabase(std::filesystem::path const &path, bool readFut) {
@@ -19,7 +19,7 @@ FifaDatabase::FifaDatabase(std::filesystem::path const &path, bool readFut) {
     std::filesystem::path teamstadiumlinksPath;
     for (unsigned int i = m_lastSupportedGameVersion; i >= m_firstSupportedGameVersion; i--) {
         m_currentGameVersion = i;
-        std::filesystem::path gamedbpath = path / std::to_wstring(i);
+        std::filesystem::path gamedbpath = path / Utils::Format("%02d", i);
         if (std::filesystem::exists(gamedbpath)) {
             std::wstring defaultFolderName;
             std::wstring futFolderName;

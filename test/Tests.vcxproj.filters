@@ -178,6 +178,15 @@
     <ClInclude Include="tests\PlayerIdTest.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\FifaCommentaryFile.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\TeamColors.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\DatesTest.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

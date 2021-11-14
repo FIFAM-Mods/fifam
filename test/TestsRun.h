@@ -47,7 +47,10 @@
 #include "tests\WriteDbTest.h"
 #include "tests\Fifa07Portraits.h"
 #include "tests\PlayerIdTest.h"
+#include "tests\FifaCommentaryFile.h"
+#include "tests\TeamColors.h"
+#include "tests\DatesTest.h"
 
 void RunTests() {
-    RunTest<PlayerIdTest>();
+    RunTest<GenerateKitConfig>();
 }

@@ -33,6 +33,10 @@ struct comp {
         Int mYearOrder = 0;
         Bool mNoDataForYear = 0;
         stadium *mHostStadium = 0;
+        Bool mNoTakePlace = 0;
+        Bool mNotFinished = 0;
+        Int mStartYear = 0;
+        Int mEndYear = 0;
     };
 
     Vector<history> mVecHistory;

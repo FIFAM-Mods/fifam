@@ -62,6 +62,8 @@ public:
     FifamClubLink mWouldnSignFor;
     // @since FM07
     FifamPlayer *mManagerFavouritePlayer = nullptr;
+    // @since FM22
+    Int mFootballManagerID = -1;
 
     FifamClub *mClub = nullptr;
 

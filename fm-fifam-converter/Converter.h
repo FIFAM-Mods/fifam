@@ -7,7 +7,7 @@
 #include "FifamCompCup.h"
 #include "FifamCompRound.h"
 
-const UShort CURRENT_YEAR = 2020;
+const UShort CURRENT_YEAR = 2021;
 const UInt DATABASE_VERSION = 0x2020110;
 
 class Converter {
@@ -69,7 +69,7 @@ public:
 
         Int mNationID = -1;
         Int mID = 0;
-        String mName;
+        FifamTrArray<String> mName;
         Vector<Round> mRounds;
         League mLeague;
         Bool mIsLeague = false;
@@ -126,6 +126,7 @@ public:
         Int mTransfersMp = 0;
         FifamCompID mCompID;
         Bool mOneYearCalendar = false;
+        Int mCalendarMatches = 0;
         PlayOffInfo *mPromotionInfo = nullptr;
         PlayOffInfo *mRelegationInfo = nullptr;
     };
@@ -194,6 +195,7 @@ public:
     Map<Int, String> mNamesMap_ger;
     Map<UInt, Vector<UShort>> mCalendarsFirstSeason;
     Map<UInt, Vector<UShort>> mCalendarsSecondSeason;
+    Map<UInt, Pair<FifamTrArray<String>, FifamTrArray<String>>> mSplitNames;
     
     Date GetCurrentDate() { return Date(1, 7, CURRENT_YEAR); }
     Date FmEmptyDate() { return Date(1, 1, 1900); }

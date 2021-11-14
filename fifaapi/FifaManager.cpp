@@ -47,6 +47,9 @@ void FifaManager::Internal::Read(FifaDataFile::Line &line) {
     case 21:
         line >> firstname >> commonname >> surname >> skintypecode >> haircolorcode >> facialhairtypecode >> managerid >> hairtypecode >> headtypecode >> height >> seasonaloutfitid >> weight >> hashighqualityhead >> gender >> headassetid >> ethnicity >> faceposerpreset >> teamid >> eyebrowcode >> eyecolorcode >> personalityid >> headclasscode >> nationality >> sideburnscode >> headvariation >> skintonecode >> outfitid >> hairstylecode >> bodytypecode >> facialhaircolorcode;
         break;
+    case 22:
+        line >> firstname >> commonname >> surname >> skintypecode >> haircolorcode >> facialhairtypecode >> managerid >> hairtypecode >> headtypecode >> height >> seasonaloutfitid >> weight >> hashighqualityhead >> gender >> headassetid >> ethnicity >> faceposerpreset >> teamid >> eyebrowcode >> eyecolorcode >> personalityid >> headclasscode >> nationality >> sideburnscode >> headvariation >> skintonecode >> outfitid >> hairstylecode >> bodytypecode >> facialhaircolorcode;
+        break;
     }
 }
 

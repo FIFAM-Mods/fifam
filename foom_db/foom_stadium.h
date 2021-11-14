@@ -19,6 +19,7 @@ struct stadium {
     Float mLatitude = 0;
     Float mLongitude = 0;
     Int mUsedByNationalTeam = 0;
+    Int mEnvironment = 0;
 };
 
 }

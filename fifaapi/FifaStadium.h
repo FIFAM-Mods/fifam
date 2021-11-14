@@ -111,6 +111,11 @@ public:
         int pitchwear = 0;
         int presassetthree = 0;
         int pitchlinecolor = 0;
+        // @since FIFA22
+        int presassetfour = 0;
+        int supportsgoalnetshape = 0;
+        int tunnellocation = 0;
+        int ismirrored = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

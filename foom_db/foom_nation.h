@@ -13,8 +13,6 @@ struct comp;
 struct club;
 
 struct nation : public team {
-    String mThreeLetterName;
-    Array<String, 6> mTranslatedThreeLetterName;
     String mNationalityName;
     Array<String, 6> mTranslatedNationalityName;
     Int mContinent = -1;

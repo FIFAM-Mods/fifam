@@ -184,6 +184,13 @@ public:
         int smallsidedshoetypecode = 0;
         int runstylecode = 0;
         // @since FIFA21
+        // @since FIFA22
+        int driref = 0;
+        int phypos = 0;
+        int defspe = 0;
+        int paskic = 0;
+        int shohan = 0;
+        int pacdiv = 0;
 
 
         void Read(FifaDataFile::Line &line);
