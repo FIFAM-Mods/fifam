@@ -22,7 +22,7 @@ public:
     Set<FifamClub *> mClubs;
     Set<FifamPlayer *> mPlayers;
     Set<FifamReferee *> mReferees;
-    Vector<FifamStaff *> mStaffs; // TODO: replace with Set
+    Set<FifamStaff *> mStaffs;
     Set<FifamStadium *> mStadiums;
     Set<FifamSponsor *> mSponsors;
     Vector<FifamCupAlloc *> mCupTemplates;

@@ -10,6 +10,7 @@
 #include "ConverterUtil.h"
 #include "GraphicsConverter.h"
 #include "FifaConverter.h"
+#include "Fifa07Converter.h"
 
 #define DB_SIZE Full
 
@@ -97,6 +98,8 @@ void Converter::Convert() {
 
     mWarnings = GetIniInt(L"HIDE_WARNINGS", 1) == 0;
     mErrors = GetIniInt(L"HIDE_ERRORS", 0) == 0;
+
+    mToFifa07Database = GetIniInt(L"TO_FIFA_07_DATABASE", 0);
     
     Bool READ_FOOM_PERSONS = !mQuickTest;
     Bool MAKE_CORRECTIONS_FOR_UPDATE = !mQuickTest;
@@ -117,10 +120,11 @@ void Converter::Convert() {
     FifamDatabase::mReadingOptions.mReadPersons = false;
     if (mFromFifaDatabase)
         FifamDatabase::mReadingOptions.mGameVersionForScripts = gameId;
-    mFifamDatabase = new FifamDatabase(originalGameId, originalDb);
+    if (!mToFifa07Database)
+        mFifamDatabase = new FifamDatabase(originalGameId, originalDb);
     FifamDatabase::mReadingOptions.mGameVersionForScripts = 0;
 
-    if (READ_REFERENCE_DB) {
+    if (!mToFifa07Database && READ_REFERENCE_DB) {
         FifamDatabase::mReadingOptions.mReadClubs = true;
         FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
         FifamDatabase::mReadingOptions.mReadPersons = !fromFifaDatabase;
@@ -151,7 +155,8 @@ void Converter::Convert() {
         delete colorsDb;
     }
 
-    mFifaDatabase = new FifaDatabase(dbPath / L"fifa");
+    if (!mQuickTest || mFromFifaDatabase || mToFifa07Database)
+        mFifaDatabase = new FifaDatabase(dbPath / L"fifa");
     mFoomDatabase = new foom::db(dbPath / L"foom", fromFifaDatabase? false : READ_FOOM_PERSONS, foom::db::db_size::DB_SIZE);
 
     Path infoPath = dbPath;
@@ -436,6 +441,12 @@ void Converter::Convert() {
                 }
             }
         }
+    }
+
+    if (mToFifa07Database) {
+        Fifa07Converter fifa07converter;
+        fifa07converter.Convert(this, dbPath);
+        return;
     }
 
     UInt MAX_LEAGUE_NAME_LENGTH = 63;
@@ -1438,7 +1449,7 @@ void Converter::Convert() {
         auto &p = entry.second;
         if (p.mConverterData.mFitsIntoDbLimit) {
             if (!p.mConverterData.mFifamPerson) {
-                if (!p.mContract.mClub && (p.mCurrentAbility >= MIN_FREE_AGENT_CA || (p.mNation && p.mNation->mConverterData.mFIFAManagerID == FifamCompRegion::Liechtenstein)) || mFreeAgentsToAdd.contains(p.mID)) {
+                if (!p.mContract.mClub && (p.mCurrentAbility >= (Int)MIN_FREE_AGENT_CA || (p.mNation && p.mNation->mConverterData.mFIFAManagerID == FifamCompRegion::Liechtenstein)) || mFreeAgentsToAdd.contains(p.mID)) {
                     FifamPlayer *player = CreateAndConvertPlayer(gameId, &p, nullptr);
                 }
             }
@@ -1466,7 +1477,7 @@ void Converter::Convert() {
     for (auto &entry : mFoomDatabase->mNonPlayers) {
         auto &p = entry.second;
         if (IsConvertable(&p, gameId) && !p.mConverterData.mFifamPerson) {
-            if ((!p.mClubContract.mClub || SPARE_STAFF_FROM_CLUBS) && (!p.mNationContract.mNation || SPARE_STAFF_FROM_NTS) && p.mCurrentAbility >= MIN_SPARE_STAFF_CA) {
+            if ((!p.mClubContract.mClub || SPARE_STAFF_FROM_CLUBS) && (!p.mNationContract.mNation || SPARE_STAFF_FROM_NTS) && p.mCurrentAbility >= (Int)MIN_SPARE_STAFF_CA) {
                 auto bestPosition = Utils::GetMaxElementId<Int, FifamClubStaffPosition>({
                     { p.mJobManager, FifamClubStaffPosition::Manager },
                     { p.mJobAssistantManager, FifamClubStaffPosition::AssistantCoach },
@@ -1740,11 +1751,11 @@ void Converter::Convert() {
                 }
             }
         }
-        for (unsigned int c = 0; c < FifamDatabase::NUM_COUNTRIES; c++) {
+        for (unsigned int c = 1; c <= FifamDatabase::NUM_COUNTRIES; c++) {
             if (c != FifamNation::Anguilla && c != FifamNation::Greenland) {
-                FifamCountry *country = mFifamDatabase->mCountries[c];
+                FifamCountry *country = mFifamDatabase->GetCountry(c);
                 if (c) {
-                    FifamCountry *refCountry = mReferenceDatabase->mCountries[c];
+                    FifamCountry *refCountry = mReferenceDatabase->GetCountry(c);
                     if (refCountry) {
                         if (REF_DB_WC_EC_STATISTICS) {
                             country->mNumContinentalChampions = refCountry->mNumContinentalChampions;
@@ -2081,7 +2092,7 @@ void Converter::Convert() {
                 fifaPlayersWriter.WriteLine(
                     countryName,
                     level,
-                    clubName,
+                    Quoted(clubName),
                     Quoted(playerName),
                     _player->mDateOfBirth,
                     _player->mNation ? _player->mNation->mThreeLetterName : L"",
@@ -2204,6 +2215,8 @@ void Converter::Convert() {
             std::sort(derbies.begin(), derbies.end(), [](derby_info const &a, derby_info const &b) {
                 return a.reputation > b.reputation;
             });
+            if (derbies.size() > 999)
+                derbies.resize(999);
             FifamWriter derbiesWriter(Utils::Format(outputPath / L"fmdata\\ParameterFiles\\Derbies.txt", gameId),
                 gameId, FifamVersion(), false);
             if (derbiesWriter.Available()) {
@@ -2213,15 +2226,11 @@ void Converter::Convert() {
                 derbiesWriter.WriteNewLine();
                 UInt maxNameIdLength = 0;
                 for (UInt i = 0; i < derbies.size(); i++) {
-                    if (i >= 999) // NOTE: max possible derbies count
-                        break;
                     UInt len = derbies[i].nameId.length();
                     if (len > maxNameIdLength)
                         maxNameIdLength = len;
                 }
                 for (UInt i = 0; i < derbies.size(); i++) {
-                    if (i >= 999) // NOTE: max possible derbies count
-                        break;
                     derbiesWriter.WriteLine(Utils::Format(L"    DERBY%03d = %-" + std::to_wstring(maxNameIdLength)
                         + L"s 0x%08X, 0x%08X                  // %s, %s",
                         i + 1, String(derbies[i].nameId + L",").c_str(), derbies[i].club1.mPtr->mUniqueID, derbies[i].club2.mPtr->mUniqueID,
@@ -2237,8 +2246,6 @@ void Converter::Convert() {
             Set<String> writtenDerbyNames;
             if (derbyNamesWriter.Available()) {
                 for (UInt i = 0; i < derbies.size(); i++) {
-                    if (i >= 999) // NOTE: max possible derbies count
-                        break;
                     if (!Utils::Contains(writtenDerbyNames, derbies[i].nameId)) {
                         derbyNamesWriter.WriteLineWithSeparator(L"|", derbies[i].nameId, derbies[i].name,
                             derbies[i].translatedNames[0], derbies[i].translatedNames[1], derbies[i].translatedNames[2],
@@ -2253,8 +2260,6 @@ void Converter::Convert() {
             Set<String> writtenDerbyNamesRu;
             if (derbyNamesWriterRu.Available()) {
                 for (UInt i = 0; i < derbies.size(); i++) {
-                    if (i >= 999) // NOTE: max possible derbies count
-                        break;
                     if (!Utils::Contains(writtenDerbyNamesRu, derbies[i].nameId)) {
                         if (!derbies[i].translatedNames[5].empty())
                             derbyNamesWriterRu.WriteLineWithSeparator(L"|", derbies[i].nameId, derbies[i].translatedNames[5]);

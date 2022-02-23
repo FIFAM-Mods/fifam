@@ -23,7 +23,7 @@ public:
 
     Translation() {
         Map<UInt, String> eng;
-        FifamReader trEng(LR"(D:\Games\FIFA Manager 13\fmdata\eng\Translations.csv)", false, false);
+        FifamReader trEng(LR"(E:\Games\FIFA Manager 22\fmdata\eng\Translations.csv)", false, false);
         if (trEng.Available()) {
             trEng.SkipLine();
             UInt i = 0;
@@ -62,7 +62,7 @@ public:
             }
         }
         std::wcout << L"Writing" << std::endl;
-        FifamWriter w(LR"(D:\Games\FIFA Manager 13\fmdata\eng\Translations_web_ru.csv)", 14, FifamVersion());
+        FifamWriter w(LR"(E:\Games\FIFA Manager 22\fmdata\eng\Translations_mail_en.csv)", 14, FifamVersion());
         w.SetReplaceQuotes(false);
         auto WriteTranslation = [&](String const &k) {
             auto it = eng.find(getTextHash(k));
@@ -73,24 +73,24 @@ public:
             w.WriteLine(k, Quoted(t));
         };
         
-        //for (UInt i = 0; i < 5000; i++) {
-        //    WriteTranslation(Utils::Format(L"IDS_EA_MAIL_TITLE_%d", i));
-        //    for (UInt v = 0; v < 10; v++)
-        //        WriteTranslation(Utils::Format(L"IDS_EA_MAIL_TITLE_VAR_%d_%d", v, i));
-        //    WriteTranslation(Utils::Format(L"IDS_EA_MAIL_TEXT_%d", i));
-        //    for (UInt v = 0; v < 10; v++)
-        //        WriteTranslation(Utils::Format(L"IDS_EA_MAIL_TEXT_VAR_%d_%d", v, i));
-        //    WriteTranslation(Utils::Format(L"IDS_EA_MAIL_REMARK_%d", i));
-        //    for (UInt v = 0; v < 3; v++)
-        //        WriteTranslation(Utils::Format(L"IDS_EA_MAIL_ALT_%d_%d", v, i));
-        //    for (UInt v = 0; v < 3; v++)
-        //        WriteTranslation(Utils::Format(L"IDS_EA_MAIL_ANSWER_%d_%d", v, i));
-        //}
-
-        for (UInt i = 0; i < 3000; i++) {
-            for (UInt v = 0; v < 20; v++)
-                WriteTranslation(Utils::Format(L"IDS_WEBSITE_%05d_%d", i, v));
+        for (UInt i = 0; i < 5000; i++) {
+            WriteTranslation(Utils::Format(L"IDS_EA_MAIL_TITLE_%d", i));
+            for (UInt v = 0; v < 10; v++)
+                WriteTranslation(Utils::Format(L"IDS_EA_MAIL_TITLE_VAR_%d_%d", v, i));
+            WriteTranslation(Utils::Format(L"IDS_EA_MAIL_TEXT_%d", i));
+            for (UInt v = 0; v < 10; v++)
+                WriteTranslation(Utils::Format(L"IDS_EA_MAIL_TEXT_VAR_%d_%d", v, i));
+            WriteTranslation(Utils::Format(L"IDS_EA_MAIL_REMARK_%d", i));
+            for (UInt v = 0; v < 3; v++)
+                WriteTranslation(Utils::Format(L"IDS_EA_MAIL_ALT_%d_%d", v, i));
+            for (UInt v = 0; v < 3; v++)
+                WriteTranslation(Utils::Format(L"IDS_EA_MAIL_ANSWER_%d_%d", v, i));
         }
+
+    //    for (UInt i = 0; i < 3000; i++) {
+    //        for (UInt v = 0; v < 20; v++)
+    //            WriteTranslation(Utils::Format(L"IDS_WEBSITE_%05d_%d", i, v));
+    //    }
 
         //std::wcout << L"Writing TM09_INVALID_%08d" << std::endl;
         //for (UInt i = 0; i <= 9999; i++)

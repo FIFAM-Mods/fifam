@@ -762,7 +762,7 @@ FifamPlayer *FifamDatabase::CreatePlayer(FifamClub *club, UInt id) {
 FifamStaff *FifamDatabase::CreateStaff(FifamClub *club, UInt id) {
     FifamStaff *staff = new FifamStaff;
     staff->mID = id;
-    mStaffs.push_back(staff);
+    mStaffs.insert(staff);
     auto it = mPersonsMap.find(id);
     if (it != mPersonsMap.end())
         Error(L"FifamDatabase::CreateStaff: ID is already in use (%d)", id);

@@ -31,7 +31,9 @@ Bool Converter::IsExtrovertPlayer(Int playerId) {
         8832853, // Marcelo
         71000324, // Konoplyanka
         71081391, // Zinchenko
-        8085570 // Dzyuba
+        8085570, // Dzyuba
+        189596, // Muller
+        234396 // Davies
     };
     return Utils::Contains(playerIDs, playerId);
 }
@@ -68,7 +70,9 @@ Bool Converter::IsFansFavouritePlayer(Int playerId) {
         14044150, // Dybala
         8833628, // Thiago Silva
         310625, // Kaka
-        6700151 // Casillas
+        6700151, // Casillas
+        198219, // Insigne
+        231747 // Mbappe
     };
     return Utils::Contains(playerIDs, playerId);
 }
@@ -97,10 +101,13 @@ UChar Converter::GetPlayerLevel(FifamPlayer *player, FifamPlayerPosition positio
 
 Bool Converter::IsPlayerRetiredFromNationalTeam(Int playerId) {
     return
-        playerId == 8435089 || // Benzema
         playerId == 8169332 || // Nainggolan
         playerId == 11133 || // Buffon
-        playerId == 8053234; // Akinfeev
+        playerId == 8053234 || // Akinfeev
+        playerId == 156772 || // Kroos
+        playerId == 19004998 || // Marlos
+        playerId == 837912 // Pandev
+        ;
 }
 
 Int Converter::ConvertPlayerAttribute(Int attr, UInt gameId) {
@@ -210,6 +217,11 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     }
     FifamPlayer *player = mFifamDatabase->CreatePlayer(club, mPersonIdCounter++);
     ConvertPersonAttributes(player, p, gameId);
+    if (!p->mShirtName.empty()) {
+        String jerseyName = FixPersonName(p->mShirtName, gameId);
+        if (!jerseyName.empty() && jerseyName.size() <= 19)
+            player->mNickname = jerseyName;
+    }
     player->SetProperty(L"foom::player", p);
     player->mIsRealPlayer = true;
     player->mIsBasque = p->mIsBasque;
@@ -320,30 +332,30 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
             if (player->mAppearance.mFaceVariation != FifamFaceVariation::Freckles) {
                 if (age >= 32) {
                     if (Random::Get(1, 100) > 75)
-                        player->mAppearance.mFaceVariation != FifamFaceVariation::Normal;
+                        player->mAppearance.mFaceVariation = FifamFaceVariation::Normal;
                     else
-                        player->mAppearance.mFaceVariation != FifamFaceVariation::Wrinkles;
+                        player->mAppearance.mFaceVariation = FifamFaceVariation::Wrinkles;
                 }
                 if (age >= 29) {
                     if (Random::Get(1, 100) > 40)
-                        player->mAppearance.mFaceVariation != FifamFaceVariation::Normal;
+                        player->mAppearance.mFaceVariation = FifamFaceVariation::Normal;
                     else
-                        player->mAppearance.mFaceVariation != FifamFaceVariation::Wrinkles;
+                        player->mAppearance.mFaceVariation = FifamFaceVariation::Wrinkles;
                 }
                 else {
                     if (Random::Get(1, 100) > 20)
-                        player->mAppearance.mFaceVariation != FifamFaceVariation::Normal;
+                        player->mAppearance.mFaceVariation = FifamFaceVariation::Normal;
                     else
-                        player->mAppearance.mFaceVariation != FifamFaceVariation::Wrinkles;
+                        player->mAppearance.mFaceVariation = FifamFaceVariation::Wrinkles;
                 }
             }
         }
         else {
             if (player->mAppearance.mFaceVariation == FifamFaceVariation::Wrinkles) {
                 if (Random::Get(1, 100) > 5)
-                    player->mAppearance.mFaceVariation != FifamFaceVariation::Normal;
+                    player->mAppearance.mFaceVariation = FifamFaceVariation::Normal;
                 else
-                    player->mAppearance.mFaceVariation != FifamFaceVariation::Freckles;
+                    player->mAppearance.mFaceVariation = FifamFaceVariation::Freckles;
             }
         }
     }
@@ -440,9 +452,20 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         player->mAppearance.mGenericFace = p->mConverterData.mEditorFace - 1;
         hasCustomFace = true;
     }
-    if (p->mConverterData.mEditorHair >= 1 && p->mConverterData.mEditorHair <= std::size(hairIdFromEditorId)) {
-        player->mAppearance.mHairStyle = hairIdFromEditorId[p->mConverterData.mEditorHair - 1];
-        hasCustomHair = true;
+    if (p->mConverterData.mEditorHair >= 1) {
+        if (p->mConverterData.mEditorHair > 1000) {
+            UChar realHairEditorId = p->mConverterData.mEditorHair - 1000;
+            if (realHairEditorId >= 1 && realHairEditorId <= std::size(hairIdFromEditorId)) {
+                player->mAppearance.mHairStyle = hairIdFromEditorId[realHairEditorId - 1];
+                hasCustomHair = true;
+            }
+        }
+        else {
+            if ((UChar)p->mConverterData.mEditorHair <= std::size(g14HairEditorIdToReal)) {
+                player->mAppearance.mHairStyle = g14HairEditorIdToReal[p->mConverterData.mEditorHair - 1];
+                hasCustomHair = true;
+            }
+        }
     }
     if (p->mConverterData.mEditorBeard >= 0 && p->mConverterData.mEditorBeard <= 15)
         player->mAppearance.mBeardType = p->mConverterData.mEditorBeard;
@@ -465,7 +488,7 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     // talent
     if (gameId >= 9) {
         if (p->mOriginalPA == -10) // 170-200
-            player->mTalent = 9; // 5 stars
+            player->mTalent = 8; // 5 stars
         else if (p->mOriginalPA == -95) // 160-190
             player->mTalent = 8; // 4,5 stars
         else if (p->mOriginalPA == -9) { // 150-180
@@ -626,7 +649,7 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         else {
             UInt maxTalent = 9;
             UChar *potantialAbilityRanges = nullptr;     // 35  60  80  100  119  136
-            static UChar potentialAbilityRanges1to10[9] = { 35, 60, 80, 100, 123, 137, 157, 172, 190 };  
+            static UChar potentialAbilityRanges1to10[9] = { 35, 60, 80, 100, 123, 137, 157, 172, 191 }; // 190 
             potantialAbilityRanges = potentialAbilityRanges1to10;
             player->mTalent = 0;
             for (UInt i = 0; i < maxTalent; i++) {
@@ -668,107 +691,16 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         { p->mAttackingMidfielderLeft, FifamPlayerPosition::LW },
         { p->mAttackingMidfielderCentral, FifamPlayerPosition::AM },
         { p->mAttackingMidfielderRight, FifamPlayerPosition::RW },
+        { (p->mAttackingMidfielderCentral + p->mStriker) / 2, FifamPlayerPosition::CF },
         { p->mStriker, FifamPlayerPosition::ST }
     };
-    // position
-    auto bestPos = Utils::GetMaxElementId<Int, FifamPlayerPosition>(playerPositions);
-    if (bestPos.first != 20)
-        Error(L"Player has no preferred position\nPlayer: %s\nBest pos: %s (%d)", p->mFullName.c_str(), bestPos.second.ToCStr(), bestPos.first);
-
-    player->mMainPosition = bestPos.second;
-    player->mPositionBias = FifamPlayerLevel::GetDefaultBiasValues(player->mMainPosition, gameId);
-    player->mPositionBias[player->mMainPosition.ToInt()] = 100;
-    for (UInt i = 0; i < playerPositions.size(); i++) {
-        Int value = playerPositions[i].first;
-        Int bias = 40;
-        if (gameId >= 13) {
-            if (value == 20)
-                bias = 100;
-            else if (value == 19)
-                bias = 99;
-            else if (value == 18)
-                bias = 98;
-            else if (value == 17)
-                bias = Random::Get(96, 97);
-            else if (value == 16)
-                bias = Random::Get(94, 95);
-            else if (value == 15)
-                bias = Random::Get(92, 93);
-            else if (value == 14)
-                bias = Random::Get(90, 91);
-            else if (value == 13)
-                bias = Random::Get(86, 89);
-            else if (value == 12)
-                bias = Random::Get(82, 85);
-            else if (value == 11)
-                bias = Random::Get(78, 81);
-            else if (value == 10)
-                bias = Random::Get(74, 77);
-            else if (value == 9)
-                bias = Random::Get(70, 73);
-            else if (value == 8)
-                bias = Random::Get(66, 69);
-            else if (value == 7)
-                bias = Random::Get(62, 65);
-            else if (value == 6)
-                bias = Random::Get(58, 61);
-            else if (value == 5)
-                bias = Random::Get(54, 57);
-            else if (value == 4)
-                bias = Random::Get(50, 53);
-            else if (value == 3)
-                bias = Random::Get(46, 49);
-            else if (value == 2)
-                bias = Random::Get(41, 45);
-            else if (value == 1)
-                bias = 40;
-        }
-        else {
-            bias = 20;
-            if (value == 20)
-                bias = 100;
-            else if (value == 19)
-                bias = 99;
-            else if (value == 18)
-                bias = 98;
-            else if (value == 17)
-                bias = Random::Get(96, 97);
-            else if (value == 16)
-                bias = Random::Get(91, 95);
-            else if (value == 15)
-                bias = Random::Get(86, 90);
-            else if (value == 14)
-                bias = Random::Get(81, 85);
-            else if (value == 13)
-                bias = Random::Get(76, 80);
-            else if (value == 12)
-                bias = Random::Get(71, 75);
-            else if (value == 11)
-                bias = Random::Get(66, 70);
-            else if (value == 10)
-                bias = Random::Get(61, 65);
-            else if (value == 9)
-                bias = Random::Get(56, 60);
-            else if (value == 8)
-                bias = Random::Get(51, 55);
-            else if (value == 7)
-                bias = Random::Get(46, 50);
-            else if (value == 6)
-                bias = Random::Get(41, 45);
-            else if (value == 5)
-                bias = Random::Get(36, 40);
-            else if (value == 4)
-                bias = Random::Get(31, 35);
-            else if (value == 3)
-                bias = Random::Get(26, 30);
-            else if (value == 2)
-                bias = Random::Get(21, 25);
-            else if (value == 1)
-                bias = 20;
-        }
-        if (player->mPositionBias[playerPositions[i].second.ToInt()] < bias)
-            player->mPositionBias[playerPositions[i].second.ToInt()] = (Float)bias;
-    }
+    std::sort(playerPositions.begin(), playerPositions.end(), [](Pair<Int, FifamPlayerPosition> const &a, Pair<Int, FifamPlayerPosition> const &b) {
+        return a.first >= b.first;
+    });
+    // position prepare
+    if (playerPositions[0].first != 20)
+        Error(L"Player has no preferred position\nPlayer: %s\nBest pos: %s (%d)", p->mFullName.c_str(), playerPositions[0].second.ToCStr(), playerPositions[0].first);
+    Bool isGoalkeeper = playerPositions[0].second == FifamPlayerPosition::GK;
 
     // attributes
     struct ConvertedAttributes {
@@ -956,7 +888,7 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     player->mAttributes.PosOffensive = attr.mMovement;
     player->mAttributes.PosDefensive = attr.mPositioning;
     player->mAttributes.Vision = attr.mVision;
-    if (player->mMainPosition == FifamPlayerPosition::GK)
+    if (isGoalkeeper)
         player->mAttributes.Reactions = (UChar)ceilf((attr.mAnticipation + attr.mReflexes) / 2.0f);
     else
         player->mAttributes.Reactions = (UChar)ceilf((attr.mAnticipation + attr.mFirstTouch) / 2.0f);
@@ -979,7 +911,7 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     Int gkJumping = attr.mJumpingReach;
     if (attr.mAerialAbility > gkJumping)
         gkJumping = p->mAerialAbility;
-    if (player->mMainPosition == FifamPlayerPosition::GK)
+    if (isGoalkeeper)
         player->mAttributes.Diving = (UChar)ceilf((attr.mReflexes + gkJumping) / 2.0f);
     else
         player->mAttributes.Diving = attr.mAerialAbility;
@@ -992,6 +924,124 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     player->mAttributes.Punching = attr.mTendencyToPunch;
     player->mAttributes.ShotStopping = (UChar)ceilf((attr.mReflexes + attr.mOneOnOnes) / 2.0f);
     player->mAttributes.Throwing = attr.mThrowing;
+
+    // position
+    UInt numBestPos = 1;
+    for (UInt i = 1; i < std::size(playerPositions); i++) {
+        if (playerPositions[i].first == 20)
+            numBestPos += 1;
+        else
+            break;
+    }
+    if (numBestPos > 1) {
+        UInt bestPosIndex = 0;
+        UChar bestLevel = 0;
+        for (UInt i = 0; i < numBestPos; i++) {
+            player->mMainPosition = playerPositions[i].second;
+            player->mPositionBias[playerPositions[i].second.ToInt()] = 100;
+            UChar currentLevel = GetPlayerLevel(player, player->mMainPosition, FifamPlayerLevel::GetBestStyleForPlayer(player), false, gameId);
+            if (currentLevel > bestLevel) {
+                bestLevel = currentLevel;
+                bestPosIndex = i;
+            }
+        }
+        player->mMainPosition = playerPositions[bestPosIndex].second;
+    }
+    else
+        player->mMainPosition = playerPositions[0].second;
+    player->mPositionBias = FifamPlayerLevel::GetDefaultBiasValues(player->mMainPosition, gameId);
+    player->mPositionBias[player->mMainPosition.ToInt()] = 100;
+    for (UInt i = 0; i < playerPositions.size(); i++) {
+        Int value = playerPositions[i].first;
+        Int bias = 40;
+        if (gameId >= 13) {
+            if (value == 20)
+                bias = 100;
+            else if (value == 19)
+                bias = 99;
+            else if (value == 18)
+                bias = 98;
+            else if (value == 17)
+                bias = Random::Get(96, 97);
+            else if (value == 16)
+                bias = Random::Get(94, 95);
+            else if (value == 15)
+                bias = Random::Get(92, 93);
+            else if (value == 14)
+                bias = Random::Get(90, 91);
+            else if (value == 13)
+                bias = Random::Get(86, 89);
+            else if (value == 12)
+                bias = Random::Get(82, 85);
+            else if (value == 11)
+                bias = Random::Get(78, 81);
+            else if (value == 10)
+                bias = Random::Get(74, 77);
+            else if (value == 9)
+                bias = Random::Get(70, 73);
+            else if (value == 8)
+                bias = Random::Get(66, 69);
+            else if (value == 7)
+                bias = Random::Get(62, 65);
+            else if (value == 6)
+                bias = Random::Get(58, 61);
+            else if (value == 5)
+                bias = Random::Get(54, 57);
+            else if (value == 4)
+                bias = Random::Get(50, 53);
+            else if (value == 3)
+                bias = Random::Get(46, 49);
+            else if (value == 2)
+                bias = Random::Get(41, 45);
+            else if (value == 1)
+                bias = 40;
+        }
+        else {
+            bias = 20;
+            if (value == 20)
+                bias = 100;
+            else if (value == 19)
+                bias = 99;
+            else if (value == 18)
+                bias = 98;
+            else if (value == 17)
+                bias = Random::Get(96, 97);
+            else if (value == 16)
+                bias = Random::Get(91, 95);
+            else if (value == 15)
+                bias = Random::Get(86, 90);
+            else if (value == 14)
+                bias = Random::Get(81, 85);
+            else if (value == 13)
+                bias = Random::Get(76, 80);
+            else if (value == 12)
+                bias = Random::Get(71, 75);
+            else if (value == 11)
+                bias = Random::Get(66, 70);
+            else if (value == 10)
+                bias = Random::Get(61, 65);
+            else if (value == 9)
+                bias = Random::Get(56, 60);
+            else if (value == 8)
+                bias = Random::Get(51, 55);
+            else if (value == 7)
+                bias = Random::Get(46, 50);
+            else if (value == 6)
+                bias = Random::Get(41, 45);
+            else if (value == 5)
+                bias = Random::Get(36, 40);
+            else if (value == 4)
+                bias = Random::Get(31, 35);
+            else if (value == 3)
+                bias = Random::Get(26, 30);
+            else if (value == 2)
+                bias = Random::Get(21, 25);
+            else if (value == 1)
+                bias = 20;
+        }
+        if (player->mPositionBias[playerPositions[i].second.ToInt()] < bias)
+            player->mPositionBias[playerPositions[i].second.ToInt()] = (Float)bias;
+    }
 
     Int cfPosFirst = p->mStriker;
     Int cfPosSecond = p->mAttackingMidfielderCentral;
@@ -1011,6 +1061,28 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         player->mMainPosition = FifamPlayerPosition::CF;
         if (GetPlayerLevel(player, player->mMainPosition, FifamPlayerLevel::GetBestStyleForPlayer(player), false, gameId) <= currentLevel)
             player->mMainPosition = savedPos;
+    }
+
+    // validate main position with level
+    auto savedBias = player->mPositionBias;
+    auto savedPos = player->mMainPosition;
+    UInt bestPosIndex = 0;
+    UChar oldLevel = GetPlayerLevel(player, player->mMainPosition, FifamPlayerLevel::GetBestStyleForPlayer(player), false, gameId);
+    UChar bestLevel = oldLevel;
+    for (UInt i = 0; i < numBestPos; i++) {
+        player->mMainPosition = playerPositions[i].second;
+        player->mPositionBias[playerPositions[i].second.ToInt()] = 100;
+        UChar currentLevel = GetPlayerLevel(player, player->mMainPosition, FifamPlayerLevel::GetBestStyleForPlayer(player), false, gameId);
+        if (currentLevel > bestLevel) {
+            bestLevel = currentLevel;
+            bestPosIndex = i;
+        }
+    }
+    player->mPositionBias = savedBias;
+    player->mMainPosition = savedPos;
+    if (bestLevel > oldLevel) {
+        player->mMainPosition = playerPositions[bestPosIndex].second;
+        player->mPositionBias[player->mMainPosition.ToInt()] = 100;
     }
 
     // styles table
@@ -1471,7 +1543,7 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     if (IsPlayerRetiredFromNationalTeam(p->mID))
         player->mRetiredFromNationalTeam = true;
     else {
-        if (p->mInternationalRetirement || (p->mInternationalRetirementDate > Date(1, 1, 2000) && p->mInternationalRetirementDate <= GetCurrentDate()))
+        if (p->mInternationalRetirement || (p->mInternationalRetirementDate > Date(1, 1, 2000) && p->mInternationalRetirementDate <= Date(1, 9, GetCurrentDate().year)))
             player->mRetiredFromNationalTeam = true;
     }
     if (!player->mRetiredFromNationalTeam && playerOriginalCountry && p->mDeclaredForNation)

@@ -35,7 +35,7 @@
 #include "tests\MissingPortraits.h"
 #include "tests\DatabaseRewrite.h"
 #include "tests\CreateStarheadsFile.h"
-#include "Translation.h"
+#include "tests\Translation.h"
 #include "tests\GetUnlinkedFaces.h"
 #include "tests\UpdateDbNames.h"
 #include "tests\Fifa07Convert.h"
@@ -50,7 +50,12 @@
 #include "tests\FifaCommentaryFile.h"
 #include "tests\TeamColors.h"
 #include "tests\DatesTest.h"
+#include "tests\DbCommands.h"
+#include "tests\PngFix.h"
+#include "tests\ParseTransfermarktStats.h"
+#include "tests\PackMusic.h"
+#include "tests\PackABK.h"
 
 void RunTests() {
-    RunTest<GenerateKitConfig>();
+    RunTest<PackABK>();
 }

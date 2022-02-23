@@ -17,6 +17,7 @@
     <ClCompile Include="LeagueConverter.cpp" />
     <ClCompile Include="PersonConverter.cpp" />
     <ClCompile Include="DbUpdate.cpp" />
+    <ClCompile Include="Fifa07Converter.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Converter.h" />
@@ -24,5 +25,6 @@
     <ClInclude Include="GraphicsConverter.h" />
     <ClInclude Include="AppearanceGenerator.h" />
     <ClInclude Include="FifaConverter.h" />
+    <ClInclude Include="Fifa07Converter.h" />
   </ItemGroup>
 </Project>

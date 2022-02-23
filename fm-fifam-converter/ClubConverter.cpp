@@ -232,14 +232,31 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     // Youth players are basques
     dst->mYouthPlayersAreBasques = team->is_basque();
 
-    auto countryId = FifamNation::MakeFromInt(country->mId);
-    if (countryId == FifamNation::Russia ||
-        countryId == FifamNation::Ukraine ||
-        countryId == FifamNation::Belarus ||
-        countryId == FifamNation::Kazakhstan ||
-        countryId == FifamNation::Azerbaijan)
-    {
-        dst->mTransfersCountry[0] = countryId;
+    std::sort(team->mVecVision.begin(), team->mVecVision.end(), [](foom::club::vision const &a, foom::club::vision const &b) {
+        return a.mImportance > b.mImportance;
+    });
+    Vector<UInt> transferCountries;
+    for (auto const &v : team->mVecVision) {
+        if (v.mType == 101 && v.mNation && v.mImportance >= 0 && !Utils::Contains(transferCountries, v.mNation->mConverterData.mFIFAManagerReplacementID)) // transfer from nation
+            transferCountries.push_back(v.mNation->mConverterData.mFIFAManagerReplacementID);
+        if (transferCountries.size() == 2)
+            break;
+    }
+    if (transferCountries.size() < 2) {
+        if (country->mId == FifamNation::Russia ||
+            country->mId == FifamNation::Ukraine ||
+            country->mId == FifamNation::Belarus ||
+            country->mId == FifamNation::Kazakhstan ||
+            country->mId == FifamNation::Azerbaijan)
+        {
+            if (!Utils::Contains(transferCountries, country->mId))
+                transferCountries.push_back(country->mId);
+        }
+    }
+    if (!transferCountries.empty()) {
+        dst->mTransfersCountry[0] = FifamNation::MakeFromInt(transferCountries[0]);
+        if (transferCountries.size() > 1)
+            dst->mTransfersCountry[1] = FifamNation::MakeFromInt(transferCountries[1]);
     }
 
     // League history
@@ -1306,7 +1323,7 @@ void Converter::ConvertKitsAndColors(FifamClub * dst, Int foomId, Vector<foom::k
                 kit.mShirtColors = { set->mBackground, set->mForeground, set->mOutline };
                 break;
             case 56:
-                kit.mShirt = 12;
+                kit.mShirt = 57;
                 kit.mShirtColors = { set->mBackground, set->mForeground, set->mOutline };
                 break;
             }
@@ -1314,7 +1331,7 @@ void Converter::ConvertKitsAndColors(FifamClub * dst, Int foomId, Vector<foom::k
 
         // (if club has no FIFA kit)
         if (!exists(mOutputGameFolder / (L"data\\kits\\" + Utils::Format(L"%08X", dst->mUniqueID) + L"_h.tga"))
-            && !exists(mContentArtsFolder / (L"art_05\\data\\kits\\" + Utils::Format(L"%08X", dst->mUniqueID) + L"_h.tga")))
+            && !exists(mContentArtsFolder / (L"art_04\\data\\kits\\" + Utils::Format(L"%08X", dst->mUniqueID) + L"_h.tga")))
         {
             Color shirtBackColor = FifamKit::GetShirtBackColor(kit.mShirt, kit.mShirtColors[0], kit.mShirtColors[1], kit.mShirtColors[2]);
             if (Color::Distance(kit.mShirtNumberColor, shirtBackColor) < 100) {

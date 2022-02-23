@@ -42,7 +42,7 @@ public:
     WriteDbTest() {
         FifamDatabase::mReadingOptions.mUseCustomFormations = true;
         //FifamDatabase::mReadingOptions.mReadPersons = false;
-        FifamDatabase *db = new FifamDatabase(13, "D:\\Games\\FIFA Manager 21\\database");
+        FifamDatabase *db = new FifamDatabase(13, "db2");
         FifamWriter w("articles_check.txt");
         w.WriteLineWithSeparator(L'\t', L"Club", L"Country", L"Language", L"Check", L"Value", L"ClubName");
         for (auto country : db->mCountries) {
@@ -68,6 +68,6 @@ public:
                 Check(c->mClubNameUsageInPhrase2, c->mName2, w, L"ClubNameUsageInPhrase2 (8)", c->mName, FifamTr(c->mCountry->mName));
             }
         }
-        //db->Write(13, FifamDatabase::GetGameDbVersion(13), "database_fixed_articles");
+        db->Write(13, FifamDatabase::GetGameDbVersion(13), "database_fixed_articles");
     }
 };

@@ -670,6 +670,7 @@ void Converter::ConvertLeagues(UInt gameId) {
         auto &nation = entry.second;
         auto country = mFifamDatabase->GetCountry(nation.mConverterData.mFIFAManagerID);
         if (country) {
+            //std::wcout << FifamTr(country->mName) << std::endl;
             ConvertNationInfo(country, &nation, gameId);
             country->SetProperty(L"foom::nation", &nation);
             CreateStaffMembersForClub(gameId, &nation, &country->mNationalTeam, true);

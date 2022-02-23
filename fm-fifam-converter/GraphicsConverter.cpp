@@ -663,13 +663,16 @@ void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGrap
             if (gameId <= 9)
                 portraitsDir = Path(L"art") / L"picture";
             FifamPerson *fifamPerson = (FifamPerson *)person->mConverterData.mFifamPerson;
-            String dstFolder = L"art_02";
-            if (false && gameId >= 13 && !fifamPerson->mWriteableStringID.empty()) {
-                if (fifamPerson->mWriteableStringID[0] >= L'F' && fifamPerson->mWriteableStringID[0] <= L'L')
+            String dstFolder = L"art_08";
+            if (gameId >= 13 && !fifamPerson->mWriteableStringID.empty()) {
+                WideChar c = fifamPerson->mWriteableStringID[0];
+                if ((c >= L'A' && c <= L'C') || (c >= L'a' && c <= L'c'))
+                    dstFolder = L"art_02";
+                if ((c >= L'D' && c <= L'J') || (c >= L'd' && c <= L'j'))
                     dstFolder = L"art_03";
-                else if (fifamPerson->mWriteableStringID[0] >= L'M' && fifamPerson->mWriteableStringID[0] <= L'R')
+                else if ((c >= L'K' && c <= L'M') || (c >= L'k' && c <= L'm'))
                     dstFolder = L"art_06";
-                else if (fifamPerson->mWriteableStringID[0] >= L'S' /*&& fifamPerson->mWriteableStringID[0] <= L'Z'*/)
+                else if ((c >= L'N' && c <= L'R') || (c >= L'n' && c <= L'r'))
                     dstFolder = L"art_07";
             }
             Path outputPath = contentPath / gameFolder / dstFolder / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat);
@@ -677,7 +680,8 @@ void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGrap
                 !exists(contentPath / gameFolder / L"art_02" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
                 !exists(contentPath / gameFolder / L"art_03" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
                 !exists(contentPath / gameFolder / L"art_06" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
-                !exists(contentPath / gameFolder / L"art_07" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat))))
+                !exists(contentPath / gameFolder / L"art_07" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
+                !exists(contentPath / gameFolder / L"art_08" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat))))
             {
                 if (mOnlyUpdates || mOutputToGameFolder)
                     outputPath = Path(gameOutputPath / L"portraits\\club\\160x160") / (fifamPerson->mWriteableStringID + targetFormat);
@@ -704,14 +708,8 @@ void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path con
             Path basePath;
             if (mOnlyUpdates || mOutputToGameFolder)
                 basePath = gameOutputPath;
-            else {
-                String artArchive = L"art_05";
-                if (gameId <= 12) {
-                    targetFormat = L".tga";
-                    artArchive = L"art_02";
-                }
-                basePath = contentPath / Utils::Format(L"fm%02d", gameId) / artArchive;
-            }
+            else
+                basePath = contentPath / Utils::Format(L"fm%02d", gameId) / L"art_02";
             Path outputPath = basePath / L"portraits" / L"Referees" / L"160x160" /
                 (FifamNames::GetPersonStringId(gameId, fifamReferee->mFirstName, fifamReferee->mLastName, String(), Date(), 0) + targetFormat);
             if (!mOnlyUpdates || !exists(outputPath)) {
@@ -732,9 +730,11 @@ void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path con
 void GraphicsConverter::ConvertPortraits(foom::db *db, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minCA) {
     String gameFolder = Utils::Format(L"fm%02d", gameId);
     create_directories(contentPath / gameFolder / L"art_02\\portraits\\club\\160x160");
+    create_directories(contentPath / gameFolder / L"art_02\\portraits\\Referees\\160x160");
     create_directories(contentPath / gameFolder / L"art_03\\portraits\\club\\160x160");
     create_directories(contentPath / gameFolder / L"art_06\\portraits\\club\\160x160");
     create_directories(contentPath / gameFolder / L"art_07\\portraits\\club\\160x160");
+    create_directories(contentPath / gameFolder / L"art_08\\portraits\\club\\160x160");
     create_directories(contentPath / gameFolder / L"art_05\\portraits\\Referees\\160x160");
     std::wcout << L"Converting player portraits...  0%";
     UInt max = db->mPlayers.size();

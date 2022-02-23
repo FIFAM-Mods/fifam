@@ -136,9 +136,6 @@
     <ClInclude Include="tests\DatabaseRewrite.h">
       <Filter>tests</Filter>
     </ClInclude>
-    <ClInclude Include="Translation.h">
-      <Filter>tests</Filter>
-    </ClInclude>
     <ClInclude Include="tests\CreateStarheadsFile.h">
       <Filter>tests</Filter>
     </ClInclude>
@@ -185,6 +182,24 @@
       <Filter>tests</Filter>
     </ClInclude>
     <ClInclude Include="tests\DatesTest.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\DbCommands.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\Translation.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\PngFix.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\ParseTransfermarktStats.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\PackMusic.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\PackABK.h">
       <Filter>tests</Filter>
     </ClInclude>
   </ItemGroup>

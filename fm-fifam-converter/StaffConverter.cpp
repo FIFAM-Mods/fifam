@@ -586,7 +586,7 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
     then for each attribute use the greatest of result values
     so if a person is not a medic (experience at medic role is 5 for example), then all attributes related to medic will be multiplied by 5/20
     */
-    enum StaffSkillsEnum {
+    /*enum StaffSkillsEnum {
         StaffSkill_Tactics, StaffSkill_FieldPlayerTraining, StaffSkill_GoalkeeperTraining, StaffSkill_FitnessTraining, StaffSkill_SkillEstimation, StaffSkill_TeamEstimation, StaffSkill_MotivationAbility, StaffSkill_BoneInjury, StaffSkill_KneeInjury, StaffSkill_MuscleInjury, StaffSkill_InjuryPrevention, StaffSkill_RegenerationAbility, StaffSkill_Arbitrate, StaffSkill_Negotiation, StaffSkill_Marketing, StaffSkill_Sponsoring, StaffSkill_Construction, StaffSkill_PR, StaffSkill_FanContact, StaffSkill_SportsLaw, StaffSkill_LaborLaw, StaffSkill_GeneralScouting, StaffSkill_TalentEstimation, StaffSkill_FieldSkillsEstimation, StaffSkill_GoalkeeperSkillsEstimation, StaffSkill_MentalSkillsEstimation, StaffSkill_PhysicalSkillsEstimation, StaffSkill_Networking
     };
     static Map<FifamClubStaffPosition, Int> fifamStaffPositionToFoom = {
@@ -604,7 +604,7 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
     Map<UChar *, Vector<UChar>> staffSkills;
     FifamClubStaffPosition::ForAllValues([&](FifamClubStaffPosition const &clubStaffPosition) {
         if (fifamStaffPositionToFoom.contains(clubStaffPosition)) {
-            staff->ForAllAttributes([&](UChar &attr1, Float weight) {
+            staff->ForAllAttributes(clubStaffPosition, [&](UChar &attr1, Float weight) {
                 if (weight > 0.0f)
                     staffSkills[&attr1].push_back(Utils::Clamp((UChar)((Float)attr1 * (Float)fifamStaffPositionToFoom[clubStaffPosition] / 20.0f), 1, 99));
             });
@@ -613,28 +613,34 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
     for (auto &[attr, values] : staffSkills) {
         std::sort(values.begin(), values.end(), std::greater<UChar>());
         *attr = values[0];
-    }
+    }*/
     Int staffCurrLevel = staff->GetStaffLevel();
     Int staffDesiredLevel = GetStaffLevelFromCA(p->mCurrentAbility);
+    Int levelChangeIterations = 0;
     if (staffCurrLevel > 0 && staffCurrLevel != staffDesiredLevel) {
         Bool dir = staffDesiredLevel > staffCurrLevel;
-        while ((dir && staffCurrLevel < staffDesiredLevel) || (!dir && staffCurrLevel > staffDesiredLevel)) {
+        while (true) {
+            levelChangeIterations++;
+            auto savedSkills = staff->mSkills;
             staff->ForAllAttributes([=](UChar & attr, Float weight) {
                 if (weight > 0.0f) {
-                    if (dir) {
-                        if (attr < 99)
-                            attr++;
-                    }
-                    else {
-                        if (attr > 1)
-                            attr--;
-                    }
+                    if (dir)
+                        attr = Utils::Clamp((Int)attr + roundf((Float)levelChangeIterations * weight), 1, 99);
+                    else
+                        attr = Utils::Clamp((Int)attr - roundf((Float)levelChangeIterations * weight), 1, 99);
                 }
-                });
+            });
+            if (staff->mClubPosition != FifamClubStaffPosition::Psychologist && staff->mSkills.MotivationAbility > staffDesiredLevel)
+                staff->mSkills.MotivationAbility = staffDesiredLevel;
             staffCurrLevel = staff->GetStaffLevel();
+            if (levelChangeIterations == 50 || (dir && staffCurrLevel >= staffDesiredLevel) || (!dir && staffCurrLevel <= staffDesiredLevel))
+                break;
+            staff->mSkills = savedSkills;
         }
     }
-
+    // additional step - fix motivation
+    if (staff->mClubPosition != FifamClubStaffPosition::Psychologist && staff->mSkills.MotivationAbility > staff->GetStaffLevel())
+        staff->mSkills.MotivationAbility = staff->GetStaffLevel();
     if (staff->mClubPosition == FifamClubStaffPosition::GeneralScout) {
         Map<FifamNation, UInt> scoutNations;
         scoutNations[staff->mNationality[0]] = 3;

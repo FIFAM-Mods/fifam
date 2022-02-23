@@ -164,6 +164,21 @@ struct club : public team {
 
     Vector<club *> mVecNewClubs;
 
+    struct vision {
+        Int mType = 0;
+        Int mImportance = 0;
+        Int mStartYear = 0;
+        Int mEndYear = 0;
+        Int mMaxAge = 0;
+        Int mMinLength = 0;
+        Int mIsOngoing = 0;
+        comp *mCompetition = 0;
+        nation *mNation = 0;
+        Int mWorldRepClassification = 0;
+    };
+
+    Vector<vision> mVecVision;
+
     struct converter_data {
         UInt mFIFAManagerID = 0;
         UInt mFIFAID = 0;

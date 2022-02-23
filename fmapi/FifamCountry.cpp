@@ -170,6 +170,8 @@ Bool FifamCountry::Read(FifamReader &reader) {
                     for (UInt i = 0; i < numStaffs; i++) {
                         FifamStaff *staff = mDatabase->CreateStaff(nullptr, nextFreeId++);
                         staff->ReadWorker(reader);
+                        if (reader.IsVersionGreaterOrEqual(0x2013, 0x0C))
+                            reader.ReadLine(staff->mFootballManagerID);
                         staff->mLinkedCountry.SetFromInt(mId);
                     }
                     reader.ReadEndIndex(L"STAFFS");
@@ -545,8 +547,11 @@ Bool FifamCountry::Write(FifamWriter &writer) {
     if (writer.IsVersionGreaterOrEqual(0x2009, 0x05)) {
         writer.WriteStartIndex(L"STAFFS");
         writer.WriteLine(staffWorkers.size());
-        for (FifamStaff *staff : staffWorkers)
+        for (FifamStaff *staff : staffWorkers) {
             staff->WriteWorker(writer);
+            if (writer.IsVersionGreaterOrEqual(0x2013, 0x0C))
+                writer.WriteLine(staff->mFootballManagerID);
+        }
         writer.WriteEndIndex(L"STAFFS");
     }
 

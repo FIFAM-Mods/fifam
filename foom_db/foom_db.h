@@ -252,6 +252,12 @@ struct db {
             reader.ReadLine(clubID, IntPtr(n));
             map_find(mClubs, clubID).mVecNewClubs.push_back(n);
         });
+        ReaderCallback(L"fm_club_vision", [&](FifamReader &reader) {
+            Int clubID = -1;
+            club::vision v;
+            reader.ReadLine(clubID, v.mType, v.mImportance, v.mStartYear, v.mEndYear, v.mMaxAge, v.mMinLength, v.mIsOngoing, IntPtr(v.mCompetition), IntPtr(v.mNation), v.mWorldRepClassification);
+            map_find(mClubs, clubID).mVecVision.push_back(v);
+        });
         if (readPersons) {
             // TODO
             // read players
@@ -419,13 +425,16 @@ struct db {
                 if ((mClubs.contains(Int(d.mClubOrNation)) || mNations.contains(Int(d.mClubOrNation))) && nonplayerID != -1 && d.mClubOrNation != (nation *)-1)
                     map_find(mNonPlayers, nonplayerID).mDaysAtClubOrNation.push_back(d);
             });
-            // read officials
-            ReaderCallback(L"fm_officials", [&](FifamReader &reader) {
-                official o;
-                reader.ReadLine(o.mID, o.mFirstName, o.mSecondName, o.mCommonName, o.mFullName, o.mGender, IntPtr(o.mNation), o.mCurrentAbility, o.mPotentialAbility, o.mReputation, o.mUEFACategory, o.mFIFACategory, o.mContinentalOfficial, o.mAllowingFlow, o.mDiscipline, o.mImportantMatches, o.mPressure, o.mRefereeing, o.mRunningLine, o.mTimeKeeping);
-                mOfficials[o.mID] = o;
-            });
+            
         }
+
+        // read officials
+        ReaderCallback(L"fm_officials", [&](FifamReader &reader) {
+            official o;
+            reader.ReadLine(o.mID, o.mFirstName, o.mSecondName, o.mCommonName, o.mFullName, o.mGender, IntPtr(o.mNation), o.mCurrentAbility, o.mPotentialAbility, o.mReputation, o.mUEFACategory, o.mFIFACategory, o.mContinentalOfficial, o.mAllowingFlow, o.mDiscipline, o.mImportantMatches, o.mPressure, o.mRefereeing, o.mRunningLine, o.mTimeKeeping);
+            mOfficials[o.mID] = o;
+        });
+
         // read regions
         ReaderCallback(L"fm_regions", [&](FifamReader &reader) {
             region r;
@@ -585,6 +594,10 @@ struct db {
                 resolve(b.mPlayer);
                 resolve(b.mFromClub);
             }
+            for (auto &v : c.mVecVision) {
+                resolve(v.mCompetition);
+                resolve(v.mNation);
+            }
         }
         for (auto &entry : mPlayers) {
             player &p = entry.second;
@@ -667,6 +680,7 @@ struct db {
         }
 
         // swap rgb
+        /*
         auto swaprgb = [](Color &clr) {
             std::swap(clr.r, clr.b);
         };
@@ -695,6 +709,7 @@ struct db {
                 swaprgb(k.mNumberOutlineColour);
             }
         }
+        */
     }
 };
 

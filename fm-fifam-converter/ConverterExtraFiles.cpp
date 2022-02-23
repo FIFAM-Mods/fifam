@@ -182,7 +182,14 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
     }
     {
         std::wcout << L"Reading fifam_divisions.txt..." << std::endl;
-        FifamReader reader(infoPath / (mFromFifaDatabase ? L"fifam_divisions_07.txt" : L"fifam_divisions.txt"), 0);
+        String filename;
+        if (mToFifa07Database)
+            filename = L"fifam_divisions_fifa07.txt";
+        else if (mFromFifaDatabase)
+            filename = L"fifam_divisions_07.txt";
+        else
+            filename = L"fifam_divisions.txt";
+        FifamReader reader(infoPath / filename, 0);
         if (reader.Available()) {
             reader.SkipLine();
             while (!reader.IsEof()) {
@@ -599,7 +606,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                                                 if (spare)
                                                     Error(L"League tables:\nunable to find team by id\nin spare (%s)\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                 else
-                                                    Error(L"League tables:\nunable to find team by id\nin %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                                    Error(L"League tables:\nunable to find team by id\nin %s\nid %u\n%s\nFile %s", div ? div->mName.c_str() : L"", teamId, line.c_str(), filename.c_str());
                                             }
                                         }
                                         else {
@@ -1047,6 +1054,29 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                 }
                 else
                     reader.SkipLine();
+            }
+        }
+    }
+    {
+        if (mToFifa07Database) {
+            std::wcout << L"Reading fm-fifa-leagues.txt..." << std::endl;
+            FifamReader reader(infoPath / L"fm-fifa-leagues.txt", 0);
+            if (reader.Available()) {
+                reader.SkipLine();
+                while (!reader.IsEof()) {
+                    if (!reader.EmptyLine()) {
+                        UInt fifamId = 0, leagueId = 0, tournamentId = 0;
+                        reader.ReadLineWithSeparator(L'\t', Hexadecimal(fifamId), leagueId, tournamentId);
+                        if (fifamId != 0) {
+                            if (leagueId != 0)
+                                mFifamCompIdToFifa07LeagueId[fifamId] = leagueId;
+                            if (tournamentId != 0)
+                                mFifamCompIdToFifa07TournamentId[fifamId] = tournamentId;
+                        }
+                    }
+                    else
+                        reader.SkipLine();
+                }
             }
         }
     }

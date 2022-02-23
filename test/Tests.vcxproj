@@ -111,6 +111,7 @@
     <ClInclude Include="tests\CopyPortraitsLight.h" />
     <ClInclude Include="tests\CreateStarheadsFile.h" />
     <ClInclude Include="tests\DatesTest.h" />
+    <ClInclude Include="tests\DbCommands.h" />
     <ClInclude Include="tests\DbConvert.h" />
     <ClInclude Include="tests\DbGraphicsStats.h" />
     <ClInclude Include="tests\ExportClubIDs.h" />
@@ -135,9 +136,13 @@
     <ClInclude Include="tests\FlagsTest.h" />
     <ClInclude Include="tests\ColorsTest.h" />
     <ClInclude Include="tests\GeoCoordsTest.h" />
+    <ClInclude Include="tests\PackABK.h" />
+    <ClInclude Include="tests\PackMusic.h" />
     <ClInclude Include="tests\Parameters.h" />
+    <ClInclude Include="tests\ParseTransfermarktStats.h" />
     <ClInclude Include="tests\PlayerIdTest.h" />
     <ClInclude Include="tests\PlayerRelationsTest.h" />
+    <ClInclude Include="tests\PngFix.h" />
     <ClInclude Include="tests\ReadWriteTest.h" />
     <ClInclude Include="tests\RenameCityPictures.h" />
     <ClInclude Include="tests\RulesTest.h" />
@@ -145,6 +150,7 @@
     <ClInclude Include="tests\ShowPlayers.h" />
     <ClInclude Include="tests\DatabaseRewrite.h" />
     <ClInclude Include="tests\TeamColors.h" />
+    <ClInclude Include="tests\Translation.h" />
     <ClInclude Include="tests\UpdateBudgets.h" />
     <ClInclude Include="tests\UpdateDbNames.h" />
     <ClInclude Include="tests\WriteCountries.h" />
@@ -155,7 +161,6 @@
     <ClInclude Include="tests\WritePlayerHistoryTest.h" />
     <ClInclude Include="tests\WritePlayerIDs.h" />
     <ClInclude Include="tests\WritePlayersTest.h" />
-    <ClInclude Include="Translation.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp" />

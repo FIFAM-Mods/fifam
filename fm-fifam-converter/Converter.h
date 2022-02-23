@@ -28,6 +28,7 @@ public:
     Bool mGenerateLeagueConfigFiles = true;
     Bool mGenerateSpecialScripts = true;
     Bool mQuickTest = false;
+    Bool mToFifa07Database = false;
 
     FifamDatabase *mPreviousDb = nullptr;
     Map<UInt, FifamPlayer *> mPreviousPlayers;
@@ -35,6 +36,8 @@ public:
     Set<UInt> mFreeAgentsToAdd;
     Array<UInt, 207> mIPCountryStrength = {};
     Set<UInt> mFaceIDs;
+    Map<UInt, Int> mFifamCompIdToFifa07LeagueId;
+    Map<UInt, Int> mFifamCompIdToFifa07TournamentId;
 
     FifamClub *GetPreviousClub(UInt id);
     FifamPlayer *GetPreviousPlayer(UInt id);
@@ -272,7 +275,7 @@ public:
         auto ProcessPersons = [&](auto &dbmap) {
             for (auto &[k, p] : dbmap) {
                 FifamLanguage languageId = FifamLanguage::None;
-                if (p.mNation && p.mNation->mConverterData.mFIFAManagerID > 0 && p.mNation->mConverterData.mFIFAManagerID < FifamDatabase::NUM_COUNTRIES) {
+                if (p.mNation && p.mNation->mConverterData.mFIFAManagerID > 0 && p.mNation->mConverterData.mFIFAManagerID <= FifamDatabase::NUM_COUNTRIES) {
                     FifamCountry *country = mFifamDatabase->GetCountry(p.mNation->mConverterData.mFIFAManagerID);
                     if (country) {
                         switch (country->mId) {

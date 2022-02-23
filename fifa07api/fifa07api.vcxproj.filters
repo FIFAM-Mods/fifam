@@ -1,0 +1,33 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="Fifa07DataFile.cpp" />
+    <ClCompile Include="Fifa07Database.cpp" />
+    <ClCompile Include="Fifa07Date.cpp" />
+    <ClCompile Include="Fifa07League.cpp" />
+    <ClCompile Include="Fifa07Formation.cpp" />
+    <ClCompile Include="Fifa07Player.cpp" />
+    <ClCompile Include="Fifa07Referee.cpp" />
+    <ClCompile Include="Fifa07Stadium.cpp" />
+    <ClCompile Include="Fifa07Team.cpp" />
+    <ClCompile Include="Fifa07Kit.cpp" />
+    <ClCompile Include="Fifa07Country.cpp" />
+    <ClCompile Include="Fifa07Tournament.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Fifa07DataFile.h" />
+    <ClInclude Include="Fifa07Database.h" />
+    <ClInclude Include="Fifa07Date.h" />
+    <ClInclude Include="Fifa07League.h" />
+    <ClInclude Include="Fifa07Formation.h" />
+    <ClInclude Include="Fifa07Player.h" />
+    <ClInclude Include="Fifa07Referee.h" />
+    <ClInclude Include="Fifa07Stadium.h" />
+    <ClInclude Include="Fifa07Team.h" />
+    <ClInclude Include="Fifa07Kit.h" />
+    <ClInclude Include="Fifa07Country.h" />
+    <ClInclude Include="Fifa07Tournament.h" />
+    <ClInclude Include="Fifa07Language.h" />
+    <ClInclude Include="Fifa07Propertied.h" />
+  </ItemGroup>
+</Project>
