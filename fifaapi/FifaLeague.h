@@ -23,6 +23,8 @@ public:
         int iswithintransferwindow = 0;
         // @since FIFA19
         int leaguetype = 0;
+        // @since FIFA23
+        int iswomencompetition = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

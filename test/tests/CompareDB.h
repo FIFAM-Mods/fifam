@@ -103,8 +103,8 @@ public:
 
         FifamDatabase *db1 = new FifamDatabase(gameVersion, dbPath1);
         FifamDatabase *db2 = new FifamDatabase(gameVersion, dbPath2);
-        //db1->SetupWriteableStatus(gameVersion);
-        //db2->SetupWriteableStatus(gameVersion);
+        db1->SetupWriteableStatus(gameVersion);
+        db2->SetupWriteableStatus(gameVersion);
 
         //Map<UInt, FifamPlayer *> oldPlayers;
         //for (auto const &p : db1->mPlayers) {
@@ -197,7 +197,7 @@ public:
         
         //db2->Write(13, FifamDatabase::GetGameDbVersion(13), L"db_new");
         //return;
-
+/*
         FifamWriter fw("loans_fix_info.txt");
         FifamWriter fws("loans_fix_same_club.txt");
         FifamWriter fwh("loans_fix_history.txt");
@@ -568,7 +568,7 @@ public:
         
         db2->Write(13, FifamDatabase::GetGameDbVersion(13), L"db_new");
         return;
-
+        */
         Map<FifamClub *, FifamCompLeague *> clubLeague1;
         Map<FifamClub *, FifamCompLeague *> clubLeague2;
 
@@ -1094,6 +1094,67 @@ public:
             FifamWriter w(L"rename_referees.bat");
             for (auto const &r : renReferees)
                 w.WriteLine(L"ren " + r.first + L".png " + r.second + L".png");
+        }
+
+        Map<UInt, FifamReferee *> mapReferees;
+        for (auto const &r : db2->mReferees) {
+            if (r->mFootballManagerID > 0)
+                mapReferees[r->mFootballManagerID] = r;
+        }
+        Map<UInt, FifamStaff *> mapStaffs;
+        for (auto const &s : db2->mStaffs) {
+            if (s->mFootballManagerID > 0) {
+                if (mapReferees.contains(s->mFootballManagerID))
+                    ::Error("Staff ID %d already present in Referees", s->mFootballManagerID);
+                mapStaffs[s->mFootballManagerID] = s;
+            }
+        }
+        Map<UInt, FifamPlayer *> mapPlayers;
+        for (auto const &p : db2->mPlayers) {
+            if (p->mFootballManagerID > 0) {
+                if (mapReferees.contains(p->mFootballManagerID))
+                    ::Error("Player ID %d already present in Referees", p->mFootballManagerID);
+                if (mapStaffs.contains(p->mFootballManagerID))
+                    ::Error("Player ID %d already present in Staffs", p->mFootballManagerID);
+                mapPlayers[p->mFootballManagerID] = p;
+            }
+        }
+        Path playerPortraitsPath = "portraits\\club\\160x160";
+        Path refereePortraitsPath = "portraits\\Referees\\160x160";
+        create_directories(playerPortraitsPath);
+        create_directories(refereePortraitsPath);
+        auto ConvertPortrait = [](Path const &portraitPath, String const &fileName, Path const &outFolder) {
+            Image portraitImg(portraitPath.string());
+            if (portraitImg.baseRows() >= 150 && portraitImg.baseColumns() >= 150) {
+                if (portraitImg.baseColumns() != portraitImg.baseRows()) {
+                    UInt newSize = Utils::Max(portraitImg.baseColumns(), portraitImg.baseRows());
+                    portraitImg.extent(Geometry(newSize, newSize), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
+                }
+                portraitImg.filterType(FilterType::LanczosFilter);
+                portraitImg.resize(Geometry(160, 160));
+                portraitImg.defineValue("png", "color-type", "6");
+                portraitImg.write((outFolder / (fileName + L".png")).string());
+            }
+        };
+        for (auto const &i : directory_iterator("faces")) {
+            auto p = i.path();
+            if (p.extension() == ".png") {
+                Int id = -1;
+                try {
+                    id = static_cast<Int>(std::stoull(p.stem().string(), 0, 10));
+                }
+                catch (...) {}
+                if (id != -1) {
+                    if (mapPlayers.contains(id))
+                        ConvertPortrait(p, mapPlayers[id]->mWriteableStringID, playerPortraitsPath);
+                    else if (mapStaffs.contains(id))
+                        ConvertPortrait(p, mapStaffs[id]->mWriteableStringID, playerPortraitsPath);
+                    else if (mapReferees.contains(id)) {
+                        auto r = mapReferees[id];
+                        ConvertPortrait(p, FifamNames::GetPersonStringId(13, r->mFirstName, r->mLastName, String(), Date(), 0), refereePortraitsPath);
+                    }
+                }
+            }
         }
     }
 };

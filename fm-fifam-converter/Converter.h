@@ -7,7 +7,7 @@
 #include "FifamCompCup.h"
 #include "FifamCompRound.h"
 
-const UShort CURRENT_YEAR = 2021;
+const UShort CURRENT_YEAR = 2022;
 const UInt DATABASE_VERSION = 0x2020110;
 
 class Converter {
@@ -116,10 +116,11 @@ public:
         Int mWinterBreakStart = 0;
         Int mWinterBreakEnd = 0;
         Int mNumSubs = 3;
-        Int mForeignersLimit = 0;
+        Int mForeignersField = -1;
+        Int mForeignersGame = -1;
+        Int mSeasonSquad = -1;
+        Int mSeasonSquadForeigners = -1;
         Int mNonEuSigns = 0;
-        Int mDomesticPlayers = 0;
-        Int mU21Players = 0;
         Int mReserveTeamsAllowed = -1;
         FifamEqualPointsSorting mSorting;
         Int mTvBonus = -1;
@@ -190,12 +191,9 @@ public:
     AppearanceGenerator appearanceGenerator;
     Map<Int, ClubColor> mClubColorsMap;
     Map<Int, Int> mPenaltyPointsMap;
-    Map<Int, String> mAbbreviationMap;
-    Map<Int, String> mShortNamesMap;
-    Map<Int, String> mNamesMap;
-    Map<Int, String> mAbbreviationMap_ger;
-    Map<Int, String> mShortNamesMap_ger;
-    Map<Int, String> mNamesMap_ger;
+    Array<Map<Int, String>, FifamTranslation::NUM_TRANSLATIONS + 1> mAbbreviationMap;
+    Array<Map<Int, String>, FifamTranslation::NUM_TRANSLATIONS + 1> mShortNamesMap;
+    Array<Map<Int, String>, FifamTranslation::NUM_TRANSLATIONS + 1> mNamesMap;
     Map<UInt, Vector<UShort>> mCalendarsFirstSeason;
     Map<UInt, Vector<UShort>> mCalendarsSecondSeason;
     Map<UInt, Pair<FifamTrArray<String>, FifamTrArray<String>>> mSplitNames;

@@ -88,7 +88,7 @@ public:
         auto const &ids = GetEnvironment<FifaFifamIDsEnvironment>();
         FifaDatabase::m_firstSupportedGameVersion = FifaDatabase::m_lastSupportedGameVersion;
         FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
-        FifamWriter writer("E:\\Games\\FIFA Manager 13\\plugins\\ucp\\kits.csv", 14, FifamVersion());
+        FifamWriter writer("D:\\Games\\FIFA Manager 22\\plugins\\ucp\\kits.csv", 14, FifamVersion());
         writer.WriteLine(L"country,league,team,teamid,kittype,collar,nameplacement,frontnumber,jerseynumbercolor,jerseynamecolor,jerseynumbersize,jerseynumberoffset,canusecompbadges,canusesponsorlogo");
         
         struct team_kit_desc {
@@ -110,85 +110,96 @@ public:
         auto GenerateForClub = [&](UInt fifamID, UInt fifaID, FifaTeam *fifaTeam, FifamWriter &writer) {
             String teamid = Utils::Format(L"0x%06X", fifamID);
             for (FifaKit *fifaKit : fifaTeam->m_kits) {
-                // teamid - hexadecimal team id
-                // kittype - 0 - home, 1 - away, 2 - gk, 3 - third
-                // collar - 0 - 8                                   4b
-                UChar collar = fifaKit->internal.jerseycollargeometrytype;
-                if (collar > 8) {
-                    switch (fifaKit->internal.jerseycollargeometrytype) {
-                    case 9:
-                        collar = 4;
-                        break;
-                    case 10:
-                    case 19:
-                        collar = 5;
-                        break;
-                    case 11:
-                    case 17:
-                    case 18:
-                        collar = 8;
-                        break;
-                    case 12:
-                    case 13:
-                    case 14:
-                    case 15:
-                    case 16:
-                    case 20:
-                    case 21:
-                    case 22:
-                    case 24:
-                        collar = 7;
-                        break;
-                    case 23:
-                        collar = 0;
-                        break;
-                    default:
-                        collar = 0;
-                        break;
+                String filename = Utils::Format(L"%08X", fifamID);
+                if (fifaKit->internal.teamkittypetechid == 0)
+                    filename += L"_h";
+                else if (fifaKit->internal.teamkittypetechid == 1)
+                    filename += L"_a";
+                else if (fifaKit->internal.teamkittypetechid == 2)
+                    filename += L"_g";
+                else if (fifaKit->internal.teamkittypetechid == 3)
+                    filename += L"_t";
+                if (exists(L"D:\\Projects\\fifam\\content\\fm13\\art_04\\data\\kits\\" + filename + L".tga")) {
+                    // teamid - hexadecimal team id
+                    // kittype - 0 - home, 1 - away, 2 - gk, 3 - third
+                    // collar - 0 - 8                                   4b
+                    UChar collar = fifaKit->internal.jerseycollargeometrytype;
+                    if (collar > 8) {
+                        switch (fifaKit->internal.jerseycollargeometrytype) {
+                        case 9:
+                        case 25:
+                            collar = 4;
+                            break;
+                        case 10:
+                        case 19:
+                            collar = 5;
+                            break;
+                        case 11:
+                        case 17:
+                        case 18:
+                            collar = 8;
+                            break;
+                        case 12:
+                        case 13:
+                        case 14:
+                        case 15:
+                        case 16:
+                        case 20:
+                        case 21:
+                        case 22:
+                        case 24:
+                            collar = 7;
+                            break;
+                        case 23:
+                            collar = 0;
+                            break;
+                        default:
+                            collar = 0;
+                            break;
+                        }
                     }
-                }
-                UChar nameplacement = fifaKit->internal.jerseybacknameplacementcode;
-                if (nameplacement > 1)
-                    nameplacement = 1;
-                if (nameplacement != 0) {
-                    FifamReader posReader(Utils::AtoW("E:\\Projects\\FIFA21\\kit\\positions\\kit_" + std::to_string(fifaID) + "_" + std::to_string(fifaKit->internal.teamkittypetechid) + "_0.txt"), 14, false, false);
-                    if (posReader.Available()) {
-                        posReader.SkipLines(13);
-                        if (posReader.ReadLine<Float>() < 0.3f)
-                            nameplacement = 2;
+                    UChar nameplacement = fifaKit->internal.jerseybacknameplacementcode;
+                    if (nameplacement > 1)
+                        nameplacement = 1;
+                    if (nameplacement != 0) {
+                        FifamReader posReader(Utils::AtoW("D:\\Projects\\FIFA\\kit\\positions\\kit_" + std::to_string(fifaID) + "_" + std::to_string(fifaKit->internal.teamkittypetechid) + "_0.txt"), 14, false, false);
+                        if (posReader.Available()) {
+                            posReader.SkipLines(13);
+                            if (posReader.ReadLine<Float>() < 0.3f)
+                                nameplacement = 2;
+                        }
                     }
+                    UChar frontnumber = fifaKit->internal.jerseyfrontnumberplacementcode;
+                    if (frontnumber > 1)
+                        frontnumber = 1;
+                    ::Color clrJNum = ::Color(fifaKit->internal.jerseynumbercolorprimr, fifaKit->internal.jerseynumbercolorprimg, fifaKit->internal.jerseynumbercolorprimb);
+                    ::Color clrJName = ::Color(fifaKit->internal.jerseynamecolorr, fifaKit->internal.jerseynamecolorg, fifaKit->internal.jerseynamecolorb);
+                    Char jerseynumbercolor = clrJNum.FindIndexInTable(shirtNumberColorTable);
+                    if (jerseynumbercolor == 0)
+                        jerseynumbercolor = -1;
+                    Char jerseynamecolor = clrJName.FindIndexInTable(shirtNameColorTable);
+                    if (jerseynamecolor == 0)
+                        jerseynamecolor = -1;
+                    Char shortsnumbercolor = -1;
+                    Char shortsnumberhotspotid = -1;
+                    UChar namecase = fifaKit->internal.jerseybacknamefontcase;
+                    if (namecase > 2)
+                        namecase = 0;
+                    UChar canusecompbadges = 1;
+                    UChar canusesponsorlogo = 0;
+                    UChar jerseynumbersize = 0;
+                    UChar jerseynumberoffset = 0;
+                    String teamName = fifaTeam->m_name;
+                    String countryName = FifamNation::MakeFromInt((fifamID >> 16) & 0xFF).ToStr();
+                    String leagueName;
+                    if (fifaTeam->m_league)
+                        leagueName = fifaTeam->m_league->m_name;
+                    if (fifaKit->internal.teamkittypetechid >= 0 && fifaKit->internal.teamkittypetechid <= 3)
+                        writer.WriteLine(
+                            Quoted(countryName), Quoted(leagueName), Quoted(teamName),
+                            teamid, fifaKit->internal.teamkittypetechid, collar, nameplacement, frontnumber, jerseynumbercolor,
+                            jerseynamecolor, jerseynumbersize, jerseynumberoffset, canusecompbadges, canusesponsorlogo);
                 }
-                UChar frontnumber = fifaKit->internal.jerseyfrontnumberplacementcode;
-                if (frontnumber > 1)
-                    frontnumber = 1;
-                ::Color clrJNum = ::Color(fifaKit->internal.jerseynumbercolorprimr, fifaKit->internal.jerseynumbercolorprimg, fifaKit->internal.jerseynumbercolorprimb);
-                ::Color clrJName = ::Color(fifaKit->internal.jerseynamecolorr, fifaKit->internal.jerseynamecolorg, fifaKit->internal.jerseynamecolorb);
-                Char jerseynumbercolor = clrJNum.FindIndexInTable(shirtNumberColorTable);
-                if (jerseynumbercolor == 0)
-                    jerseynumbercolor = -1;
-                Char jerseynamecolor = clrJName.FindIndexInTable(shirtNameColorTable);
-                if (jerseynamecolor == 0)
-                    jerseynamecolor = -1;
-                Char shortsnumbercolor = -1;
-                Char shortsnumberhotspotid = -1;
-                UChar namecase = fifaKit->internal.jerseybacknamefontcase;
-                if (namecase > 2)
-                    namecase = 0;
-                UChar canusecompbadges = 1;
-                UChar canusesponsorlogo = 0;
-                UChar jerseynumbersize = 0;
-                UChar jerseynumberoffset = 0;
-                String teamName = fifaTeam->m_name;
-                String countryName = FifamNation::MakeFromInt((fifamID >> 16) & 0xFF).ToStr();
-                String leagueName;
-                if (fifaTeam->m_league)
-                    leagueName = fifaTeam->m_league->m_name;
-                
-                if (fifaKit->internal.teamkittypetechid >= 0 && fifaKit->internal.teamkittypetechid <= 3)
-                    writer.WriteLine(
-                        Quoted(countryName), Quoted(leagueName), Quoted(teamName),
-                        teamid, fifaKit->internal.teamkittypetechid, collar, nameplacement, frontnumber, jerseynumbercolor,
-                        jerseynamecolor, jerseynumbersize, jerseynumberoffset, canusecompbadges, canusesponsorlogo);
             }
         };
 

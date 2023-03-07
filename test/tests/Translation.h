@@ -21,9 +21,8 @@ public:
         return result;
     }
 
-    Translation() {
-        Map<UInt, String> eng;
-        FifamReader trEng(LR"(E:\Games\FIFA Manager 22\fmdata\eng\Translations.csv)", false, false);
+    void ReadTranslationHuf(Path const &filePath, Map<UInt, String> &keys) {
+        FifamReader trEng(filePath, false, false);
         if (trEng.Available()) {
             trEng.SkipLine();
             UInt i = 0;
@@ -55,36 +54,59 @@ public:
                             t += L"{BR}" + l;
                             l = trEng.ReadFullLine();
                         }
-                        t += L"{BR}" + l.substr(0, l.size() - (endOfFile? 3 : 2));
+                        t += L"{BR}" + l.substr(0, l.size() - (endOfFile ? 3 : 2));
                     }
-                    eng[key] = t;
+                    keys[key] = t;
                 }
             }
         }
+    }
+
+    void WriteTranslation(FifamWriter &w, Map<UInt, String> &keys, String const &k) {
+        auto it = keys.find(getTextHash(k));
+        if (it == keys.end() || (*it).second.empty())
+            return;
+        String t = (*it).second;
+        Utils::Replace(t, L"\"", L"\"\"");
+        w.WriteLine(k, Quoted(t));
+    };
+
+    void ExtractCityDescs() {
+        Map<UInt, String> keys;
+        std::wcout << L"Reading Translations.csv..." << std::endl;
+        ReadTranslationHuf("Translations.csv", keys);
+        std::wcout << L"Writing Translations_citydesc.csv..." << std::endl;
+        FifamWriter w("Translations_citydesc.csv", 14, FifamVersion());
+        w.SetReplaceQuotes(false);
+        WriteTranslation(w, keys, Utils::Format(L"IDS_CITYDESC_%08X", 0));
+        for (UInt countryId = 1; countryId <= 207; countryId++) {
+            std::wcout << FifamNation::MakeFromInt(countryId).ToStr() << std::endl;
+            for (UInt clubIndex = 1; clubIndex <= 0x3FFF; clubIndex++)
+                WriteTranslation(w, keys, Utils::Format(L"IDS_CITYDESC_%08X", (countryId << 16) | clubIndex));
+            WriteTranslation(w, keys, Utils::Format(L"IDS_CITYDESC_%08X", (countryId << 16) | 0xFFFF));
+        }
+    }
+
+    Translation() {
+        ExtractCityDescs();
+        return;
+        Map<UInt, String> eng;
+        ReadTranslationHuf(LR"(E:\Games\FIFA Manager 22\fmdata\eng\Translations.csv)", eng);
         std::wcout << L"Writing" << std::endl;
         FifamWriter w(LR"(E:\Games\FIFA Manager 22\fmdata\eng\Translations_mail_en.csv)", 14, FifamVersion());
         w.SetReplaceQuotes(false);
-        auto WriteTranslation = [&](String const &k) {
-            auto it = eng.find(getTextHash(k));
-            if (it == eng.end() || (*it).second.empty())
-                return;
-            String t = (*it).second;
-            Utils::Replace(t, L"\"", L"\"\"");
-            w.WriteLine(k, Quoted(t));
-        };
-        
         for (UInt i = 0; i < 5000; i++) {
-            WriteTranslation(Utils::Format(L"IDS_EA_MAIL_TITLE_%d", i));
+            WriteTranslation(w, eng, Utils::Format(L"IDS_EA_MAIL_TITLE_%d", i));
             for (UInt v = 0; v < 10; v++)
-                WriteTranslation(Utils::Format(L"IDS_EA_MAIL_TITLE_VAR_%d_%d", v, i));
-            WriteTranslation(Utils::Format(L"IDS_EA_MAIL_TEXT_%d", i));
+                WriteTranslation(w, eng, Utils::Format(L"IDS_EA_MAIL_TITLE_VAR_%d_%d", v, i));
+            WriteTranslation(w, eng, Utils::Format(L"IDS_EA_MAIL_TEXT_%d", i));
             for (UInt v = 0; v < 10; v++)
-                WriteTranslation(Utils::Format(L"IDS_EA_MAIL_TEXT_VAR_%d_%d", v, i));
-            WriteTranslation(Utils::Format(L"IDS_EA_MAIL_REMARK_%d", i));
+                WriteTranslation(w, eng, Utils::Format(L"IDS_EA_MAIL_TEXT_VAR_%d_%d", v, i));
+            WriteTranslation(w, eng, Utils::Format(L"IDS_EA_MAIL_REMARK_%d", i));
             for (UInt v = 0; v < 3; v++)
-                WriteTranslation(Utils::Format(L"IDS_EA_MAIL_ALT_%d_%d", v, i));
+                WriteTranslation(w, eng, Utils::Format(L"IDS_EA_MAIL_ALT_%d_%d", v, i));
             for (UInt v = 0; v < 3; v++)
-                WriteTranslation(Utils::Format(L"IDS_EA_MAIL_ANSWER_%d_%d", v, i));
+                WriteTranslation(w, eng, Utils::Format(L"IDS_EA_MAIL_ANSWER_%d_%d", v, i));
         }
 
     //    for (UInt i = 0; i < 3000; i++) {

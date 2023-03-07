@@ -383,7 +383,7 @@ void FifamReader::Open(Path const &filename, UInt gameId, Bool linesWithComments
 
         switch (enc) {
         case encoding::ascii:
-            MultiByteToWideChar(0, 0, fileData, totalSize, data, numWideChars);
+            MultiByteToWideChar(1252, 0, fileData, totalSize, data, numWideChars);
             break;
         case encoding::utf8:
             MultiByteToWideChar(CP_UTF8, 0, fileData, totalSize, data, numWideChars);

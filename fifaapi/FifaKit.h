@@ -74,6 +74,9 @@ public:
         int teamcolortertpercent = 0;
         int shortstyle = 0;
         int jerseyfit = 0;
+        // @since FIFA23:
+        int armbandtype = 0;
+        int jerseyrestriction = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

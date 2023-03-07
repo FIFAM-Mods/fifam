@@ -18,10 +18,6 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
         threeLetterName = team->mThreeLetterName;
         threeLetterTranslationNames = team->mTranslatedThreeLetterNames;
     }
-    else if (!team->mOriginalThreeLetterName.empty()) {
-        threeLetterName = team->mOriginalThreeLetterName;
-        threeLetterTranslationNames = team->mTranslatedOriginalThreeLetterNames;
-    }
     else if (!team->mAlternativeThreeLetterName.empty()) {
         threeLetterName = team->mAlternativeThreeLetterName;
         threeLetterTranslationNames = team->mTranslatedAlternativeThreeLetterNames;
@@ -44,11 +40,16 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     else
         dst->mCityName = country->mNationalTeam.mCityName;
     // latitude/longitude
-    if (team->mLatitude != 0 && team->mLongitude != 0)
-        dst->mGeoCoords.SetFromFloat(team->mLatitude, team->mLongitude);
-    else
-        dst->mGeoCoords = country->mNationalTeam.mGeoCoords;
-
+    if (team->mCity) {
+        if (team->mCity->mLatitude != 0 && team->mCity->mLongitude != 0)
+            dst->mGeoCoords.SetFromFloat(team->mCity->mLatitude, team->mCity->mLongitude);
+    }
+    if (dst->mGeoCoords.mLatitude.ToInt() == 0 && dst->mGeoCoords.mLongitude.ToInt() == 0) {
+        if (team->mLatitude != 0 && team->mLongitude != 0)
+            dst->mGeoCoords.SetFromFloat(team->mLatitude, team->mLongitude);
+        else
+            dst->mGeoCoords = country->mNationalTeam.mGeoCoords;
+    }
     if (dst->mGeoCoords.mLatitude.ToInt() == 0 && dst->mGeoCoords.mLongitude.ToInt() == 0 && team->mNation) {
         for (auto &city : team->mNation->mConverterData.mCities) {
             if (city->mLatitude != 0 && city->mLongitude != 0) {
@@ -1378,50 +1379,31 @@ FifamClub *Converter::CreateAndConvertClub(UInt gameId, foom::club *team, foom::
     else
         ConvertClub(gameId, club, team, mainTeam, country, div);
 
-    {
-        auto it = mPenaltyPointsMap.find(team->mID);
-        if (it != mPenaltyPointsMap.end()) {
-            club->mPenaltyType = FifamClubPenaltyType::Points;
-            club->mPenaltyPoints = (*it).second;
+    if (mPenaltyPointsMap.contains(team->mID)) {
+        club->mPenaltyType = FifamClubPenaltyType::Points;
+        club->mPenaltyPoints = mPenaltyPointsMap[team->mID];
+    }
+    for (UInt i = 0; i < mNamesMap.size(); i++) {
+        if (mNamesMap[i].contains(team->mID)) {
+            if (i == 0)
+                FifamTrSetAll<String>(club->mName, mNamesMap[i][team->mID]);
+            else
+                club->mName[i - 1] = mNamesMap[i][team->mID];
+            club->mName2 = club->mName;
         }
-    }
-    {
-        auto it = mNamesMap.find(team->mID);
-        if (it != mNamesMap.end()) {
-            FifamTrSetAll<String>(club->mName, (*it).second);
-            FifamTrSetAll<String>(club->mName2, (*it).second);
+        if (mShortNamesMap[i].contains(team->mID)) {
+            if (i == 0)
+                FifamTrSetAll<String>(club->mShortName, mShortNamesMap[i][team->mID]);
+            else
+                club->mShortName[i - 1] = mShortNamesMap[i][team->mID];
+            club->mShortName2 = club->mShortName;
         }
-    }
-    {
-        auto it = mShortNamesMap.find(team->mID);
-        if (it != mShortNamesMap.end()) {
-            FifamTrSetAll<String>(club->mShortName, (*it).second);
-            FifamTrSetAll<String>(club->mShortName2, (*it).second);
+        if (mAbbreviationMap[i].contains(team->mID)) {
+            if (i == 0)
+                FifamTrSetAll<String>(club->mAbbreviation, mAbbreviationMap[i][team->mID]);
+            else
+                club->mAbbreviation[i - 1] = mAbbreviationMap[i][team->mID];
         }
-    }
-    {
-        auto it = mAbbreviationMap.find(team->mID);
-        if (it != mAbbreviationMap.end())
-            FifamTrSetAll<String>(club->mAbbreviation, (*it).second);
-    }
-    {
-        auto it = mNamesMap_ger.find(team->mID);
-        if (it != mNamesMap_ger.end()) {
-            club->mName[FifamTranslation::German] = (*it).second;
-            club->mName2[FifamTranslation::German] = (*it).second;
-        }
-    }
-    {
-        auto it = mShortNamesMap_ger.find(team->mID);
-        if (it != mShortNamesMap_ger.end()) {
-            club->mShortName[FifamTranslation::German] = (*it).second;
-            club->mShortName2[FifamTranslation::German] = (*it).second;
-        }
-    }
-    {
-        auto it = mAbbreviationMap_ger.find(team->mID);
-        if (it != mAbbreviationMap_ger.end())
-            club->mAbbreviation[FifamTranslation::German] = (*it).second;
     }
 
     mFifamDatabase->AddClubToMap(club);

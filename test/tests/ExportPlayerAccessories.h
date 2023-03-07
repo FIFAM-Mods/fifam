@@ -14,7 +14,7 @@ public:
 
         std::wcout << L"Reading fm-fifa-players..." << std::endl;
         Vector<Pair<UInt, FifaPlayer *>> playersList;
-        Path infoPath = L"E:\\Projects\\fifam\\db";
+        Path infoPath = L"D:\\Projects\\fifam\\db";
         FifamReader reader(infoPath / L"fm-fifa-players.csv", 0);
         if (reader.Available()) {
             reader.SkipLine();
@@ -51,7 +51,7 @@ public:
 
         std::wcout << L"Processing output file..." << std::endl;
 
-        FifamWriter writer(L"E:\\Games\\FIFA Manager 13\\plugins\\ucp\\player_accessories.csv", 14, FifamVersion());
+        FifamWriter writer(L"D:\\Games\\FIFA Manager 22\\plugins\\ucp\\player_accessories.csv", 14, FifamVersion());
         writer.WriteLine(L"playerempicsid,comment,jerseystyle,sleeves,socks,acc1,acccolor1,acc2,acccolor2,acc3,acccolor3,acc4,acccolor4");
         if (writer.Available()) {
             for (auto const &entry : playersList) {
@@ -59,7 +59,7 @@ public:
                 UChar jerseytype = 0;
                 UChar sleeves = (player->internal.jerseysleevelengthcode == 0) ? 0 : 1;
                 UChar socks = 0;
-                if (player->internal.socklengthcode == 1 || player->internal.socklengthcode == 2)
+                if (player->internal.socklengthcode == 1 /* || player->internal.socklengthcode == 2*/)
                     socks = player->internal.socklengthcode;
 
                 Array<Pair<UChar, UChar>, 4> accessories = {};
@@ -152,13 +152,13 @@ public:
         else
             ::Error(L"Unable to open output file");
 
-        FifamWriter writer2(L"E:\\Games\\FIFA Manager 13\\plugins\\ucp\\player_shoes.csv", 14, FifamVersion());
+        FifamWriter writer2(L"D:\\Games\\FIFA Manager 22\\plugins\\ucp\\player_shoes.csv", 14, FifamVersion());
         writer2.WriteLine(L"playerempicsid,shoeid,comment");
         if (writer2.Available()) {
             for (auto const &entry : playersList) {
                 FifaPlayer *player = entry.second;
                 UChar shoeid = player->internal.shoetypecode;
-                if (shoeid != 0 && exists(Path(L"E:\\Games\\FIFA Manager 13\\data\\assets") / Utils::Format(L"t20__%d.fsh", shoeid)))
+                if (shoeid != 0 && exists(Path(L"D:\\Games\\FIFA Manager 22\\data\\assets") / Utils::Format(L"t20__%d.fsh", shoeid)))
                     writer2.WriteLine(entry.first, shoeid, Quoted(player->m_quickName));
             }
             writer2.Close();

@@ -37,6 +37,7 @@ String FifamNames::LimitName(String const &name, UInt maxSize) {
         return name;
     if (maxSize == 1)
         return name.substr(0, 1);
+    // TODO: rework this
     if (name[maxSize - 1] != L' ' && !Utils::IsPunctuationMark(name[maxSize - 1])) {
         for (Int i = maxSize - 2; i >= 0; i--) {
             if (!Utils::IsVowel(name[i]) && name[i] != ' ' && !Utils::IsPunctuationMark(name[i])) {

@@ -55,6 +55,23 @@
 #include "tests\ParseTransfermarktStats.h"
 #include "tests\PackMusic.h"
 #include "tests\PackABK.h"
+#include "tests\FM07toFIFA07.h"
+#include "tests\TranslationStrip.h"
+#include "tests\FilesToFolders.h"
+#include "tests\Fm07DbFix.h"
+#include "tests\FifaXXlPortraits.h"
+#include "tests\AdboardsFIFA07.h"
+#include "tests\WriteBadgesLaLiga.h"
+#include "tests\TranslationHashes.h"
+#include "tests\WriteFifaPlayerNames.h"
+#include "tests\CopyPortraitsFromPreviousPatch.h"
+#include "tests\ClubNames.h"
+#include "tests\FixScoutCountries.h"
+#include "tests\FixCompetitionBadges.h"
+#include "tests\CreateWorldCupDatabase.h"
+#include "tests\FixCityLocations.h"
+#include "tests\CopyTeamKits.h"
+#include "tests\TrToTxt.h"
 
 void RunTests() {
     RunTest<PackABK>();

@@ -296,9 +296,12 @@ void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &
             create_directories(dbPath / L"script");
     }
     path gamePath = dbPath.parent_path();
-    path scriptPath = gamePath / L"script_converted";
-    if (!exists(scriptPath))
-        create_directories(scriptPath);
+    path scriptPath;
+    if (mWritingOptions.mWriteExternalScripts) {
+        scriptPath = gamePath / L"script_converted";
+        if (!exists(scriptPath))
+            create_directories(scriptPath);
+    }
     path historicPath = gamePath / L"fmdata" / L"historic";
     if (!exists(historicPath))
         historicPath.clear();
@@ -394,38 +397,40 @@ void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &
         }
     }
 
-    if (gameId >= 8) {
-        WriteExternalScriptFile(scriptPath / L"Continental - Europe.txt", L"EURO", gameId, compsEurope, 1);
-        WriteExternalScriptFile(scriptPath / L"Continental - South America.txt", L"SOUTHAM", gameId, compsSouthAmerica, 0);
-        WriteExternalScriptFile(scriptPath / L"Continental - Africa.txt", L"INTAFRICA", gameId, compsAfrica, 0);
-        WriteExternalScriptFile(scriptPath / L"Continental - Asia.txt", L"INTASIA", gameId, compsAsia, 0);
-        WriteExternalScriptFile(scriptPath / L"Continental - North America.txt", L"INTAMERICA", gameId, compsNorthAmerica, 0);
-        WriteExternalScriptFile(scriptPath / L"Continental - Oceania.txt", L"INTOCEANIA", gameId, compsOceania, 0);
-        WriteExternalScriptFile(scriptPath / L"WorldCupQualification.txt", L"QUALI_WC", gameId, compsQualiWC, 0);
-        WriteExternalScriptFile(scriptPath / L"WorldCup.txt", L"WORLD_CUP", gameId, compsWC, 1);
-        WriteExternalScriptFile(scriptPath / L"EuropeanChampionshipQualification.txt", L"QUALI_EC", gameId, compsQualiEC, 1);
-        WriteExternalScriptFile(scriptPath / L"EuropeanChampionship.txt", L"EURO_CUP", gameId, compsEC, 1);
-        WriteExternalScriptFile(scriptPath / L"WorldCupU20.txt", L"U20_WORLD_CUP", gameId, compsU20WC, 1);
-        WriteExternalScriptFile(scriptPath / L"ConfedCup.txt", L"CONFED_CUP", gameId, compsConfedCup, 1);
-        if (gameId >= 11) {
-            WriteExternalScriptFile(scriptPath / L"CopaAmerica.txt", L"COPA_AMERICA", gameId, compsCopaAmerica, 1);
+    if (!scriptPath.empty()) {
+        if (gameId >= 8) {
+            WriteExternalScriptFile(scriptPath / L"Continental - Europe.txt", L"EURO", gameId, compsEurope, 1);
+            WriteExternalScriptFile(scriptPath / L"Continental - South America.txt", L"SOUTHAM", gameId, compsSouthAmerica, 0);
+            WriteExternalScriptFile(scriptPath / L"Continental - Africa.txt", L"INTAFRICA", gameId, compsAfrica, 0);
+            WriteExternalScriptFile(scriptPath / L"Continental - Asia.txt", L"INTASIA", gameId, compsAsia, 0);
+            WriteExternalScriptFile(scriptPath / L"Continental - North America.txt", L"INTAMERICA", gameId, compsNorthAmerica, 0);
+            WriteExternalScriptFile(scriptPath / L"Continental - Oceania.txt", L"INTOCEANIA", gameId, compsOceania, 0);
+            WriteExternalScriptFile(scriptPath / L"WorldCupQualification.txt", L"QUALI_WC", gameId, compsQualiWC, 0);
+            WriteExternalScriptFile(scriptPath / L"WorldCup.txt", L"WORLD_CUP", gameId, compsWC, 1);
+            WriteExternalScriptFile(scriptPath / L"EuropeanChampionshipQualification.txt", L"QUALI_EC", gameId, compsQualiEC, 1);
+            WriteExternalScriptFile(scriptPath / L"EuropeanChampionship.txt", L"EURO_CUP", gameId, compsEC, 1);
+            WriteExternalScriptFile(scriptPath / L"WorldCupU20.txt", L"U20_WORLD_CUP", gameId, compsU20WC, 1);
+            WriteExternalScriptFile(scriptPath / L"ConfedCup.txt", L"CONFED_CUP", gameId, compsConfedCup, 1);
+            if (gameId >= 11) {
+                WriteExternalScriptFile(scriptPath / L"CopaAmerica.txt", L"COPA_AMERICA", gameId, compsCopaAmerica, 1);
 
-            /*
-            Writing of custom competition types is not implemented
-            */
+                /*
+                Writing of custom competition types is not implemented
+                */
+            }
         }
-    }
-    else {
-        WriteExternalScriptFile(scriptPath / L"EuropeanCup.txt", L"EURO", gameId, compsEurope, 0);
-        WriteExternalScriptFile(scriptPath / L"SouthAmCup.txt", L"SOUTHAM", gameId, compsSouthAmerica, 0);
-        WriteExternalScriptFile(scriptPath / L"IntAfrica.txt", L"INTAFRICA", gameId, compsAfrica, 0);
-        WriteExternalScriptFile(scriptPath / L"IntAsia.txt", L"INTASIA", gameId, compsAsia, 0);
-        WriteExternalScriptFile(scriptPath / L"IntAmerica.txt", L"INTAMERICA", gameId, compsNorthAmerica, 0);
-        WriteExternalScriptFile(scriptPath / L"IntOceania.txt", L"INTOCEANIA", gameId, compsOceania, 0);
-        WriteExternalScriptFile(scriptPath / L"QualiWC.txt", L"QUALI_WC", gameId, compsQualiWC, 0);
-        WriteExternalScriptFile(scriptPath / L"WC.txt", L"WORLD_CUP", gameId, compsWC, 1);
-        WriteExternalScriptFile(scriptPath / L"QualiEC.txt", L"QUALI_EC", gameId, compsQualiEC, 1);
-        WriteExternalScriptFile(scriptPath / L"EC.txt", L"EURO_CUP", gameId, compsEC, 1);
+        else {
+            WriteExternalScriptFile(scriptPath / L"EuropeanCup.txt", L"EURO", gameId, compsEurope, 0);
+            WriteExternalScriptFile(scriptPath / L"SouthAmCup.txt", L"SOUTHAM", gameId, compsSouthAmerica, 0);
+            WriteExternalScriptFile(scriptPath / L"IntAfrica.txt", L"INTAFRICA", gameId, compsAfrica, 0);
+            WriteExternalScriptFile(scriptPath / L"IntAsia.txt", L"INTASIA", gameId, compsAsia, 0);
+            WriteExternalScriptFile(scriptPath / L"IntAmerica.txt", L"INTAMERICA", gameId, compsNorthAmerica, 0);
+            WriteExternalScriptFile(scriptPath / L"IntOceania.txt", L"INTOCEANIA", gameId, compsOceania, 0);
+            WriteExternalScriptFile(scriptPath / L"QualiWC.txt", L"QUALI_WC", gameId, compsQualiWC, 0);
+            WriteExternalScriptFile(scriptPath / L"WC.txt", L"WORLD_CUP", gameId, compsWC, 1);
+            WriteExternalScriptFile(scriptPath / L"QualiEC.txt", L"QUALI_EC", gameId, compsQualiEC, 1);
+            WriteExternalScriptFile(scriptPath / L"EC.txt", L"EURO_CUP", gameId, compsEC, 1);
+        }
     }
 
     FifamWriter countriesWriter(dbPath / L"Countries.sav", gameId, FifamVersion(FifamDatabase::GetGameDbVersion(gameId)), unicode);
@@ -614,6 +619,10 @@ void FifamDatabase::SetupWriteableStatus(UInt gameId) {
     
     for (auto personEntry : mPersonsMap) {
         auto person = personEntry.second;
+        if (person->GetProperty<Bool>(L"ignore", false)) {
+            person->SetIsWriteable(false);
+            continue;
+        }
         person->SetIsWriteable(true);
         UInt writeableId = personEntry.second->mID;
         if (writeableId >= 1'000'000'000)
@@ -976,16 +985,21 @@ void FifamDatabase::ResolveStadiumPtr(FifamStadium *&stadium, UInt gameFrom, UIn
     stadium = StadiumFromID(TranslateCountryEntityID(FifamUtils::GetSavedStadiumIDFromPtr(stadium), gameFrom, gameTo));
 }
 
-FifamClub *FifamDatabase::GetClubFromUID(UInt uid) {
+FifamClub *FifamDatabase::GetClubFromUID(UInt uid, Bool includeNationalTeams) {
+    if (includeNationalTeams && (uid & 0xFFFF) == 0xFFFF) {
+        UChar countryId = (uid >> 16) & 0xFF;
+        if (countryId >= 1 && countryId <= FifamDatabase::NUM_COUNTRIES && mCountries[countryId - 1])
+            return &mCountries[countryId - 1]->mNationalTeam;
+    }
     auto it = mClubsMap.find(uid);
     if (it != mClubsMap.end())
         return it->second;
     return nullptr;
 }
 
-void FifamDatabase::GetClubFromUID(FifamClubLink &link, UInt uid) {
+void FifamDatabase::GetClubFromUID(FifamClubLink &link, UInt uid, Bool includeNationalTeams) {
     link.mTeamType = FifamClubTeamType::First;
-    link.mPtr = GetClubFromUID(uid);
+    link.mPtr = GetClubFromUID(uid, includeNationalTeams);
 }
 
 FifamCompetition *FifamDatabase::GetCompetition(FifamCompID const & compID) {
@@ -1277,9 +1291,9 @@ FifamVersion FifamDatabase::GetGameDbVersion(UInt gameId) {
     else if (gameId == 12)
         version.Set(0x2012, 0x04);
     else if (gameId == 13)
-        version.Set(0x2013, 0x0C); // original 0xA
+        version.Set(0x2013, 0x0D); // original 0xA
     else if (gameId == 14)
-        version.Set(0x2013, 0x0C); // original 0xA
+        version.Set(0x2013, 0x0D); // original 0xA
     return version;
 }
 

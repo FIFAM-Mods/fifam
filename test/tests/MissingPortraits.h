@@ -5,7 +5,7 @@
 class MissingPortraits {
 public:
     static Bool HasPortrait(FifamPlayer *p) {
-        static String portraitFolders[] = { L"art_02", L"art_03", L"art_06", L"art_07" };
+        static String portraitFolders[] = { L"art_02", L"art_03", L"art_06", L"art_07", L"art_08" };
         static Path contentPath = L"D:\\Projects\\fifam\\content\\fm13";
         for (UInt i = 0; i < 2; i++) {
             String portraitName = p->GetStringUniqueId(FM13::id(), i == 0) + L".png";
@@ -18,7 +18,7 @@ public:
     };
 
     MissingPortraits() {
-        FifamDatabase *db = GetEnvironment<FifamDbEnvironment<FM13, Default>>().GetDatabase();
+        FifamDatabase db(13, "D:\\Games\\FIFA Manager 22\\database");
         FifamWriter writer(Utils::Format(L"players_missing_portraits.csv", FM13::id()), FM13::id(), FifamVersion(FM13::year(), FM13::vernum()), FM13::unicode());
         if (writer.Available()) {
             writer.WriteLine(
@@ -29,7 +29,7 @@ public:
                 L"Level",
                 L"Talent"
             );
-            for (auto player : db->mPlayers) {
+            for (auto player : db.mPlayers) {
                 if (!HasPortrait(player)) {
                     String countryName;
                     String clubName;
@@ -42,7 +42,7 @@ public:
                     writer.WriteLine(
                         Quoted(countryName),
                         Quoted(clubName),
-                        player->mEmpicsId,
+                        player->mFootballManagerID,
                         Quoted(playerName),
                         player->GetLevel(),
                         player->mTalent

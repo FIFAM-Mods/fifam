@@ -15,8 +15,6 @@ struct player;
 struct club : public team {
     String mSixLetterName;
     Array<String, 6> mTranslatedSixLetterNames;
-    String mOriginalThreeLetterName;
-    Array<String, 6> mTranslatedOriginalThreeLetterNames;
     String mAlternativeThreeLetterName;
     Array<String, 6> mTranslatedAlternativeThreeLetterNames;
     Bool mExtinct = 0;

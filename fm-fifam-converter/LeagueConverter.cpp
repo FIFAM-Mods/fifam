@@ -494,7 +494,7 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
         mlsCup->SetProperty<UChar>(L"max_level", 0);
         cups.push_back(mlsCup);
     }
-    else if (countryId == FifamCompRegion::Russia) {
+    /*else if (countryId == FifamCompRegion::Russia) {
         UInt nextCupIndex = GetNextLeagueCupIndex();
         if (nextCupIndex > 1)
             return ErrorMsg(L"Not enough free league cups (next free index is " + Utils::Format(L"%d", nextCupIndex) + L")");
@@ -550,7 +550,7 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
         pariMatchCup->SetProperty<UChar>(L"max_level", 0);
         cups.push_back(fnlCup);
         cups.push_back(pariMatchCup);
-    }
+    }*/
     else if (countryId == FifamCompRegion::Australia) {
         FifamCompLeague *league = mFifamDatabase->GetCompetition(League(0))->AsLeague();
         if (!league)
@@ -635,22 +635,55 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
         leagueCup->SetProperty<UChar>(L"max_level", 0);
         cups.push_back(leagueCup);
     }
+    else if (countryId == FifamCompRegion::Switzerland) {
+        UInt nextCupIndex = GetNextLeagueCupIndex();
+        if (nextCupIndex != 0)
+            return ErrorMsg(L"League Cup index 0 in Switzerland is reserved for Liechtenstein Cup");
+        FifamCompID cupId = FifamCompID(countryId, FifamCompType::LeagueCup, 0);
+        FifamCompCup *cup = mFifamDatabase->CreateCompetition(FifamCompDbType::Cup, cupId, L"Liechtenstein Cup")->AsCup();
+        cup->mRounds.resize(5);
+        cup->mNumTeams = 14;
+        cup->mRounds[0].mRoundID = FifamRoundID::_1;
+        cup->mRounds[0].mTeamsRound = 4;
+        cup->mRounds[0].mNewTeamsRound = 4;
+        cup->mRounds[0].mStartBeg = 0;
+        cup->mRounds[0].mEndBeg = 2;
+        cup->mRounds[0].mBonuses = { 0, 1000, 0, 0 };
+        cup->mRounds[1].mRoundID = FifamRoundID::_2;
+        cup->mRounds[1].mTeamsRound = 8;
+        cup->mRounds[1].mNewTeamsRound = 6;
+        cup->mRounds[1].mStartBeg = 2;
+        cup->mRounds[1].mEndBeg = 6;
+        cup->mRounds[1].mBonuses = { 0, 2000, 0, 0 };
+        cup->mRounds[2].mRoundID = FifamRoundID::Quarterfinal;
+        cup->mRounds[2].mTeamsRound = 8;
+        cup->mRounds[2].mNewTeamsRound = 4;
+        cup->mRounds[2].mStartBeg = 6;
+        cup->mRounds[2].mEndBeg = 10;
+        cup->mRounds[2].mBonuses = { 0, 5000, 0, 0 };
+        cup->mRounds[3].mRoundID = FifamRoundID::Semifinal;
+        cup->mRounds[3].mTeamsRound = 4;
+        cup->mRounds[3].mNewTeamsRound = 0;
+        cup->mRounds[3].mStartBeg = 10;
+        cup->mRounds[3].mEndBeg = 12;
+        cup->mRounds[3].mBonuses = { 0, 10000, 0, 0 };
+        cup->mRounds[4].mRoundID = FifamRoundID::Final;
+        cup->mRounds[4].mTeamsRound = 2;
+        cup->mRounds[4].mNewTeamsRound = 0;
+        cup->mRounds[4].mStartBeg = 12;
+        cup->mRounds[4].mEndBeg = 13;
+        cup->mRounds[4].mBonuses = { 0, 20000, 0, 10000 };
+        cup->mInstructions.PushBack(new FifamInstruction::GET_CC_SPARE());
+        cup->SetProperty<UChar>(L"min_level", 0);
+        cup->SetProperty<UChar>(L"max_level", 0);
+        cups.push_back(cup);
+    }
     return true;
 }
 
 void Converter::ConvertLeagues(UInt gameId) {
 
-    UInt MAX_LEAGUE_NAME_LENGTH = 63;
-    UInt MAX_CUP_NAME_LENGTH = 63;
-    UInt MAX_POOL_NAME_LENGTH = 58;
     UInt MAX_COMP_NAME_LENGTH = 29;
-
-    if (gameId <= 7) {
-        MAX_LEAGUE_NAME_LENGTH = 29;
-        MAX_CUP_NAME_LENGTH = 29;
-        MAX_POOL_NAME_LENGTH = 29;
-        MAX_COMP_NAME_LENGTH = 29;
-    }
 
     FifamWriter *leagueConfigSplit = nullptr;
     FifamWriter *leagueConfigTables = nullptr;
@@ -764,10 +797,10 @@ void Converter::ConvertLeagues(UInt gameId) {
                             nation.mConverterData.mDomesticComps.league = lg;
                         FifamCompID leagueID = FifamCompID(country->mId, FifamCompType::League, leagueIndex++);
                         String compName;
-                        if (lg->mName.length() <= MAX_LEAGUE_NAME_LENGTH)
+                        if (lg->mName.length() <= MAX_COMP_NAME_LENGTH)
                             compName = lg->mName;
                         else
-                            compName = FifamNames::LimitName(lg->mShortName, MAX_LEAGUE_NAME_LENGTH);
+                            compName = FifamNames::LimitName(lg->mShortName, MAX_COMP_NAME_LENGTH);
                         FifamCompLeague *league = mFifamDatabase->CreateCompetition(FifamCompDbType::League, leagueID, compName)->AsLeague();
 
                         lg->mCompID = leagueID;
@@ -879,10 +912,12 @@ void Converter::ConvertLeagues(UInt gameId) {
                             league->mTransferMarketMp = lg->mTransfersMp;
                         if (lg->mNumSubs > 0)
                             league->mNumSubsAllowed = lg->mNumSubs;
-                        if (lg->mDomesticPlayers > 0)
-                            league->mMinDomesticPlayerCount = lg->mDomesticPlayers;
-                        if (lg->mU21Players > 0)
-                            league->mMinU21PlayerCount = lg->mU21Players;
+                        if (lg->mForeignersGame > 0)
+                            league->mMinDomesticPlayerCount = lg->mForeignersGame;
+                        if (lg->mSeasonSquad > 0)
+                            league->mMinU21PlayerCount = lg->mSeasonSquad;
+                        if (lg->mSeasonSquadForeigners > 0)
+                            league->mMinU24PlayerCount = lg->mSeasonSquadForeigners;
                         if (lg->mNonEuSigns > 0)
                             league->mMaxNumberOfNonEUSigns = lg->mNonEuSigns;
 
@@ -915,22 +950,22 @@ void Converter::ConvertLeagues(UInt gameId) {
                                 for (UInt relId = 0; relId < 2; relId++) {
                                     FifamCompID compRelID = FifamCompID(country->mId, FifamCompType::Relegation, relId);
                                     String relName;
-                                    if (lg->mName.length() <= MAX_LEAGUE_NAME_LENGTH - roundNames[relId].size())
+                                    if (lg->mName.length() <= MAX_COMP_NAME_LENGTH - roundNames[relId].size())
                                         relName = lg->mName + roundNames[relId];
                                     else
-                                        relName = FifamNames::LimitName(lg->mShortName + roundNames[relId], MAX_LEAGUE_NAME_LENGTH);
+                                        relName = FifamNames::LimitName(lg->mShortName + roundNames[relId], MAX_COMP_NAME_LENGTH);
                                     relLeague[relId] = mFifamDatabase->CreateCompetition(FifamCompDbType::League, compRelID, relName)->AsLeague();
                                     String relNameGer;
-                                    if (lg->mName.length() <= MAX_LEAGUE_NAME_LENGTH - roundNamesGer[relId].size())
+                                    if (lg->mName.length() <= MAX_COMP_NAME_LENGTH - roundNamesGer[relId].size())
                                         relNameGer = lg->mName + roundNamesGer[relId];
                                     else
-                                        relNameGer = FifamNames::LimitName(lg->mShortName + roundNamesGer[relId], MAX_LEAGUE_NAME_LENGTH);
+                                        relNameGer = FifamNames::LimitName(lg->mShortName + roundNamesGer[relId], MAX_COMP_NAME_LENGTH);
                                     relLeague[relId]->mName[FifamTranslation::German] = relNameGer;
                                     if (mSplitNames.contains(lg->mID)) {
                                         FifamTrArray<String> splitNames = (relId == 0) ? mSplitNames[lg->mID].first : mSplitNames[lg->mID].second;
                                         for (UInt n = 0; n < FifamTranslation::NUM_TRANSLATIONS; n++) {
                                             if (!splitNames[n].empty())
-                                                relLeague[relId]->mName[n] = FifamNames::LimitName(splitNames[n], MAX_LEAGUE_NAME_LENGTH);
+                                                relLeague[relId]->mName[n] = FifamNames::LimitName(splitNames[n], MAX_COMP_NAME_LENGTH);
                                         }
                                     }
                                     relLeague[relId]->mCompetitionLevel = league->mCompetitionLevel;
@@ -1632,7 +1667,7 @@ void Converter::ConvertLeagues(UInt gameId) {
 
                     if (firstDivOnLevel) {
                         country->mLeagueLevels[i].mEqualPointsSorting = firstDivOnLevel->mSorting;
-                        country->mLeagueLevels[i].mNumNonEUPlayersAllowed = firstDivOnLevel->mForeignersLimit;
+                        country->mLeagueLevels[i].mNumNonEUPlayersAllowed = firstDivOnLevel->mForeignersField;
                         country->mLeagueLevels[i].mNumRelegatedTeams = customLeagues ? 0 : firstDivOnLevel->mRelegated;
                     }
                     else {
@@ -1655,7 +1690,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                     // setup pool
 
                     FifamCompID poolID = FifamCompID(country->mId, FifamCompType::Pool, i);
-                    FifamCompPool *pool = mFifamDatabase->CreateCompetition(FifamCompDbType::Pool, poolID, FifamNames::LimitName(levelName, MAX_POOL_NAME_LENGTH) + L" Pool")->AsPool();
+                    FifamCompPool *pool = mFifamDatabase->CreateCompetition(FifamCompDbType::Pool, poolID, FifamNames::LimitName(levelName, MAX_COMP_NAME_LENGTH - 5) + L" Pool")->AsPool();
                     pool->mCompetitionLevel = i;
 
                     createdPools.push_back(pool);
@@ -2011,10 +2046,10 @@ void Converter::ConvertLeagues(UInt gameId) {
                             }
                             FifamCompID cupID = { (UChar)country->mId, cupCompType, (UShort)nextAvailableCompIndex };
                             String cupName;
-                            if (cupInfo.mName.length() <= MAX_CUP_NAME_LENGTH)
+                            if (cupInfo.mName.length() <= MAX_COMP_NAME_LENGTH)
                                 cupName = cupInfo.mName;
                             else
-                                cupName = FifamNames::LimitName(cupInfo.mShortName, MAX_CUP_NAME_LENGTH);
+                                cupName = FifamNames::LimitName(cupInfo.mShortName, MAX_COMP_NAME_LENGTH);
                             FifamCompCup *cup = mFifamDatabase->CreateCompetition(FifamCompDbType::Cup, cupID, cupName)->AsCup();
                             createdCups.push_back(cup);
                             cup->SetProperty(L"foom::id", cupInfo.mID);

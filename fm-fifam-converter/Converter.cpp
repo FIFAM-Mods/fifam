@@ -109,9 +109,9 @@ void Converter::Convert() {
     mCurrentGameId = gameId;
     mFromFifaDatabase = fromFifaDatabase;
 
-    //mFifaDatabase = new FifaDatabase(dbPath / L"fifa");
     GraphicsConverter graphicsConverter;
-    //graphicsConverter.DownloadPlayerPortraitsFIFA21(mFifaDatabase, "E:\\Games\\FIFA Manager 13");
+    //mFifaDatabase = new FifaDatabase(dbPath / L"fifa");
+    //graphicsConverter.DownloadPlayerPortraitsFIFA21(mFifaDatabase, "D:\\FIFA23");
     //delete mFifaDatabase;
     //return;
 
@@ -449,17 +449,7 @@ void Converter::Convert() {
         return;
     }
 
-    UInt MAX_LEAGUE_NAME_LENGTH = 63;
-    UInt MAX_CUP_NAME_LENGTH = 63;
-    UInt MAX_POOL_NAME_LENGTH = 58;
-    UInt MAX_COMP_NAME_LENGTH = 29;
-
-    if (gameId <= 7) {
-        MAX_LEAGUE_NAME_LENGTH = 29;
-        MAX_CUP_NAME_LENGTH = 29;
-        MAX_POOL_NAME_LENGTH = 29;
-        MAX_COMP_NAME_LENGTH = 29;
-    }
+    const UInt MAX_COMP_NAME_LENGTH = 29;
 
     // convert nations, national teams, leagues
     std::wcout << L"Converting nations, national teams and leagues..." << std::endl;
@@ -2114,21 +2104,24 @@ void Converter::Convert() {
                         case 39: // Atalanta
                             fmClubFifaId = 115845;
                             break;
-                        case 45: // Juventus
-                            fmClubFifaId = 114153;
-                            break;
+                        //case 45: // Juventus
+                        //    fmClubFifaId = 114153;
+                        //    break;
                         case 46: // Lazio
                             fmClubFifaId = 115841;
+                            break;
+                        case 48: // Napoli
+                            fmClubFifaId = 116365;
                             break;
                         case 52: // AS Roma
                             fmClubFifaId = 114912;
                             break;
-                        case 1876: // Riveer Plate
-                            fmClubFifaId = 114144;
-                            break;
-                        case 1877: // Boca Juniors
-                            fmClubFifaId = 114149;
-                            break;
+                        //case 1876: // Riveer Plate
+                        //    fmClubFifaId = 114144;
+                        //    break;
+                        //case 1877: // Boca Juniors
+                        //    fmClubFifaId = 114149;
+                        //    break;
                         }
                         fifaClub = mFifaDatabase->GetTeam(fmClubFifaId);
                         if (fifaClub && fifaClub->m_gameId != FifaDatabase::m_lastSupportedGameVersion)

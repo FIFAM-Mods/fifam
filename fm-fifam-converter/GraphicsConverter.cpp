@@ -74,6 +74,7 @@ void SafeWriteImage(Image &image, std::string const &filename) {
 
 void WriteOneBadge(Image &badgeImg, Path const &outputPath, String const &badgeName, UInt gameId, Bool leagues = false) {
     Bool oldBadgePath = gameId <= 9;
+    badgeImg.filterType(FilterType::LanczosFilter);
     badgeImg.resize(Geometry(256, 256));
     SafeWriteImage(badgeImg, (Path(outputPath / (oldBadgePath? (leagues ? L"Leagues256" : L"Badge256") : L"256x256") / badgeName).string()));
     badgeImg.resize(Geometry(128, 128));
@@ -88,6 +89,7 @@ Bool GraphicsConverter::ConvertOneCompBadge(Path const &badgePath, Path const &o
     if (exists(badgePath)) {
         Image badgeImg(badgePath.string());
         if (badgeImg.isValid() && badgeImg.baseRows() >= 256) {
+            badgeImg.autoOrient();
             if (badgeImg.baseColumns() != badgeImg.baseRows()) {
                 UInt newSize = Utils::Max(badgeImg.baseColumns(), badgeImg.baseRows());
                 badgeImg.extent(Geometry(newSize, newSize), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
@@ -197,6 +199,7 @@ void GraphicsConverter::ConvertCompBadges(FifamDatabase *db, Path const &fmGraph
                                 if (nit != availableFlags.end()) {
                                     Image flagImg((*nit).second.string());
                                     if (flagImg.isValid()) {
+                                        flagImg.filterType(FilterType::LanczosFilter);
                                         if (comp->mID.mType == FifamCompType::League) {
                                             if (comp->mCompetitionLevel == 0) {
                                                 Image outputImg(Geometry(256, 256), Magick::Color(0, 0, 0, 0));
@@ -372,6 +375,7 @@ void GraphicsConverter::ConvertCountryFlags(FifamDatabase *db, Path const &fmGra
                         UInt size[] = { 32, 64, 128 };
                         for (UInt i = 0; i < std::size(size); i++) {
                             Image x(flagImg);
+                            x.filterType(FilterType::LanczosFilter);
                             x.resize(Geometry(size[i], size[i]));
                             x.extent(Geometry(size[i], size[i]), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
                             x.write((outputPath / Utils::Format("%dx%d\\%d.tga", size[i], size[i], country->mId)).string());
@@ -390,6 +394,7 @@ void GraphicsConverter::ConvertCountryFlags(FifamDatabase *db, Path const &fmGra
                 if (!logoPath.empty()) {
                     Image logoImg(logoPath);
                     if (logoImg.isValid()) {
+                        logoImg.filterType(FilterType::LanczosFilter);
                         logoImg.resize(Geometry(256, 256));
                         logoImg.extent(Geometry(256, 256), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
                         logoImg.write((outputPath / L"256x256" / Utils::Format("%d.tga", country->mId)).string());
@@ -547,6 +552,7 @@ Bool GraphicsConverter::ConvertOneTrophy(Path const &trophyPath, Path const &out
                     auto[newX, newY] = ResizeAndFit(trophyImg.baseColumns(), trophyImg.baseRows(), 518, 410, 0.78f);
                     if (newX && newY) {
                         Image trophyRoomImg = trophyImg;
+                        trophyRoomImg.filterType(FilterType::LanczosFilter);
                         if (newX != trophyRoomImg.baseColumns() || newY != trophyRoomImg.baseRows())
                             trophyRoomImg.resize(Geometry(newX, newY));
                         trophyRoomImg.extent(Geometry(534, 423), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
@@ -557,6 +563,7 @@ Bool GraphicsConverter::ConvertOneTrophy(Path const &trophyPath, Path const &out
                 {
                     auto[newX, newY] = ResizeAndFit(trophyImg.baseColumns(), trophyImg.baseRows(), 244, 244, 0.88f);
                     if (newX && newY) {
+                        trophyImg.filterType(FilterType::LanczosFilter);
                         if (newX != trophyImg.baseColumns() || newY != trophyImg.baseRows())
                             trophyImg.resize(Geometry(newX, newY));
                         trophyImg.extent(Geometry(256, 256), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
@@ -691,6 +698,7 @@ void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGrap
                         UInt newSize = Utils::Max(portraitImg.baseColumns(), portraitImg.baseRows());
                         portraitImg.extent(Geometry(newSize, newSize), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
                     }
+                    portraitImg.filterType(FilterType::LanczosFilter);
                     portraitImg.resize(Geometry(160, 160));
                     SafeWriteImage(portraitImg, outputPath.string());
                 }
@@ -719,6 +727,7 @@ void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path con
                         UInt newSize = Utils::Max(portraitImg.baseColumns(), portraitImg.baseRows());
                         portraitImg.extent(Geometry(newSize, newSize), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
                     }
+                    portraitImg.filterType(FilterType::LanczosFilter);
                     portraitImg.resize(Geometry(160, 160));
                     SafeWriteImage(portraitImg, outputPath.string());
                 }
@@ -788,6 +797,7 @@ void GraphicsConverter::ConvertOneCity(Int foomClubId, Int fifamClubId, Path con
     }
     Image img(imagePath.string());
     if (img.isValid() && img.baseColumns() >= 600 && img.baseRows() >= 450) {
+        img.filterType(FilterType::LanczosFilter);
         img.resize(Geometry("615x461^"));
         img.extent(Geometry("615x461"), GravityType::CenterGravity);
         //img.brightnessContrast(0.0, 25.0);
@@ -850,6 +860,7 @@ void GraphicsConverter::ConvertOneStadium(Int foomId, UInt fifamClubId, Path con
     Image img(imagePath.string());
     Image img2x(img);
     if (img2x.isValid() && img2x.baseColumns() >= 1300 && img2x.baseRows() >= 800) {
+        img2x.filterType(FilterType::LanczosFilter);
         img2x.resize(Geometry("1920x1200^"));
         img2x.extent(Geometry("1920x1200"), GravityType::CenterGravity);
         img2x.write(Path(outputPath / L"1920x1200" / clubIdStr).string());
@@ -860,6 +871,7 @@ void GraphicsConverter::ConvertOneStadium(Int foomId, UInt fifamClubId, Path con
         writer.WriteLine(Quoted(n), Quoted(sn), foomId, rep, Hexadecimal(fifamClubId), 2, true, img.baseColumns(), img.baseRows());
     }
     if (img.isValid() && img.baseColumns() >= 530 && img.baseRows() >= 400) {
+        img.filterType(FilterType::LanczosFilter);
         img.resize(Geometry("800x600^"));
         img.extent(Geometry("800x600"), GravityType::CenterGravity);
         img.write(Path(outputPath / L"800x600" / clubIdStr).string());
@@ -917,6 +929,7 @@ void GraphicsConverter::ConvertStadiums(foom::db *db, Path const &inputPath, Pat
 
 void WriteTextModeBadge(Image &img, Image &mask, Path const &outputPath, String const &fileName) {
     Image tmImg = img;
+    tmImg.filterType(FilterType::LanczosFilter);
     tmImg.resize(Geometry("168x168"));
     tmImg.extent(Geometry("114x168"), GravityType::CenterGravity);
     tmImg.composite(mask, 0, 0, CopyAlphaCompositeOp);
@@ -948,6 +961,7 @@ void GraphicsConverter::ConvertClubBadgesFIFA(FifamDatabase *db, Path const &fif
             Image badgeImg(logoPath.string());
             if (badgeImg.isValid() && badgeImg.baseRows() == 256) {
                 Path genericPath = contentPath / gameFolder / L"badges" / L"badges" / L"generic";
+                badgeImg.filterType(FilterType::LanczosFilter);
                 badgeImg.resize(Geometry(256, 256));
                 SafeWriteImage(badgeImg, (Path(genericPath / L"Badge256" / L"generic256.tga").string()));
                 badgeImg.resize(Geometry(128, 128));
@@ -995,6 +1009,7 @@ Bool DownloadAndSavePlayerPhoto(Char const *filepath, Char const *url, bool resi
     if (URLDownloadToFile(NULL, url, "tmpFifaPortrait.png", 0, NULL) == S_OK) {
         Image portraitImg("tmpFifaPortrait.png");
         if (portraitImg.isValid() && portraitImg.columns() >= 160) {
+            portraitImg.filterType(FilterType::LanczosFilter);
             portraitImg.resize(Geometry(160, 160));
             portraitImg.write(filepath);
             return true;
@@ -1022,7 +1037,7 @@ Bool DownloadAndSavePlayerPhoto(Int playerId, Char const *filepath) {
 
 Bool DownloadAndSavePlayerPhotoFIFA21(Int playerId, Path const &filepath) {
     char url[MAX_PATH];
-    sprintf(url, "https://media.contentapi.ea.com/content/dam/ea/fifa/fifa-21/ratings-collective/f20assets/player-headshots/%d.png", playerId);
+    sprintf(url, "https://media.contentapi.ea.com/content/dam/ea/fifa/fifa-23/ratings/common/player-small-portraits/%d.png", playerId);
     return DownloadAndSavePlayerPhoto(filepath.string().c_str(), url, false);
 }
 
@@ -1030,8 +1045,10 @@ void GraphicsConverter::DownloadPlayerPortraitsFIFA21(FifaDatabase *db, Path con
     Path outputPath = gameOutputPath / L"portraits" / L"club" / L"512x512";
     create_directories(outputPath);
     db->ForAllPlayers([&](FifaPlayer &p) {
-        std::cout << p.GetId() << std::endl;
-        DownloadAndSavePlayerPhotoFIFA21(p.GetId(), outputPath / (std::to_string(p.GetId()) + ".png"));
+        if (p.GetId() > 241852) {
+            std::cout << p.GetId() << std::endl;
+            DownloadAndSavePlayerPhotoFIFA21(p.GetId(), outputPath / (Utils::GetStringWithoutUnicodeChars(p.m_quickName) + L" (" + std::to_wstring(p.GetId()) + L").png"));
+        }
     });
 }
 
@@ -1176,6 +1193,7 @@ void GraphicsConverter::ConvertPlayerPortraitsFIFA(FifamDatabase *db, Path const
                                 picPath = assetsDir / Utils::Format(L"p%d.dds", p->mEmpicsId);
                                 if (exists(picPath)) {
                                     Image pic(picPath.string());
+                                    pic.filterType(FilterType::LanczosFilter);
                                     pic.resize(Geometry(160, 160));
                                     Path outputPic = outputPath / (p->mWriteableStringID + L".tga");
                                     pic.write(outputPic.string());
@@ -1196,6 +1214,7 @@ void GraphicsConverter::ConvertPlayerPortraitsFIFA(FifamDatabase *db, Path const
                     picPath = assetsDir / Utils::Format(L"p%d.dds", p->mEmpicsId);
                     if (exists(picPath)) {
                         Image pic(picPath.string());
+                        pic.filterType(FilterType::LanczosFilter);
                         pic.resize(Geometry(160, 160));
                         Path outputPic = outputPath / (p->mWriteableStringID + L".tga");
                         pic.write(outputPic.string());

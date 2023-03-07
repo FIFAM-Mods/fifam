@@ -10,7 +10,7 @@ public:
     Map<UInt, UInt> mFifamClubsToFoom; // FIFAM ID => FooM ID
     Map<UInt, UInt> mFoomClubs; // FooM ID => FIFAM ID
 
-    Path mInfoPath = L"E:\\Projects\\fifam\\db";
+    Path mInfoPath = L"D:\\Projects\\fifam\\db";
 
     FifaFifamIDsEnvironment() {
         {

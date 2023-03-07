@@ -668,12 +668,9 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         writer.WriteLine(mIndividualTvMoney);
         writer.WriteLine(clubAdditionalFlags);
         writer.WriteLine(lastSeasonFlags);
-        writer.WriteLine(
-            mClubColour.FindIndexInTable(mTeamColorsTable),
-            mClubColour2.FindIndexInTable(mTeamColorsTable),
-            mMerchandiseColour.FindIndexInTable(mMerchandiseColorsTable),
-            mHeaderColour.FindIndexInTable(m08InterfaceColorsTable),
-            mBackgroundColour.FindIndexInTable(m08InterfaceColorsTable));
+        UInt clubClr = mClubColour.FindIndexInTable(mTeamColorsTable);
+        UInt interfaceClr = mBackgroundColour.FindIndexInTable(m08InterfaceColorsTable);
+        writer.WriteLine(clubClr, clubClr, mMerchandiseColour.FindIndexInTable(mMerchandiseColorsTable), interfaceClr, interfaceClr);
         mHistory.Write(writer);
         writer.WriteLineArray(mTransfersCountry);
         writer.WriteLine(mYouthPlayersCountry);

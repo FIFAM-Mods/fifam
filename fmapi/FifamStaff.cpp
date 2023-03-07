@@ -406,23 +406,23 @@ void FifamStaff::WriteWorker(FifamWriter &writer) {
             writer.WriteLine(mManagerFavouriteFormation);
         writer.WriteLine(mCoachPlayingOrientation);
     }
-    if (mHasNoneJobData) {
+    if (mHasMedicineJobData) {
         writer.WriteLine(2);
         writer.WriteLine(0);
     }
-    if (mHasNoneJobData) {
+    if (mHasManagerJobData) {
         writer.WriteLine(3);
         writer.WriteLine(0);
     }
-    if (mHasNoneJobData) {
+    if (mHasPRJobData) {
         writer.WriteLine(4);
         writer.WriteLine(0);
     }
-    if (mHasNoneJobData) {
+    if (mHasLawyerJobData) {
         writer.WriteLine(5);
         writer.WriteLine(0);
     }
-    if (mHasNoneJobData) {
+    if (mHasScoutJobData) {
         writer.WriteLine(6);
         writer.WriteLine(0);
         UInt numPreferredCountries = mScoutPreferredCountries.size();

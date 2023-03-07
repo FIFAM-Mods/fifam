@@ -81,7 +81,7 @@ public:
     }
 
     static void Rename2() {
-        Path baseFolder = L"D:\\fifa07_portraits";
+        Path baseFolder = L"I:\\fifa07_portraits";
         for (UInt i = 0; i < 2; i++) {
             FifamDatabase *db = nullptr;
             if (i == 0)
@@ -116,83 +116,93 @@ public:
     }
 
     static void Build() {
-        Path gameDir = L"E:\\Games\\FIFA 07";
-        Path outputDir = gameDir / L"data\\gui\\assets\\heads";
-        Path workingDir = L"D:\\fifa07_portraits";
-        Path portraitsDir = workingDir / L"fm07";
+        bool hd = true;
+        Int mp = hd ? 2 : 1;
+        Path gameDir = L"D:\\Games\\FIFA 07";
+        Path workingDir = L"I:\\fifa07_portraits";
+        Path outputDir = workingDir / (hd? "output_hd" : "output"); // gameDir / L"data\\gui\\assets\\heads";
+        create_directories(outputDir);
+        Path portraitsDir = "I:\\FIFA_ASSETS\\PC\\miniface\\FIFA 23 PC MINIFACES PNG1"; // workingDir / L"fm07";
         Path tempDir = workingDir / L"temp";
         Path bigDir = workingDir / L"big";
         create_directories(tempDir);
-        Path otoolsPath = L"E:\\Projects\\otools\\output\\otools-release-0172\\otools.exe";
-        Path packbigPath = L"E:\\Projects\\fifam\\content\\big_from_dir.exe";
+        Path otoolsPath = L"D:\\Projects\\otools\\output\\otools-release-0175\\otools.exe";
+        Path packbigPath = L"D:\\Projects\\fifam\\content\\big_from_dir.exe";
         Map<Int, Path> mapPaths;
         for (auto const &i : directory_iterator(portraitsDir)) {
             auto const &p = i.path();
             if (is_regular_file(p) && p.extension() == L".png") {
-                Int playerid = Utils::SafeConvertInt<Int>(p.stem().c_str());
-                if (playerid >= 5533)
+                String filename = p.stem().c_str();
+                if (!filename.empty() && !filename.starts_with(L"notfound")) {
+                    if (filename[0] == L'p')
+                        filename = filename.substr(1);
+                    Int playerid = Utils::SafeConvertInt<Int>(filename);
+                    //if (playerid >= 5533)
                     mapPaths[playerid] = p;
+                }
             }
         }
-        Vector<Path> vecPaths;
-        for (auto const &[id, p] : mapPaths)
-            vecPaths.push_back(p);
-        mapPaths.clear();
-        for (auto const &p : vecPaths) {
+        for (auto const &[id, p] : mapPaths) {
             try {
-                String playerid = p.stem().c_str();
-                String sFilename = L"s_" + playerid;
-                Path buildDir = tempDir / sFilename;
-                create_directories(buildDir);
-                Magick::Image img(p.string());
-                img.interpolate(MagickCore::BilinearInterpolatePixel);
-                img.resize(Magick::Geometry(170, 170));
-                Magick::Image bottom(img, Magick::Geometry(170, 1, 0, 169));
-                Magick::Geometry bottomGeom(170, 86);
-                bottomGeom.aspect(true);
-                bottom.interpolate(MagickCore::NearestInterpolatePixel);
-                bottom.filterType(MagickCore::PointFilter);
-                bottom.resize(bottomGeom);
-                img.extent(Magick::Geometry(200, 256), Magick::Color(0, 0, 0, 0), MagickCore::NorthGravity);
-                img.composite(bottom, Magick::Geometry(bottom.columns(), bottom.rows(), 15, 170), MagickCore::OverCompositeOp);
-                img.extent(Magick::Geometry(256, 256), Magick::Color(0, 0, 0, 0), MagickCore::WestGravity);
-                Path imgFilename = buildDir / "1   .png";
-                img.write(imgFilename.string());
-                copy(bigDir / L"s_4098.apt", buildDir / (sFilename + L".apt"), copy_options::overwrite_existing);
-                copy(bigDir / L"s_4098.const", buildDir / (sFilename + L".const"), copy_options::overwrite_existing);
-                copy(bigDir / L"s_4098.o", buildDir / (sFilename + L".o"), copy_options::overwrite_existing);
-                STARTUPINFOW info;
-                PROCESS_INFORMATION processInfo;
-                RtlZeroMemory(&info, sizeof(info));
-                RtlZeroMemory(&processInfo, sizeof(processInfo));
-                info.cb = sizeof(info);
-                WideChar commandStr[2048];
-                wcscpy(commandStr, L"otools packfsh -fshFormat 8888 -fshLevels 1 -i \"");
-                wcscat(commandStr, buildDir.c_str());
-                wcscat(commandStr, L"\"");
-                if (CreateProcessW(otoolsPath.c_str(), commandStr, NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo)) {
-                    WaitForSingleObject(processInfo.hProcess, INFINITE);
-                    CloseHandle(processInfo.hProcess);
-                    CloseHandle(processInfo.hThread);
-                    remove(imgFilename);
-                    Path outputBig = outputDir / (sFilename + L".big");
-                    STARTUPINFOW info2;
-                    PROCESS_INFORMATION processInfo2;
-                    RtlZeroMemory(&info2, sizeof(info2));
-                    RtlZeroMemory(&processInfo2, sizeof(processInfo2));
-                    info2.cb = sizeof(info2);
-                    wcscpy(commandStr, L"big_from_dir \"");
-                    wcscat(commandStr, outputBig.c_str());
-                    wcscat(commandStr, L"\" \"");
+                String sFilename = L"s_" + to_wstring(id);
+                Path outputBig = outputDir / (sFilename + L".big");
+                if (!exists(outputBig)) {
+                    Path buildDir = tempDir / sFilename;
+                    create_directories(buildDir);
+                    Magick::Image img(p.string());
+                    img.interpolate(MagickCore::BilinearInterpolatePixel);
+                    img.filterType(FilterType::HermiteFilter);
+                    img.resize(Magick::Geometry(85 * mp, 85 * mp));
+                    Magick::Image bottom(img, Magick::Geometry(85 * mp, 1, 0, 85 * mp - 1));
+                    Magick::Geometry bottomGeom(85 * mp, 43 * mp);
+                    bottomGeom.aspect(true);
+                    bottom.interpolate(MagickCore::NearestInterpolatePixel);
+                    bottom.filterType(MagickCore::PointFilter);
+                    bottom.resize(bottomGeom);
+                    img.extent(Magick::Geometry(100 * mp, 128 * mp), Magick::Color(0, 0, 0, 0), MagickCore::NorthGravity);
+                    bottom.extent(Magick::Geometry(100 * mp, bottom.rows()), Magick::Color(0, 0, 0, 0), MagickCore::NorthGravity);
+                    img.composite(bottom, Magick::Geometry(bottom.columns(), bottom.rows(), 0, 85 * mp), MagickCore::OverCompositeOp);
+                    img.extent(Magick::Geometry(128 * mp, 128 * mp), Magick::Color(0, 0, 0, 0), MagickCore::WestGravity);
+                    Path imgFilename = buildDir / "1   .png";
+                    img.write(imgFilename.string());
+                    copy(bigDir / L"s_4098.apt", buildDir / (sFilename + L".apt"), copy_options::overwrite_existing);
+                    copy(bigDir / L"s_4098.const", buildDir / (sFilename + L".const"), copy_options::overwrite_existing);
+                    if (hd)
+                        copy(bigDir / L"s_4098_hd.o", buildDir / (sFilename + L".o"), copy_options::overwrite_existing);
+                    else
+                        copy(bigDir / L"s_4098.o", buildDir / (sFilename + L".o"), copy_options::overwrite_existing);
+                    STARTUPINFOW info;
+                    PROCESS_INFORMATION processInfo;
+                    RtlZeroMemory(&info, sizeof(info));
+                    RtlZeroMemory(&processInfo, sizeof(processInfo));
+                    info.cb = sizeof(info);
+                    WideChar commandStr[2048];
+                    wcscpy(commandStr, L"otools packfsh -fshFormat dxt5 -fshLevels 1 -i \"");
                     wcscat(commandStr, buildDir.c_str());
                     wcscat(commandStr, L"\"");
-                    if (CreateProcessW(packbigPath.c_str(), commandStr, NULL, NULL, TRUE, 0, NULL, NULL, &info2, &processInfo2)) {
-                        WaitForSingleObject(processInfo2.hProcess, INFINITE);
-                        CloseHandle(processInfo2.hProcess);
-                        CloseHandle(processInfo2.hThread);
+                    if (CreateProcessW(otoolsPath.c_str(), commandStr, NULL, NULL, TRUE, 0, NULL, NULL, &info, &processInfo)) {
+                        WaitForSingleObject(processInfo.hProcess, INFINITE);
+                        CloseHandle(processInfo.hProcess);
+                        CloseHandle(processInfo.hThread);
+                        remove(imgFilename);
+                        STARTUPINFOW info2;
+                        PROCESS_INFORMATION processInfo2;
+                        RtlZeroMemory(&info2, sizeof(info2));
+                        RtlZeroMemory(&processInfo2, sizeof(processInfo2));
+                        info2.cb = sizeof(info2);
+                        wcscpy(commandStr, L"big_from_dir \"");
+                        wcscat(commandStr, outputBig.c_str());
+                        wcscat(commandStr, L"\" \"");
+                        wcscat(commandStr, buildDir.c_str());
+                        wcscat(commandStr, L"\"");
+                        if (CreateProcessW(packbigPath.c_str(), commandStr, NULL, NULL, TRUE, 0, NULL, NULL, &info2, &processInfo2)) {
+                            WaitForSingleObject(processInfo2.hProcess, INFINITE);
+                            CloseHandle(processInfo2.hProcess);
+                            CloseHandle(processInfo2.hThread);
+                        }
                     }
+                    remove_all(buildDir);
                 }
-                remove_all(buildDir);
             }
             catch (exception e) {
                 ::Error(p.string() + "\n" + e.what());
@@ -202,11 +212,11 @@ public:
     }
 
     static void Rename() {
-        Path baseFolder = L"D:\\fifa07_portraits";
+        Path baseFolder = L"I:\\fifa07_portraits";
         for (UInt i = 0; i < 2; i++) {
             Path folder = i == 0 ? (baseFolder / "fm07") : (baseFolder / "fm08");
-            //Path playersFilename = L"E:\\Projects\\fifa07tool\\output\\remaster\\fifa\\players.txt";
-            Path playersFilename = L"E:\\Projects\\fifam\\db\\fifa\\08\\players.txt";
+            //Path playersFilename = L"D:\\Projects\\fifa07tool\\output\\remaster\\fifa\\players.txt";
+            Path playersFilename = L"D:\\Projects\\fifam\\db\\fifa\\08\\players.txt";
             FifaDataFile file;
             String firstname, surname;
             Int playerid, birthdate;
@@ -230,8 +240,8 @@ public:
     }
 
     static void WithoutPortrait() {
-        Path playersFilename = L"E:\\Projects\\fifa07tool\\output\\remaster\\fifa\\players.txt";
-        Path baseFolder = L"D:\\fifa07_portraits\\fm07_done";
+        Path playersFilename = L"D:\\Projects\\fifa07tool\\output\\remaster\\fifa\\players.txt";
+        Path baseFolder = L"I:\\fifa07_portraits\\fm07_done";
         FifaDataFile file;
         String firstname, surname;
         Int playerid, birthdate;
@@ -263,6 +273,6 @@ public:
     }
 
     Fifa07Portraits() {
-        WithoutPortrait();
+        Build();
     }
 };

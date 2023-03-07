@@ -116,6 +116,16 @@ public:
         int supportsgoalnetshape = 0;
         int tunnellocation = 0;
         int ismirrored = 0;
+        // @since FIFA23
+        int dronetype = 0;
+        int hasintrosnownightvideo = 0;
+        int hasintrorainnightvideo = 0;
+        int hasintrodrydayvideo = 0;
+        int hasintroraindayvideo = 0;
+        int hasintrodrynightvideo = 0;
+        int frontsettype = 0;
+        int hasintrosnowdayvideo = 0;
+        int hasintrovideo = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

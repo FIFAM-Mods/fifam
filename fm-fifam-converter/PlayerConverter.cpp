@@ -8,10 +8,17 @@ Bool Converter::IsIconicPlayer(Int playerId) {
         7458500, // Messi
         19024412, // Neymar
         11133, // Buffon
-        703963, // Pirlo
         142173, // Ibrahimovic
         7458272, // Sergio Ramos
-        5124470 // Pique
+        5124470, // Pique
+        85139014, // Mbappe
+        8435089, // Benzema
+        719601, // Lewandowski
+        98028755, // Salah
+        8718372, // Neuer
+        653054, // Modric
+        156772, // Kroos
+        85028014, // Pogba
     };
     return Utils::Contains(playerIDs, playerId);
 }
@@ -69,10 +76,12 @@ Bool Converter::IsFansFavouritePlayer(Int playerId) {
         67086656, // Griezmann
         14044150, // Dybala
         8833628, // Thiago Silva
-        310625, // Kaka
-        6700151, // Casillas
         198219, // Insigne
-        231747 // Mbappe
+        231747, // Mbappe
+        653054, // Modric
+        29179241, // Haaland
+        91013383, // Reus
+        19302146 // Vini Junior
     };
     return Utils::Contains(playerIDs, playerId);
 }
@@ -85,6 +94,14 @@ Bool Converter::IsLazyPlayer(Int playerId) {
     static Vector<Int> playerIDs = {
         85140178, // Dembele
         71000324, // Konoplyanka
+        37003555, // Arnautovic
+        727983, // Quaresma
+        35002219, // Ozil
+        919707, // Ben Arfa
+        37024470, // Depay
+        34001033, // Taarabt
+        43001238, // Balotelli
+        8168166 // Gervinho
     };
     return Utils::Contains(playerIDs, playerId);
 }
@@ -179,26 +196,26 @@ Int Converter::LinearConvertPlayerAttribute(Int attr, UInt gameId) {
     if (originalAttr > 20)
         originalAttr = 20;
     static Pair<Int, Int> fmRatingAry[20] = {
-        {  5,  7 }, // 1
-        {  8, 13 }, // 2
-        { 14, 19 }, // 3
-        { 21, 26 }, // 4
-        { 27, 32 }, // 5
-        { 33, 37 }, // 6
-        { 38, 42 }, // 7
-        { 43, 47 }, // 8
-        { 48, 52 }, // 9
-        { 53, 57 }, // 10
-        { 58, 62 }, // 11
-        { 63, 67 }, // 12
-        { 68, 71 }, // 13
-        { 72, 75 }, // 14
-        { 76, 79 }, // 15
-        { 80, 83 }, // 16
-        { 84, 87 }, // 17
-        { 88, 91 }, // 18
-        { 92, 95 }, // 19
-        { 96, 99 }  // 20
+        {  5, 19 }, // 1  => 1    | 1
+        { 20, 29 }, // 2  => 1    | 1
+        { 30, 34 }, // 3  => 1    | 2
+        { 35, 39 }, // 4  => 1    | 2
+        { 40, 44 }, // 5  => 2/3  | 3
+        { 45, 49 }, // 6  => 2    | 3
+        { 50, 54 }, // 7  => 2/3  | 4
+        { 55, 59 }, // 8  => 3    | 4
+        { 60, 64 }, // 9  => 3/4  | 5
+        { 65, 69 }, // 10 => 4    | 5
+        { 70, 71 }, // 11 => 4/5  | 6
+        { 72, 74 }, // 12 => 5    | 6
+        { 75, 76 }, // 13 => 5/6  | 7
+        { 77, 79 }, // 14 => 6/7  | 7
+        { 80, 81 }, // 15 => 7    | 8
+        { 82, 84 }, // 16 => 8    | 8
+        { 85, 87 }, // 17 => 8/9  | 9
+        { 88, 89 }, // 18 => 9/10 | 9
+        { 90, 94 }, // 19 => 10   | 10
+        { 95, 99 }  // 20 => 10   | 10
     };
     if (fmRatingAry[originalAttr - 1].first == fmRatingAry[originalAttr - 1].second)
         return fmRatingAry[originalAttr - 1].first;
@@ -448,7 +465,7 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     // fourth - apply custom appearance (if available)
     bool hasCustomFace = false;
     bool hasCustomHair = false;
-    if (p->mConverterData.mEditorFace >= 1 && p->mConverterData.mEditorFace <= 361) {
+    if (p->mConverterData.mEditorFace >= 1 && p->mConverterData.mEditorFace <= 449) {
         player->mAppearance.mGenericFace = p->mConverterData.mEditorFace - 1;
         hasCustomFace = true;
     }
@@ -648,7 +665,7 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         }
         else {
             UInt maxTalent = 9;
-            UChar *potantialAbilityRanges = nullptr;     // 35  60  80  100  119  136
+            UChar *potantialAbilityRanges = nullptr;     //  1  1.5  2  2.5    3  3.5    4  4.5    5
             static UChar potentialAbilityRanges1to10[9] = { 35, 60, 80, 100, 123, 137, 157, 172, 191 }; // 190 
             potantialAbilityRanges = potentialAbilityRanges1to10;
             player->mTalent = 0;

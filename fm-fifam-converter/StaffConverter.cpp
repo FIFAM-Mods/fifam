@@ -641,6 +641,7 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
     // additional step - fix motivation
     if (staff->mClubPosition != FifamClubStaffPosition::Psychologist && staff->mSkills.MotivationAbility > staff->GetStaffLevel())
         staff->mSkills.MotivationAbility = staff->GetStaffLevel();
+    staff->mScoutPreferredCountries.clear();
     if (staff->mClubPosition == FifamClubStaffPosition::GeneralScout) {
         Map<FifamNation, UInt> scoutNations;
         scoutNations[staff->mNationality[0]] = 3;
@@ -661,7 +662,7 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
                     auto clubCountry = FifamNation::MakeFromInt(reinterpret_cast<FifamCountry *>(n->mConverterData.mFifamCountry)->mId);
                     if (clubCountry != FifamNation::None)
                         scoutNations[clubCountry] += sn.mDays;
-                }       
+                }
             }
         }
         Vector<Pair<FifamNation, UInt>> vecScoutNations;
@@ -669,7 +670,7 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
             vecScoutNations.push_back(sn);
         std::sort(vecScoutNations.begin(), vecScoutNations.end(), [](Pair<FifamNation, UInt> const &a, Pair<FifamNation, UInt> const &b) {
             return a.second > b.second;
-        });
+            });
         if (vecScoutNations.size() > 0) {
             staff->mHasScoutJobData = true;
             for (UInt i = 0; i < Utils::Min(3u, vecScoutNations.size()); i++)

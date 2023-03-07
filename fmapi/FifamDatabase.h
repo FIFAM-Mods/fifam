@@ -52,6 +52,7 @@ public:
         Bool mNonWriteableStaffsAreFreeAgents = false;
         Bool mWriteAssessment = true;
         Bool mWriteFixtures = true;
+        Bool mWriteExternalScripts = true;
         UInt mMaxClubsInCountry[8] = { 512, 512, 512, 1024, 1024, 1024, 1024, 1024 };
         UInt mMaxPersonsInClub[8] = { 60, 96, 99, 99, 99, 99, 256, 256 };
     } mWritingOptions;
@@ -93,8 +94,8 @@ public:
     void ResolveClubLinkList(Vector<FifamClubLink> &vec, UInt gameId, bool unique = true);
     void ResolveCompetitionList(Vector<FifamCompID> &vec, UInt gameId, bool unique = true);
     void ResolveStadiumPtr(FifamStadium *&stadium, UInt gameFrom, UInt gameTo = LATEST_GAME_VERSION);
-    FifamClub *GetClubFromUID(UInt uid);
-    void GetClubFromUID(FifamClubLink &link, UInt uid);
+    FifamClub *GetClubFromUID(UInt uid, Bool includeNationalTeams = true);
+    void GetClubFromUID(FifamClubLink &link, UInt uid, Bool includeNationalTeams = true);
     FifamCompetition *GetCompetition(FifamCompID const &compID);
     UInt GetNextFreePersonID();
     void ReadNamesFile(Path const &filepath, UInt gameId, NamesMap &outNames);

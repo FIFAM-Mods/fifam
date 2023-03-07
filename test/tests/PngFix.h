@@ -1,6 +1,5 @@
 #pragma once
 #include "FifamUtils.h"
-#include "Magick++.h"
 
 using namespace Magick;
 

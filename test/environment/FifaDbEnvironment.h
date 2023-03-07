@@ -7,7 +7,7 @@ class FifaDbEnvironment {
 
 public:
     FifaDbEnvironment() {
-        mDatabase = new FifaDatabase(L"E:\\Projects\\fifam\\db\\fifa");
+        mDatabase = new FifaDatabase(L"D:\\Projects\\fifam\\db\\fifa");
     }
 
     ~FifaDbEnvironment() {

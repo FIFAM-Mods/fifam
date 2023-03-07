@@ -420,6 +420,7 @@ public:
 
         db->mWritingOptions.mWriteAssessment = false;
         db->mWritingOptions.mWriteFixtures = false;
+        db->mWritingOptions.mWriteExternalScripts = false;
         db->Write(13, FifamDatabase::GetGameDbVersion(13), "output\\database");
     }
 };

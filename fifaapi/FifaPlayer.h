@@ -191,6 +191,8 @@ public:
         int paskic = 0;
         int shohan = 0;
         int pacdiv = 0;
+        // @since FIFA23
+        int defensiveawareness = 0;
 
 
         void Read(FifaDataFile::Line &line);

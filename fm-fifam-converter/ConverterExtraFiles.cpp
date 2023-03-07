@@ -200,10 +200,11 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                         d.mTeams, d.mRep, d.mPriority, d.mOrder, OptionalInt(d.mRounds), split, OptionalInt(d.mSplitRounds.first),
                         OptionalInt(d.mSplitRounds.second), d.mPromoted, promotionPlayoff, d.mPromotionID, d.mRelegated, relegationPlayoff,
                         d.mRelegationID, d.mStartDate, d.mEndDate, d.mWinterBreakStart, d.mWinterBreakEnd, OptionalInt(d.mNumSubs),
-                        OptionalInt(d.mForeignersLimit), OptionalInt(d.mNonEuSigns), OptionalInt(d.mDomesticPlayers), OptionalInt(d.mU21Players),
-                        OptionalInt(d.mReserveTeamsAllowed), sorting, d.mAttendanceMp, d.mTransfersMp, d.mTvBonus, d.mWinBouns, d.mPlaceBonus,
-                        d.mOneYearCalendar, calendarMatches);
+                        OptionalInt(d.mForeignersField), OptionalInt(d.mForeignersGame), OptionalInt(d.mSeasonSquad),
+                        OptionalInt(d.mSeasonSquadForeigners), OptionalInt(d.mNonEuSigns), OptionalInt(d.mReserveTeamsAllowed), sorting,
+                        d.mAttendanceMp, d.mTransfersMp, d.mTvBonus, d.mWinBouns, d.mPlaceBonus, d.mOneYearCalendar, calendarMatches);
 
+                    String leagueTitle = d.mShortName + L"(" + std::to_wstring(d.mID) + L")";
                     type = Utils::ToLower(type);
                     if (type == L"league")
                         d.mType = DivisionInfo::League;
@@ -282,6 +283,36 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                         d.mCalendarMatches = 3;
                     else if (calendarMatches == L"force_sunday")
                         d.mCalendarMatches = 4;
+
+                    if (d.mForeignersField == -1 || d.mForeignersField == 11)
+                        d.mForeignersField = 0;
+                    else if (d.mForeignersField == 0)
+                        d.mForeignersField = 11;
+                    else if (d.mForeignersField < -1 || d.mForeignersField > 11) {
+                        if (mErrors)
+                            Error(L"Incorrect ForeignersField value (" + std::to_wstring(d.mForeignersField) + L") in " + leagueTitle);
+                        d.mForeignersField = 0;
+                    }
+
+                    if (d.mForeignersGame < 0 || d.mForeignersGame > 17)
+                        d.mForeignersGame = 0;
+                    else
+                        d.mForeignersGame += 1;
+
+                    if (d.mSeasonSquad <= 0 || d.mSeasonSquad > 45)
+                        d.mSeasonSquad = 0;
+                    else if (d.mSeasonSquad < 18) {
+                        if (mErrors)
+                            Error(L"Incorrect SeasonSquad value (" + std::to_wstring(d.mForeignersField) + L") in " + leagueTitle);
+                        d.mSeasonSquad = 0;
+                    }
+                    else
+                        d.mSeasonSquad -= 17;
+
+                    if (d.mSeasonSquadForeigners < 0 || d.mSeasonSquadForeigners > 29)
+                        d.mSeasonSquadForeigners = 0;
+                    else
+                        d.mSeasonSquadForeigners += 1;
 
                     mDivisions.push_back(d);
                 }
@@ -971,34 +1002,33 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
         }
     }
     {
-        std::wcout << L"Reading fifam_names..." << std::endl;
-        FifamReader reader(infoPath / L"fifam_names.txt", 0);
-        if (reader.Available()) {
-            reader.SkipLine();
-            while (!reader.IsEof()) {
-                if (!reader.EmptyLine()) {
-                    Int teamId = -1;
-                    String longName, shortName, abbr, longName_ger, shortName_ger, abbr_ger;
-                    String d;
-                    reader.ReadLineWithSeparator(L'\t', d, d, d, d, d, d, d, teamId, longName, shortName, abbr, longName_ger, shortName_ger, abbr_ger);
-                    if (teamId != -1) {
-                        if (!longName.empty())
-                            mNamesMap[teamId] = longName;
-                        if (!shortName.empty())
-                            mShortNamesMap[teamId] = shortName;
-                        if (!abbr.empty())
-                            mAbbreviationMap[teamId] = Utils::GetStringWithoutUnicodeChars(abbr);
-
-                        if (!longName_ger.empty())
-                            mNamesMap_ger[teamId] = longName_ger;
-                        if (!shortName_ger.empty())
-                            mShortNamesMap_ger[teamId] = shortName_ger;
-                        if (!abbr_ger.empty())
-                            mAbbreviationMap_ger[teamId] = Utils::GetStringWithoutUnicodeChars(abbr_ger);
+        Array<String, FifamTranslation::NUM_TRANSLATIONS + 1> translations = { L"", L"de", L"en", L"fr", L"es", L"it", L"pl" };
+        for (UInt i = 0; i < translations.size(); i++) {
+            String fileName = L"fifam_names";
+            if (!translations[i].empty())
+                fileName += L"_" + translations[i];
+            std::wcout << L"Reading " << fileName << "..." << std::endl;
+            FifamReader reader(infoPath / (fileName + L".txt"), 0);
+            if (reader.Available()) {
+                reader.SkipLine();
+                while (!reader.IsEof()) {
+                    if (!reader.EmptyLine()) {
+                        Int teamId = -1;
+                        String longName, shortName, abbr;
+                        String d;
+                        reader.ReadLineWithSeparator(L'\t', d, d, d, d, d, d, d, d, d, teamId, longName, shortName, abbr);
+                        if (teamId != -1) {
+                            if (!longName.empty())
+                                mNamesMap[i][teamId] = longName;
+                            if (!shortName.empty())
+                                mShortNamesMap[i][teamId] = shortName;
+                            if (!abbr.empty())
+                                mAbbreviationMap[i][teamId] = Utils::GetStringWithoutUnicodeChars(abbr);
+                        }
                     }
+                    else
+                        reader.SkipLine();
                 }
-                else
-                    reader.SkipLine();
             }
         }
     }

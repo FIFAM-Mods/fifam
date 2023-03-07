@@ -106,6 +106,7 @@
     <ClInclude Include="Fifa07Database.h" />
     <ClInclude Include="Fifa07DataFile.h" />
     <ClInclude Include="Fifa07Date.h" />
+    <ClInclude Include="Fifa07Enums.h" />
     <ClInclude Include="Fifa07Kit.h" />
     <ClInclude Include="Fifa07Language.h" />
     <ClInclude Include="Fifa07League.h" />

@@ -48,6 +48,8 @@ public:
         int outfitid = 0;
         int hairstylecode = 0;
         int facialhaircolorcode = 0;
+        // @since FIFA23
+        int managerjointeamdate = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

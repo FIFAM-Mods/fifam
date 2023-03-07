@@ -50,7 +50,7 @@ void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt 
     dst->mAssessmentInfo[5] = UShort(dst->mAssessmentData[5] / 100.0f);
 
     dst->mFifaRanking = nation->mRankingPoints;
-    dst->mYearsForNaturalization = Utils::Clamp(nation->mYearsToGainNationality, 0, 9);
+    dst->mYearsForNaturalization = Utils::Clamp(nation->mYearsToGainNationality, 0, 30);
     // national team
     if (nation->mYearAssociationFormed != 0)
         dst->mNationalTeam.mYearOfFoundation = nation->mYearAssociationFormed;

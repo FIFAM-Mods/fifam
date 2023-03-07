@@ -26,6 +26,8 @@ struct non_player : public person {
     Int mPotentialAbility = 0;
     Int mOriginalCA = 0;
     Int mOriginalPA = 0;
+    Int mRecommendedCA = 0;
+    Int mRecommendedJobRole = 0;
     Int mCurrentReputation = 0;
     Int mWorldReputation = 0;
     Int mHomeReputation = 0;

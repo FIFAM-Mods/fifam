@@ -17,13 +17,13 @@ public:
         FifaDatabase::m_firstSupportedGameVersion = FifaDatabase::m_lastSupportedGameVersion;
         FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
         auto const &ids = GetEnvironment<FifaFifamIDsEnvironment>();
-        std::string outputPathVert = "E:\\Games\\FIFA Manager 13\\ucp_popups\\colors\\vert\\";
-        std::string outputPathHor = "E:\\Games\\FIFA Manager 13\\ucp_popups\\colors\\hor\\";
-        std::string outputPathRot = "E:\\Games\\FIFA Manager 13\\ucp_popups\\colors\\rot\\";
+        std::string outputPathVert = "D:\\Games\\FIFA Manager 22\\ucp_popups\\colors\\vert\\";
+        std::string outputPathHor = "D:\\Games\\FIFA Manager 22\\ucp_popups\\colors\\hor\\";
+        std::string outputPathRot = "D:\\Games\\FIFA Manager 22\\ucp_popups\\colors\\rot\\";
 
         if (!exists(outputPathVert))
             create_directories(outputPathVert);
-        if (!exists(outputPathVert))
+        if (!exists(outputPathHor))
             create_directories(outputPathHor);
         if (!exists(outputPathRot))
             create_directories(outputPathRot);
@@ -75,7 +75,7 @@ public:
                     else if (fifaKit->internal.teamkittypetechid == 3)
                         suffix = "_t";
                     if (!suffix.empty()) {
-                        if (exists("E:\\Projects\\fifam\\content\\fm13\\art_04\\data\\kits\\" + teamIDstr + suffix + ".tga")) {
+                        if (exists("D:\\Projects\\fifam\\content\\art_04\\data\\kits\\" + teamIDstr + suffix + ".tga")) {
                             Image img(Geometry(8, 64), Magick::Color(fifaKit->internal.teamcolorprimr, fifaKit->internal.teamcolorprimg, fifaKit->internal.teamcolorprimb));
                             img.defineValue("png", "color-type", "2");
                             if (fifaKit->internal.teamcolorsecpercent >= 15)

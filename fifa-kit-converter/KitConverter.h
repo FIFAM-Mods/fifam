@@ -19,28 +19,27 @@ public:
     };
 
     static struct GlobalOptions {
-        std::string KitsPath = "E:\\Projects\\FIFA21\\kit\\";
-        std::string MiniKitsPath = "E:\\Projects\\FIFA21\\kits\\";
-        std::string CustomKitsPath = "E:\\Projects\\FIFA21\\custom\\kits\\";
-        std::string CustomMiniKitsPath = "E:\\Projects\\FIFA21\\custom\\kits\\mini\\";
-        std::string KitNumbersPath = "E:\\Projects\\FIFA21\\kitnumbers\\";
-        std::string BannersPath = "E:\\Projects\\FIFA21\\banners\\";
-        std::string CrestsPath = "E:\\Projects\\FIFA21\\crest\\";
+        std::string KitsPath = "D:\\Projects\\FIFA\\kit\\";
+        std::string MiniKitsPath = "D:\\Projects\\FIFA\\kits\\";
+        std::string CustomKitsPath = "D:\\Projects\\FIFA\\custom\\kits\\";
+        std::string CustomMiniKitsPath = "D:\\Projects\\FIFA\\custom\\kits\\mini\\";
+        std::string KitNumbersPath = "D:\\Projects\\FIFA\\kit\\numbers\\";
+        std::string BannersPath = "D:\\Projects\\FIFA\\banners\\";
+        std::string CrestsPath = "D:\\Projects\\FIFA\\crest\\";
         int OutputGameId = 14;
-        int SaveLocation = User;
         std::string OutputFormat = "tga";
         bool ConvertHomeKit = true;
         bool ConverAwayKit = true;
         bool ConvertThirdKit = true;
         bool ConvertGkKit = true;
-        bool AddWatermarkText = true;
-        bool AddKitOverlay = true;
-        bool ConvertMinikits = false;
+        bool AddWatermarkText = false;
+        bool AddKitOverlay = false;
+        bool ConvertMinikits = true;
         bool ConvertOnlyMinikits = false;
         bool AllowCustomKits = true;
         bool OnlyCustomKits = false;
         bool Allow2xSize = true;
-        bool GenerateKitNumberes = false;
+        bool GenerateKitNumbers = false;
         bool V2 = true;
         bool Force2x = false;
         bool Overlay = false;
@@ -72,6 +71,8 @@ public:
     bool ConvertClubKitNumbersSetCustom(std::string const &dirPath, std::string const &dirName, bool jersey);
     void ConvertClubKitNumbersCustom();
     void ConvertBanners(int fifaId, int fifaManagerId, Magick::Color const &primCol = Magick::Color(), Magick::Color const &secCol = Magick::Color());
+    void ConvertBannersFIFA(int fifaId, bool fifa14stadiums, Magick::Color const &primCol = Magick::Color(), Magick::Color const &secCol = Magick::Color());
     void ConvertAdboards(Map<UInt, UInt> const &fifaClubToFifam, Map<UInt, Vector<UInt>> const &compsMap);
     void GenerateGenericBanners();
+    void GenerateGenericBannersFIFA(bool fifa14stadiums);
 };

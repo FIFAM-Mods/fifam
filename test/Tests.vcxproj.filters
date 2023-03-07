@@ -15,7 +15,6 @@
     <ClInclude Include="tests\ShowDbVersion.h">
       <Filter>tests</Filter>
     </ClInclude>
-    <ClInclude Include="TestsRun.h" />
     <ClInclude Include="Tests.h">
       <Filter>main</Filter>
     </ClInclude>
@@ -200,6 +199,58 @@
       <Filter>tests</Filter>
     </ClInclude>
     <ClInclude Include="tests\PackABK.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\FM07toFIFA07.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\TranslationStrip.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\FilesToFolders.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\Fm07DbFix.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\FifaXXlPortraits.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\AdboardsFIFA07.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="TestsRun.h" />
+    <ClInclude Include="tests\WriteBadgesLaLiga.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\WriteFifaPlayerNames.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\CopyPortraitsFromPreviousPatch.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\TranslationHashes.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\ClubNames.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\FixScoutCountries.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\FixCompetitionBadges.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\CreateWorldCupDatabase.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\FixCityLocations.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\CopyTeamKits.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\TrToTxt.h">
       <Filter>tests</Filter>
     </ClInclude>
   </ItemGroup>

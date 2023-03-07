@@ -47,6 +47,5 @@ public:
     void Read(Path const &filepath);
     UChar GetRandomAppearanceParam(AppearanceDef &def, Param param, UChar defaultValue = 0);
     void Generate(FifamPlayer *player, Type type);
-    void SetFromFifaPlayer_Old(FifamPlayer *player, FifaPlayer *fifaPlayer);
     void SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fifaPlayer);
 };
