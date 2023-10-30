@@ -96,7 +96,7 @@ int KitConverter::Size(int value) {
 }
 
 bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShorts, string const &inputCrest, string const &outputFile, array<int, 8> logoPos, bool hasPositions) {
-#define LEGACY_CONVERTER
+//#define LEGACY_CONVERTER
     SetSizeMode(1);
     if (options.OutputGameId >= 9) {
         
@@ -254,6 +254,22 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
                 inputShirtImg.resize(ScaledGeometry(1024, 1024));
             }
         }
+
+        bool addLogo = true;
+#ifndef LEGACY_CONVERTER
+        if (!inputCrest.empty() && (logoPos[0] != 0 || logoPos[1] != 0 || logoPos[2] != 0 || logoPos[3] != 0)) {
+            int logoLeft = logoPos[0];
+            int logoTop = logoPos[1];
+            int logoRight = logoPos[2];
+            int logoBottom = logoPos[3];
+            Image inputCrestImg(inputCrest);
+            inputCrestImg.filterType(FilterType::HermiteFilter);
+            inputCrestImg.resize(Geometry(logoRight - logoLeft, logoBottom - logoTop));
+            ScaledComposite(inputShirtImg, inputCrestImg, logoLeft, logoTop, OverCompositeOp);
+            addLogo = false;
+        }
+#endif
+
         Image outputFileImg(ScaledGeometry(512, 512), Magick::Color(255, 255, 255, 255));
 
         // left short sleeve
@@ -374,7 +390,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
         shortsRight.flop();
         ScaledComposite(outputFileImg, shortsRight, 0, 399, OverCompositeOp);
 
-        if (!inputCrest.empty() && logoPos[0] == 0 && logoPos[1] == 0 && logoPos[2] == 0 && logoPos[3] == 0) {
+        if (!inputCrest.empty() && addLogo) {
             Image inputCrestImg(inputCrest);
             ScaledResize(inputCrestImg, 40, 26);
             ScaledComposite(outputFileImg, inputCrestImg, 379, 54 + 7, OverCompositeOp);
@@ -614,6 +630,8 @@ bool KitConverter::ConvertClubArmband(int fifaId, string const &clubIdStr, int s
 }
 
 void KitConverter::ConvertClubArmbands(string const &clubIdName, int fifaId, int fifaManagerId) {
+    if (options.OutputGameId < 9)
+        return;
     SetSizeMode(1);
     static char clubIdStr[256];
     sprintf_s(clubIdStr, "%08X", fifaManagerId);

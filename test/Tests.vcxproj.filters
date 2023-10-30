@@ -253,6 +253,24 @@
     <ClInclude Include="tests\TrToTxt.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\RenameHeadFiles.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\UpdateKitConfig.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\CopyPlayers.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\CopyPortraitsNoID.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\AssignPlayerFaces.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\PlayerNames.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

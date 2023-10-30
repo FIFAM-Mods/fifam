@@ -1095,6 +1095,24 @@ public:
             for (auto const &r : renReferees)
                 w.WriteLine(L"ren " + r.first + L".png " + r.second + L".png");
         }
+        {
+            FifamWriter w(L"copy_players_and_staff.bat");
+            w.WriteLine(L"mkdir renamed");
+            for (auto const& r : renPlayersAndStaff)
+                w.WriteLine(L"copy /y " + r.first + L".png renamed\\" + r.second + L".png");
+        }
+        {
+            FifamWriter w(L"copy_xxl.bat");
+            w.WriteLine(L"mkdir renamed");
+            for (auto const& r : renXXL)
+                w.WriteLine(L"copy /y " + r.first + L".png renamed\\" + r.second + L".png");
+        }
+        {
+            FifamWriter w(L"copy_referees.bat");
+            w.WriteLine(L"mkdir renamed");
+            for (auto const& r : renReferees)
+                w.WriteLine(L"copy /y " + r.first + L".png renamed\\" + r.second + L".png");
+        }
 
         Map<UInt, FifamReferee *> mapReferees;
         for (auto const &r : db2->mReferees) {

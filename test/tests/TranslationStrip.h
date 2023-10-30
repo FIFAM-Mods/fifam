@@ -4,10 +4,10 @@
 class TranslationStrip {
 public:
     static void CsvToTr() {
-        FifamWriter w("Translations_UKR.tr");
-        FifamWriter w_eng("Translations_UKR_eng.tr");
-        FifamWriter w_empty("Translations_UKR_eng.tr");
-        FifamReader r("D:\\Games\\FIFA Manager 22\\fmdata\\ukr\\Translations.csv", 14, false, false);
+        FifamWriter w("Translations_BRP.tr");
+        //FifamWriter w_eng("Translations_UKR_eng.tr");
+        //FifamWriter w_empty("Translations_UKR_eng.tr");
+        FifamReader r("D:\\Games\\FIFA Manager 22\\fmdata\\brp\\Translations.csv", 14, false, false);
         if (r.Available()) {
             r.SkipLine();
             while (!r.IsEof()) {
@@ -25,19 +25,20 @@ public:
                             auto strValue = line.substr(13, i - 13);
                             auto strTrimmed = strValue;
                             Utils::Trim(strTrimmed);
-                            if (strTrimmed.empty())
-                                w_empty.WriteLine(L"HASH#" + hashValue + L"|" + strValue);
+                            if (strTrimmed.empty()) {
+                                //w_empty.WriteLine(L"HASH#" + hashValue + L"|" + strValue);
+                            }
                             else {
-                                bool isTranslated = false;
-                                for (auto c : strValue) {
-                                    if (c >= 0x410 && c <= 0x44F) {
+                                //bool isTranslated = false;
+                                //for (auto c : strValue) {
+                                //    if (c >= 0x410 && c <= 0x44F) {
                                         w.WriteLine(L"HASH#" + hashValue + L"|" + strValue);
-                                        isTranslated = true;
-                                        break;
-                                    }
-                                }
-                                if (!isTranslated)
-                                    w_eng.WriteLine(L"HASH#" + hashValue + L"|" + strValue);
+                                //        isTranslated = true;
+                                //        break;
+                                //    }
+                                //}
+                                //if (!isTranslated)
+                                //    w_eng.WriteLine(L"HASH#" + hashValue + L"|" + strValue);
                             }
                         }
                     }

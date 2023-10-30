@@ -168,3 +168,25 @@ FifamCupSystemType FifamCompCup::DetectCupSystemType(FifamCompCup *cup) {
     }
     return FifamCupSystemType::None;
 }
+
+FifamCompCup::Round::Round()
+{
+}
+
+void FifamCompCup::Round::Init(FifamRoundID roundId, UShort teamsRound, UShort newTeamsRound, UShort startBeg, UShort endBeg,
+    FifamFlags<FifamBeg> const &flags, Array<UInt, 4> const &bonuses)
+{
+    mRoundID = roundId;
+    mTeamsRound = teamsRound;
+    mNewTeamsRound = newTeamsRound;
+    mStartBeg = startBeg;
+    mEndBeg = endBeg;
+    mFlags = flags;
+    mBonuses = bonuses;
+}
+
+FifamCompCup::Round::Round(FifamRoundID roundId, UShort teamsRound, UShort newTeamsRound, UShort startBeg, UShort endBeg,
+    FifamFlags<FifamBeg> const &flags, Array<UInt, 4> const &bonuses)
+{
+    Init(roundId, teamsRound, newTeamsRound, startBeg, endBeg, flags, bonuses);
+}

@@ -105,13 +105,16 @@
     <ClInclude Include="Tests.h" />
     <ClInclude Include="TestsRun.h" />
     <ClInclude Include="tests\AdboardsFIFA07.h" />
+    <ClInclude Include="tests\AssignPlayerFaces.h" />
     <ClInclude Include="tests\BadgesFM07toFIFA07.h" />
     <ClInclude Include="tests\BadgeTest.h" />
     <ClInclude Include="tests\CalendarDatabase.h" />
     <ClInclude Include="tests\ClubNames.h" />
     <ClInclude Include="tests\CompareDB.h" />
+    <ClInclude Include="tests\CopyPlayers.h" />
     <ClInclude Include="tests\CopyPortraitsFromPreviousPatch.h" />
     <ClInclude Include="tests\CopyPortraitsLight.h" />
+    <ClInclude Include="tests\CopyPortraitsNoID.h" />
     <ClInclude Include="tests\CopyTeamKits.h" />
     <ClInclude Include="tests\CreateStarheadsFile.h" />
     <ClInclude Include="tests\CreateWorldCupDatabase.h" />
@@ -153,10 +156,12 @@
     <ClInclude Include="tests\Parameters.h" />
     <ClInclude Include="tests\ParseTransfermarktStats.h" />
     <ClInclude Include="tests\PlayerIdTest.h" />
+    <ClInclude Include="tests\PlayerNames.h" />
     <ClInclude Include="tests\PlayerRelationsTest.h" />
     <ClInclude Include="tests\PngFix.h" />
     <ClInclude Include="tests\ReadWriteTest.h" />
     <ClInclude Include="tests\RenameCityPictures.h" />
+    <ClInclude Include="tests\RenameHeadFiles.h" />
     <ClInclude Include="tests\RulesTest.h" />
     <ClInclude Include="tests\ShowDbVersion.h" />
     <ClInclude Include="tests\ShowPlayers.h" />
@@ -168,6 +173,7 @@
     <ClInclude Include="tests\TrToTxt.h" />
     <ClInclude Include="tests\UpdateBudgets.h" />
     <ClInclude Include="tests\UpdateDbNames.h" />
+    <ClInclude Include="tests\UpdateKitConfig.h" />
     <ClInclude Include="tests\WriteBadgesLaLiga.h" />
     <ClInclude Include="tests\WriteCountries.h" />
     <ClInclude Include="tests\WriteDbClubsTest.h" />

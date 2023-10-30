@@ -155,7 +155,8 @@ public:
         int crowdregion = 0;
         int uefa_uecl_wins = 0;
         int haslargeflag = 0;
-
+        // @since FC24
+        int hassuncanthem = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

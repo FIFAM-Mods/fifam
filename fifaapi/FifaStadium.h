@@ -126,6 +126,8 @@ public:
         int frontsettype = 0;
         int hasintrosnowdayvideo = 0;
         int hasintrovideo = 0;
+        // @since FC24
+        int hasdroneshots = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

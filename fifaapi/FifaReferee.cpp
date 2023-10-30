@@ -49,6 +49,9 @@ void FifaReferee::Internal::Read(FifaDataFile::Line &line) {
     case 23:
         line >> firstname >> surname >> skintypecode >> haircolorcode >> facialhairtypecode >> hairtypecode >> cardstrictness >> shoecolorcode2 >> headtypecode >> foulstrictness >> height >> leagueid >> shoetypecode >> birthdate >> socklengthcode >> weight >> gender >> headassetid >> faceposerpreset >> eyebrowcode >> eyecolorcode >> jerseysleevelengthcode >> headclasscode >> sideburnscode >> isreal >> headvariation >> skintonecode >> shortstyle >> smallsidedshoetypecode >> refereeid >> nationalitycode >> shoedesigncode >> shoecolorcode1 >> hairstylecode >> bodytypecode >> facialhaircolorcode;
         break;
+    case 24:
+        line >> firstname >> surname >> skintypecode >> haircolorcode >> facialhairtypecode >> hairtypecode >> cardstrictness >> shoecolorcode2 >> headtypecode >> foulstrictness >> height >> leagueid >> shoetypecode >> birthdate >> socklengthcode >> weight >> gender >> headassetid >> faceposerpreset >> eyebrowcode >> eyecolorcode >> jerseysleevelengthcode >> headclasscode >> sideburnscode >> isreal >> headvariation >> skintonecode >> shortstyle >> smallsidedshoetypecode >> refereeid >> nationalitycode >> shoedesigncode >> shoecolorcode1 >> hairstylecode >> bodytypecode >> facialhaircolorcode;
+        break;
     }
 }
 

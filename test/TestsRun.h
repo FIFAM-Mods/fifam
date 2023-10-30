@@ -72,7 +72,13 @@
 #include "tests\FixCityLocations.h"
 #include "tests\CopyTeamKits.h"
 #include "tests\TrToTxt.h"
+#include "tests\RenameHeadFiles.h"
+#include "tests\UpdateKitConfig.h"
+#include "tests\CopyPlayers.h"
+#include "tests\CopyPortraitsNoID.h"
+#include "tests\AssignPlayerFaces.h"
+#include "tests\PlayerNames.h"
 
 void RunTests() {
-    RunTest<PackABK>();
+    RunTest<PlayerNames>();
 }

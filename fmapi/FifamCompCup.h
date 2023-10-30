@@ -44,6 +44,14 @@ public:
         // @since FM07
         // bonuses
         Array<UInt, 4> mBonuses = {};
+
+        Round();
+        void Init(FifamRoundID roundId, UShort teamsRound, UShort newTeamsRound, UShort startBeg, UShort endBeg,
+            FifamFlags<FifamBeg> const &flags = FifamBeg::_1stLeg | FifamBeg::WithExtraTime | FifamBeg::WithPenalty,
+            Array<UInt, 4> const &bonuses = {});
+        Round(FifamRoundID roundId, UShort teamsRound, UShort newTeamsRound, UShort startBeg, UShort endBeg,
+            FifamFlags<FifamBeg> const &flags = FifamBeg::_1stLeg | FifamBeg::WithExtraTime | FifamBeg::WithPenalty,
+            Array<UInt, 4> const &bonuses = {});
     };
     // @since FM07
     // rounds

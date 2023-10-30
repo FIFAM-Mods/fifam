@@ -56,7 +56,7 @@ public:
         if (writer.Available()) {
             for (auto const &entry : playersList) {
                 FifaPlayer *player = entry.second;
-                UChar jerseytype = 0;
+                UChar jerseytype = (player->internal.jerseystylecode == 1) ? 1 : 0;
                 UChar sleeves = (player->internal.jerseysleevelengthcode == 0) ? 0 : 1;
                 UChar socks = 0;
                 if (player->internal.socklengthcode == 1 /* || player->internal.socklengthcode == 2*/)
@@ -98,14 +98,14 @@ public:
 
                 auto ConvertType = [](Int type) {
                     switch (type) {
-                    //case 6:
-                    //case 8:
-                    //case 24:
-                    //    return 7;
-                    //case 7:
-                    //case 9:
-                    //case 25:
-                    //    return 8;
+                    case 6:
+                    case 8:
+                    case 24:
+                        return 7;
+                    case 7:
+                    case 9:
+                    case 25:
+                        return 8;
                     //case 16:
                     //    return 4;
                     case 22:

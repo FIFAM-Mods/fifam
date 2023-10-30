@@ -119,7 +119,9 @@ public:
                     filename += L"_g";
                 else if (fifaKit->internal.teamkittypetechid == 3)
                     filename += L"_t";
-                if (exists(L"D:\\Projects\\fifam\\content\\fm13\\art_04\\data\\kits\\" + filename + L".tga")) {
+                if (exists(/*L"D:\\Projects\\fifam\\content\\fm13\\art_04\\data\\kits\\"*/ LR"(C:\Users\user\Desktop\FM 23 update 1\_KITS\data\kits\)" + filename + L".tga")
+                    )
+                {
                     // teamid - hexadecimal team id
                     // kittype - 0 - home, 1 - away, 2 - gk, 3 - third
                     // collar - 0 - 8                                   4b

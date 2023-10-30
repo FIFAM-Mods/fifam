@@ -330,8 +330,9 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
             while (!reader.IsEof()) {
                 if (!reader.EmptyLine()) {
                     PlayOffInfo p;
-                    String e, format;
-                    reader.ReadLineWithSeparator(L'\t', e, p.mNationID, p.mID, p.mName[FifamTranslation::English], format, OptionalInt(p.mSubs),
+                    String e, format, strAwayGoalRule;
+                    reader.ReadLineWithSeparator(L'\t', e, p.mNationID, p.mID, p.mName[FifamTranslation::English], format,
+                        OptionalInt(p.mSubs), strAwayGoalRule,
                         p.mName[FifamTranslation::German], p.mName[FifamTranslation::French], p.mName[FifamTranslation::Spanish],
                         p.mName[FifamTranslation::Italian], p.mName[FifamTranslation::Polish]);
                     Bool formatError = false;
@@ -411,6 +412,13 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                             if (l != FifamTranslation::English && p.mName[l].empty())
                                 p.mName[l] = p.mName[FifamTranslation::English];
                         }
+                        strAwayGoalRule = Utils::ToLower(strAwayGoalRule);
+                        if (strAwayGoalRule == L"no" || strAwayGoalRule == L"false" || strAwayGoalRule == L"0")
+                            p.mAwayGoalRule = 0;
+                        else if (strAwayGoalRule == L"yes" || strAwayGoalRule == L"true" || strAwayGoalRule == L"1")
+                            p.mAwayGoalRule = 1;
+                        else
+                            p.mAwayGoalRule = -1;
                         mPlayOffs.push_back(p);
                     }
                 }
@@ -462,8 +470,8 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
             while (!reader.IsEof()) {
                 if (!reader.EmptyLine()) {
                     CupInfo c;
-                    String strDummy, strType, strTemplateType;
-                    reader.ReadLineWithSeparator(L'\t', strDummy, c.mNationID, c.mName, c.mShortName, c.mID, c.mLevel, strType, strDummy, c.mReputation, c.mPriority, strTemplateType, c.mRoundDesc[7], c.mRoundDesc[6], c.mRoundDesc[5], c.mRoundDesc[4], c.mRoundDesc[3], c.mRoundDesc[2], c.mRoundDesc[1], c.mRoundDesc[0], c.mStructure, c.mMaxLevel, c.mNumSubs, c.mBonus, c.mTvBonus, c.mStartDate, c.mEndDate, c.mOneYearCalendar);
+                    String strDummy, strType, strTemplateType, strAwayGoalRule;
+                    reader.ReadLineWithSeparator(L'\t', strDummy, c.mNationID, c.mName, c.mShortName, c.mID, c.mLevel, strType, strDummy, c.mReputation, c.mPriority, strTemplateType, c.mRoundDesc[7], c.mRoundDesc[6], c.mRoundDesc[5], c.mRoundDesc[4], c.mRoundDesc[3], c.mRoundDesc[2], c.mRoundDesc[1], c.mRoundDesc[0], c.mStructure, c.mMaxLevel, c.mNumSubs, strAwayGoalRule, c.mBonus, c.mTvBonus, c.mStartDate, c.mEndDate, c.mOneYearCalendar);
                     if (c.mPriority < 1)
                         continue;
                     c.mTemplateType.SetFromStr(strTemplateType);
@@ -481,6 +489,13 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                         c.mType = CupInfo::Supercup;
                     else
                         c.mType = CupInfo::League;
+                    strAwayGoalRule = Utils::ToLower(strAwayGoalRule);
+                    if (strAwayGoalRule == L"no" || strAwayGoalRule == L"false" || strAwayGoalRule == L"0")
+                        c.mAwayGoalRule = 0;
+                    else if (strAwayGoalRule == L"yes" || strAwayGoalRule == L"true" || strAwayGoalRule == L"1")
+                        c.mAwayGoalRule = 1;
+                    else
+                        c.mAwayGoalRule = -1;
                     mCups.push_back(c);
                 }
                 else

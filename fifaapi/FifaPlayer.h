@@ -193,7 +193,10 @@ public:
         int pacdiv = 0;
         // @since FIFA23
         int defensiveawareness = 0;
-
+        // @since FC24
+        int icontrait2 = 0;
+        int icontrait1 = 0;
+        int muscularitycode = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

@@ -657,19 +657,20 @@ void ConvertBannersFifa(KitConverter &kitConverter, bool fifa14stadiums) {
 }
 
 int main(int argc, char *argv[]) {
-    UInt gameId = 13;
+    UInt gameId = 8; // 13
     KitConverter::options.OutputGameId = gameId;
     KitConverter::options.ConvertHomeKit = true;
     KitConverter::options.ConverAwayKit = true;
-    KitConverter::options.ConvertGkKit = true;
-    KitConverter::options.ConvertThirdKit = true;
-    KitConverter::options.ConvertMinikits = true;
+    KitConverter::options.ConvertGkKit = false; // true
+    KitConverter::options.ConvertThirdKit = false; // true
+    KitConverter::options.ConvertMinikits = false; // true
     KitConverter::options.ConvertOnlyMinikits = false;
     KitConverter::options.OnlyCustomKits = false;
     KitConverter::options.AllowCustomKits = false;
     KitConverter::options.Allow2xSize = true;
-    KitConverter::options.Force2x = true;
-    KitConverter::options.V2 = true;
+    KitConverter::options.Force2x = false; // true
+    KitConverter::options.V2 = false; // true
+    KitConverter::options.AddKitOverlay = true; // false
     KitConverter kitConverter;
     ConvertKits(kitConverter);
 }

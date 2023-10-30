@@ -76,7 +76,8 @@ public:
         Vector<Round> mRounds;
         League mLeague;
         Bool mIsLeague = false;
-        Int mSubs = 3;
+        Int mSubs = 0;
+        Int mAwayGoalRule = -1;
 
         Int mMinLeagueLevel = -1;
         Int mMaxLeagueLevel = -1;
@@ -115,7 +116,8 @@ public:
         Int mEndDate = 0;
         Int mWinterBreakStart = 0;
         Int mWinterBreakEnd = 0;
-        Int mNumSubs = 3;
+        Int mNumSubs = 0;
+        Bool mAwayGoalRule = false;
         Int mForeignersField = -1;
         Int mForeignersGame = -1;
         Int mSeasonSquad = -1;
@@ -154,6 +156,7 @@ public:
         String mStructure;
         Int mMaxLevel = 0;
         Int mNumSubs = 0;
+        Int mAwayGoalRule = -1;
         Int mBonus = 0;
         Int mTvBonus = 0;
         Int mStartDate = 0;

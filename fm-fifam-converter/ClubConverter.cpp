@@ -74,13 +74,13 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     foom::club::income *bestIndividualTvMoneyIncome = nullptr;
     Int bestIndividualTvMoneyValue = 0;
     for (auto &i : team->mVecIncomes) {
-        if (i.mIncomeType >= 1 && i.mIncomeType <= 5) { // Kit Sponsor, Government/Council Grant, Stadium Sponsor, General Sponsor, Individual TV Deal; 19 - sleeve sponsor
+        if (i.mIncomeType == 1 || i.mIncomeType == 4 || i.mIncomeType == 5) { // Kit Sponsor, General Sponsor, Individual TV Deal
             if (i.mAmount > 0 && i.mStartDate.year <= CURRENT_YEAR && i.mEndDate.year > CURRENT_YEAR) { // is valid contract
                 UShort duration = i.mEndDate.year - i.mStartDate.year;
                 UShort yearsLeft = i.mEndDate.year - CURRENT_YEAR;
                 auto amountPerYear = i.mAmount / duration;
                 auto amountInGame = amountPerYear * yearsLeft;
-                if (i.mIncomeType >= 1 && i.mIncomeType <= 4) { // Kit Sponsor, Government/Council Grant, Stadium Sponsor, General Sponsor
+                if (i.mIncomeType == 1 || i.mIncomeType == 4) { // Kit Sponsor, General Sponsor
                     if (!bestIncome || amountInGame > bestIncomeValue) {
                         bestIncome = &i;
                         bestIncomeValue = amountInGame;
@@ -104,7 +104,7 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
         }
     }
     if (bestIndividualTvMoneyIncome) {
-        UShort duration = bestIndividualTvMoneyIncome->mEndDate.year - CURRENT_YEAR;
+        UShort duration = bestIndividualTvMoneyIncome->mEndDate.year - bestIndividualTvMoneyIncome->mStartDate.year;
         if (duration != 0)
             dst->mIndividualTvMoney = foom::db::convert_money(bestIndividualTvMoneyIncome->mAmount / duration);
     }
@@ -117,7 +117,7 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
         dst->mCountOfSoldSeasonTickets = dst->mAverageAttendanceLastSeason / 2;
     Float fanBaseMp = 6.5f;
     static const Float fanBaseLeagueMp[] = { 2.0f, 2.5f, 3.5f, 5.0f };
-    if (div && div->mLevel >= 0 && div->mLevel < std::size(fanBaseLeagueMp))
+    if (div && div->mLevel >= 0 && div->mLevel < static_cast<Int>(std::size(fanBaseLeagueMp)))
         fanBaseMp = fanBaseLeagueMp[div->mLevel];
     if (dst->mTraditionalClub)
         fanBaseMp += 0.4f;
@@ -333,7 +333,7 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     if (country && country->mId >= 1 && country->mId <= std::size(mIPCountryStrength)) {
         static Float IPFactorLeagueLevel[] = { 1, 0.75f, 0.5f, 0.25f, 0.1f };
         IPLeagueStrength = IPFactorLeagueLevel[std::size(IPFactorLeagueLevel) - 1];
-        if (div && div->mLevel < std::size(IPFactorLeagueLevel))
+        if (div && div->mLevel < static_cast<Int>(std::size(IPFactorLeagueLevel)))
             IPLeagueStrength = IPFactorLeagueLevel[div->mLevel];
         IPLeagueStrength *= mIPCountryStrength[country->mId - 1];
         auto FindInTable = [](Vector<UInt> const &table, UInt value) -> UInt {

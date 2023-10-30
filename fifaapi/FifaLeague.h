@@ -25,6 +25,8 @@ public:
         int leaguetype = 0;
         // @since FIFA23
         int iswomencompetition = 0;
+        // @since FC24
+        int isinternationalleague = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;
