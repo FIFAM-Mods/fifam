@@ -26,7 +26,7 @@ void AppearanceGenerator::Read(Path const &filepath) {
                 if (a < 9) {
                     def.mParameters[a].resize(numValues, { 0, 0 });
                     for (UInt v = 0; v < numValues; v++)
-                        def.mParameters[a][v].first = reader.ReadLine<UChar>(); // TODO: extend to UInt?
+                        def.mParameters[a][v].first = reader.ReadLine<UInt>();
                 }
                 else
                     reader.SkipLines(numValues);

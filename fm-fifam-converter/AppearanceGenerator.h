@@ -38,7 +38,7 @@ public:
         Int unknown;
         Int mHeight;
         Int mWeight;
-        Array<Vector<Pair<UChar, UChar>>, 9> mParameters;
+        Array<Vector<Pair<UInt, UChar>>, 9> mParameters;
         Array<UInt, 9> mParametersSum;
     };
 
