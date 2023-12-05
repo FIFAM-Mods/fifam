@@ -1125,4 +1125,32 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
             }
         }
     }
+    {
+        std::wcout << L"Reading fm_player_character.txt..." << std::endl;
+        FifamReader reader(infoPath / L"fm_player_character.txt", 0);
+        if (reader.Available()) {
+            while (!reader.IsEof()) {
+                if (!reader.EmptyLine()) {
+                    String character;
+                    Int playerId = -1;
+                    auto line = reader.ReadFullLine();
+                    auto lineParts = Utils::Split(line, L' ', true, true, true);
+                    if (lineParts.size() >= 2 && !lineParts[0].empty()) {
+                        if (FifamPlayerCharacter::Present(lineParts[0])) {
+                            Int playerId = Utils::SafeConvertInt<Int>(lineParts[1]);
+                            foom::player *p = mFoomDatabase->get<foom::player>(playerId);
+                            if (p)
+                                p->mConverterData.mCharacterFlags.push_back(lineParts[0]);
+                            else if (mWarnings)
+                                Message(Utils::Format(L"Player with ID %d doesn't exist (fm_player_character file)", playerId));
+                        }
+                        else if (mErrors)
+                            Error(L"Wrong character flag in fm_player_character file - %s", lineParts[0]);
+                    }
+                }
+                else
+                    reader.SkipLine();
+            }
+        }
+    }
 }

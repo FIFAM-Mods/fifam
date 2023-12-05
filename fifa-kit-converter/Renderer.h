@@ -7,12 +7,17 @@ class Renderer {
 	IDirect3DDevice9 *mDevice = nullptr;
     IDirect3DSurface9 *mRT = nullptr;
     IDirect3DVertexBuffer9 *mVB = nullptr;
+    HWND mWindowHandle = NULL;
+    WNDCLASSEXW mWindowClass = {};
+    bool mCreatedWindow = false;
     bool mAvailable = false;
     struct Vertex {
         float x, y, z, rwh, u, v;
     };
-    Vertex mVertices[3];
+    Vertex mVertices[3] = {};
 public:
+    void Create(int w, int h, HWND hwnd);
+    Renderer(int w, int h, HWND hwnd);
     Renderer(int w, int h);
 	~Renderer();
 	IDirect3DDevice9 *Interface();

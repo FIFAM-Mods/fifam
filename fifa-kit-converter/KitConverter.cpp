@@ -13,7 +13,7 @@ KitConverter::GlobalOptions KitConverter::options;
 void KitConverter::resizeImage_noAspect(Image & image, int w, int h) {
     Geometry geom(w, h);
     geom.aspect(true);
-    image.filterType(Magick::HermiteFilter);
+    image.filterType(Magick::LanczosFilter);
     image.resize(geom);
 }
 
@@ -39,7 +39,7 @@ void KitConverter::ScaledComposite(Image &dstImage, Image &inputImg, int x, int 
 
 Image KitConverter::ScaledImage(string const &path) {
     Image img (path);
-    img.filterType(FilterType::HermiteFilter);
+    img.filterType(FilterType::LanczosFilter);
     img.resize(ScaledGeometry(img.columns(), img.rows()));
     return img;
 }
@@ -53,21 +53,6 @@ KitConverter::KitConverter() {
         }
         ReadObjModel(mSourceModel, Utils::AtoW(options.KitsPath + "model_source.obj").c_str());
         ReadObjModel(mEditedModel, Utils::AtoW(options.KitsPath + "model_edited.obj").c_str());
-        Image circlesImg(options.KitsPath + "circles.png");
-        Map<Magick::Color, std::vector<std::pair<int, int>>> circlesMap;
-        if (circlesImg.isValid() && circlesImg.columns() == 9 && circlesImg.rows() == 9) {
-            for (size_t row = 0; row < circlesImg.rows(); ++row) {
-                for (size_t column = 0; column < circlesImg.columns(); ++column) {
-                    auto pc = circlesImg.pixelColor(column, row);
-                    if (pc.quantumAlpha() == 255)
-                        circlesMap[pc].emplace_back(column - 4, row - 4);
-                }
-            }
-            circles.emplace_back(circlesMap[Magick::Color(255, 0, 0, 255)]);
-            circles.emplace_back(circlesMap[Magick::Color(0, 255, 0, 255)]);
-            //circles.emplace_back(circlesMap[Magick::Color(0, 0, 255, 255)]);
-            //circles.emplace_back(circlesMap[Magick::Color(0, 0, 0, 255)]);
-        }
     }
     else
         mRenderer = nullptr;
@@ -104,7 +89,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
         if (inputShortsImg.columns() > 1024) {
             SetSizeMode(2);
             if (GetSizeMode() == 1) {
-                inputShortsImg.filterType(FilterType::HermiteFilter);
+                inputShortsImg.filterType(FilterType::LanczosFilter);
                 inputShortsImg.resize(ScaledGeometry(1024, 512));
             }
         }
@@ -129,7 +114,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
 
         Image inputShirtImg(inputShirt);
         if (inputShirtImg.columns() > 1024 && GetSizeMode() == 1) {
-            inputShirtImg.filterType(FilterType::HermiteFilter);
+            inputShirtImg.filterType(FilterType::LanczosFilter);
             inputShirtImg.resize(ScaledGeometry(1024, 1024));
         }
 
@@ -141,7 +126,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
             int logoRight = logoPos[2];
             int logoBottom = logoPos[3];
             Image inputCrestImg(inputCrest);
-            inputCrestImg.filterType(FilterType::HermiteFilter);
+            inputCrestImg.filterType(FilterType::LanczosFilter);
             inputCrestImg.resize(Geometry(logoRight - logoLeft, logoBottom - logoTop));
             ScaledComposite(inputShirtImg, inputCrestImg, logoLeft, logoTop, OverCompositeOp);
             addLogo = false;
@@ -250,7 +235,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
         if (inputShirtImg.columns() > 1024) {
             SetSizeMode(2);
             if (GetSizeMode() == 1) {
-                inputShirtImg.filterType(FilterType::HermiteFilter);
+                inputShirtImg.filterType(FilterType::LanczosFilter);
                 inputShirtImg.resize(ScaledGeometry(1024, 1024));
             }
         }
@@ -263,7 +248,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
             int logoRight = logoPos[2];
             int logoBottom = logoPos[3];
             Image inputCrestImg(inputCrest);
-            inputCrestImg.filterType(FilterType::HermiteFilter);
+            inputCrestImg.filterType(FilterType::LanczosFilter);
             inputCrestImg.resize(Geometry(logoRight - logoLeft, logoBottom - logoTop));
             ScaledComposite(inputShirtImg, inputCrestImg, logoLeft, logoTop, OverCompositeOp);
             addLogo = false;
@@ -356,7 +341,7 @@ bool KitConverter::ConvertKit(string const &inputShirt, string const &inputShort
 
         Image inputShortsImg(inputShorts);
         if (inputShortsImg.columns() > 1024 && GetSizeMode() == 1) {
-            inputShortsImg.filterType(FilterType::HermiteFilter);
+            inputShortsImg.filterType(FilterType::LanczosFilter);
             inputShortsImg.resize(ScaledGeometry(1024, 512));
         }
 
@@ -618,8 +603,10 @@ bool KitConverter::ConvertClubArmband(int fifaId, string const &clubIdStr, int s
     if (!shirtFileName.empty()) {
         printf("Converting armband %s (%d)\n", clubIdStr.c_str(), set);
         Image img(shirtFileName);
+        img.backgroundColor(Magick::Color(0, 0, 0));
+        img.alpha(false);
         if (img.columns() > 1024 && GetSizeMode() == 1) {
-            img.filterType(FilterType::HermiteFilter);
+            img.filterType(FilterType::LanczosFilter);
             img.resize(ScaledGeometry(1024, 1024));
         }
         img.crop(Geometry(249, 43, 387, 977));
@@ -809,7 +796,8 @@ bool KitConverter::ConvertKitV2(string const &inputShirt, string const &inputSho
         Image fifaKitAllInOneImg(ScaledGeometry(1024, 1024 + 512), Magick::Color(255, 0, 0, 255));
 
         Image fifaKitShirt(inputShirt);
-        fifaKitShirt.filterType(FilterType::HermiteFilter);
+        fifaKitShirt.alpha(false);
+        fifaKitShirt.filterType(FilterType::LanczosFilter);
         fifaKitShirt.resize(ScaledGeometry(1024, 1024));
 
         if (hasPositions && !inputCrest.empty()) {
@@ -829,7 +817,8 @@ bool KitConverter::ConvertKitV2(string const &inputShirt, string const &inputSho
         ScaledComposite(fifaKitAllInOneImg, fifaKitShirt, 0, 0, OverCompositeOp);
 
         Image fifaKitShorts(inputShorts);
-        fifaKitShorts.filterType(FilterType::HermiteFilter);
+        fifaKitShorts.alpha(false);
+        fifaKitShorts.filterType(FilterType::LanczosFilter);
         fifaKitShorts.resize(ScaledGeometry(1024, 512));
 
         if (hasPositions && !inputCrest.empty()) {
@@ -956,161 +945,106 @@ bool KitConverter::ConvertKitV2(string const &inputShirt, string const &inputSho
 
         //::Error("found: %d", foundCount);
 
-        bool skipPP = true;
-
         mRenderer->End();
-        mRenderer->SaveRT(Utils::AtoW(skipPP ? (outputFile + ".tga") : (options.KitsPath + "tmpFifaKit2.tga")).c_str());
+        path savePath = (outputFile + ".png");
+        mRenderer->SaveRT(savePath.c_str());
         mRenderer->DestroyTexture(tex);
+        
+        //if (!hasPositions && !inputCrest.empty()) {
+        //    Image resultImg(outputFile + ".tga");
+        //    Image inputCrestImg(inputCrest);
+        //    ScaledResize(inputCrestImg, 56, 56);
+        //    ScaledComposite(resultImg, inputCrestImg, 298, 719, OverCompositeOp);
+        //    resultImg.flip();
+        //    resultImg.write(outputFile + ".tga");
+        //}
 
-        if (!skipPP) {
-            Image finalImg(options.KitsPath + "tmpFifaKit2.tga");
-            Image resultImg(Geometry(texW, texH), Magick::Color(0, 0, 0, 255));
-            int offset = 2;
-
-            Image repaired(finalImg);
-            //for (UInt i = 0; i < 50; i++)
-            //    blurred.blur(1);
-            auto SetPixelColor = [](Image &img, int x, int y, Magick::Color const &clr) {
-                img.fillColor(clr);
-                img.draw(Magick::DrawableRectangle(x, y, x + 1, y + 1));
-            };
-            for (size_t row = 0; row < finalImg.rows(); ++row) {
-                for (size_t column = 0; column < finalImg.columns(); ++column) {
-                    auto pc = finalImg.pixelColor(column, row);
-                    if (pc.quantumAlpha() == 0) {
-                        for (int ci = 0; ci < circles.size(); ci++) {
-                            std::vector<Magick::Color> colors;
-                            for (int cj = 0; cj < circles[ci].size(); cj++) {
-                                auto jp = finalImg.pixelColor(column + circles[ci][cj].first, row + circles[ci][cj].second);
-                                if (jp.quantumAlpha() != 0)
-                                    colors.push_back(jp);
-                            }
-                            if (!colors.empty()) {
-                                unsigned int avgR = 0, avgG = 0, avgB = 0;
-                                for (auto clr : colors) {
-                                    avgR += clr.quantumRed();
-                                    avgG += clr.quantumGreen();
-                                    avgB += clr.quantumBlue();
-                                }
-                                avgR /= colors.size();
-                                avgG /= colors.size();
-                                avgB /= colors.size();
-                                SetPixelColor(repaired, column, row, Magick::Color(avgR, avgG, avgB, 255));
-                                break;
-                            }
-                        }
-                    }
-                    else if (pc.quantumAlpha() != 255)
-                        SetPixelColor(repaired, column, row, Magick::Color(pc.quantumRed(), pc.quantumGreen(), pc.quantumBlue(), 255));
-                }
-            }
-            ScaledComposite(resultImg, repaired, 0, 0, MagickCore::OverCompositeOp);
-
-            //ScaledComposite(resultImg, finalImg, -offset, -offset, MagickCore::OverCompositeOp);
-            //ScaledComposite(resultImg, finalImg, offset, offset, MagickCore::OverCompositeOp);
-            //ScaledComposite(resultImg, finalImg, -offset, offset, MagickCore::OverCompositeOp);
-            //ScaledComposite(resultImg, finalImg, offset, -offset, MagickCore::OverCompositeOp);
-            //ScaledComposite(resultImg, finalImg, -offset, 0, MagickCore::OverCompositeOp);
-            //ScaledComposite(resultImg, finalImg, offset, 0, MagickCore::OverCompositeOp);
-            //ScaledComposite(resultImg, finalImg, 0, -offset, MagickCore::OverCompositeOp);
-            //ScaledComposite(resultImg, finalImg, 0, offset, MagickCore::OverCompositeOp);
-            ScaledComposite(resultImg, finalImg, 0, 0, MagickCore::OverCompositeOp);
-
-            if (!inputCrest.empty() && logoPos[0] == 0 && logoPos[1] == 0 && logoPos[2] == 0 && logoPos[3] == 0) {
-                Image inputCrestImg(inputCrest);
-                ScaledResize(inputCrestImg, 56, 56);
-                ScaledComposite(resultImg, inputCrestImg, 298, 719, OverCompositeOp);
-            }
-
-            //if (!options.Force2x && !options.Overlay && options.AddKitOverlay) {
-            //    Image kitOverlayImg(options.KitsPath + "kit_overlay.png");
-            //    ScaledComposite(resultImg, kitOverlayImg, 0, 0, OverCompositeOp);
-            //}
-
-            resultImg.fillColor(Magick::Color(255, 255, 255, 255));
-            resultImg.strokeColor(Magick::Color(0, 0, 0, 0));
-            if (!options.Overlay && options.AddWatermarkText) {
-                resultImg.fontPointsize(14 * GetSizeMode());
-                resultImg.fontWeight(550);
-                resultImg.annotate("FIFAM Universal Converter Project", ScaledGeometry(1024, 1024, 3, 1012), NorthWestGravity, -90);
-                resultImg.annotate("converted from EA SPORTS FIFA 20", ScaledGeometry(1024, 1024, 512 - 12, 1012), NorthWestGravity, -90);
-            }
-
-            resultImg.write(outputFile + ".tga");
+        STARTUPINFOW si;
+        PROCESS_INFORMATION pi;
+        ZeroMemory(&si, sizeof(si));
+        si.cb = sizeof(si);
+        ZeroMemory(&pi, sizeof(pi));
+        path inpaintPath = "tools\\inpaint.exe";
+        wstring commandLine = inpaintPath.wstring() + L" -i \"" + savePath.c_str() + L"\" -radius 0";
+        WCHAR wargs[2048];
+        wcscpy_s(wargs, commandLine.c_str());
+        if (CreateProcessW(inpaintPath.c_str(), wargs, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {
+            WaitForSingleObject(pi.hProcess, INFINITE);
+            CloseHandle(pi.hProcess);
+            CloseHandle(pi.hThread);
         }
-        else {
-            if (!hasPositions && !inputCrest.empty()) {
-                Image resultImg(outputFile + ".tga");
-                Image inputCrestImg(inputCrest);
-                ScaledResize(inputCrestImg, 56, 56);
-                ScaledComposite(resultImg, inputCrestImg, 298, 719, OverCompositeOp);
-                resultImg.flip();
-                resultImg.write(outputFile + ".tga");
-            }
-        }
+        
+        Image resultImg(savePath.string());
+        resizeImage_noAspect(resultImg, 512, 1024);
+        resultImg.write(outputFile + ".tga");
+        remove(savePath);
     }
 
     return true;
 }
 
+Image ConvertNewGenBannerToOldGen(Image const &inImg) {
+    Image layout(Geometry(1024, 512), Magick::Color(0, 0, 0, 0));
+    auto LayoutComposite = [&](Int dstX, Int dstY, Int dstW, Int dstH, Int srcX, Int srcY, Int srcW, Int srcH) {
+        Image tmpImg(inImg, Geometry(srcW, srcH, srcX, srcY));
+        if (dstW != srcW || dstH != srcH) {
+            Geometry geom(dstW, dstH);
+            geom.aspect(true);
+            tmpImg.filterType(Magick::LanczosFilter);
+            tmpImg.resize(geom);
+        }
+        layout.composite(tmpImg, dstX, dstY, CopyCompositeOp);
+    };
+    LayoutComposite(256 * 0, 128 * 0, 256, 128, 0, 0, 512, 256);
+    LayoutComposite(256 * 1, 128 * 0, 256, 128, 512, 256, 256, 128);
+    LayoutComposite(256 * 2, 128 * 0, 256, 128, 768, 256, 256, 128);
+    LayoutComposite(256 * 3, 128 * 0, 256, 128, 512, 384, 256, 128);
+    LayoutComposite(256 * 0, 128 * 1, 256, 128, 768, 384, 256, 128);
+    LayoutComposite(256 * 1, 128 * 1, 256, 128, 768, 512, 256, 128);
+    LayoutComposite(256 * 2, 128 * 1, 256, 128, 768, 640, 256, 128);
+    LayoutComposite(256 * 3, 128 * 1, 256, 128, 0, 0, 512, 256);
+    LayoutComposite(256 * 0, 128 * 2, 256, 128, 512, 256, 256, 128);
+    LayoutComposite(256 * 1, 128 * 2, 256, 128, 768, 256, 256, 128);
+    LayoutComposite(256 * 2, 128 * 2, 256, 128, 512, 384, 256, 128);
+    LayoutComposite(256 * 3, 128 * 2, 256, 128, 768, 384, 256, 128);
+    LayoutComposite(512 * 0, 128 * 3, 512, 128, 0, 384, 512, 128);
+    LayoutComposite(512 * 1, 128 * 3, 512, 128, 0, 256, 512, 128);
+    return layout;
+}
+
 void KitConverter::ConvertBanners(int fifaId, int fifaManagerId, Magick::Color const &primCol, Magick::Color const &secCol) {
-    const path assetsDir = "I:\\FIFA_ASSETS";
+    const path assetsDir = "H:\\FIFA_ASSETS";
     const path gameDir = "D:\\Games\\FIFA Manager 22";
-    auto bannersFilename = assetsDir / "banners" / "final" / ("banner_" + std::to_string(fifaId) + "_texture.dds");
-    auto crestFilename = assetsDir / "crest" / "final" / ("l" + std::to_string(fifaId) + ".dds");
-    auto flag1Filename = assetsDir / "flags" / "final" / ("flag_" + std::to_string(fifaId) + "_0.dds");
-    auto flag2Filename = assetsDir / "flags" / "final" / ("flag_" + std::to_string(fifaId) + "_1.dds");
-    auto flag3Filename = assetsDir / "flags" / "final" / ("flag_" + std::to_string(fifaId) + "_2.dds");
-    auto flag4Filename = assetsDir / "flags" / "final" / ("flag_" + std::to_string(fifaId) + "_3.dds");
+    auto bannersFilename = assetsDir / "banners" / "24" / ("banner_" + std::to_string(fifaId) + "_color.png");
+    auto crestFilename = assetsDir / "crest" / "24" / ("l" + std::to_string(fifaId) + ".png");
+    auto flag1Filename = assetsDir / "flags" / "24" / ("flag_" + std::to_string(fifaId) + "_0_color.png");
+    auto flag2Filename = assetsDir / "flags" / "24" / ("flag_" + std::to_string(fifaId) + "_1_color.png");
+    auto flag3Filename = assetsDir / "flags" / "24" / ("flag_" + std::to_string(fifaId) + "_2_color.png");
+    auto flag4Filename = assetsDir / "flags" / "24" / ("flag_" + std::to_string(fifaId) + "_3_color.png");
     if (exists(bannersFilename) && exists(crestFilename) && exists(flag1Filename) && exists(flag2Filename) && exists(flag3Filename) && exists(flag4Filename)) {
         path outputDir = gameDir / "data" / "banners" / Utils::Format("%08X", fifaManagerId);
         create_directories(outputDir);
         Image bannersImg(bannersFilename.string());
-        if (bannersImg.columns() == 1024 && bannersImg.rows() == 1024) {
-            Image layout(Geometry(1024, 512), Magick::Color(0, 0, 0, 0));
-            auto LayoutComposite = [&](Int dstX, Int dstY, Int dstW, Int dstH, Int srcX, Int srcY, Int srcW, Int srcH) {
-                Image tmpImg(layout, Geometry(srcW, srcH, srcX, srcY));
-                if (dstW != srcW || dstH != srcH) {
-                    Geometry geom(dstW, dstH);
-                    geom.aspect(true);
-                    tmpImg.filterType(Magick::HermiteFilter);
-                    tmpImg.resize(geom);
-                }
-                layout.composite(tmpImg, dstX, dstY, CopyCompositeOp);
-            };
-            LayoutComposite(256 * 0, 128 * 0, 256, 128, 256 * 0, 128 * 0, 512, 256);
-            LayoutComposite(256 * 1, 128 * 0, 256, 128, 256 * 2, 128 * 0, 256, 128);
-            LayoutComposite(256 * 2, 128 * 0, 256, 128, 256 * 2, 128 * 1, 256, 128);
-            LayoutComposite(256 * 3, 128 * 0, 256, 128, 256 * 2, 128 * 2, 256, 128);
-            LayoutComposite(256 * 0, 128 * 1, 256, 128, 256 * 3, 128 * 2, 256, 128);
-            LayoutComposite(256 * 1, 128 * 1, 256, 128, 256 * 2, 128 * 3, 256, 128);
-            LayoutComposite(256 * 2, 128 * 1, 256, 128, 256 * 3, 128 * 3, 256, 128);
-            LayoutComposite(256 * 3, 128 * 1, 256, 128, 256 * 3, 128 * 4, 256, 128);
-            LayoutComposite(256 * 0, 128 * 2, 256, 128, 256 * 3, 128 * 5, 256, 128);
-            LayoutComposite(256 * 1, 128 * 2, 256, 128, 256 * 0, 128 * 2, 512, 128);
-            LayoutComposite(256 * 2, 128 * 2, 256, 128, 256 * 0, 128 * 3, 512, 128);
-            LayoutComposite(256 * 3, 128 * 2, 256, 128, 256 * 0, 128 * 6, 1024, 256);
-            LayoutComposite(512 * 0, 128 * 3, 512, 128, 256 * 0, 128 * 4, 256 * 3, 128);
-            LayoutComposite(512 * 1, 128 * 3, 512, 128, 256 * 0, 128 * 5, 256 * 3, 128);
-            layout.type(ImageType::TrueColorAlphaType);
-            layout.write((outputDir / "banners.tga").string());
-        }
-        else {
-            bannersImg.type(ImageType::TrueColorAlphaType);
-            bannersImg.write((outputDir / "banners.tga").string());
-        }
-        Image flag1Img(flag1Filename.string());
-        flag1Img.type(ImageType::TrueColorAlphaType);
-        flag1Img.write((outputDir / "flag1.tga").string());
-        Image flag2Img(flag2Filename.string());
-        flag2Img.type(ImageType::TrueColorAlphaType);
-        flag2Img.write((outputDir / "flag2.tga").string());
-        Image flag3Img(flag3Filename.string());
-        flag3Img.type(ImageType::TrueColorAlphaType);
-        flag3Img.write((outputDir / "flag3.tga").string());
-        Image flag4Img(flag4Filename.string());
-        flag4Img.type(ImageType::TrueColorAlphaType);
-        flag4Img.write((outputDir / "flag4.tga").string());
+        if (bannersImg.columns() == 1024 && bannersImg.rows() == 1024)
+            bannersImg = ConvertNewGenBannerToOldGen(bannersImg);
+        bannersImg.type(ImageType::TrueColorAlphaType);
+        bannersImg.write((outputDir / "banners.tga").string());
+        auto saveFlagImage = [&](Path const &flagPath, string const &fileName) {
+            Image flagImg(flagPath.string());
+            resizeImage_noAspect(flagImg, 128, 128);
+            auto flagOverlayFilename = assetsDir / "flags" / "flag_overlay_2.tga";
+            if (exists(flagOverlayFilename)) {
+                Image flagOverlayImg(flagOverlayFilename.string());
+                flagOverlayImg.autoOrient();
+                flagImg.composite(flagOverlayImg, 0, 0, MultiplyCompositeOp);
+            }
+            flagImg.type(ImageType::TrueColorAlphaType);
+            flagImg.write((outputDir / fileName).string());
+        };
+        saveFlagImage(flag1Filename, "flag1.tga");
+        saveFlagImage(flag2Filename, "flag2.tga");
+        saveFlagImage(flag3Filename, "flag3.tga");
+        saveFlagImage(flag4Filename, "flag4.tga");
         Image crestImg(crestFilename.string());
         crestImg.type(ImageType::TrueColorAlphaType);
         crestImg.write((outputDir / "crest.tga").string());
@@ -1121,12 +1055,13 @@ void KitConverter::ConvertBanners(int fifaId, int fifaManagerId, Magick::Color c
         secImg.type(ImageType::TrueColorAlphaType);
         secImg.write((outputDir / "secondary.tga").string());
         Image cornerFlagImg(Geometry(128, 128), primCol);
-        crestImg.filterType(Magick::HermiteFilter);
+        crestImg.filterType(Magick::LanczosFilter);
         crestImg.resize(Geometry(80, 80));
         cornerFlagImg.composite(crestImg, (cornerFlagImg.columns() - crestImg.columns()) / 2, (cornerFlagImg.rows() - crestImg.rows()) / 2, OverCompositeOp);
         auto flagOverlayFilename = assetsDir / "flags" / "flag_overlay.tga";
         if (exists(flagOverlayFilename)) {
             Image cornerFlagOverlayImg(flagOverlayFilename.string());
+            cornerFlagOverlayImg.autoOrient();
             cornerFlagImg.composite(cornerFlagOverlayImg, 0, 0, MultiplyCompositeOp);
         }
         cornerFlagImg.type(ImageType::TrueColorAlphaType);
@@ -1170,25 +1105,132 @@ void KitConverter::ConvertBannersFIFA(int fifaId, bool fifa14stadiums, Magick::C
     }
 }
 
+void KitConverter::ConvertBannersFIFA_NewFormat(int fifaId, bool fifa14stadiums, Magick::Color const &primCol, Magick::Color const &secCol) {
+    const path assetsDir = "I:\\FIFA_ASSETS";
+    auto bannersFilename = assetsDir / "banners" / "24" / ("banner_" + std::to_string(fifaId) + "_texture.dds");
+    if (exists(bannersFilename)) {
+        Path gameBannersDir = "output\\fifa07";
+        if (fifa14stadiums)
+            gameBannersDir /= "banners_fifa14stadiums";
+        else
+            gameBannersDir /= "banners";
+        Path outputDir = gameBannersDir / ("t13__" + to_string(fifaId) + "_0_0");
+        create_directories(outputDir);
+        auto WriteBanner = [&](Path const &file, Image const &image, UInt x, UInt y, UInt w, UInt h) {
+            Image copy(image, Geometry(w, h, x, y));
+            if (w != 256 || h != 128)
+                resizeImage_noAspect(copy, 256, 128);
+            copy.write(file.string());
+        };
+        Image bannersImg(bannersFilename.string());
+        if (fifa14stadiums) {
+            bannersImg = ConvertNewGenBannerToOldGen(bannersImg);
+            bannersImg.write((outputDir / "_bna.tga").string());
+            Image primImg(Geometry(4, 4), primCol);
+            primImg.write((outputDir / "_bnb.tga").string());
+            Image secImg(Geometry(4, 4), secCol);
+            secImg.write((outputDir / "_bnc.tga").string());
+        }
+        else {
+            WriteBanner(outputDir / "_bna.tga", bannersImg, 0,   0,   512, 256);
+            WriteBanner(outputDir / "_bnb.tga", bannersImg, 512, 256, 256, 128);
+            WriteBanner(outputDir / "_bnc.tga", bannersImg, 768, 256, 256, 128);
+        }
+        WriteBanner(outputDir / "_fla.tga", bannersImg, 512, 512, 256, 128);
+        WriteBanner(outputDir / "_flb.tga", bannersImg, 768, 512, 256, 128);
+        WriteBanner(outputDir / "_flc.tga", bannersImg, 768, 640, 256, 128);
+    }
+}
+
 void KitConverter::ConvertAdboards(Map<UInt, UInt> const &fifaClubToFifam, Map<UInt, Vector<UInt>> const &compsMap) {
-    const Path inPath = "D:\\FIFA_ASSETS\\adboards\\512x1024";
+    const Path inPath = "H:\\FIFA_ASSETS\\fc24\\Worlds\\adboard\\textures";
+    const Path outPath = "D:\\Projects\\fifam\\content\\fm13\\art_05\\sponsors\\512x1024";
+    create_directories(outPath);
+    Map<UInt, Path> adboards;
+    Set<UInt> writtenAdboards;
+    for (auto const &i : recursive_directory_iterator(inPath)) {
+        auto fileName = i.path().stem().string();
+        if (fileName.starts_with("adboard_") && fileName.ends_with("_color"))
+            adboards[Utils::SafeConvertInt<UInt>(fileName.substr(8, fileName.size() - 14))] = i.path();
+    }
+    if (adboards.contains(0)) {
+        Image img(adboards[0].string());
+        img.type(TrueColorAlphaType);
+        resizeImage_noAspect(img, 512, 1024);
+        img.write((outPath / L"00000000.tga").string());
+        writtenAdboards.insert(0);
+    }
     for (auto const &[fifaId, fifamIds] : compsMap) {
-        Path p = inPath / Utils::Format("adboard_%d_0.tga", fifaId);
-        if (exists(p)) {
-            if (fifamIds.size() == 1)
-                rename(p, inPath / Utils::Format("%08X.tga", fifamIds[0]));
-            else {
-                for (auto const &fifamId : fifamIds)
-                    copy(p, inPath / Utils::Format("%08X.tga", fifamId), copy_options::overwrite_existing);
-                remove(p);
-            }
+        if (adboards.contains(fifaId) && !fifamIds.empty()) {
+            Image img(adboards[fifaId].string());
+            img.type(TrueColorAlphaType);
+            resizeImage_noAspect(img, 512, 1024);
+            String fileName = Utils::Format((fifamIds[0] < 0xFFFF) ? L"%04X.tga" : L"%08X.tga", fifamIds[0]);
+            Path filePath = outPath / fileName;
+            img.write(filePath.string());
+            for (UInt i = 1; i < fifamIds.size(); i++)
+                copy(filePath, outPath / Utils::Format((fifamIds[i] < 0xFFFF) ? L"%04X.tga" : L"%08X.tga", fifamIds[i]), copy_options::overwrite_existing);
+            writtenAdboards.insert(fifaId);
         }
     }
+    Image bundesliga, bundesliga2;
+    Bool hasBundesliga = false;
+    if (adboards.contains(19) && adboards.contains(20)) {
+        bundesliga = Image(adboards[19].string(), Geometry(1024, 128));
+        resizeImage_noAspect(bundesliga, bundesliga.columns() / 2, bundesliga.rows() / 2);
+        bundesliga2 = Image(adboards[20].string(), Geometry(1024, 128));
+        resizeImage_noAspect(bundesliga2, bundesliga2.columns() / 2, bundesliga2.rows() / 2);
+        hasBundesliga = true;
+    }
     for (auto const &[fifaId, fifamId] : fifaClubToFifam) {
-        Path p = inPath / Utils::Format("adboard_%d_0.tga", 1000000 + fifaId);
-        if (exists(p)) {
-            UInt leagueId = 0x00010000 | ((fifamId & 0x00FF0000) << 8);
-            rename(p, inPath / Utils::Format("%08X_%08X.tga", fifamId, leagueId));
+        if (adboards.contains(1000000 + fifaId)) {
+            Image img(adboards[1000000 + fifaId].string());
+            img.type(TrueColorAlphaType);
+            resizeImage_noAspect(img, 512, 1024);
+            UInt countryId = (fifamId >> 16) & 0xFF;
+            if (countryId == FifamNation::England || countryId == FifamNation::Italy || countryId == FifamNation::Germany) {
+                UInt leagueId = 0x00010000 | (countryId << 24);
+                String fileNameLeague = Utils::Format(L"%08X_%08X.tga", fifamId, leagueId);
+                Path filePathLeague = outPath / fileNameLeague;
+                if (hasBundesliga && countryId == FifamNation::Germany)
+                    img.composite(bundesliga, 0, 384, OverCompositeOp);
+                img.write(filePathLeague.string());
+                if (hasBundesliga && countryId == FifamNation::Germany) {
+                    img.composite(bundesliga2, 0, 384, OverCompositeOp);
+                    String fileNameLeague2 = Utils::Format(L"%08X_%08X.tga", fifamId, leagueId | 1);
+                    Path filePathLeague2 = outPath / fileNameLeague2;
+                    img.write(filePathLeague2.string());
+                }
+                if (countryId == FifamNation::Germany) {
+                    Image part(img, Geometry(512, 128));
+                    img.composite(part, 0, 384, OverCompositeOp);
+                }
+                else if (countryId == FifamNation::England) {
+                    Image part(img, Geometry(512, 64, 0, 384));
+                    img.composite(part, 0, 0, OverCompositeOp);
+                }
+                else if (countryId == FifamNation::Italy) {
+                    Image part1(img, Geometry(512, 128, 0, 320));
+                    Image part2(img, Geometry(512, 192, 0, 448));
+                    Image part3(img, Geometry(512, 128, 0, 704));
+                    img.composite(part1, 0, 896, OverCompositeOp);
+                    img.composite(part2, 0, 0, OverCompositeOp);
+                    img.composite(part3, 0, 192, OverCompositeOp);
+                }
+            }
+            String fileNameClub = Utils::Format(L"%08X.tga", fifamId);
+            Path filePathClub = outPath / fileNameClub;
+            img.write(filePathClub.string());
+            writtenAdboards.insert(1000000 + fifaId);
+        }
+    }
+    Path notConvertedPath = outPath / "_notconverted";
+    if (exists(notConvertedPath))
+        remove(notConvertedPath);
+    for (auto const &[fifaId, filePath] : adboards) {
+        if (!writtenAdboards.contains(fifaId)) {
+            create_directories(notConvertedPath);
+            copy(filePath, notConvertedPath / filePath.filename(), copy_options::overwrite_existing);
         }
     }
 }

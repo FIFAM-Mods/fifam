@@ -22,6 +22,7 @@ struct non_player : public person {
     Int mJobChairman = 0;
     Int mJobTechnicalDirector = 0;
     Int mJobHeadOfPlayerDevelopment = 0;
+    Int mJobSetPieceCoach = 0;
     Int mCurrentAbility = 0;
     Int mPotentialAbility = 0;
     Int mOriginalCA = 0;
@@ -58,6 +59,7 @@ struct non_player : public person {
     Int mCoachingMental = 0;
     Int mCoachingTactical = 0;
     Int mCoachingTechnical = 0;
+    Int mCoachingSetPieces = 0;
     Int mBusiness = 0;
     Int mNegotiations = 0;
     Int mInterference = 0;

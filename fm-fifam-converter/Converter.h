@@ -7,8 +7,7 @@
 #include "FifamCompCup.h"
 #include "FifamCompRound.h"
 
-const UShort CURRENT_YEAR = 2022;
-const UInt DATABASE_VERSION = 0x2020110;
+const UShort CURRENT_YEAR = 2023;
 
 class Converter {
 public:
@@ -201,6 +200,7 @@ public:
     Map<UInt, Vector<UShort>> mCalendarsSecondSeason;
     Map<UInt, Pair<FifamTrArray<String>, FifamTrArray<String>>> mSplitNames;
     
+    ~Converter();
     Date GetCurrentDate() { return Date(1, 7, CURRENT_YEAR); }
     Date FmEmptyDate() { return Date(1, 1, 1900); }
 
@@ -226,14 +226,6 @@ public:
 
     Bool IsConvertable(foom::person *p, UInt gameId);
     Bool IsConvertable(foom::official *o, UInt gameId);
-    
-    Bool IsIconicPlayer(Int playerId);
-    Bool IsIntrovertPlayer(Int playerId);
-    Bool IsExtrovertPlayer(Int playerId);
-    Bool IsInsecurePlayer(Int playerId);
-    Bool IsFansFavouritePlayer(Int playerId);
-    Bool IsSensitivePlayer(Int playerId);
-    Bool IsLazyPlayer(Int playerId);
 
     UChar GetPlayerLevel(FifamPlayer *player, Bool includeExperience, UInt gameId);
     UChar GetPlayerLevel(FifamPlayer *player, FifamPlayerPosition position, FifamPlayerPlayingStyle style, Bool includeExperience, UInt gameId);

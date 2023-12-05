@@ -634,12 +634,16 @@ void GraphicsConverter::ConvertTrophies(FifamDatabase *db, Path const &fmGraphic
         ConvertOneTrophy(foomTrophies / L"1301394.png", outputPath, L"F909.tga", trophyRoomFolder); // UEFA Champions League
         ConvertOneTrophy(foomTrophies / L"1301396.png", outputPath, L"F90A.tga", trophyRoomFolder); // UEFA Europa League
         ConvertOneTrophy(foomTrophies / L"1301397.png", outputPath, L"F90C.tga", trophyRoomFolder); // UEFA Super Cup
+        ConvertOneTrophy(foomTrophies / L"31051584.png", outputPath, L"F933.tga", trophyRoomFolder); // UEFA Conference League
 
         ConvertOneTrophy(foomTrophies / L"102415.png", outputPath, L"FA09.tga", trophyRoomFolder); // South America Champions League
         ConvertOneTrophy(foomTrophies / L"317567.png", outputPath, L"FA0A.tga", trophyRoomFolder); // South America Europa League
         ConvertOneTrophy(foomTrophies / L"102418.png", outputPath, L"FA0C.tga", trophyRoomFolder); // South America Super Cup
 
         ConvertOneTrophy(foomTrophies / L"51002641.png", outputPath, L"FB09.tga", trophyRoomFolder); // North America Champions League
+        ConvertOneTrophy(foomTrophies / L"2000259628.png", outputPath, L"FB0A.tga", trophyRoomFolder); // North America Champions League
+        ConvertOneTrophy(foomTrophies / L"222987.png", outputPath, L"FB0C.tga", trophyRoomFolder); // North America Champions League
+        ConvertOneTrophy(foomTrophies / L"2000259627.png", outputPath, L"FB33.tga", trophyRoomFolder); // North America Conference League
 
         ConvertOneTrophy(foomTrophies / L"127299.png", outputPath, L"FC09.tga", trophyRoomFolder); // Africa Champions League
         ConvertOneTrophy(foomTrophies / L"12017574.png", outputPath, L"FC0A.tga", trophyRoomFolder); // Africa Europa League
@@ -1114,10 +1118,6 @@ void GraphicsConverter::ProcessFIFAXXLPortraits(foom::db *db, Path const& gameOu
             }
         }
     }
-}
-
-Bool operator<(::Color const &a, ::Color const &b) {
-    return a.ToHexStr() <= b.ToHexStr();;
 }
 
 FifamClubTeamColor GraphicsConverter::GetBadgeColor(Path const &filepath) {

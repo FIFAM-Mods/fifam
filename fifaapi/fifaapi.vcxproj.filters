@@ -12,6 +12,8 @@
     <ClCompile Include="FifaTeam.cpp" />
     <ClCompile Include="FifaVersion.cpp" />
     <ClCompile Include="FifaKit.cpp" />
+    <ClCompile Include="FifaAgent.cpp" />
+    <ClCompile Include="FifaStoryModePlayer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="FifaDataFile.h" />
@@ -25,5 +27,7 @@
     <ClInclude Include="FifaTeam.h" />
     <ClInclude Include="FifaVersion.h" />
     <ClInclude Include="FifaKit.h" />
+    <ClInclude Include="FifaAgent.h" />
+    <ClInclude Include="FifaStoryModePlayer.h" />
   </ItemGroup>
 </Project>

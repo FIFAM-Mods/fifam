@@ -188,6 +188,7 @@
     <ClInclude Include="FifamStadium.h" />
     <ClInclude Include="FifamStadiumType.h" />
     <ClInclude Include="FifamStaff.h" />
+    <ClInclude Include="FifamStaffSkillID.h" />
     <ClInclude Include="FifamSuperCupType.h" />
     <ClInclude Include="FifamSuspensionRule.h" />
     <ClInclude Include="FifamTerritory.h" />

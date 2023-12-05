@@ -20,6 +20,8 @@ struct Color {
     std::string ToHexStrA() const;
 };
 
+bool operator<(::Color const &a, ::Color const &b);
+
 using GenColor = ::Color;
 
 struct ColorPair : public std::pair<::Color, ::Color> {

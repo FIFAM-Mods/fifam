@@ -47,61 +47,59 @@ public:
                     if (!r.EmptyLine()) {
                         String album, songname, artist;
                         UInt songid = 0;
-                        UInt DoNotUse = 0;
                         UInt intro = 0;
-                        r.ReadLineWithSeparator(L'\t', album, songname, artist, songid, intro, DoNotUse);
-                        if (DoNotUse == 0) {
-                            if (!songname.empty() && !artist.empty()) {
-                                if (album.size() > 39)
-                                    album.resize(39);
-                                if (songname.size() > 39)
-                                    songname.resize(39);
-                                if (artist.size() > 39)
-                                    artist.resize(39);
-                                Song song;
-                                memset(&song, 0, sizeof(Song));
-                                song.id = version * 10000 + 100 + index;
-                                strcpy(song.filename, Utils::Format("S7%02u", index).c_str());
-                                strcpy(song.artist, ToUTF8(artist).c_str());
-                                strcpy(song.name, ToUTF8(songname).c_str());
-                                strcpy(song.album, ToUTF8(album).c_str());
-                                song.unk1 = 9999;
-                                song.unk2 = 1;
-                                fwrite(&song, sizeof(Song), 1, f);
-                                Path albumPath = Utils::Format("eatrax\\eatrax%u.dds", songid);
-                                if (exists(albumPath)) {
-                                    Image album(albumPath.string());
-                                    ResizeImageNoAspect(album, 260, 260);
-                                    //const Int extendSize = 512 - 260;
-                                    //// right
-                                    //Magick::Image right(album, Magick::Geometry(1, album.rows(), album.columns() - 1, 0));
-                                    //right.filterType(MagickCore::FilterType::PointFilter);
-                                    //ResizeImageNoAspect(right, extendSize, album.rows());
-                                    //// bottom
-                                    //Magick::Image bottom(album, Magick::Geometry(album.columns(), 1, 0, album.rows() - 1));
-                                    //bottom.filterType(MagickCore::FilterType::PointFilter);
-                                    //ResizeImageNoAspect(bottom, album.rows(), extendSize);
-                                    //// side
-                                    //Magick::Image side(album, Magick::Geometry(1, 1, album.columns() - 1, album.rows() - 1));
-                                    //side.filterType(MagickCore::FilterType::PointFilter);
-                                    //ResizeImageNoAspect(side, extendSize, extendSize);
-                                    // composite
-                                    album.extent(Magick::Geometry(512, 512), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::NorthWestGravity);
-                                    //album.composite(right, 260, 0, MagickCore::OverCompositeOp);
-                                    //album.composite(bottom, 0, 260, MagickCore::OverCompositeOp);
-                                    //album.composite(side, 260, 260, MagickCore::OverCompositeOp);
-                                    Path albumDir = Utils::Format("output\\albums\\%u", song.id);
-                                    create_directories(albumDir);
-                                    album.write((albumDir / Utils::Format("1   @%u.tga", song.id)).string());
-                                    copy("album\\20070100.apt", albumDir / Utils::Format("%u.apt", song.id), copy_options::overwrite_existing);
-                                    copy("album\\20070100.const", albumDir / Utils::Format("%u.const", song.id), copy_options::overwrite_existing);
-                                    copy("album\\20070100.o", albumDir / Utils::Format("%u.o", song.id), copy_options::overwrite_existing);
-                                }
+                        r.ReadLineWithSeparator(L'\t', album, songname, artist, songid, intro);
+                        if (!songname.empty() && !artist.empty()) {
+                            if (album.size() > 39)
+                                album.resize(39);
+                            if (songname.size() > 39)
+                                songname.resize(39);
+                            if (artist.size() > 39)
+                                artist.resize(39);
+                            Song song;
+                            memset(&song, 0, sizeof(Song));
+                            song.id = version * 10000 + 100 + index;
+                            strcpy(song.filename, Utils::Format("S7%02u", index).c_str());
+                            strcpy(song.artist, ToUTF8(artist).c_str());
+                            strcpy(song.name, ToUTF8(songname).c_str());
+                            strcpy(song.album, ToUTF8(album).c_str());
+                            song.unk1 = 9999;
+                            song.unk2 = 1;
+                            fwrite(&song, sizeof(Song), 1, f);
+                            //Path albumPath = Utils::Format("eatrax\\eatrax%u.dds", songid);
+                            Path albumPath = Utils::Format("eatrax\\%u.png", songid);
+                            if (exists(albumPath)) {
+                                Image album(albumPath.string());
+                                ResizeImageNoAspect(album, 260, 260);
+                                //const Int extendSize = 512 - 260;
+                                //// right
+                                //Magick::Image right(album, Magick::Geometry(1, album.rows(), album.columns() - 1, 0));
+                                //right.filterType(MagickCore::FilterType::PointFilter);
+                                //ResizeImageNoAspect(right, extendSize, album.rows());
+                                //// bottom
+                                //Magick::Image bottom(album, Magick::Geometry(album.columns(), 1, 0, album.rows() - 1));
+                                //bottom.filterType(MagickCore::FilterType::PointFilter);
+                                //ResizeImageNoAspect(bottom, album.rows(), extendSize);
+                                //// side
+                                //Magick::Image side(album, Magick::Geometry(1, 1, album.columns() - 1, album.rows() - 1));
+                                //side.filterType(MagickCore::FilterType::PointFilter);
+                                //ResizeImageNoAspect(side, extendSize, extendSize);
+                                // composite
+                                album.extent(Magick::Geometry(512, 512), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::NorthWestGravity);
+                                //album.composite(right, 260, 0, MagickCore::OverCompositeOp);
+                                //album.composite(bottom, 0, 260, MagickCore::OverCompositeOp);
+                                //album.composite(side, 260, 260, MagickCore::OverCompositeOp);
+                                Path albumDir = Utils::Format("output\\albums\\%u", song.id);
+                                create_directories(albumDir);
+                                album.write((albumDir / Utils::Format("1   @%u.tga", song.id)).string());
+                                copy("album\\20070100.apt", albumDir / Utils::Format("%u.apt", song.id), copy_options::overwrite_existing);
+                                copy("album\\20070100.const", albumDir / Utils::Format("%u.const", song.id), copy_options::overwrite_existing);
+                                copy("album\\20070100.o", albumDir / Utils::Format("%u.o", song.id), copy_options::overwrite_existing);
                             }
-                            else
-                                ::Error("Empty songname or artist");
-                            index++;
                         }
+                        else
+                            ::Error("Empty songname or artist");
+                        index++;
                     }
                     else
                         r.SkipLine();

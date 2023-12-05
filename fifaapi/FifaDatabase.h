@@ -6,6 +6,8 @@
 #include "FifaStadium.h"
 #include "FifaReferee.h"
 #include "FifaManager.h"
+#include "FifaAgent.h"
+#include "FifaStoryModePlayer.h"
 #include "FifaKit.h"
 #include "FifaDataFile.h"
 #include <map>
@@ -20,6 +22,8 @@ public:
     std::map<unsigned int, FifaPlayer *> m_players;
     std::map<unsigned int, FifaManager *> m_managers;
     std::map<unsigned int, FifaReferee *> m_referees;
+    std::map<unsigned int, FifaAgent *> m_agents;
+    std::map<unsigned int, FifaStoryModePlayer *> m_smplayers;
     std::map<unsigned int, FifaStadium *> m_stadiums;
     std::map<unsigned int, FifaKit *> m_kits;
 
@@ -80,6 +84,8 @@ public:
     FifaReferee *GetReferee(unsigned int refereeId);
     FifaStadium *GetStadium(unsigned int stadiumId);
     FifaKit *GetKit(unsigned int kitId);
+    FifaAgent *GetAgent(unsigned int agentId);
+    FifaStoryModePlayer *GetStoryModePlayer(unsigned int playerId);
 
     template <typename T>
     void ForAllLeagues(T callback) {
@@ -136,6 +142,18 @@ public:
     template <typename T>
     void ForAllKits(T callback) {
         for (auto const &it : m_kits)
+            callback(*it.second);
+    }
+
+    template <typename T>
+    void ForAllAgents(T callback) {
+        for (auto const &it : m_agents)
+            callback(*it.second);
+    }
+
+    template <typename T>
+    void ForAllStoryModePlayers(T callback) {
+        for (auto const &it : m_smplayers)
             callback(*it.second);
     }
 };

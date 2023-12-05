@@ -72,6 +72,7 @@ public:
     void ConvertClubKitNumbersCustom();
     void ConvertBanners(int fifaId, int fifaManagerId, Magick::Color const &primCol = Magick::Color(), Magick::Color const &secCol = Magick::Color());
     void ConvertBannersFIFA(int fifaId, bool fifa14stadiums, Magick::Color const &primCol = Magick::Color(), Magick::Color const &secCol = Magick::Color());
+    void ConvertBannersFIFA_NewFormat(int fifaId, bool fifa14stadiums, Magick::Color const &primCol = Magick::Color(), Magick::Color const &secCol = Magick::Color());
     void ConvertAdboards(Map<UInt, UInt> const &fifaClubToFifam, Map<UInt, Vector<UInt>> const &compsMap);
     void GenerateGenericBanners();
     void GenerateGenericBannersFIFA(bool fifa14stadiums);

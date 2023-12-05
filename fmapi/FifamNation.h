@@ -2,6 +2,8 @@
 #include "FifamTypes.h"
 #include "FifamEnum.h"
 
+Bool GetNationCustomReplacement(UChar nationId, UChar &translatedNationId);
+
 ENUM_BEGIN(FifamNation, UChar)
     ENUM_MEMBER(  0, None,                  L"None")
     ENUM_MEMBER(  1, Albania,               L"Albania")
@@ -232,15 +234,15 @@ ENUM_BEGIN(FifamNation, UChar)
     }
 
     ENUM_WRITE(writer) {
-        if (writer.GetGameId() <= 7) {
-            if (ToInt() == Montenegro)
-                writer.WriteOne(Serbia);
-            else if (ToInt() == Greenland)
-                writer.WriteOne(206);
-            else
-                writer.WriteOne(ToInt());
+        UChar id = ToInt();
+        if (!GetNationCustomReplacement(id, id)) {
+            if (writer.GetGameId() <= 7) {
+                if (ToInt() == Montenegro)
+                    writer.WriteOne(Serbia);
+            }
         }
-        else
-            writer.WriteOne(ToInt());
+        if (writer.GetGameId() <= 7 && id == Greenland)
+            id = 206;
+        writer.WriteOne(id);
     }
 ENUM_END(FifamNation)

@@ -434,14 +434,16 @@ void Converter::ConvertReserveClub(UInt gameId, FifamClub * dst, foom::club * te
     SetNameAndTranslation(dst->mName, team->mName, team->mTranslatedNames, 29, team->mShortName, team->mTranslatedShortNames);
     SetNameAndTranslation(dst->mShortName, team->mShortName, team->mTranslatedShortNames, 10);
     if (team->mName == mainTeam->mName) {
-        String secondTypeName, thirdTypeName;
+        String secondTypeName, thirdTypeName, youthTypeName;
         if (country && country->mId == FifamNation::Germany) {
             secondTypeName = L"II";
             thirdTypeName = L"III";
+            youthTypeName = L"Jugend";
         }
         else {
             secondTypeName = L"2";
             thirdTypeName = L"3";
+            youthTypeName = L"Youth";
         }
         String teamTypeName = L"Res";
         switch (team->mConverterData.mChildType) {

@@ -92,6 +92,10 @@ std::string Color::ToHexStrA() const {
     return Utils::Format("#%02X%02X%02X", r, g, b);
 }
 
+bool operator<(::Color const &a, ::Color const &b) {
+    return a.ToHexStr() <= b.ToHexStr();;
+}
+
 ColorPair::ColorPair() {}
 
 ColorPair::ColorPair(Color const &color1, Color const &color2) {

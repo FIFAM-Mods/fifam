@@ -108,6 +108,13 @@ public: \
         } \
         return false; \
     } \
+    static Bool Present(String const &value) { \
+        for (auto const &m : _members()) { \
+            if (m.second == value) \
+                return true; \
+        } \
+        return false; \
+    } \
     static void ForAllValues(Function<void(typeName const &value)> callback) { \
         for (auto const &m : _members()) \
             callback(MakeFromInt(m.first)); \

@@ -202,6 +202,7 @@ struct club : public team {
             u19_b,
             u18_b,
             extinct_b_or_c,
+            shared_youth,
             other
         } mChildType = other;
         struct child_club {

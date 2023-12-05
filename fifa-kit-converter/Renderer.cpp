@@ -1,17 +1,46 @@
 #include "Renderer.h"
 #include "Error.h"
 
+LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) { return DefWindowProcW(hWnd, msg, wParam, lParam); };
+
 Renderer::Renderer(int w, int h) {
-	auto mDirect3D = Direct3DCreate9(D3D_SDK_VERSION);
+    ZeroMemory(&mWindowClass, sizeof(mWindowClass));
+    mWindowClass.cbSize = sizeof(WNDCLASSEXW);
+    mWindowClass.style = CS_CLASSDC;
+    mWindowClass.hInstance = 0;
+    mWindowClass.lpszClassName = L"RendererWindow";
+    mWindowClass.lpfnWndProc = WndProc;
+    auto classResult = RegisterClassExW(&mWindowClass);
+    if (classResult == 0) {
+        ::Error("Renderer::Renderer(): Failed to register Window Class (%X / %d)", GetLastError(), GetLastError());
+        return;
+    }
+    mWindowHandle = CreateWindowExW(0, L"RendererWindow", L"Renderer", WS_OVERLAPPEDWINDOW, 0, 0, 800, 600, 0, 0, 0, 0);
+    if (mWindowHandle == NULL) {
+        ::Error("Renderer::Renderer(): Failed to create Window (%X / %d)", GetLastError(), GetLastError());
+        return;
+    }
+    mCreatedWindow = true;
+    Create(w, h, mWindowHandle);
+}
+
+Renderer::Renderer(int w, int h, HWND hwnd) {
+    Create(w, h, hwnd);
+}
+
+void Renderer::Create(int w, int h, HWND hwnd) {
+	mDirect3D = Direct3DCreate9(D3D_SDK_VERSION);
     if (mDirect3D) {
-        static D3DPRESENT_PARAMETERS d3dpp;
+        D3DPRESENT_PARAMETERS d3dpp;
         ZeroMemory(&d3dpp, sizeof(d3dpp));
         d3dpp.Windowed = TRUE;
         d3dpp.SwapEffect = D3DSWAPEFFECT_COPY;
-        IDirect3DDevice9 *device = nullptr;
-        if (FAILED(mDirect3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, GetConsoleWindow(), D3DCREATE_SOFTWARE_VERTEXPROCESSING, &d3dpp, &mDevice))) {
+        mDevice = nullptr;
+        auto result = mDirect3D->CreateDevice(D3DADAPTER_DEFAULT, D3DDEVTYPE_HAL, hwnd, D3DCREATE_SOFTWARE_VERTEXPROCESSING, &d3dpp, &mDevice);
+        if (FAILED(result)) {
             mDirect3D->Release();
             mDirect3D = nullptr;
+            ::Error("Renderer::Create(): Failed to create Device (%X / %u / %d)", result, result, result & 0xFFFF);
         }
         else {
             auto sampling = D3DMULTISAMPLE_NONE;
@@ -20,6 +49,7 @@ Renderer::Renderer(int w, int h) {
                 mDevice = nullptr;
                 mDirect3D->Release();
                 mDirect3D = nullptr;
+                ::Error("Renderer::Create(): Failed to create Render Target");
             }
             else {
                 if (FAILED(mDevice->SetRenderTarget(0, mRT))) {
@@ -29,15 +59,17 @@ Renderer::Renderer(int w, int h) {
                     mDevice = nullptr;
                     mDirect3D->Release();
                     mDirect3D = nullptr;
+                    ::Error("Renderer::Create(): Failed to set Render Target");
                 }
                 else {
-                    if (FAILED(mDevice->CreateVertexBuffer(sizeof(Vertex) * 3, 0, D3DFVF_XYZRHW|D3DFVF_TEX1, D3DPOOL_DEFAULT, &mVB, NULL))) {
+                    if (FAILED(mDevice->CreateVertexBuffer(sizeof(Vertex) * 3, 0, D3DFVF_XYZRHW | D3DFVF_TEX1, D3DPOOL_DEFAULT, &mVB, NULL))) {
                         mRT->Release();
                         mRT = nullptr;
                         mDevice->Release();
                         mDevice = nullptr;
                         mDirect3D->Release();
                         mDirect3D = nullptr;
+                        ::Error("Renderer::Create(): Failed to create Vertex Buffer");
                     }
                     else
                         mAvailable = true;
@@ -45,6 +77,8 @@ Renderer::Renderer(int w, int h) {
             }
         }
     }
+    else
+        ::Error("Renderer::Create(): Failed to create Direct3D");
 }
 
 bool Renderer::Available() {
@@ -80,7 +114,7 @@ void Renderer::DestroyTexture(IDirect3DTexture9 *tex) {
 
 bool Renderer::SaveRT(wchar_t const *path) {
     if (mRT) {
-        if (FAILED(D3DXSaveSurfaceToFileW(path, D3DXIFF_TGA, mRT, NULL, NULL)))
+        if (FAILED(D3DXSaveSurfaceToFileW(path, D3DXIFF_PNG, mRT, NULL, NULL)))
             return false;
         return true;
     }
@@ -122,6 +156,10 @@ Renderer::~Renderer() {
 		mDevice->Release();
 	if (mDirect3D)
 		mDirect3D->Release();
+    if (mCreatedWindow) {
+        DestroyWindow(mWindowHandle);
+        UnregisterClassW(L"RendererWindow", mWindowClass.hInstance);
+    }
 }
 
 IDirect3DDevice9 *Renderer::Interface() {

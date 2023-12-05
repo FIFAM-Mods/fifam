@@ -78,7 +78,8 @@
 #include "tests\CopyPortraitsNoID.h"
 #include "tests\AssignPlayerFaces.h"
 #include "tests\PlayerNames.h"
+#include "tests\SortShoes.h"
 
 void RunTests() {
-    RunTest<PlayerNames>();
+    RunTest<GenerateKitConfig>();
 }

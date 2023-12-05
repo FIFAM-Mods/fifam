@@ -107,6 +107,7 @@
     <ClInclude Include="FifamNames.h" />
     <ClInclude Include="FifamGraphics.h" />
     <ClInclude Include="FifamPropertied.h" />
+    <ClInclude Include="FifamStaffSkillID.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamDate.cpp" />

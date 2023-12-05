@@ -10,6 +10,7 @@ struct stadium;
 
 struct comp {
     Int mID = 0;
+    Int mGender = 0;
     String mName;
     Array<String, 6> mTranslatedNames;
     String mShortName;

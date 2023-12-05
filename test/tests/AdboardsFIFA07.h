@@ -7,7 +7,7 @@ using namespace Magick;
 class AdboardsFIFA07 {
 public:
     AdboardsFIFA07() {
-        Path inputPath = R"(C:\Users\user\Desktop\adboards_07_08\slots3\folders)";
+        Path inputPath = R"(C:\Users\Dmitri\Desktop\f24_adb_3)";
         String adbnames[3] = { L"adba.tga", L"adbb.tga", L"adbc.tga" };
         for (auto const &d : directory_iterator(inputPath)) {
             Path p = d.path();
@@ -21,10 +21,10 @@ public:
                         Image img(adboard, Geometry(512, 192, 0, i * 192));
                         Geometry geom(512, 256);
                         geom.aspect(true);
-                        img.filterType(FilterType::HermiteFilter);
+                        img.filterType(FilterType::LanczosFilter);
                         img.resize(geom);
                         adboardPath.replace_filename(adbnames[i]);
-                        img.type(ImageType::TrueColorAlphaType);
+                        img.type(ImageType::TrueColorType);
                         img.compressType(CompressionType::NoCompression);
                         img.write(adboardPath.string());
                     }

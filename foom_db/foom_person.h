@@ -74,6 +74,7 @@ struct person {
         Char mEditorSkin = -1;
         Char mEditorEye = -1;
         Char mEditorBeard = -1;
+        Vector<String> mCharacterFlags;
     } mConverterData;
 };
 

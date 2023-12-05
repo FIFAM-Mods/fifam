@@ -287,6 +287,10 @@ void Converter::Convert() {
                         child = a.mAffiliatedClub;
                         childType = foom::club::converter_data::child_type::third;
                     }
+                    else if (a.mAffiliationType == 18) {
+                        child = a.mAffiliatedClub;
+                        childType = foom::club::converter_data::child_type::shared_youth;
+                    }
                     else if (a.mAffiliationType == 24) {
                         child = a.mAffiliatedClub;
                         childType = foom::club::converter_data::child_type::extinct_b_or_c;
@@ -524,23 +528,6 @@ void Converter::Convert() {
                         }
                         if (numSpareClubsToAdd > 100)
                             numSpareClubsToAdd = 100;
-                    }
-
-                    // TODO: Remove this
-                    if (country->mId == FifamNation::United_States) {
-                        Vector<foom::club *> usaSpareClubs;
-                        for (auto fc : spareClubs[country->mId - 1]) {
-                            if (fc->mID == 72052048) { // Inter Miami
-                                usaSpareClubs.push_back(fc);
-                                break;
-                            }
-                        }
-                        for (auto fc : spareClubs[country->mId - 1]) {
-                            if (fc->mID != 72052048) // Inter Miami
-                                usaSpareClubs.push_back(fc);
-                        }
-                        spareClubs[country->mId - 1] = usaSpareClubs;
-                        numSpareClubsToAdd++;
                     }
                 }
                 else
@@ -1833,7 +1820,8 @@ void Converter::Convert() {
     ProcessContinentalComps({ 102418 }, FifamContinent::SouthAmerica, 6);
 
     ProcessContinentalComps({ 51002641, 1301417 }, FifamContinent::NorthAmerica, 4);
-    ProcessContinentalComps({ 219740 }, FifamContinent::NorthAmerica, 5);
+    ProcessContinentalComps({ 2000259628, 219740 }, FifamContinent::NorthAmerica, 5);
+    ProcessContinentalComps({ 222987 }, FifamContinent::NorthAmerica, 6);
 
     ProcessContinentalComps({ 127299 }, FifamContinent::Africa, 4);
     ProcessContinentalComps({ 12017574 }, FifamContinent::Africa, 5);
@@ -1899,14 +1887,14 @@ void Converter::Convert() {
             mFifamDatabase->mRules.mContinentalCupStadiums[FifamContinent::SouthAmerica].mSuperCup = GetCompHost(&c, true);
         }
 
-        else if (c.mID == 51002641) { // Scotiabank CONCACAF Champions League
+        else if (c.mID == 51002641) { // CONCACAF Champions Cup
             mFifamDatabase->mRules.mContinentalCupStadiums[FifamContinent::NorthAmerica].mFirstCup = GetCompHost(&c);
             if (c.mName.length() > MAX_COMP_NAME_LENGTH)
                 FifamTrSetAll(mFifamDatabase->mRules.mContinentalCupNames[FifamContinent::NorthAmerica].mFirstCup, FifamNames::LimitName(c.mShortName, MAX_COMP_NAME_LENGTH));
             else
                 FifamTrSetAll(mFifamDatabase->mRules.mContinentalCupNames[FifamContinent::NorthAmerica].mFirstCup, c.mName);
         }
-        else if (c.mID == 219740) { // Scotiabank CONCACAF League
+        else if (c.mID == 2000259628) { // Central American Cup
             mFifamDatabase->mRules.mContinentalCupStadiums[FifamContinent::NorthAmerica].mSecondCup = GetCompHost(&c);
             if (c.mName.length() > MAX_COMP_NAME_LENGTH)
                 FifamTrSetAll(mFifamDatabase->mRules.mContinentalCupNames[FifamContinent::NorthAmerica].mSecondCup, FifamNames::LimitName(c.mShortName, MAX_COMP_NAME_LENGTH));
@@ -2122,6 +2110,9 @@ void Converter::Convert() {
                         //case 1877: // Boca Juniors
                         //    fmClubFifaId = 114149;
                         //    break;
+                        case 190: // Brescia
+                            fmClubFifaId = 113973;
+                            break;
                         }
                         fifaClub = mFifaDatabase->GetTeam(fmClubFifaId);
                         if (fifaClub && fifaClub->m_gameId != FifaDatabase::m_lastSupportedGameVersion)
@@ -2445,17 +2436,14 @@ void Converter::Convert() {
         //graphicsConverter.DownloadPlayerPortraitsFIFA(mFifamDatabase, mOutputGameFolder, gameId);
     }
 #endif
+}
 
+Converter::~Converter() {
     delete mReferenceDatabase;
-    mReferenceDatabase = nullptr;
     delete mFifamDatabase;
-    mFifamDatabase = nullptr;
     delete mFoomDatabase;
-    mFoomDatabase = nullptr;
     delete mFifaDatabase;
-    mFifaDatabase = nullptr;
     delete mPreviousDb;
-    mPreviousDb = nullptr;
 }
 
 FifamFormation Converter::ConvertFormationId(Int id) {
@@ -2694,7 +2682,7 @@ void Converter::GenerateNewTeamIDsFile(Path const &outputFilePath, Path const &o
             info.mExtinct = L"Extinct";
         for (auto const &af : club.mVecAffiliations) {
             if (!af.mIsMainClub) {
-                if ((af.mAffiliationType >= 2 && af.mAffiliationType <= 8) || af.mAffiliationType == 18) {
+                if ((af.mAffiliationType >= 2 && af.mAffiliationType <= 8) || af.mAffiliationType == 18 || af.mAffiliationType == 22 || af.mAffiliationType == 24 || af.mAffiliationType == 25) {
                     if (af.mAffiliationType == 2)
                         info.mAffiliationType = L"Sub Team";
                     else if (af.mAffiliationType == 3)
@@ -2710,7 +2698,13 @@ void Converter::GenerateNewTeamIDsFile(Path const &outputFilePath, Path const &o
                     else if (af.mAffiliationType == 8)
                         info.mAffiliationType = L"II Club";
                     else if (af.mAffiliationType == 18)
-                        info.mAffiliationType = L"Youth Team";
+                        info.mAffiliationType = L"Shared Youth Team";
+                    else if (af.mAffiliationType == 22)
+                        info.mAffiliationType = L"Regional Academy";
+                    else if (af.mAffiliationType == 24)
+                        info.mAffiliationType = L"Extinct B or C Club";
+                    else if (af.mAffiliationType == 25)
+                        info.mAffiliationType = L"Womens Club";
                     else
                         info.mAffiliationType = L"Unknown";
                     if (af.mAffiliatedClub)

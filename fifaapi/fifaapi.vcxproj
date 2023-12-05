@@ -92,6 +92,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="FifaAgent.cpp" />
     <ClCompile Include="FifaDatabase.cpp" />
     <ClCompile Include="FifaDataFile.cpp" />
     <ClCompile Include="FifaDate.cpp" />
@@ -101,10 +102,12 @@
     <ClCompile Include="FifaPlayer.cpp" />
     <ClCompile Include="FifaReferee.cpp" />
     <ClCompile Include="FifaStadium.cpp" />
+    <ClCompile Include="FifaStoryModePlayer.cpp" />
     <ClCompile Include="FifaTeam.cpp" />
     <ClCompile Include="FifaVersion.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="FifaAgent.h" />
     <ClInclude Include="FifaDatabase.h" />
     <ClInclude Include="FifaDataFile.h" />
     <ClInclude Include="FifaDate.h" />
@@ -114,6 +117,7 @@
     <ClInclude Include="FifaPlayer.h" />
     <ClInclude Include="FifaReferee.h" />
     <ClInclude Include="FifaStadium.h" />
+    <ClInclude Include="FifaStoryModePlayer.h" />
     <ClInclude Include="FifaTeam.h" />
     <ClInclude Include="FifaVersion.h" />
   </ItemGroup>

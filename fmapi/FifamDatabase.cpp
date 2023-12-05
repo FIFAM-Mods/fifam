@@ -9,6 +9,7 @@
 #include <iostream>
 
 FifamDatabase::ReadingOptions FifamDatabase::mReadingOptions;
+FifamDatabase::WritingOptions FifamDatabase::mWritingOptions;
 
 FifamDatabase::FifamDatabase() {}
 
@@ -16,14 +17,26 @@ FifamDatabase::FifamDatabase(UInt gameId, const Path &dbPath) {
     Read(gameId, dbPath);
 }
 
+Bool GetNationCustomReplacement(UChar nationId, UChar &translatedNationId) {
+    FifamNation nation;
+    nation.SetFromInt(nationId);
+    if (FifamDatabase::mWritingOptions.mCountryTranslationMap.contains(nation)) {
+        translatedNationId = FifamDatabase::mWritingOptions.mCountryTranslationMap[nation].second.ToInt();
+        return true;
+    }
+    return false;
+}
+
 UInt FifamDatabase::GetInternalGameCountryId(UInt gameId, UChar nationId) {
     FifamNation nation;
     nation.SetFromInt(nationId);
-    if (gameId < 8) {
+    if (mWritingOptions.mCountryTranslationMap.contains(nation))
+        nation = mWritingOptions.mCountryTranslationMap[nation].first;
+    if (gameId <= 7) {
         if (nation == FifamNation::Montenegro)
             return 0;
-        if (nation > FifamNation::Montenegro)
-            return nation.ToInt() - 1;
+        if (nation == FifamNation::Greenland)
+            return 206;
     }
     return nation.ToInt();
 }
@@ -315,7 +328,7 @@ void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &
 
     Vector<FifamCompEntry> compsEurope, compsSouthAmerica, compsNorthAmerica, compsAfrica, compsAsia, compsOceania,
         compsQualiWC, compsWC, compsQualiEC, compsEC, compsU20WC, compsConfedCup, compsCopaAmerica,
-        compsEuropeYouth, compsSouthAmericaYouth, compsEuroNL, compsEuroNLQ, compsNorthAmericaCup, compsNorthAmericaNL,
+        compsEuroNL, compsEuroNLQ, compsNorthAmericaCup, compsNorthAmericaNL,
         compsNorthAmericaNLQ, compsAfricaCup, compsAfricaCupQ, compsAsiaCup, compsAsiaCupQ, compsOFCCup, compsOFCCupQ,
         compsU17WC, compsU21EC, compsU19EC, compsU17EC, compsOlympicGames;
     for (auto const &compEntry : mCompMap) {
@@ -324,18 +337,10 @@ void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &
             if (comp->GetDbType() == FifamCompDbType::League || comp->GetDbType() == FifamCompDbType::Cup ||
                 comp->GetDbType() == FifamCompDbType::Round || comp->GetDbType() == FifamCompDbType::Pool)
             {
-                if (comp->mID.mRegion == FifamCompRegion::Europe) {
-                    if (comp->mID.mType == FifamCompType::YouthChampionsLeague)
-                        compsEuropeYouth.push_back(compEntry);
-                    else
-                        compsEurope.push_back(compEntry);
-                }
-                else if (comp->mID.mRegion == FifamCompRegion::SouthAmerica) {
-                    if (comp->mID.mType == FifamCompType::YouthChampionsLeague)
-                        compsSouthAmericaYouth.push_back(compEntry);
-                    else
-                        compsSouthAmerica.push_back(compEntry);
-                }
+                if (comp->mID.mRegion == FifamCompRegion::Europe)
+                    compsEurope.push_back(compEntry);
+                else if (comp->mID.mRegion == FifamCompRegion::SouthAmerica)
+                    compsSouthAmerica.push_back(compEntry);
                 else if (comp->mID.mRegion == FifamCompRegion::NorthAmerica)
                     compsNorthAmerica.push_back(compEntry);
                 else if (comp->mID.mRegion == FifamCompRegion::Africa)
@@ -357,7 +362,7 @@ void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &
                         compsU20WC.push_back(compEntry);
                     else if (comp->mID.mType == FifamCompType::ConfedCup)
                         compsConfedCup.push_back(compEntry);
-                    else if (comp->mID.mType == FifamCompType::CopaAmerica)
+                    else if (comp->mID.mType == FifamCompType::CopaAmerica || comp->mID.mType == FifamCompType::Finalissima)
                         compsCopaAmerica.push_back(compEntry);
 
                     else if (comp->mID.mType == FifamCompType::EuroNL)
@@ -575,6 +580,7 @@ void FifamDatabase::SetupWriteableStatus(UInt gameId) {
         if (country) {
             // TODO: update this
             country->mNumWriteableLeagueLevels = (gameId > 7) ? 16 : 5;
+
             country->mNationalTeam.SetIsWriteable(true);
             country->mNationalTeam.SetWriteableID(0xFFFF | (country->mId << 16));
             country->mNationalTeam.SetWriteableUniqueID(TranslateCountryEntityID(country->mNationalTeam.mUniqueID, LATEST_GAME_VERSION, gameId));

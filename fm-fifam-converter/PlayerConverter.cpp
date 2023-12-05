@@ -2,110 +2,6 @@
 #include "FifamPlayerLevel.h"
 #include "ConverterUtil.h"
 
-Bool Converter::IsIconicPlayer(Int playerId) {
-    static Vector<Int> playerIDs = {
-        735216, // Cristiano Ronaldo
-        7458500, // Messi
-        19024412, // Neymar
-        11133, // Buffon
-        142173, // Ibrahimovic
-        7458272, // Sergio Ramos
-        5124470, // Pique
-        85139014, // Mbappe
-        8435089, // Benzema
-        719601, // Lewandowski
-        98028755, // Salah
-        8718372, // Neuer
-        653054, // Modric
-        156772, // Kroos
-        85028014, // Pogba
-    };
-    return Utils::Contains(playerIDs, playerId);
-}
-
-Bool Converter::IsIntrovertPlayer(Int playerId) {
-    static Vector<Int> playerIDs = {
-        7458500, // Messi
-        85081880, // Kante
-        653054 // Modric
-    };
-    return Utils::Contains(playerIDs, playerId);
-}
-
-Bool Converter::IsExtrovertPlayer(Int playerId) {
-    static Vector<Int> playerIDs = {
-        19024412, // Neymar
-        8832853, // Marcelo
-        71000324, // Konoplyanka
-        71081391, // Zinchenko
-        8085570, // Dzyuba
-        189596, // Muller
-        234396 // Davies
-    };
-    return Utils::Contains(playerIDs, playerId);
-}
-
-Bool Converter::IsInsecurePlayer(Int playerId) {
-    static Vector<Int> playerIDs = {
-        43001238 // Balotelli
-    };
-    return Utils::Contains(playerIDs, playerId);
-}
-
-Bool Converter::IsFansFavouritePlayer(Int playerId) {
-    static Vector<Int> playerIDs = {
-        7458500, // Messi
-        735216, // Cristiano Ronaldo
-        19024412, // Neymar
-        11133, // Buffon
-        142173, // Ibrahimovic
-        98028755, // Salah
-        76002390, // James
-        5132312, // Bale
-        78000335, // Luis Suarez
-        8832853, // Marcelo
-        8435089, // Benzema
-        7458272, // Sergio Ramos
-        824041, // Iniesta
-        85028014, // Pogba
-        2114068, // David Luiz
-        315542, // Dani Alves
-        35002219, // Ozil
-        156772, // Kroos
-        5124470, // Pique
-        67086656, // Griezmann
-        14044150, // Dybala
-        8833628, // Thiago Silva
-        198219, // Insigne
-        231747, // Mbappe
-        653054, // Modric
-        29179241, // Haaland
-        91013383, // Reus
-        19302146 // Vini Junior
-    };
-    return Utils::Contains(playerIDs, playerId);
-}
-
-Bool Converter::IsSensitivePlayer(Int playerId) {
-    return false;
-}
-
-Bool Converter::IsLazyPlayer(Int playerId) {
-    static Vector<Int> playerIDs = {
-        85140178, // Dembele
-        71000324, // Konoplyanka
-        37003555, // Arnautovic
-        727983, // Quaresma
-        35002219, // Ozil
-        919707, // Ben Arfa
-        37024470, // Depay
-        34001033, // Taarabt
-        43001238, // Balotelli
-        8168166 // Gervinho
-    };
-    return Utils::Contains(playerIDs, playerId);
-}
-
 UChar Converter::GetPlayerLevel(FifamPlayer *player, Bool includeExperience, UInt gameId) {
     return GetPlayerLevel(player, player->mMainPosition, player->mPlayingStyle, includeExperience, gameId);
 }
@@ -1567,106 +1463,120 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         mNationalTeamPlayers[playerOriginalCountry->mId - 1].push_back(p);
 
     // character
-    if (p->mPressure >= 15)
-        player->mCharacter.Set(FifamPlayerCharacter::StrongNerves, true);
-    else if (p->mPressure <= 6)
-        player->mCharacter.Set(FifamPlayerCharacter::WeakNerves, true);
-
-    if (p->mProfessionalism >= 15)
-        player->mCharacter.Set(FifamPlayerCharacter::Professionalism, true);
-    else if (p->mProfessionalism <= 6)
-        player->mCharacter.Set(FifamPlayerCharacter::ScandalProne, true);
-
-    if (p->mAmbition >= 15)
-        player->mCharacter.Set(FifamPlayerCharacter::Ambition, true);
-    else if (p->mAmbition <= 6)
-        player->mCharacter.Set(FifamPlayerCharacter::LacksAmbition, true);
-
-    if (p->mAdaptability >= 18)
-        player->mCharacter.Set(FifamPlayerCharacter::Adaptability, true);
-
-    if (player->mLanguages[3] != FifamLanguage::None)
-        player->mCharacter.Set(FifamPlayerCharacter::LanguageGenius, true);
-    else if (player->mLanguages[1] == FifamLanguage::None && p->mAdaptability <= 6)
-        player->mCharacter.Set(FifamPlayerCharacter::DoesntLikeNewLang, true);
-
-    if (p->mSportsmanship >= 15)
-        player->mCharacter.Set(FifamPlayerCharacter::Fairness, true);
-    else if (p->mSportsmanship <= 6)
-        player->mCharacter.Set(FifamPlayerCharacter::HardMan, true);
-
-    if (OriginalAttrValue(p->mInjuryProneness) >= 15)
-        player->mCharacter.Set(FifamPlayerCharacter::InjuryProne, true);
-    else if (OriginalAttrValue(p->mInjuryProneness) <= 4) // maybe 3
-        player->mCharacter.Set(FifamPlayerCharacter::LittleInjuryProne, true);
-
-    if (p->mControversy >= 15)
-        player->mCharacter.Set(FifamPlayerCharacter::MediaDarling, true);
-    else if (p->mControversy <= 1)
-        player->mCharacter.Set(FifamPlayerCharacter::UninterestedInMedia, true);
-
-    if (p->mLoyalty >= 19) // maybe 17-18
-        player->mCharacter.Set(FifamPlayerCharacter::IdentificationHigh, true);
-    else if (p->mLoyalty <= 5) // maybe 4
-        player->mCharacter.Set(FifamPlayerCharacter::IdentificationLow, true);
-
-    if (p->mHitsFreekicksWithPower)
-        player->mCharacter.Set(FifamPlayerCharacter::DrivenFreeKicks, true);
-
+    if (!p->mConverterData.mCharacterFlags.empty())
+        player->mCharacter.SetFromStrAry(p->mConverterData.mCharacterFlags);
+    if (!player->mCharacter.Check(FifamPlayerCharacter::StrongNerves) && !player->mCharacter.Check(FifamPlayerCharacter::WeakNerves)) {
+        if (p->mPressure >= 15)
+            player->mCharacter.Set(FifamPlayerCharacter::StrongNerves, true);
+        else if (p->mPressure <= 6)
+            player->mCharacter.Set(FifamPlayerCharacter::WeakNerves, true);
+    }
+    if (!player->mCharacter.Check(FifamPlayerCharacter::Professionalism) && !player->mCharacter.Check(FifamPlayerCharacter::ScandalProne)) {
+        if (p->mProfessionalism >= 15) {
+            if (!player->mCharacter.Check(FifamPlayerCharacter::LazyInTraining))
+                player->mCharacter.Set(FifamPlayerCharacter::Professionalism, true);
+        }
+        else if (p->mProfessionalism <= 6) {
+            if (!player->mCharacter.Check(FifamPlayerCharacter::Introvert))
+                player->mCharacter.Set(FifamPlayerCharacter::ScandalProne, true);
+        }
+    }
+    if (!player->mCharacter.Check(FifamPlayerCharacter::Ambition) && !player->mCharacter.Check(FifamPlayerCharacter::LacksAmbition)) {
+        if (p->mAmbition >= 15)
+            player->mCharacter.Set(FifamPlayerCharacter::Ambition, true);
+        else if (p->mAmbition <= 6)
+            player->mCharacter.Set(FifamPlayerCharacter::LacksAmbition, true);
+    }
+    if (!player->mCharacter.Check(FifamPlayerCharacter::Adaptability)) {
+        if (p->mAdaptability >= 18)
+            player->mCharacter.Set(FifamPlayerCharacter::Adaptability, true);
+    }
+    if (!player->mCharacter.Check(FifamPlayerCharacter::LanguageGenius) && !player->mCharacter.Check(FifamPlayerCharacter::DoesntLikeNewLang)) {
+        if (player->mLanguages[3] != FifamLanguage::None)
+            player->mCharacter.Set(FifamPlayerCharacter::LanguageGenius, true);
+        else if (player->mLanguages[1] == FifamLanguage::None && p->mAdaptability <= 6)
+            player->mCharacter.Set(FifamPlayerCharacter::DoesntLikeNewLang, true);
+    }
+    if (!player->mCharacter.Check(FifamPlayerCharacter::Fairness) && !player->mCharacter.Check(FifamPlayerCharacter::HardMan)) {
+        if (p->mSportsmanship >= 15)
+            player->mCharacter.Set(FifamPlayerCharacter::Fairness, true);
+        else if (p->mSportsmanship <= 6)
+            player->mCharacter.Set(FifamPlayerCharacter::HardMan, true);
+    }
+    if (!player->mCharacter.Check(FifamPlayerCharacter::InjuryProne) && !player->mCharacter.Check(FifamPlayerCharacter::LittleInjuryProne)) {
+        if (OriginalAttrValue(p->mInjuryProneness) >= 15)
+            player->mCharacter.Set(FifamPlayerCharacter::InjuryProne, true);
+        else if (OriginalAttrValue(p->mInjuryProneness) <= 4) // maybe 3
+            player->mCharacter.Set(FifamPlayerCharacter::LittleInjuryProne, true);
+    }
+    if (!player->mCharacter.Check(FifamPlayerCharacter::MediaDarling) && !player->mCharacter.Check(FifamPlayerCharacter::UninterestedInMedia)) {
+        if (p->mControversy >= 15) {
+            if (!player->mCharacter.Check(FifamPlayerCharacter::Introvert))
+                player->mCharacter.Set(FifamPlayerCharacter::MediaDarling, true);
+        }
+        else if (p->mControversy <= 1)
+            player->mCharacter.Set(FifamPlayerCharacter::UninterestedInMedia, true);
+    }
+    if (!player->mCharacter.Check(FifamPlayerCharacter::IdentificationHigh) && !player->mCharacter.Check(FifamPlayerCharacter::IdentificationLow)) {
+        if (p->mLoyalty >= 19) // maybe 17-18
+            player->mCharacter.Set(FifamPlayerCharacter::IdentificationHigh, true);
+        else if (p->mLoyalty <= 5) // maybe 4
+            player->mCharacter.Set(FifamPlayerCharacter::IdentificationLow, true);
+    }
+    if (!player->mCharacter.Check(FifamPlayerCharacter::DrivenFreeKicks)) {
+        if (p->mHitsFreekicksWithPower)
+            player->mCharacter.Set(FifamPlayerCharacter::DrivenFreeKicks, true);
+    }
     if (player->mMainPosition == FifamPlayerPosition::GK) {
-        if (p->mUsesLongThrowToStartCounterAttacks || OriginalAttrValue(p->mThrowing) >= 15)
-            player->mCharacter.Set(FifamPlayerCharacter::LongThrowOuts, true);
+        if (!player->mCharacter.Check(FifamPlayerCharacter::LongThrowOuts)) {
+            if (p->mUsesLongThrowToStartCounterAttacks || OriginalAttrValue(p->mThrowing) >= 15)
+                player->mCharacter.Set(FifamPlayerCharacter::LongThrowOuts, true);
+        }
     }
     else {
-        if (p->mPossessesLongFlatThrow || OriginalAttrValue(p->mLongThrows) >= 15)
-            player->mCharacter.Set(FifamPlayerCharacter::LongThrows, true);
-
-        if (OriginalAttrValue(p->mVersatility) >= 17) // maybe 15-16
-            player->mCharacter.Set(FifamPlayerCharacter::Flexibility, true);
-        else if (OriginalAttrValue(p->mVersatility) <= 4) // maybe 3
-            player->mCharacter.Set(FifamPlayerCharacter::Inflexibility, true);
-
+        if (!player->mCharacter.Check(FifamPlayerCharacter::LongThrows)) {
+            if (p->mPossessesLongFlatThrow || OriginalAttrValue(p->mLongThrows) >= 15)
+                player->mCharacter.Set(FifamPlayerCharacter::LongThrows, true);
+        }
+        if (!player->mCharacter.Check(FifamPlayerCharacter::Flexibility) && !player->mCharacter.Check(FifamPlayerCharacter::Inflexibility)) {
+            if (OriginalAttrValue(p->mVersatility) >= 17) // maybe 15-16
+                player->mCharacter.Set(FifamPlayerCharacter::Flexibility, true);
+            else if (OriginalAttrValue(p->mVersatility) <= 4) // maybe 3
+                player->mCharacter.Set(FifamPlayerCharacter::Inflexibility, true);
+        }
+    }
+    if (!player->mCharacter.Check(FifamPlayerCharacter::Egoist) && !player->mCharacter.Check(FifamPlayerCharacter::Teamplayer)) {
         Int teamWork = OriginalAttrValue(p->mTeamWork);
         if (teamWork > 0 && teamWork <= 8) {
             Float teamPlayerRating = (Float)p->mCurrentAbility / teamWork;
             if (teamPlayerRating >= 13.4f) // magic
                 player->mCharacter.Set(FifamPlayerCharacter::Egoist, true);
         }
-    }
-
-    if (!player->mCharacter.Check(FifamPlayerCharacter::Egoist)) {
-        if (OriginalAttrValue(p->mTeamWork) >= 16) // maybe 15/17
+        else if (teamWork >= 16) // maybe 15/17
             player->mCharacter.Set(FifamPlayerCharacter::Teamplayer, true);
     }
-
-    if (OriginalAttrValue(p->mWorkRate) >= 18) // maybe 17/19
-        player->mCharacter.Set(FifamPlayerCharacter::HighTrainingWorkRate, true);
-    else {
-        if (!player->mCharacter.Check(FifamPlayerCharacter::Professionalism)) {
-            Int workRate = OriginalAttrValue(p->mWorkRate);
-            if (workRate > 0 && workRate <= 8) {
-                Float workRateRating = (Float)p->mCurrentAbility / workRate;
-                if (workRateRating >= 17.0f) // magic
-                    player->mCharacter.Set(FifamPlayerCharacter::LazyInTraining, true);
+    if (!player->mCharacter.Check(FifamPlayerCharacter::HighTrainingWorkRate) && !player->mCharacter.Check(FifamPlayerCharacter::LazyInTraining)) {
+        Int workRate = OriginalAttrValue(p->mWorkRate);
+        if (workRate >= 18) // maybe 17/19
+            player->mCharacter.Set(FifamPlayerCharacter::HighTrainingWorkRate, true);
+        else {
+            if (!player->mCharacter.Check(FifamPlayerCharacter::Professionalism)) {
+                if (workRate > 0 && workRate <= 8) {
+                    Float workRateRating = (Float)p->mCurrentAbility / workRate;
+                    if (workRateRating >= 17.0f) // magic
+                        player->mCharacter.Set(FifamPlayerCharacter::LazyInTraining, true);
+                }
             }
         }
     }
-
-    if (p->mTemperament >= 20) {
-        if (p->mCurrentAbility >= 80)
-            player->mCharacter.Set(FifamPlayerCharacter::Composure, true);
+    if (!player->mCharacter.Check(FifamPlayerCharacter::Composure) && !player->mCharacter.Check(FifamPlayerCharacter::Temperament)) {
+        if (p->mTemperament >= 20) {
+            if (p->mCurrentAbility >= 80)
+                player->mCharacter.Set(FifamPlayerCharacter::Composure, true);
+        }
+        else if (p->mTemperament <= 5)
+            player->mCharacter.Set(FifamPlayerCharacter::Temperament, true);
     }
-    else if (p->mTemperament <= 5)
-        player->mCharacter.Set(FifamPlayerCharacter::Temperament, true);
-
-    player->mCharacter.Set(FifamPlayerCharacter::LifestyleIcon, IsIconicPlayer(p->mID));
-    player->mCharacter.Set(FifamPlayerCharacter::Introvert, IsIntrovertPlayer(p->mID));
-    player->mCharacter.Set(FifamPlayerCharacter::Extrovert, IsExtrovertPlayer(p->mID));
-    player->mCharacter.Set(FifamPlayerCharacter::FansFavorite, IsFansFavouritePlayer(p->mID));
-    player->mCharacter.Set(FifamPlayerCharacter::Diva, IsSensitivePlayer(p->mID));
-    player->mCharacter.Set(FifamPlayerCharacter::NeedsAttention, IsInsecurePlayer(p->mID));
-    if (!player->mCharacter.Check(FifamPlayerCharacter::HighTrainingWorkRate) && IsLazyPlayer(p->mID))
-        player->mCharacter.Set(FifamPlayerCharacter::LazyInTraining, true);
 
     // hero
     UChar heroStatus = 0;
@@ -1735,14 +1645,31 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     }
 
     // injury
+    static Date TransferWindowCloseDate = Date(1, 9, GetCurrentDate().year);
+    UInt maxDuration = 0;
+    foom::player::injury *selectedInjury = nullptr;
     for (auto &i : p->mVecInjuries) {
-        if (i.mInjury && i.mStartDate != FmEmptyDate() && i.mStartDate <= GetCurrentDate() && i.mEndDate > GetCurrentDate()) {
+        if (i.mInjury && i.mStartDate != FmEmptyDate() && i.mStartDate < TransferWindowCloseDate && i.mEndDate > GetCurrentDate()) {
             if (i.mInjury->mConverterData.mFIFAManagerID != 0) {
-                FifamPlayerInjuryType injuryType = FifamPlayerInjuryType::MakeFromInt(i.mInjury->mConverterData.mFIFAManagerID);
-                player->mStartingConditions.mInjury.Setup(i.mStartDate, i.mEndDate, injuryType);
-                break;
+                UInt duration = FifamDate(i.mEndDate) - FifamDate(i.mStartDate);
+                if (i.mStartDate < GetCurrentDate() || duration >= 62) {
+                    maxDuration = duration;
+                    selectedInjury = &i;
+                }
             }
         }
+    }
+    if (selectedInjury) {
+        FifamPlayerInjuryType injuryType = FifamPlayerInjuryType::MakeFromInt(selectedInjury->mInjury->mConverterData.mFIFAManagerID);
+        if (selectedInjury->mStartDate >= GetCurrentDate()) {
+            static FifamDate PrevSeasonDate = Date(30, 6, GetCurrentDate().year);
+            FifamDate endDate = selectedInjury->mEndDate;
+            UInt endDateShift = endDate - PrevSeasonDate;
+            endDate.SetDays(endDate.GetDays() - endDateShift);
+            player->mStartingConditions.mInjury.Setup(PrevSeasonDate, endDate, injuryType);
+        }
+        else
+            player->mStartingConditions.mInjury.Setup(selectedInjury->mStartDate, selectedInjury->mEndDate, injuryType);
     }
 
     // debug

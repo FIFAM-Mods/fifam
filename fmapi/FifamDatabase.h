@@ -47,7 +47,7 @@ public:
         Bool mUseCustomFormations = false;
     } mReadingOptions;
 
-    struct {
+    static struct WritingOptions {
         Bool mNonWriteablePlayersAreFreeAgents = false;
         Bool mNonWriteableStaffsAreFreeAgents = false;
         Bool mWriteAssessment = true;
@@ -55,6 +55,7 @@ public:
         Bool mWriteExternalScripts = true;
         UInt mMaxClubsInCountry[8] = { 512, 512, 512, 1024, 1024, 1024, 1024, 1024 };
         UInt mMaxPersonsInClub[8] = { 60, 96, 99, 99, 99, 99, 256, 256 };
+        Map<FifamNation, Pair<FifamNation, FifamNation>> mCountryTranslationMap;
     } mWritingOptions;
 
     static FifamVersion GetGameDbVersion(UInt gameId);

@@ -78,7 +78,9 @@ FifaDatabase::FifaDatabase(std::filesystem::path const &path, bool readFut) {
             for (auto const &strFolder : dbFolders) {
                 bool isDefaultVersion = strFolder == defaultFolderName;
                 bool isFutVersion = !futFolderName.empty() && strFolder == futFolderName;
-                wprintf(L"Reading FIFA database: FIFA %02d (", i);
+                wprintf(L"Reading FIFA database: ");
+                wprintf(i >= 24 ? L"FC" : L"FIFA");
+                wprintf(L" %02d (", i);
                 if (isDefaultVersion)
                     wprintf(L"Default");
                 else if (isFutVersion)
@@ -152,7 +154,7 @@ FifaDatabase::FifaDatabase(std::filesystem::path const &path, bool readFut) {
                     file.Close();
                 }
                 // read managers
-                if (file.Open(gamedbpath / strFolder / L"manager.txt")) {
+                if (m_currentGameVersion >= 17 && file.Open(gamedbpath / strFolder / L"manager.txt")) {
                     for (FifaDataFile::Line line; file.NextLine(line); )
                         AddEntityVersioned(m_managers, line, m_currentGameVersion);
                     file.Close();
@@ -173,6 +175,27 @@ FifaDatabase::FifaDatabase(std::filesystem::path const &path, bool readFut) {
                 if (m_currentGameVersion >= 19 && file.Open(gamedbpath / strFolder / L"teamkits.txt")) {
                     for (FifaDataFile::Line line; file.NextLine(line); )
                         AddEntityVersioned(m_kits, line, m_currentGameVersion);
+                    file.Close();
+                }
+                // read agents
+                if (m_currentGameVersion >= 23 && file.Open(gamedbpath / strFolder / L"agents.txt")) {
+                    for (FifaDataFile::Line line; file.NextLine(line); )
+                        AddEntityVersioned(m_agents, line, m_currentGameVersion);
+                    file.Close();
+                }
+                // read smplayers
+                if (m_currentGameVersion >= 17 && file.Open(gamedbpath / strFolder / L"smplayers.txt")) {
+                    for (FifaDataFile::Line line; file.NextLine(line); ) {
+                        FifaStoryModePlayer *player = AddEntityVersioned(m_smplayers, line, m_currentGameVersion);
+                        if (player) {
+                            player->m_firstName = playernames[player->internal.firstnameid];
+                            player->m_lastName = playernames[player->internal.lastnameid];
+                            player->m_commonName = playernames[player->internal.commonnameid];
+                            player->m_playerJerseyName = playernames[player->internal.playerjerseynameid];
+                            player->m_quickName = Utils::GetQuickName(player->m_firstName, player->m_lastName, player->m_commonName);
+                            player->m_birthDate.Set(player->internal.birthdate);
+                        }
+                    }
                     file.Close();
                 }
                 if (leagueteamlinksPath.empty() && std::filesystem::exists(gamedbpath / strFolder / L"leagueteamlinks.txt"))
@@ -367,7 +390,10 @@ FifaDatabase::~FifaDatabase() {
     ClearList(m_players);
     ClearList(m_managers);
     ClearList(m_referees);
+    ClearList(m_agents);
+    ClearList(m_smplayers);
     ClearList(m_stadiums);
+    ClearList(m_kits);
 }
 
 std::wstring FifaDatabase::GetVersionString() {
@@ -408,4 +434,12 @@ FifaKit *FifaDatabase::GetKit(unsigned int kitId) {
 
 FifaManager *FifaDatabase::GetManager(unsigned int managerId) {
     return GetFromList(m_managers, managerId);
+}
+
+FifaAgent *FifaDatabase::GetAgent(unsigned int agentId) {
+    return GetFromList(m_agents, agentId);
+}
+
+FifaStoryModePlayer *FifaDatabase::GetStoryModePlayer(unsigned int playerId) {
+    return GetFromList(m_smplayers, playerId);
 }

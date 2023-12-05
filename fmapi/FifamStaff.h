@@ -3,6 +3,7 @@
 #include "FifamManagerFocus.h"
 #include "FifamClubStaffPosition.h"
 #include "FifamCoachPlayingOrientation.h"
+#include "FifamStaffSkillID.h"
 
 class FifamPlayer;
 
@@ -100,6 +101,6 @@ public:
     UChar GetStaffLevel();
     UChar GetStaffLevel(FifamClubStaffPosition position);
     String GetStringUniqueId(UInt gameId);
-    void ForAllAttributes(Function<void(UChar &, Float)> callback);
-    void ForAllAttributes(FifamClubStaffPosition position, Function<void(UChar &, Float)> callback);
+    void ForAllSkills(Function<void(FifamStaffSkillID, UChar &, Float)> callback);
+    void ForAllSkills(FifamClubStaffPosition position, Function<void(FifamStaffSkillID, UChar &, Float)> callback);
 };

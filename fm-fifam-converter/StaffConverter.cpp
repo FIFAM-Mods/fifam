@@ -205,6 +205,37 @@ Int ConvertStaffAttribute_100_15(Int attr) {
     return ConvertStaffAttribute_20_15(OriginalAttrValue(attr));
 }
 
+void SetStaffLevel(FifamStaff *staff, FifamClubStaffPosition position, Int level, Bool decreaseOnlyImportantAttributes = false,
+    Set<FifamStaffSkillID> skillsToChange = Set<FifamStaffSkillID>())
+{
+    Int currLevel = staff->GetStaffLevel(position);
+    if (currLevel != level) {
+        Int iterations = 0;
+        Bool increase = level > currLevel;
+        FifamStaff::Skills savedSkills;
+        while (true) {
+            iterations++;
+            if (increase)
+                savedSkills = staff->mSkills;
+            staff->ForAllSkills([=](FifamStaffSkillID skillID, UChar &value, Float weight) {
+                if (skillsToChange.empty() || skillsToChange.contains(skillID)) {
+                    if (!increase) {
+                        if (!decreaseOnlyImportantAttributes || weight > 0.0f)
+                            value = Utils::Clamp(value - 1, 1, 99);
+                    }
+                    else if (weight > 0.0f)
+                        value = Utils::Clamp((Int)value + roundf((Float)iterations * weight), 1, 99);
+                }
+            });
+            currLevel = staff->GetStaffLevel(position);
+            if (iterations == 100 || (increase && currLevel >= level) || (!increase && currLevel <= level))
+                break;
+            if (increase)
+                staff->mSkills = savedSkills;
+        }
+    }
+}
+
 FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * club, FifamClubStaffPosition position, UInt gameId) {
     if (!p->mNation) {
         Error(L"Staff without nation\nSaffId: %d\nStaffName: %s", p->mID, p->mFullName.c_str());
@@ -391,39 +422,52 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
         }
     }
 
-    // coaching style
-    Int bestAttacking = p->mAttacking * 5;
-    Int bestDefending = p->mWillLookToPlayOutOfDefence * 5;
-    Int bestTactical = BestFrom_Avg<Int>({ p->mTacticalKnowledge, p->mWillMakeEarlyTacticalChanges * 5, p->mWillFitPlayersIntoPreferredTactic * 5 }, 1);
-    Int bestYouth = BestFrom_Avg<Int>({ p->mSignsYoungPlayersForTheFirstTeam, p->mSignsALotOfYouthPlayers }, 1) * 5;
-    auto bestStyle = Utils::GetMaxElementId<Int, FifamManagerFocus>({
-        { bestAttacking > bestDefending ? (bestAttacking - bestDefending) : 0, FifamManagerFocus::Offensive },
-        { bestDefending > bestAttacking ? (bestDefending - bestAttacking) : 0, FifamManagerFocus::Defensive },
-        { bestTactical, FifamManagerFocus::TacticalEducation },
-        { p->mLevelOfDiscipline * 5, FifamManagerFocus::Discipline },
-        { (p->mCoachingMental + p->mMotivating) / 2, FifamManagerFocus::PlayerCharacter },
-        { p->mCoachingFitness * 5, FifamManagerFocus::Fitness },
-        { bestYouth, FifamManagerFocus::YoungPlayers }
-        });
-
-    if (bestStyle.first > 50)
-        staff->mManagerFocus = bestStyle.second;
+    // coaching style 
+    // mCoachingStyle : 0 - not set, 1 - general (Simeone, Luis Enrique, Conte), 2 - goalkeeping, 3 - fitness, 4 - attacking, 5 - defending, 6 - technical, 7 - technical, 8 - mental, 9 - set pieces
+    if (p->mCoachingStyle == 3) // fitness
+        staff->mManagerFocus = FifamManagerFocus::Fitness;
+    else if (p->mCoachingStyle == 4) // attacking (Fergusson, Klopp, Inzaghi)
+        staff->mManagerFocus = FifamManagerFocus::Offensive;
+    else if (p->mCoachingStyle == 5) // defending (Baresi, Deschamps, Maldini)
+        staff->mManagerFocus = FifamManagerFocus::Defensive;
+    else if (p->mCoachingStyle == 6 || p->mCoachingStyle == 7) // technical (Mourinho, Xavi, Sarri) / technical (Guardiola, Zidane, Arteta)
+        staff->mManagerFocus = FifamManagerFocus::TacticalEducation;
+    else if (p->mCoachingStyle == 8) // mental (Ancelotti)
+        staff->mManagerFocus = FifamManagerFocus::PlayerCharacter;
     else {
-        // UPDATE: update this if languages count was changed
-        if (staff->mLanguages[3] != FifamLanguage::None)
-            staff->mManagerFocus = FifamManagerFocus::Language;
+        Int bestAttacking = p->mAttacking * 5;
+        Int bestDefending = p->mWillLookToPlayOutOfDefence * 5;
+        Int bestTactical = BestFrom_Avg<Int>({ p->mTacticalKnowledge, p->mWillMakeEarlyTacticalChanges * 5, p->mWillFitPlayersIntoPreferredTactic * 5 }, 1);
+        Int bestYouth = BestFrom_Avg<Int>({ p->mSignsYoungPlayersForTheFirstTeam, p->mSignsALotOfYouthPlayers }, 1) * 5;
+        auto bestStyle = Utils::GetMaxElementId<Int, FifamManagerFocus>({
+            { bestAttacking > bestDefending ? (bestAttacking - bestDefending) : 0, FifamManagerFocus::Offensive },
+            { bestDefending > bestAttacking ? (bestDefending - bestAttacking) : 0, FifamManagerFocus::Defensive },
+            { bestTactical, FifamManagerFocus::TacticalEducation },
+            { p->mLevelOfDiscipline * 5, FifamManagerFocus::Discipline },
+            { (p->mCoachingMental + p->mMotivating) / 2, FifamManagerFocus::PlayerCharacter },
+            { p->mCoachingFitness * 5, FifamManagerFocus::Fitness },
+            { bestYouth, FifamManagerFocus::YoungPlayers }
+            });
+
+        if (bestStyle.first > 50)
+            staff->mManagerFocus = bestStyle.second;
         else {
-            Int randVal = Random::Get(0, 100);
-            if (randVal < 35)
-                staff->mManagerFocus = FifamManagerFocus::None;
-            else if (randVal < 45)
-                staff->mManagerFocus = FifamManagerFocus::ExperiencedPlayers;
-            else if (randVal < 55)
-                staff->mManagerFocus = FifamManagerFocus::KeepsTeamTogether;
-            else if (randVal < 65)
-                staff->mManagerFocus = FifamManagerFocus::LongContracts;
-            else
-                staff->mManagerFocus.SetFromInt(Random::Get(1, 11));
+            // UPDATE: update this if languages count was changed
+            if (staff->mLanguages[3] != FifamLanguage::None)
+                staff->mManagerFocus = FifamManagerFocus::Language;
+            else {
+                Int randVal = Random::Get(0, 100);
+                if (randVal < 35)
+                    staff->mManagerFocus = FifamManagerFocus::None;
+                else if (randVal < 45)
+                    staff->mManagerFocus = FifamManagerFocus::ExperiencedPlayers;
+                else if (randVal < 55)
+                    staff->mManagerFocus = FifamManagerFocus::KeepsTeamTogether;
+                else if (randVal < 65)
+                    staff->mManagerFocus = FifamManagerFocus::LongContracts;
+                else
+                    staff->mManagerFocus.SetFromInt(Random::Get(1, 11));
+            }
         }
     }
 
@@ -446,7 +490,7 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
     else if (p->mCurrentAbility >= 100)
         overallSkillPart = 1;
 
-    UChar staffLevel = (UChar)ConvertStaffAttribute(p->mCurrentAbility / 2);
+    UChar staffCA = (UChar)ConvertStaffAttribute(p->mCurrentAbility / 2);
     Int staffFitness = Utils::Clamp((Int)((Float)p->mCoachingFitness * (Float)p->mJobFitnessCoach / 20.0f), 1, 20) * 5;
 
     // manager skills
@@ -503,7 +547,7 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
             { p->mCoachingGKDistribution, p->mCoachingGKHandling, p->mCoachingGKShotStopping }, 3, true)
     );
 
-    staff->mSkills.FitnessTraining = Utils::Clamp((Int)((Float)ConvertStaffAttribute(staffFitness) * (Float)staffLevel * 1.1f / 100.0f), 1, 99);
+    staff->mSkills.FitnessTraining = Utils::Clamp((Int)((Float)ConvertStaffAttribute(staffFitness) * (Float)staffCA * 1.1f / 100.0f), 1, 99);
     staff->mSkills.MotivationAbility = ConvertStaffAttribute(p->mMotivating);
 
     staff->mSkills.RegenerationAbility = ConvertStaffAttribute(p->mPhysiotherapy);
@@ -528,119 +572,130 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
             { p->mAnalysingData, p->mJudgingPlayerPotential, p->mJudgingPlayerAbility }, 1, true)
     );
 
+    Float attrRating = (Float)GetManagerLevelFromCA(p->mCurrentAbility) / 99.0f;
+    auto RandomAttribute = [attrRating](Int min, Int max) {
+        return (UChar)roundf((Float)Random::Get(min, max) * attrRating);
+    };
     if (staff->mClubPosition == FifamClubStaffPosition::SportsDirector) {
-        staff->mSkills.SportsLaw = Random::Get(10, 25);
-        staff->mSkills.LaborLaw = Random::Get(10, 25);
-        staff->mSkills.PR = Random::Get(10, 25);
-        staff->mSkills.FanContact = Random::Get(10, 25);
-        staff->mSkills.Arbitrate = Random::Get(10, 25);
-        staff->mSkills.Marketing = Random::Get(10, 25);
-        staff->mSkills.Construction = Random::Get(10, 25);
+        staff->mSkills.SportsLaw = RandomAttribute(10, 25);
+        staff->mSkills.LaborLaw = RandomAttribute(10, 25);
+        staff->mSkills.PR = RandomAttribute(10, 25);
+        staff->mSkills.FanContact = RandomAttribute(10, 25);
+        staff->mSkills.Arbitrate = RandomAttribute(10, 25);
+        staff->mSkills.Marketing = RandomAttribute(10, 25);
+        staff->mSkills.Construction = RandomAttribute(10, 25);
     }
     else if (staff->mClubPosition == FifamClubStaffPosition::GeneralManager) {
-        staff->mSkills.SportsLaw = Random::Get(15, 30);
-        staff->mSkills.LaborLaw = Random::Get(15, 30);
-        staff->mSkills.PR = Random::Get(15, 30);
-        staff->mSkills.FanContact = Random::Get(15, 30);
-        staff->mSkills.Arbitrate = Random::Get(15, 30);
-        staff->mSkills.Marketing = Random::Get(15, 30);
-        staff->mSkills.Construction = Random::Get(15, 30);
+        staff->mSkills.SportsLaw = RandomAttribute(15, 30);
+        staff->mSkills.LaborLaw = RandomAttribute(15, 30);
+        staff->mSkills.PR = RandomAttribute(15, 30);
+        staff->mSkills.FanContact = RandomAttribute(15, 30);
+        staff->mSkills.Arbitrate = RandomAttribute(15, 30);
+        staff->mSkills.Marketing = RandomAttribute(15, 30);
+        staff->mSkills.Construction = RandomAttribute(15, 30);
     }
     else {
-        staff->mSkills.SportsLaw = Random::Get(5, 20);
-        staff->mSkills.LaborLaw = Random::Get(5, 20);
-        staff->mSkills.PR = Random::Get(5, 20);
-        staff->mSkills.FanContact = Random::Get(5, 20);
-        staff->mSkills.Arbitrate = Random::Get(5, 20);
-        staff->mSkills.Marketing = Random::Get(5, 20);
-        staff->mSkills.Construction = Random::Get(5, 20);
+        staff->mSkills.SportsLaw = RandomAttribute(5, 20);
+        staff->mSkills.LaborLaw = RandomAttribute(5, 20);
+        staff->mSkills.PR = RandomAttribute(5, 20);
+        staff->mSkills.FanContact = RandomAttribute(5, 20);
+        staff->mSkills.Arbitrate = RandomAttribute(5, 20);
+        staff->mSkills.Marketing = RandomAttribute(5, 20);
+        staff->mSkills.Construction = RandomAttribute(5, 20);
     }
 
-    staff->ForAllAttributes([=](UChar & attr, Float weight) {
-        float c = 0.0f;
-        if (weight >= 1.0f)
-            c = 1.0f;
-        else if (weight >= 0.75f) {
-            if (staff->mClubPosition == FifamClubStaffPosition::TeamDoctor)
-                c = 1.0f;
-            else
-                c = 0.95f;
-        }
-        else if (weight >= 0.5f) {
-            if (staff->mClubPosition == FifamClubStaffPosition::TeamDoctor)
-                c = 1.0f;
-            else
-                c = 0.9f;
-        }
-        else if (weight >= 0.25f)
-            c = 0.8f;
-        if (c > 0.0f) {
-            Int newAttrValue = Utils::Clamp((Int)((Float)staffLevel * c) + 10 - Random::Get(0, 20), 1, 99);
-            if (newAttrValue > (Int)attr)
-                attr = (UChar)newAttrValue;
-        }
+    SetStaffLevel(staff, staff->mClubPosition, GetStaffLevelFromCA(p->mCurrentAbility));
+
+    static Map<FifamClubStaffPosition, Pair<Set<FifamClubStaffPosition>, Set<FifamClubStaffPosition>>> skillUpdateTable = {
+        { FifamClubStaffPosition::AssistantCoach,      { { FifamClubStaffPosition::TeamDoctor, FifamClubStaffPosition::SpecialistBone, FifamClubStaffPosition::SpecialistKnee, FifamClubStaffPosition::SpecialistMuscle, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::GeneralManager, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::SportsDirector, FifamClubStaffPosition::FanRepresentative, FifamClubStaffPosition::Spokesperson, FifamClubStaffPosition::Lawyer, FifamClubStaffPosition::GeneralScout }, {  } } },
+        { FifamClubStaffPosition::AmateurCoach,        { { FifamClubStaffPosition::TeamDoctor, FifamClubStaffPosition::SpecialistBone, FifamClubStaffPosition::SpecialistKnee, FifamClubStaffPosition::SpecialistMuscle, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::GeneralManager, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::SportsDirector, FifamClubStaffPosition::FanRepresentative, FifamClubStaffPosition::Spokesperson, FifamClubStaffPosition::Lawyer, FifamClubStaffPosition::GeneralScout }, {  } } },
+        { FifamClubStaffPosition::YouthCoach,          { { FifamClubStaffPosition::TeamDoctor, FifamClubStaffPosition::SpecialistBone, FifamClubStaffPosition::SpecialistKnee, FifamClubStaffPosition::SpecialistMuscle, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::GeneralManager, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::SportsDirector, FifamClubStaffPosition::FanRepresentative, FifamClubStaffPosition::Spokesperson, FifamClubStaffPosition::Lawyer, FifamClubStaffPosition::GeneralScout }, {  } } },
+        { FifamClubStaffPosition::FitnessCoach,        { { FifamClubStaffPosition::TeamDoctor, FifamClubStaffPosition::SpecialistBone, FifamClubStaffPosition::SpecialistKnee, FifamClubStaffPosition::SpecialistMuscle, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::GeneralManager, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::SportsDirector, FifamClubStaffPosition::FanRepresentative, FifamClubStaffPosition::Spokesperson, FifamClubStaffPosition::Lawyer }, { FifamClubStaffPosition::AssistantCoach, FifamClubStaffPosition::AmateurCoach, FifamClubStaffPosition::YouthCoach, FifamClubStaffPosition::GoalkeeperCoach } } },
+        { FifamClubStaffPosition::GoalkeeperCoach,     { { FifamClubStaffPosition::TeamDoctor, FifamClubStaffPosition::SpecialistBone, FifamClubStaffPosition::SpecialistKnee, FifamClubStaffPosition::SpecialistMuscle, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::GeneralManager, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::SportsDirector, FifamClubStaffPosition::FanRepresentative, FifamClubStaffPosition::Spokesperson, FifamClubStaffPosition::Lawyer, FifamClubStaffPosition::GeneralScout }, { FifamClubStaffPosition::AssistantCoach, FifamClubStaffPosition::AmateurCoach, FifamClubStaffPosition::YouthCoach, FifamClubStaffPosition::FitnessCoach } } },
+        { FifamClubStaffPosition::TeamDoctor,          { { FifamClubStaffPosition::AssistantCoach, FifamClubStaffPosition::AmateurCoach, FifamClubStaffPosition::YouthCoach, FifamClubStaffPosition::FitnessCoach, FifamClubStaffPosition::GoalkeeperCoach, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::Psychologist, FifamClubStaffPosition::GeneralManager, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::SportsDirector, FifamClubStaffPosition::FanRepresentative, FifamClubStaffPosition::Spokesperson, FifamClubStaffPosition::Lawyer, FifamClubStaffPosition::GeneralScout }, {  } } },
+        { FifamClubStaffPosition::SpecialistBone,      { { FifamClubStaffPosition::AssistantCoach, FifamClubStaffPosition::AmateurCoach, FifamClubStaffPosition::YouthCoach, FifamClubStaffPosition::FitnessCoach, FifamClubStaffPosition::GoalkeeperCoach, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::Psychologist, FifamClubStaffPosition::GeneralManager, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::SportsDirector, FifamClubStaffPosition::FanRepresentative, FifamClubStaffPosition::Spokesperson, FifamClubStaffPosition::Lawyer, FifamClubStaffPosition::GeneralScout }, {  } } },
+        { FifamClubStaffPosition::SpecialistKnee,      { { FifamClubStaffPosition::AssistantCoach, FifamClubStaffPosition::AmateurCoach, FifamClubStaffPosition::YouthCoach, FifamClubStaffPosition::FitnessCoach, FifamClubStaffPosition::GoalkeeperCoach, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::Psychologist, FifamClubStaffPosition::GeneralManager, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::SportsDirector, FifamClubStaffPosition::FanRepresentative, FifamClubStaffPosition::Spokesperson, FifamClubStaffPosition::Lawyer, FifamClubStaffPosition::GeneralScout }, {  } } },
+        { FifamClubStaffPosition::SpecialistMuscle,    { { FifamClubStaffPosition::AssistantCoach, FifamClubStaffPosition::AmateurCoach, FifamClubStaffPosition::YouthCoach, FifamClubStaffPosition::FitnessCoach, FifamClubStaffPosition::GoalkeeperCoach, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::Psychologist, FifamClubStaffPosition::GeneralManager, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::SportsDirector, FifamClubStaffPosition::FanRepresentative, FifamClubStaffPosition::Spokesperson, FifamClubStaffPosition::Lawyer, FifamClubStaffPosition::GeneralScout }, {  } } },
+        { FifamClubStaffPosition::Masseur,             { { FifamClubStaffPosition::AssistantCoach, FifamClubStaffPosition::AmateurCoach, FifamClubStaffPosition::YouthCoach, FifamClubStaffPosition::FitnessCoach, FifamClubStaffPosition::GoalkeeperCoach, FifamClubStaffPosition::TeamDoctor, FifamClubStaffPosition::SpecialistBone, FifamClubStaffPosition::SpecialistKnee, FifamClubStaffPosition::SpecialistMuscle, FifamClubStaffPosition::Psychologist, FifamClubStaffPosition::GeneralManager, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::SportsDirector, FifamClubStaffPosition::FanRepresentative, FifamClubStaffPosition::Spokesperson, FifamClubStaffPosition::Lawyer, FifamClubStaffPosition::GeneralScout }, {  } } },
+        { FifamClubStaffPosition::Psychologist,        { { FifamClubStaffPosition::TeamDoctor, FifamClubStaffPosition::SpecialistBone, FifamClubStaffPosition::SpecialistKnee, FifamClubStaffPosition::SpecialistMuscle, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::GeneralManager, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::SportsDirector, FifamClubStaffPosition::FanRepresentative, FifamClubStaffPosition::Spokesperson, FifamClubStaffPosition::Lawyer, FifamClubStaffPosition::GeneralScout }, { FifamClubStaffPosition::AssistantCoach, FifamClubStaffPosition::AmateurCoach, FifamClubStaffPosition::YouthCoach, FifamClubStaffPosition::FitnessCoach, FifamClubStaffPosition::GoalkeeperCoach } } },
+        { FifamClubStaffPosition::GeneralManager,      { { FifamClubStaffPosition::AssistantCoach, FifamClubStaffPosition::AmateurCoach, FifamClubStaffPosition::YouthCoach, FifamClubStaffPosition::FitnessCoach, FifamClubStaffPosition::GoalkeeperCoach, FifamClubStaffPosition::TeamDoctor, FifamClubStaffPosition::SpecialistBone, FifamClubStaffPosition::SpecialistKnee, FifamClubStaffPosition::SpecialistMuscle, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::Psychologist, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::FanRepresentative, FifamClubStaffPosition::Spokesperson, FifamClubStaffPosition::Lawyer, FifamClubStaffPosition::GeneralScout }, {  } } },
+        { FifamClubStaffPosition::MarketingManager,    { { FifamClubStaffPosition::AssistantCoach, FifamClubStaffPosition::AmateurCoach, FifamClubStaffPosition::YouthCoach, FifamClubStaffPosition::FitnessCoach, FifamClubStaffPosition::GoalkeeperCoach, FifamClubStaffPosition::TeamDoctor, FifamClubStaffPosition::SpecialistBone, FifamClubStaffPosition::SpecialistKnee, FifamClubStaffPosition::SpecialistMuscle, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::Psychologist, FifamClubStaffPosition::GeneralManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::SportsDirector, FifamClubStaffPosition::FanRepresentative, FifamClubStaffPosition::Spokesperson, FifamClubStaffPosition::Lawyer, FifamClubStaffPosition::GeneralScout }, {  } } },
+        { FifamClubStaffPosition::ConstructionManager, { { FifamClubStaffPosition::AssistantCoach, FifamClubStaffPosition::AmateurCoach, FifamClubStaffPosition::YouthCoach, FifamClubStaffPosition::FitnessCoach, FifamClubStaffPosition::GoalkeeperCoach, FifamClubStaffPosition::TeamDoctor, FifamClubStaffPosition::SpecialistBone, FifamClubStaffPosition::SpecialistKnee, FifamClubStaffPosition::SpecialistMuscle, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::Psychologist, FifamClubStaffPosition::GeneralManager, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::SportsDirector, FifamClubStaffPosition::FanRepresentative, FifamClubStaffPosition::Spokesperson, FifamClubStaffPosition::Lawyer, FifamClubStaffPosition::GeneralScout }, {  } } },
+        { FifamClubStaffPosition::SportsDirector,      { { FifamClubStaffPosition::AssistantCoach, FifamClubStaffPosition::AmateurCoach, FifamClubStaffPosition::YouthCoach, FifamClubStaffPosition::FitnessCoach, FifamClubStaffPosition::GoalkeeperCoach, FifamClubStaffPosition::TeamDoctor, FifamClubStaffPosition::SpecialistBone, FifamClubStaffPosition::SpecialistKnee, FifamClubStaffPosition::SpecialistMuscle, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::Psychologist, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::FanRepresentative, FifamClubStaffPosition::Spokesperson, FifamClubStaffPosition::Lawyer, FifamClubStaffPosition::GeneralScout }, {  } } },
+        { FifamClubStaffPosition::FanRepresentative,   { { FifamClubStaffPosition::AssistantCoach, FifamClubStaffPosition::AmateurCoach, FifamClubStaffPosition::YouthCoach, FifamClubStaffPosition::FitnessCoach, FifamClubStaffPosition::GoalkeeperCoach, FifamClubStaffPosition::TeamDoctor, FifamClubStaffPosition::SpecialistBone, FifamClubStaffPosition::SpecialistKnee, FifamClubStaffPosition::SpecialistMuscle, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::Psychologist, FifamClubStaffPosition::GeneralManager, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::SportsDirector, FifamClubStaffPosition::Lawyer, FifamClubStaffPosition::GeneralScout }, { FifamClubStaffPosition::Spokesperson } } },
+        { FifamClubStaffPosition::Spokesperson,        { { FifamClubStaffPosition::AssistantCoach, FifamClubStaffPosition::AmateurCoach, FifamClubStaffPosition::YouthCoach, FifamClubStaffPosition::FitnessCoach, FifamClubStaffPosition::GoalkeeperCoach, FifamClubStaffPosition::TeamDoctor, FifamClubStaffPosition::SpecialistBone, FifamClubStaffPosition::SpecialistKnee, FifamClubStaffPosition::SpecialistMuscle, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::Psychologist, FifamClubStaffPosition::GeneralManager, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::SportsDirector, FifamClubStaffPosition::Lawyer, FifamClubStaffPosition::GeneralScout }, { FifamClubStaffPosition::FanRepresentative } } },
+        { FifamClubStaffPosition::Lawyer,              { { FifamClubStaffPosition::AssistantCoach, FifamClubStaffPosition::AmateurCoach, FifamClubStaffPosition::YouthCoach, FifamClubStaffPosition::FitnessCoach, FifamClubStaffPosition::GoalkeeperCoach, FifamClubStaffPosition::TeamDoctor, FifamClubStaffPosition::SpecialistBone, FifamClubStaffPosition::SpecialistKnee, FifamClubStaffPosition::SpecialistMuscle, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::Psychologist, FifamClubStaffPosition::GeneralManager, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::SportsDirector, FifamClubStaffPosition::FanRepresentative, FifamClubStaffPosition::Spokesperson, FifamClubStaffPosition::GeneralScout }, {  } } },
+        { FifamClubStaffPosition::GeneralScout,        { { FifamClubStaffPosition::AssistantCoach, FifamClubStaffPosition::AmateurCoach, FifamClubStaffPosition::YouthCoach, FifamClubStaffPosition::FitnessCoach, FifamClubStaffPosition::GoalkeeperCoach, FifamClubStaffPosition::TeamDoctor, FifamClubStaffPosition::SpecialistBone, FifamClubStaffPosition::SpecialistKnee, FifamClubStaffPosition::SpecialistMuscle, FifamClubStaffPosition::Masseur, FifamClubStaffPosition::Psychologist, FifamClubStaffPosition::GeneralManager, FifamClubStaffPosition::MarketingManager, FifamClubStaffPosition::ConstructionManager, FifamClubStaffPosition::SportsDirector, FifamClubStaffPosition::FanRepresentative, FifamClubStaffPosition::Spokesperson, FifamClubStaffPosition::Lawyer }, {  } } }
+    };
+
+    static FifamWriter debugWriter(L"Staff Debug.txt");
+    debugWriter.WriteLine(L"ID,Name,MainPos,LevelBefore,LevelAfter,BP1,BL1,BP2,BL2,BP3,BL3,BP4,BL5,AP1,AL1,AP2,AL2,AP3,AL3,AP4,AL5,WrongBefore,WrongAfter");
+
+    auto GetBestPositions = [](FifamStaff *s) {
+        Array<Pair<FifamClubStaffPosition, UChar>, 5> bestPos {};
+        Vector<Pair<FifamClubStaffPosition, UChar>> posValues;
+        FifamClubStaffPosition::ForAllValues([&](FifamClubStaffPosition const &pos) {
+            posValues.emplace_back(pos, s->GetStaffLevel(pos));
         });
-    /*
-    we can iterate on each staff role, check out which attributes are relevant for the role, and for each attribute,
-    multiply its value by foom role "experience" and by attribute weight for this role, attach the result value to this attribute
-    then for each attribute use the greatest of result values
-    so if a person is not a medic (experience at medic role is 5 for example), then all attributes related to medic will be multiplied by 5/20
-    */
-    /*enum StaffSkillsEnum {
-        StaffSkill_Tactics, StaffSkill_FieldPlayerTraining, StaffSkill_GoalkeeperTraining, StaffSkill_FitnessTraining, StaffSkill_SkillEstimation, StaffSkill_TeamEstimation, StaffSkill_MotivationAbility, StaffSkill_BoneInjury, StaffSkill_KneeInjury, StaffSkill_MuscleInjury, StaffSkill_InjuryPrevention, StaffSkill_RegenerationAbility, StaffSkill_Arbitrate, StaffSkill_Negotiation, StaffSkill_Marketing, StaffSkill_Sponsoring, StaffSkill_Construction, StaffSkill_PR, StaffSkill_FanContact, StaffSkill_SportsLaw, StaffSkill_LaborLaw, StaffSkill_GeneralScouting, StaffSkill_TalentEstimation, StaffSkill_FieldSkillsEstimation, StaffSkill_GoalkeeperSkillsEstimation, StaffSkill_MentalSkillsEstimation, StaffSkill_PhysicalSkillsEstimation, StaffSkill_Networking
+        std::sort(posValues.begin(), posValues.end(), [&](Pair<FifamClubStaffPosition, UChar> const &a, Pair<FifamClubStaffPosition, UChar> const &b) {
+            if (a.second > b.second)
+                return true;
+            if (b.second > a.second)
+                return false;
+            if (a.first == s->mClubPosition)
+                return true;
+            if (b.first == s->mClubPosition)
+                return false;
+            return true;
+        });
+        for (UInt i = 0; i < std::size(bestPos); i++)
+            bestPos[i] = posValues[i];
+        return bestPos;
     };
-    static Map<FifamClubStaffPosition, Int> fifamStaffPositionToFoom = {
-        { FifamClubStaffPosition::AssistantCoach,      p->mJobCoach },
-        { FifamClubStaffPosition::AmateurCoach,        p->mJobManager },
-        { FifamClubStaffPosition::YouthCoach,          p->mJobCoach },
-        { FifamClubStaffPosition::FitnessCoach,        p->mJobFitnessCoach },
-        { FifamClubStaffPosition::GoalkeeperCoach,     p->mJobGkCoach },
-        { FifamClubStaffPosition::TeamDoctor,          p->mJobSportsScientist },
-        { FifamClubStaffPosition::Masseur,             p->mJobPhysio },
-        { FifamClubStaffPosition::Psychologist,        1 },
-        { FifamClubStaffPosition::SportsDirector,      p->mJobDirectorOfFootball },
-        { FifamClubStaffPosition::GeneralScout,        p->mJobScout },
-    };
-    Map<UChar *, Vector<UChar>> staffSkills;
-    FifamClubStaffPosition::ForAllValues([&](FifamClubStaffPosition const &clubStaffPosition) {
-        if (fifamStaffPositionToFoom.contains(clubStaffPosition)) {
-            staff->ForAllAttributes(clubStaffPosition, [&](UChar &attr1, Float weight) {
+
+    UChar staffLevel = staff->GetStaffLevel();
+
+    auto bestPosBefore = GetBestPositions(staff);
+
+    // additional step - fix motivation
+    if (staff->mClubPosition != FifamClubStaffPosition::Psychologist && staff->mSkills.MotivationAbility > staffLevel)
+        staff->mSkills.MotivationAbility = staffLevel;
+
+    UChar maxLevelForUnimportantPos = Utils::Clamp((UChar)roundf((Float)staffLevel * 0.5f), 1, 99);
+    auto skillUpdate = skillUpdateTable[staff->mClubPosition];
+    for (auto const &pos : skillUpdate.first) {
+        if (staff->GetStaffLevel(pos) > maxLevelForUnimportantPos)
+            SetStaffLevel(staff, pos, maxLevelForUnimportantPos, true);
+    }
+    UChar maxLevelForImportantPos = Utils::Clamp(staffLevel - 1, 1, 99);
+    for (auto const &pos : skillUpdate.second) {
+        if (staff->GetStaffLevel(pos) > maxLevelForImportantPos) {
+            Set<FifamStaffSkillID> mySkills;
+            staff->ForAllSkills([&](FifamStaffSkillID skillID, UChar &value, Float weight) {
                 if (weight > 0.0f)
-                    staffSkills[&attr1].push_back(Utils::Clamp((UChar)((Float)attr1 * (Float)fifamStaffPositionToFoom[clubStaffPosition] / 20.0f), 1, 99));
+                    mySkills.insert(skillID);
             });
-        }
-    });
-    for (auto &[attr, values] : staffSkills) {
-        std::sort(values.begin(), values.end(), std::greater<UChar>());
-        *attr = values[0];
-    }*/
-    Int staffCurrLevel = staff->GetStaffLevel();
-    Int staffDesiredLevel = GetStaffLevelFromCA(p->mCurrentAbility);
-    Int levelChangeIterations = 0;
-    if (staffCurrLevel > 0 && staffCurrLevel != staffDesiredLevel) {
-        Bool dir = staffDesiredLevel > staffCurrLevel;
-        while (true) {
-            levelChangeIterations++;
-            auto savedSkills = staff->mSkills;
-            staff->ForAllAttributes([=](UChar & attr, Float weight) {
-                if (weight > 0.0f) {
-                    if (dir)
-                        attr = Utils::Clamp((Int)attr + roundf((Float)levelChangeIterations * weight), 1, 99);
-                    else
-                        attr = Utils::Clamp((Int)attr - roundf((Float)levelChangeIterations * weight), 1, 99);
-                }
+            Set<FifamStaffSkillID> skillsToChange;
+            staff->ForAllSkills(pos, [&](FifamStaffSkillID skillID, UChar &value, Float weight) {
+                if (weight > 0.0f && !mySkills.contains(skillID))
+                    skillsToChange.insert(skillID);
             });
-            if (staff->mClubPosition != FifamClubStaffPosition::Psychologist && staff->mSkills.MotivationAbility > staffDesiredLevel)
-                staff->mSkills.MotivationAbility = staffDesiredLevel;
-            staffCurrLevel = staff->GetStaffLevel();
-            if (levelChangeIterations == 50 || (dir && staffCurrLevel >= staffDesiredLevel) || (!dir && staffCurrLevel <= staffDesiredLevel))
-                break;
-            staff->mSkills = savedSkills;
+            if (!skillsToChange.empty())
+                SetStaffLevel(staff, pos, maxLevelForImportantPos, true, skillsToChange);
         }
     }
-    // additional step - fix motivation
-    if (staff->mClubPosition != FifamClubStaffPosition::Psychologist && staff->mSkills.MotivationAbility > staff->GetStaffLevel())
-        staff->mSkills.MotivationAbility = staff->GetStaffLevel();
+
+    auto bestPosAfter = GetBestPositions(staff);
+    debugWriter.WriteLine(staff->mFootballManagerID, Quoted(staff->GetName()), staff->mClubPosition.ToStr(), staffLevel, staff->GetStaffLevel(),
+        bestPosBefore[0].first, bestPosBefore[0].second, bestPosBefore[1].first, bestPosBefore[1].second,
+        bestPosBefore[2].first, bestPosBefore[2].second, bestPosBefore[3].first, bestPosBefore[3].second,
+        bestPosBefore[4].first, bestPosBefore[4].second,
+        bestPosAfter[0].first, bestPosAfter[0].second, bestPosAfter[1].first, bestPosAfter[1].second,
+        bestPosAfter[2].first, bestPosAfter[2].second, bestPosAfter[3].first, bestPosAfter[3].second,
+        bestPosAfter[4].first, bestPosAfter[4].second,
+        bestPosBefore[0].first != staff->mClubPosition, bestPosAfter[0].first != staff->mClubPosition
+    );
+
     staff->mScoutPreferredCountries.clear();
     if (staff->mClubPosition == FifamClubStaffPosition::GeneralScout) {
         Map<FifamNation, UInt> scoutNations;
@@ -704,6 +759,8 @@ void Converter::CreateStaffMembersForClub(UInt gameId, foom::team *team, FifamCl
     Vector<foom::non_player *> staffCoaches;
     Vector<foom::non_player *> staffChiefScouts;
     Vector<foom::non_player *> staffScouts;
+    Vector<foom::non_player *> staffHeadPerformanceAnalysts;
+    Vector<foom::non_player *> staffPerformanceAnalysts;
 
     UInt maxAssistantCoaches = 1;
     UInt maxScouts = 1;
@@ -952,6 +1009,12 @@ void Converter::CreateStaffMembersForClub(UInt gameId, foom::team *team, FifamCl
                     youthCoachPriority = 1181;
                 }
                 break;
+            case 245: // head performance analyst
+                staffHeadPerformanceAnalysts.push_back(p);
+                break;
+            case 247: // performance analyst
+                staffPerformanceAnalysts.push_back(p);
+                break;
             }
         }
     }
@@ -960,6 +1023,10 @@ void Converter::CreateStaffMembersForClub(UInt gameId, foom::team *team, FifamCl
         staffAssistantCoaches.insert(staffAssistantCoaches.end(), staffCoaches.begin(), staffCoaches.end());
     if (!staffScouts.empty())
         staffChiefScouts.insert(staffChiefScouts.end(), staffScouts.begin(), staffScouts.end());
+    if (!staffHeadPerformanceAnalysts.empty())
+        staffChiefScouts.insert(staffChiefScouts.end(), staffHeadPerformanceAnalysts.begin(), staffHeadPerformanceAnalysts.end());
+    if (!staffPerformanceAnalysts.empty())
+        staffChiefScouts.insert(staffChiefScouts.end(), staffPerformanceAnalysts.begin(), staffPerformanceAnalysts.end());
 
     if (staffManager)
         CreateAndConvertStaff(staffManager, dst, FifamClubStaffPosition::Manager, gameId);

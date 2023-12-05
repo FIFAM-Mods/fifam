@@ -10,6 +10,77 @@ FifaDatabase *fifadb = nullptr;
 Map<UInt, UInt> mFifamClubs;
 Map<UInt, UInt> mClubsByFifaId;
 
+Map<UInt, Vector<UInt>> &GetCompsMap() {
+    static Map<UInt, Vector<UInt>> compsMap = {
+    { 1   , { 0x0D010000 } }, // Denmark Superliga (1)
+    { 4   , { 0x07010000 } }, // Belgium Pro League (1)
+    { 7   , { 0x36010000 } }, // Brazil Serie A (1)
+    { 10  , { 0x22010000 } }, // Holland Eredivisie (1)
+    { 13  , { 0x0E010000 } }, // England Premier League (1)
+    { 14  , { 0x0E010001 } }, // England Championship (2)
+    { 16  , { 0x12010000 } }, // France Ligue 1 (1)
+    { 17  , { 0x12010001 } }, // France Ligue 2 (2)
+    { 19  , { 0x15010000 } }, // Germany 1. Bundesliga (1)
+    { 20  , { 0x15010001 } }, // Germany 2. Bundesliga (2)
+    { 31  , { 0x1B010000 } }, // Italy Serie A (1)
+    { 32  , { 0x1B010001 } }, // Italy Serie B (2)
+    { 39  , { 0x5F010000, 0x5F080000, 0x5F080001, 0x5F040000 } }, // USA Major League Soccer (1)
+    { 41  , { 0x24010000 } }, // Norway Eliteserien (1)
+    { 50  , { 0x2A010000 } }, // Scotland Premiership (1)
+    { 53  , { 0x2D010000 } }, // Spain Primera División (1)
+    { 54  , { 0x2D010001 } }, // Spain Segunda División (2)
+    { 56  , { 0x2E010000 } }, // Sweden Allsvenskan (1)
+    { 60  , { 0x0E010002 } }, // England League One (3)
+    { 61  , { 0x0E010003 } }, // England League Two (4)
+    { 65  , { 0x19010000 } }, // Rep. Ireland Premier Division (1)
+    { 66  , { 0x25010000 } }, // Poland Ekstraklasa (1)
+    { 68  , { 0x30010000 } }, // Turkey Süper Lig (1)
+    { 80  , { 0x04010000 } }, // Austria Bundesliga (1)
+    { 83  , { 0xA7010000 } }, // Korea K-League 1 (1)
+    { 189 , { 0x2F010000 } }, // Switzerland Super League (1)
+    { 308 , { 0x26010000 } }, // Portugal Primeira Liga (1)
+    { 330 , { 0x27010000 } }, // Romania Liga I (1)
+    { 335 , { 0x37010000 } }, // Chile Primera División (1)
+    { 336 , { 0x38010000 } }, // Colombia Categoría Primera (1)
+    { 341 , { 0x53010000, 0x53080000, 0x53080001, 0x53080002 } }, // Mexico Liga MX (1)
+    { 349 , { 0xA3010000 } }, // Japan J1 League (1)
+    { 350 , { 0xB7010000 } }, // Saudi Pro League (1)
+    { 351 , { 0xC3010000, 0xC3040000 } }, // Australia A-League (1)
+    { 353 , { 0x34010000 } }, // Argentina Primera División (1)
+    { 2012, { 0x9B010000 } }, // China Super League (1)
+    { 2076, { 0x15010002 } }, // Germany 3. Liga (3)
+    { 2149, { 0x9F010000 } }, // Indian Super League (1)
+    { 201 , { 0x0E030000 } }, // England FA Cup
+    { 202 , { 0x0E040000 } }, // England League Cup
+    { 203 , { 0x0E040001 } }, // England League Cup 2
+    { 210 , { 0x1B030000 } }, // Coppa Italia
+    { 211 , { 0x1B070000 } }, // Supercoppa Italia
+    { 223 , { 0xF909 } }, // UEFA Champions League
+    { 224 , { 0xF90A } }, // UEFA Europa League
+    { 226 , { 0xF933 } }, // UEFA Europa Conference League
+    { 228 , { 0x0E070000 } }, // England SuperCup
+    { 232 , { 0xF90C } }, // UEFA SuperCup
+    { 1003, { 0xFA09 } }, // CONMEBOL Copa Libertadores
+    { 1014, { 0xFA0A } }, // CONMEBOL Copa Sudamericana
+    { 1015, { 0xFA0C } }, // CONMEBOL Recopa Sudamericana
+    { 206 , { 0x15030000 } }, // Germany Cup
+    { 207 , { 0x15070000 } }, // Germany SuperCup
+    { 451 , { 0x12080000 } }, // France League 1 play-off
+    { 21  , { 0x15080000 } }, // Germany relegation
+    { 206 , { 0x15030000 } }, // Germany Cup
+    { 233 , { 0x12070000 } }, // France SuperCup
+    { 10223, { 0xF909 } }, // UEFA Champions League
+    { 10224, { 0xF90A } }, // UEFA Europa League
+    { 10226, { 0xF933 } }, // UEFA Europa Conference League
+    { 10232, { 0xF90C } }, // UEFA SuperCup
+    { 10206, { 0x15030000 } }, // Germany Cup
+    { 10207, { 0x15070000 } }, // Germany SuperCup
+    { 10201, { 0x0E030000 } }, // England FA Cup
+    { 10233, { 0x12070000 } } // France SuperCup
+    };
+    return compsMap;
+}
+
 void ReadTextDatabase() {
     if (!mFifamClubs.empty())
         return;
@@ -200,61 +271,7 @@ void ConvertClubKitNumbersCustom(KitConverter &kitConverter) {
 
 void ConvertAdboards(KitConverter &kitConverter) {
     ReadTextDatabase();
-    static Map<UInt, Vector<UInt>> compsMapAdboards = {
-    { 1   , { 0x0D010000 } }, // Denmark Superliga (1)
-    { 4   , { 0x07010000 } }, // Belgium Pro League (1)
-    { 7   , { 0x36010000 } }, // Brazil Serie A (1)
-    { 10  , { 0x22010000 } }, // Holland Eredivisie (1)
-    { 13  , { 0x0E010000 } }, // England Premier League (1)
-    { 14  , { 0x0E010001 } }, // England Championship (2)
-    { 16  , { 0x12010000 } }, // France Ligue 1 (1)
-    { 17  , { 0x12010001 } }, // France Ligue 2 (2)
-    { 19  , { 0x15010000 } }, // Germany 1. Bundesliga (1)
-    { 20  , { 0x15010001 } }, // Germany 2. Bundesliga (2)
-    { 31  , { 0x1B010000 } }, // Italy Serie A (1)
-    { 32  , { 0x1B010001 } }, // Italy Serie B (2)
-    { 39  , { 0x5F010000, 0x5F080000, 0x5F080001, 0x5F040000 } }, // USA Major League Soccer (1)
-    { 41  , { 0x24010000 } }, // Norway Eliteserien (1)
-    { 50  , { 0x2A010000 } }, // Scotland Premiership (1)
-    { 53  , { 0x2D010000 } }, // Spain Primera División (1)
-    { 54  , { 0x2D010001 } }, // Spain Segunda División (2)
-    { 56  , { 0x2E010000 } }, // Sweden Allsvenskan (1)
-    { 60  , { 0x0E010002 } }, // England League One (3)
-    { 61  , { 0x0E010003 } }, // England League Two (4)
-    { 65  , { 0x19010000 } }, // Rep. Ireland Premier Division (1)
-    { 66  , { 0x25010000 } }, // Poland Ekstraklasa (1)
-    { 68  , { 0x30010000 } }, // Turkey Süper Lig (1)
-    { 80  , { 0x04010000 } }, // Austria Bundesliga (1)
-    { 83  , { 0xA7010000 } }, // Korea K-League 1 (1)
-    { 189 , { 0x2F010000 } }, // Switzerland Super League (1)
-    { 308 , { 0x26010000 } }, // Portugal Primeira Liga (1)
-    { 330 , { 0x27010000 } }, // Romania Liga I (1)
-    { 335 , { 0x37010000 } }, // Chile Primera División (1)
-    { 336 , { 0x38010000 } }, // Colombia Categoría Primera (1)
-    { 341 , { 0x53010000, 0x53080000, 0x53080001, 0x53080002 } }, // Mexico Liga MX (1)
-    { 349 , { 0xA3010000 } }, // Japan J1 League (1)
-    { 350 , { 0xB7010000 } }, // Saudi Pro League (1)
-    { 351 , { 0xC3010000, 0xC3040000 } }, // Australia A-League (1)
-    { 353 , { 0x34010000 } }, // Argentina Primera División (1)
-    { 2012, { 0x9B010000 } }, // China Super League (1)
-    { 2076, { 0x15010002 } }, // Germany 3. Liga (3)
-    { 201 , { 0x0E030000 } }, // England FA Cup
-    { 202 , { 0x0E040000 } }, // England League Cup
-    { 203 , { 0x0E040001 } }, // England League Cup 2
-    { 210 , { 0x1B030000 } }, // Coppa Italia
-    { 211 , { 0x1B070000 } }, // Supercoppa Italia
-    { 223 , { 0xF909 } }, // UEFA Champions League
-    { 224 , { 0xF90A } }, // UEFA Europa League
-    { 226 , { 0xF933 } }, // UEFA Europa Conference League
-    { 228 , { 0x0E070000 } }, // England SuperCup
-    { 232 , { 0xF90C } }, // UEFA SuperCup
-    { 1003, { 0xFA09 } }, // CONMEBOL Copa Libertadores
-    { 1014, { 0xFA0A } }, // CONMEBOL Copa Sudamericana
-    { 1015, { 0xFA0C } }, // CONMEBOL Recopa Sudamericana
-    { 206 , { 0x15030000 } }, // Germany Cup
-    { 207 , { 0x15070000 } }, // Germany SuperCup
-    };
-    kitConverter.ConvertAdboards(mClubsByFifaId, compsMapAdboards);
+    kitConverter.ConvertAdboards(mClubsByFifaId, GetCompsMap());
 }
 
 void ConvertKitnumbers(KitConverter &kitConverter) {
@@ -398,16 +415,16 @@ void FindBannersWithoutId() {
     Set<UInt> usedFifaIDs;
     for (auto [clubId, fifaId] : mFifamClubs)
         usedFifaIDs.insert(fifaId);
-    path withoutFifaIdDir = "I:\\FIFA_ASSETS\\without_fifa_id";
+    path withoutFifaIdDir = "H:\\FIFA_ASSETS\\without_fifa_id";
     create_directories(withoutFifaIdDir);
-    for (auto const &e : directory_iterator("I:\\FIFA_ASSETS\\crest\\final")) {
+    for (auto const &e : directory_iterator("H:\\FIFA_ASSETS\\crest\\24")) {
         auto const &p = e.path();
-        if (p.extension() == ".dds") {
+        if (p.extension() == ".png") {
             auto filename = p.stem().string();
             if (filename.starts_with("l")) {
                 filename = filename.substr(1);
                 auto fifaId = Utils::SafeConvertInt<UInt>(filename);
-                if (fifaId != 0 && !usedFifaIDs.contains(fifaId) && exists("I:\\FIFA_ASSETS\\banners\\final\\banner_" + filename + "_texture.dds")) {
+                if (fifaId != 0 && !usedFifaIDs.contains(fifaId) && exists("H:\\FIFA_ASSETS\\banners\\24\\banner_" + filename + "_color.png")) {
                     Magick::Image image(p.string());
                     image.write((withoutFifaIdDir / (p.stem().string() + ".png")).string());
                 }
@@ -520,62 +537,7 @@ void ConvertOverlay() {
     }
 
     for (auto const &p : directory_iterator(kitOverlayPath)) {
-        static Map<UInt, Vector<UInt>> compsMap = {
-            { 1   , { 0x0D010000 } }, // Denmark Superliga (1)
-            { 4   , { 0x07010000 } }, // Belgium Pro League (1)
-            { 7   , { 0x36010000 } }, // Brazil Serie A (1)
-            { 10  , { 0x22010000 } }, // Holland Eredivisie (1)
-            { 13  , { 0x0E010000 } }, // England Premier League (1)
-            { 14  , { 0x0E010001 } }, // England Championship (2)
-            { 16  , { 0x12010000 } }, // France Ligue 1 (1)
-            { 17  , { 0x12010001 } }, // France Ligue 2 (2)
-            { 19  , { 0x15010000 } }, // Germany 1. Bundesliga (1)
-            { 20  , { 0x15010001 } }, // Germany 2. Bundesliga (2)
-            { 31  , { 0x1B010000 } }, // Italy Serie A (1)
-            { 32  , { 0x1B010001 } }, // Italy Serie B (2)
-            { 39  , { 0x5F010000, 0x5F080000, 0x5F080001, 0x5F040000 } }, // USA Major League Soccer (1)
-            { 41  , { 0x24010000 } }, // Norway Eliteserien (1)
-            { 50  , { 0x2A010000 } }, // Scotland Premiership (1)
-            { 53  , { 0x2D010000 } }, // Spain Primera División (1)
-            { 54  , { 0x2D010001 } }, // Spain Segunda División (2)
-            { 56  , { 0x2E010000 } }, // Sweden Allsvenskan (1)
-            { 60  , { 0x0E010002 } }, // England League One (3)
-            { 61  , { 0x0E010003 } }, // England League Two (4)
-            { 65  , { 0x19010000 } }, // Rep. Ireland Premier Division (1)
-            { 66  , { 0x25010000 } }, // Poland Ekstraklasa (1)
-            { 68  , { 0x30010000 } }, // Turkey Süper Lig (1)
-            { 80  , { 0x04010000 } }, // Austria Bundesliga (1)
-            { 83  , { 0xA7010000 } }, // Korea K-League 1 (1)
-            { 189 , { 0x2F010000 } }, // Switzerland Super League (1)
-            { 308 , { 0x26010000 } }, // Portugal Primeira Liga (1)
-            { 330 , { 0x27010000 } }, // Romania Liga I (1)
-            { 335 , { 0x37010000 } }, // Chile Primera División (1)
-            { 336 , { 0x38010000 } }, // Colombia Categoría Primera (1)
-            { 341 , { 0x53010000, 0x53080000, 0x53080001, 0x53080002 } }, // Mexico Liga MX (1)
-            { 349 , { 0xA3010000 } }, // Japan J1 League (1)
-            { 350 , { 0xB7010000 } }, // Saudi Pro League (1)
-            { 351 , { 0xC3010000, 0xC3040000 } }, // Australia A-League (1)
-            { 353 , { 0x34010000 } }, // Argentina Primera División (1)
-            { 2012, { 0x9B010000 } }, // China Super League (1)
-            { 2076, { 0x15010002 } }, // Germany 3. Liga (3)
-            { 2149, { 0x9F010000 }}, // Indian Super League (1)
-            { 201 , { 0x0E030000 } }, // England FA Cup
-            { 202 , { 0x0E040000 } }, // England League Cup
-            { 203 , { 0x0E040001 } }, // England League Cup 2
-            { 210 , { 0x1B030000 } }, // Coppa Italia
-            { 211 , { 0x1B070000 } }, // Supercoppa Italia
-            { 223 , { 0xF909 } }, // UEFA Champions League
-            { 224 , { 0xF90A } }, // UEFA Europa League
-            { 226 , { 0xF933 } }, // UEFA Europa Conference League
-            { 228 , { 0x0E070000 } }, // England SuperCup
-            { 232 , { 0xF90C } }, // UEFA SuperCup
-            { 1003, { 0xFA09 } }, // CONMEBOL Copa Libertadores
-            { 1014, { 0xFA0A } }, // CONMEBOL Copa Sudamericana
-            { 1015, { 0xFA0C } }, // CONMEBOL Recopa Sudamericana
-            { 206 , { 0x15030000 } }, // Germany Cup
-            { 207 , { 0x15070000 } }, // Germany SuperCup
-        };
-        if (p.is_regular_file() && p.path().extension().string() == ".dds" && Utils::StartsWith(p.path().filename().c_str(), L"badge_")) {
+        if (p.is_regular_file() && p.path().extension().string() == ".png" && Utils::StartsWith(p.path().filename().c_str(), L"badge_")) {
             auto parts = Utils::Split(p.path().filename().c_str(), L'_', true, true, false);
             if (parts.size() >= 6) {
                 UInt compId = 0;
@@ -587,13 +549,13 @@ void ConvertOverlay() {
                     compId = Utils::SafeConvertInt<UInt>(parts[1].substr(1));
                 else
                     compId = Utils::SafeConvertInt<UInt>(parts[1]);
-                if (compsMap.find(compId) != compsMap.end() && (sleeveId == 0 || sleeveId == 1) && kitType <= 3) {
+                if (GetCompsMap().find(compId) != GetCompsMap().end() && (sleeveId == 0 || sleeveId == 1) && kitType <= 3) {
                     UInt clubId = 0;
                     if (teamId != 0)
                         clubId = mFifaClubToFifam[teamId];
                     if (teamId == 0 || clubId != 0) {
                         static Array<String, 4> kitTypes = { L"_h", L"_a", L"_g", L"_t" };
-                        for (UInt fifamCompId : compsMap[compId]) {
+                        for (UInt fifamCompId : GetCompsMap()[compId]) {
                             String overlayFileName = Utils::Format(fifamCompId < 0xFFFF ? L"%04X" : L"%08X", fifamCompId);
                             if (clubId != 0)
                                 overlayFileName += Utils::Format(L"_%08X", clubId) + kitTypes[kitType];
@@ -609,41 +571,41 @@ void ConvertOverlay() {
     }
     // UEFA Champions League
     //for (UInt i = 1; i <= 2; i++)
-    //    WriteOverlay(kitOverlayPath / L"badge_500223_0_0_0_1_badge_cm.dds", Utils::Format(L"F909_Titles_%d", i));
+    //    WriteOverlay(kitOverlayPath / L"badge_500223_0_0_0_1_color.png", Utils::Format(L"F909_Titles_%d", i));
     for (UInt i = 3; i <= 33; i++)
-        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_badge_cm.dds", i + 600000), Utils::Format(L"F909_Titles_%d", i));
+        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_color.png", i + 600000), Utils::Format(L"F909_Titles_%d", i));
     for (UInt i = 3; i <= 33; i++)
-        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_badge_cm.dds", i + 600100), Utils::Format(L"F909_Winner_Titles_%d", i));
+        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_color.png", i + 600100), Utils::Format(L"F909_Winner_Titles_%d", i));
     for (UInt i = 21; i <= 40; i++)
-        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_badge_cm.dds", i + 600200), Utils::Format(L"F909_F90A_Winner_%d", i + 2000));
+        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_color.png", i + 600200), Utils::Format(L"F909_F90A_Winner_%d", i + 2000));
     // UEFA Europa League
     //for (UInt i = 1; i <= 4; i++)
-    //    WriteOverlay(kitOverlayPath / L"badge_500224_0_0_0_1_badge_cm.dds", Utils::Format(L"F909_Titles_%d", i));
+    //    WriteOverlay(kitOverlayPath / L"badge_500224_0_0_0_1_color.png", Utils::Format(L"F909_Titles_%d", i));
     for (UInt i = 5; i <= 20; i++)
-        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_badge_cm.dds", i + 601000), Utils::Format(L"F90A_Titles_%d", i));
+        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_color.png", i + 601000), Utils::Format(L"F90A_Titles_%d", i));
     for (UInt i = 5; i <= 20; i++)
-        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_badge_cm.dds", i + 601100), Utils::Format(L"F90A_Winner_Titles_%d", i));
+        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_color.png", i + 601100), Utils::Format(L"F90A_Winner_Titles_%d", i));
     for (UInt i = 21; i <= 40; i++)
-        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_badge_cm.dds", i + 601200), Utils::Format(L"F90A_F933_Winner_%d", i + 2000));
+        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_color.png", i + 601200), Utils::Format(L"F90A_F933_Winner_%d", i + 2000));
     // UEFA Europa Conference League
     //for (UInt i = 1; i <= 4; i++)
-    //    WriteOverlay(kitOverlayPath / L"badge_500226_0_0_0_1_badge_cm.dds", Utils::Format(L"F933_Titles_%d", i));
+    //    WriteOverlay(kitOverlayPath / L"badge_500226_0_0_0_1_color.png", Utils::Format(L"F933_Titles_%d", i));
     for (UInt i = 5; i <= 15; i++)
-        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_badge_cm.dds", i + 605000), Utils::Format(L"F933_Titles_%d", i));
+        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_color.png", i + 605000), Utils::Format(L"F933_Titles_%d", i));
     for (UInt i = 5; i <= 15; i++)
-        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_badge_cm.dds", i + 605100), Utils::Format(L"F933_Winner_Titles_%d", i));
+        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_color.png", i + 605100), Utils::Format(L"F933_Winner_Titles_%d", i));
     // FA Cup
     for (UInt i = 1; i <= 28; i++)
-        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_0_badge_cm.dds", i + 604000), Utils::Format(L"0E040000_Titles_%d", i));
+        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_0_color.png", i + 604000), Utils::Format(L"0E040000_Titles_%d", i));
     // DFB Cup
     for (UInt i = 1; i <= 36; i++)
-        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_badge_cm.dds", i + 606000), Utils::Format(L"15040000_Titles_%d", i));
+        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_1_color.png", i + 606000), Utils::Format(L"15040000_Titles_%d", i));
     // CONMEBOL Copa Libertadores
     for (UInt i = 1; i <= 21; i++)
-        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_0_badge_cm.dds", i + 602000), Utils::Format(L"FA09_Titles_%d", i));
+        WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_0_color.png", i + 602000), Utils::Format(L"FA09_Titles_%d", i));
     // ?
     //for (UInt i = 20; i <= 36; i++)
-    //    WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_0_badge_cm.dds", i + 603000), Utils::Format(L"FA0A_%d", i + 2000));
+    //    WriteOverlay(kitOverlayPath / Utils::Format(L"badge_%d_0_0_0_0_color.png", i + 603000), Utils::Format(L"FA0A_%d", i + 2000));
 }
 
 void ConvertBannersFifa(KitConverter &kitConverter, bool fifa14stadiums) {
@@ -657,20 +619,20 @@ void ConvertBannersFifa(KitConverter &kitConverter, bool fifa14stadiums) {
 }
 
 int main(int argc, char *argv[]) {
-    UInt gameId = 8; // 13
+    UInt gameId = 13; // 13
     KitConverter::options.OutputGameId = gameId;
     KitConverter::options.ConvertHomeKit = true;
     KitConverter::options.ConverAwayKit = true;
-    KitConverter::options.ConvertGkKit = false; // true
-    KitConverter::options.ConvertThirdKit = false; // true
-    KitConverter::options.ConvertMinikits = false; // true
+    KitConverter::options.ConvertGkKit = true; // true
+    KitConverter::options.ConvertThirdKit = true; // true
+    KitConverter::options.ConvertMinikits = true; // true
     KitConverter::options.ConvertOnlyMinikits = false;
-    KitConverter::options.OnlyCustomKits = false;
-    KitConverter::options.AllowCustomKits = false;
+    KitConverter::options.OnlyCustomKits = true;
+    KitConverter::options.AllowCustomKits = true;
     KitConverter::options.Allow2xSize = true;
-    KitConverter::options.Force2x = false; // true
-    KitConverter::options.V2 = false; // true
-    KitConverter::options.AddKitOverlay = true; // false
+    KitConverter::options.Force2x = true; // true
+    KitConverter::options.V2 = true; // true
+    KitConverter::options.AddKitOverlay = false; // false
     KitConverter kitConverter;
     ConvertKits(kitConverter);
 }
