@@ -79,7 +79,8 @@
 #include "tests\AssignPlayerFaces.h"
 #include "tests\PlayerNames.h"
 #include "tests\SortShoes.h"
+#include "tests\StaffTest.h"
 
 void RunTests() {
-    RunTest<GenerateKitConfig>();
+    RunTest<StaffTest>();
 }

@@ -98,6 +98,7 @@
     <ClCompile Include="Hexadecimal.cpp" />
     <ClCompile Include="IntPtr.cpp" />
     <ClCompile Include="OptionalInt.cpp" />
+    <ClCompile Include="ProgressBar.cpp" />
     <ClCompile Include="Quoted.cpp" />
     <ClCompile Include="Random.cpp" />
     <ClCompile Include="Utils.cpp" />
@@ -109,6 +110,7 @@
     <ClInclude Include="Hexadecimal.h" />
     <ClInclude Include="IntPtr.h" />
     <ClInclude Include="OptionalInt.h" />
+    <ClInclude Include="ProgressBar.h" />
     <ClInclude Include="Quoted.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="Utils.h" />

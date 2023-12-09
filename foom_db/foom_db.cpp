@@ -1,5 +1,6 @@
 #include "foom_db.h"
 #include <iostream>
+#include "ProgressBar.h"
 
 Int foom::db::convert_money(Int value) {
     Int result = (Int)((Double)value * 1.11394);
@@ -12,52 +13,6 @@ Int foom::db::convert_money(Int value) {
     }
     return result;
 }
-
-class ProgressBar {
-    const UInt mBarWidth = 70;
-    Bool mWasDrawn = false;
-    UInt mPercentage = 0;
-    Float mProgress = 0.0f;
-    Float mStep = 0.0f;
-
-    void Print() {
-        UInt pos = mBarWidth * mProgress;
-        std::wcout << L"[";
-        for (UInt i = 0; i < mBarWidth; ++i) {
-            if (i < pos) std::wcout << L"=";
-            else if (i == pos) std::wcout << L">";
-            else std::wcout << L" ";
-        }
-        std::wcout << L"] " << mPercentage << L" %\r";
-        std::wcout.flush();
-    }
-public:
-    
-
-    ProgressBar(UInt count) {
-        mStep = (count > 1) ? (1.0f / count) : 1.0f;
-        Update(0.0f);
-    }
-
-    ~ProgressBar() {
-        Update(1.0f);
-        std::wcout << std::endl;
-    }
-
-    void Update(Float progress) {
-        mProgress = progress;
-        UInt percentage = mProgress * 100.0f;
-        if (!mWasDrawn || percentage > mPercentage) {
-            mWasDrawn = true;
-            mPercentage = percentage;
-            Print();
-        }
-    }
-
-    void Step() {
-        Update(mProgress + mStep);
-    }
-};
 
 void foom::db::ReaderCallback(String const &filename, Function<void(FifamReader &)> callback) {
     std::wcout << L"Reading " << filename << L"..." << std::endl;

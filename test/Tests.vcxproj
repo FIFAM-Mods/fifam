@@ -167,6 +167,7 @@
     <ClInclude Include="tests\ShowPlayers.h" />
     <ClInclude Include="tests\DatabaseRewrite.h" />
     <ClInclude Include="tests\SortShoes.h" />
+    <ClInclude Include="tests\StaffTest.h" />
     <ClInclude Include="tests\TeamColors.h" />
     <ClInclude Include="tests\Translation.h" />
     <ClInclude Include="tests\TranslationHashes.h" />

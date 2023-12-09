@@ -14,27 +14,13 @@
 
 #define DB_SIZE Full
 
-//#define DEBUG_BUILD
-
 Int GetIniInt(wchar_t const *key, Int defaultValue = 0) {
-#ifdef DEBUG_BUILD
-    static wchar_t const *ConfigPath = L"E:\\Projects\\fifam\\output\\converters\\CONFIG.INI";
-#else
-    static wchar_t const *ConfigPath = L".\\CONFIG.INI";
-#endif
-    static wchar_t const *MainSection = L"MAIN";
-    return GetPrivateProfileIntW(MainSection, key, defaultValue, ConfigPath);
+    return GetPrivateProfileIntW(L"MAIN", key, defaultValue, L".\\CONFIG.INI");
 }
 
 Path GetIniPath(wchar_t const *key, Path const &defaultValue = Path()) {
-#ifdef DEBUG_BUILD
-    static wchar_t const *ConfigPath = L"E:\\Projects\\fifam\\output\\converters\\CONFIG.INI";
-#else
-    static wchar_t const *ConfigPath = L".\\CONFIG.INI";
-#endif
-    static wchar_t const *MainSection = L"MAIN";
     wchar_t ResultPath[MAX_PATH];
-    GetPrivateProfileStringW(MainSection, key, defaultValue.c_str(), ResultPath, MAX_PATH, ConfigPath);
+    GetPrivateProfileStringW(L"MAIN", key, defaultValue.c_str(), ResultPath, MAX_PATH, L".\\CONFIG.INI");
     return ResultPath;
 }
 

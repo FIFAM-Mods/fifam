@@ -2,6 +2,7 @@
 #include "FifamNames.h"
 #include "Magick++.h"
 #include "Error.h"
+#include "ProgressBar.h"
 
 using namespace Magick;
 
@@ -674,17 +675,19 @@ void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGrap
             if (gameId <= 9)
                 portraitsDir = Path(L"art") / L"picture";
             FifamPerson *fifamPerson = (FifamPerson *)person->mConverterData.mFifamPerson;
-            String dstFolder = L"art_08";
+            String dstFolder = L"art_09";
             if (gameId >= 13 && !fifamPerson->mWriteableStringID.empty()) {
                 WideChar c = fifamPerson->mWriteableStringID[0];
-                if ((c >= L'A' && c <= L'C') || (c >= L'a' && c <= L'c'))
+                if ((c >= L'A' && c <= L'B') || (c >= L'a' && c <= L'b'))
                     dstFolder = L"art_02";
-                if ((c >= L'D' && c <= L'J') || (c >= L'd' && c <= L'j'))
+                if ((c >= L'C' && c <= L'G') || (c >= L'c' && c <= L'G'))
                     dstFolder = L"art_03";
-                else if ((c >= L'K' && c <= L'M') || (c >= L'k' && c <= L'm'))
+                else if ((c >= L'H' && c <= L'K') || (c >= L'h' && c <= L'k'))
                     dstFolder = L"art_06";
-                else if ((c >= L'N' && c <= L'R') || (c >= L'n' && c <= L'r'))
+                else if ((c >= L'L' && c <= L'O') || (c >= L'l' && c <= L'o'))
                     dstFolder = L"art_07";
+                else if ((c >= L'P' && c <= L'S') || (c >= L'p' && c <= L's'))
+                    dstFolder = L"art_08";
             }
             Path outputPath = contentPath / gameFolder / dstFolder / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat);
             if (!mOnlyUpdates || (!exists(outputPath) &&
@@ -692,7 +695,8 @@ void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGrap
                 !exists(contentPath / gameFolder / L"art_03" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
                 !exists(contentPath / gameFolder / L"art_06" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
                 !exists(contentPath / gameFolder / L"art_07" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
-                !exists(contentPath / gameFolder / L"art_08" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat))))
+                !exists(contentPath / gameFolder / L"art_08" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
+                !exists(contentPath / gameFolder / L"art_09" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat))))
             {
                 if (mOnlyUpdates || mOutputToGameFolder)
                     outputPath = Path(gameOutputPath / L"portraits\\club\\160x160") / (fifamPerson->mWriteableStringID + targetFormat);
@@ -748,41 +752,40 @@ void GraphicsConverter::ConvertPortraits(foom::db *db, Path const &fmGraphicsPat
     create_directories(contentPath / gameFolder / L"art_06\\portraits\\club\\160x160");
     create_directories(contentPath / gameFolder / L"art_07\\portraits\\club\\160x160");
     create_directories(contentPath / gameFolder / L"art_08\\portraits\\club\\160x160");
-    create_directories(contentPath / gameFolder / L"art_05\\portraits\\Referees\\160x160");
-    std::wcout << L"Converting player portraits...  0%";
-    UInt max = db->mPlayers.size();
-    UInt counter = 0;
-    for (auto e : db->mPlayers) {
-        auto &p = e.second;
-        if (p.mCurrentAbility > minCA)
-            ConvertPortrait(&p, fmGraphicsPath, contentPath, gameId, gameOutputPath);
-        std::wcout << Utils::Format(L"\b\b\b\b%3d%%", (Int)((Float)counter / max * 100));
-        counter++;
-    }
-    std::wcout << L"\b\b\b\b100%" << std::endl;
-    if (gameId >= 10) {
-        max = db->mNonPlayers.size();
-        counter = 0;
-        std::wcout << L"Converting staff portraits...   0%";
-        for (auto e : db->mNonPlayers) {
+    create_directories(contentPath / gameFolder / L"art_09\\portraits\\club\\160x160");
+    {
+        ProgressBar pb(db->mPlayers.size());
+        std::wcout << L"Converting player portraits..." << std::endl;
+        UInt max = db->mPlayers.size();
+        UInt counter = 0;
+        for (auto e : db->mPlayers) {
             auto &p = e.second;
             if (p.mCurrentAbility > minCA)
                 ConvertPortrait(&p, fmGraphicsPath, contentPath, gameId, gameOutputPath);
-            std::wcout << Utils::Format(L"\b\b\b\b%3d%%", (Int)((Float)counter / max * 100));
-            counter++;
+            pb.Step();
         }
-        std::wcout << L"\b\b\b\b100%" << std::endl;
-        max = db->mOfficials.size();
-        counter = 0;
-        std::wcout << L"Converting referee portraits...   0%";
-        for (auto e : db->mOfficials) {
-            auto &p = e.second;
-            if (p.mCurrentAbility > minCA)
-                ConvertRefereePortrait(&p, fmGraphicsPath, contentPath, gameId, gameOutputPath);
-            std::wcout << Utils::Format(L"\b\b\b\b%3d%%", (Int)((Float)counter / max * 100));
-            counter++;
+    }
+    if (gameId >= 10) {
+        {
+            ProgressBar pb(db->mNonPlayers.size());
+            std::wcout << L"Converting staff portraits..." << std::endl;
+            for (auto e : db->mNonPlayers) {
+                auto &p = e.second;
+                if (p.mCurrentAbility > minCA)
+                    ConvertPortrait(&p, fmGraphicsPath, contentPath, gameId, gameOutputPath);
+                pb.Step();
+            }
         }
-        std::wcout << L"\b\b\b\b100%" << std::endl;
+        {
+            ProgressBar pb(db->mOfficials.size());
+            std::wcout << L"Converting referee portraits..." << std::endl;
+            for (auto e : db->mOfficials) {
+                auto &p = e.second;
+                if (p.mCurrentAbility > minCA)
+                    ConvertRefereePortrait(&p, fmGraphicsPath, contentPath, gameId, gameOutputPath);
+                pb.Step();
+            }
+        }
     }
 }
 

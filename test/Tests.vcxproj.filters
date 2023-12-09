@@ -274,6 +274,9 @@
     <ClInclude Include="tests\SortShoes.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\StaffTest.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

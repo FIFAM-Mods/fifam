@@ -1664,7 +1664,7 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         if (selectedInjury->mStartDate >= GetCurrentDate()) {
             static FifamDate PrevSeasonDate = Date(30, 6, GetCurrentDate().year);
             FifamDate endDate = selectedInjury->mEndDate;
-            UInt endDateShift = endDate - PrevSeasonDate;
+            UInt endDateShift = FifamDate(selectedInjury->mStartDate) - PrevSeasonDate;
             endDate.SetDays(endDate.GetDays() - endDateShift);
             player->mStartingConditions.mInjury.Setup(PrevSeasonDate, endDate, injuryType);
         }
