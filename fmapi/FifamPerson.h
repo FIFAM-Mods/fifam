@@ -64,6 +64,8 @@ public:
     FifamPlayer *mManagerFavouritePlayer = nullptr;
     // @since FM22
     Int mFootballManagerID = -1;
+    // @since FM24
+    UInt mCreator = 0;
 
     FifamClub *mClub = nullptr;
 

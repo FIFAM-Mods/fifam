@@ -206,7 +206,7 @@ void FifaConverter::ConvertPlayer(Converter * converter, FifamClub * club, Bool 
     }
     FifamPlayer *player = converter->mFifamDatabase->CreatePlayer(club, NextPersonId());
     player->SetProperty(L"fifaplayer", p);
-    player->mEmpicsId = p->GetId();
+    player->mFifaID = p->GetId();
     // basic info
     player->mIsRealPlayer = true;
     player->mInReserveTeam = reserve;

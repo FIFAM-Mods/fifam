@@ -32,7 +32,7 @@ public:
     void CopyLeagueSplitAndRelegationBadges(FifamDatabase *db, Path const &contentPath, UInt gameId, Path const &gameOutputPath);
     void DownloadClubBadgesFIFA(FifamDatabase *db, Path const &contentPath, UInt gameId, Path const &gameOutputPath);
     void DownloadPlayerPortraitsFIFA(FifamDatabase *db, Path const &contentPath, UInt gameId, Path const &gameOutputPath);
-    void DownloadPlayerPortraitsFIFA21(FifaDatabase *db, Path const &gameOutputPath);
+    void DownloadPlayerPortraitsFIFA21(FifaDatabase *db, Path const &outputPath);
 
     static FifamClubTeamColor GetBadgeColor(Path const &filepath);
     void ProcessFIFAXXLPortraits(foom::db* db, Path const& gameOutputPath);

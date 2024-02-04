@@ -56,6 +56,7 @@ String Converter::FixPersonName(String const &name, UInt gameId) {
 
 void Converter::ConvertPersonAttributes(FifamPerson * person, foom::person * p, UInt gameId) {
     p->mConverterData.mFifamPerson = person;
+    person->mCreator = 2;
     person->mFootballManagerID = p->mID;
     FifamCountry *personCountry = mFifamDatabase->GetCountry(p->mNation->mConverterData.mFIFAManagerReplacementID);
     // names

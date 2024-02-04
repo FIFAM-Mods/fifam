@@ -664,83 +664,92 @@ void GraphicsConverter::ConvertTrophies(FifamDatabase *db, Path const &fmGraphic
 }
 
 void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
-    if (person->mConverterData.mFifamPerson) {
-        Path portraitPath = fmGraphicsPath / L"sortitoutsi" / L"faces" / (std::to_wstring(person->mID) + L".png");
-        if (exists(portraitPath)) {
-            String gameFolder = Utils::Format(L"fm%02d", gameId);
-            String targetFormat = L".png";
-            Path portraitsDir = Path(L"portraits") / L"club" / L"160x160";
-            if (gameId <= 12)
-                targetFormat = L".tga";
-            if (gameId <= 9)
-                portraitsDir = Path(L"art") / L"picture";
-            FifamPerson *fifamPerson = (FifamPerson *)person->mConverterData.mFifamPerson;
-            String dstFolder = L"art_09";
-            if (gameId >= 13 && !fifamPerson->mWriteableStringID.empty()) {
-                WideChar c = fifamPerson->mWriteableStringID[0];
-                if ((c >= L'A' && c <= L'B') || (c >= L'a' && c <= L'b'))
-                    dstFolder = L"art_02";
-                if ((c >= L'C' && c <= L'G') || (c >= L'c' && c <= L'G'))
-                    dstFolder = L"art_03";
-                else if ((c >= L'H' && c <= L'K') || (c >= L'h' && c <= L'k'))
-                    dstFolder = L"art_06";
-                else if ((c >= L'L' && c <= L'O') || (c >= L'l' && c <= L'o'))
-                    dstFolder = L"art_07";
-                else if ((c >= L'P' && c <= L'S') || (c >= L'p' && c <= L's'))
-                    dstFolder = L"art_08";
-            }
-            Path outputPath = contentPath / gameFolder / dstFolder / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat);
-            if (!mOnlyUpdates || (!exists(outputPath) &&
-                !exists(contentPath / gameFolder / L"art_02" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
-                !exists(contentPath / gameFolder / L"art_03" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
-                !exists(contentPath / gameFolder / L"art_06" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
-                !exists(contentPath / gameFolder / L"art_07" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
-                !exists(contentPath / gameFolder / L"art_08" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
-                !exists(contentPath / gameFolder / L"art_09" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat))))
-            {
-                if (mOnlyUpdates || mOutputToGameFolder)
-                    outputPath = Path(gameOutputPath / L"portraits\\club\\160x160") / (fifamPerson->mWriteableStringID + targetFormat);
-                Image portraitImg(portraitPath.string());
-                if (portraitImg.isValid() && portraitImg.baseRows() >= 150 && portraitImg.baseColumns() >= 150) {
-                    if (portraitImg.baseColumns() != portraitImg.baseRows()) {
-                        UInt newSize = Utils::Max(portraitImg.baseColumns(), portraitImg.baseRows());
-                        portraitImg.extent(Geometry(newSize, newSize), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
+    try {
+        if (person->mConverterData.mFifamPerson) {
+            Path portraitPath = fmGraphicsPath / L"sortitoutsi" / L"faces" / (std::to_wstring(person->mID) + L".png");
+            if (exists(portraitPath)) {
+                String gameFolder = Utils::Format(L"fm%02d", gameId);
+                String targetFormat = L".png";
+                Path portraitsDir = Path(L"portraits") / L"club" / L"160x160";
+                if (gameId <= 12)
+                    targetFormat = L".tga";
+                if (gameId <= 9)
+                    portraitsDir = Path(L"art") / L"picture";
+                FifamPerson *fifamPerson = (FifamPerson *)person->mConverterData.mFifamPerson;
+                String dstFolder = L"art_09";
+                if (gameId >= 13 && !fifamPerson->mWriteableStringID.empty()) {
+                    WideChar c = fifamPerson->mWriteableStringID[0];
+                    if ((c >= L'A' && c <= L'B') || (c >= L'a' && c <= L'b'))
+                        dstFolder = L"art_02";
+                    if ((c >= L'C' && c <= L'G') || (c >= L'c' && c <= L'G'))
+                        dstFolder = L"art_03";
+                    else if ((c >= L'H' && c <= L'K') || (c >= L'h' && c <= L'k'))
+                        dstFolder = L"art_06";
+                    else if ((c >= L'L' && c <= L'O') || (c >= L'l' && c <= L'o'))
+                        dstFolder = L"art_07";
+                    else if ((c >= L'P' && c <= L'S') || (c >= L'p' && c <= L's'))
+                        dstFolder = L"art_08";
+                }
+                Path outputPath = contentPath / gameFolder / dstFolder / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat);
+                if (!mOnlyUpdates || (!exists(outputPath) &&
+                    !exists(contentPath / gameFolder / L"art_02" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
+                    !exists(contentPath / gameFolder / L"art_03" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
+                    !exists(contentPath / gameFolder / L"art_06" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
+                    !exists(contentPath / gameFolder / L"art_07" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
+                    !exists(contentPath / gameFolder / L"art_08" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
+                    !exists(contentPath / gameFolder / L"art_09" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)))) {
+                    if (mOnlyUpdates || mOutputToGameFolder)
+                        outputPath = Path(gameOutputPath / L"portraits\\club\\160x160") / (fifamPerson->mWriteableStringID + targetFormat);
+                    Image portraitImg(portraitPath.string());
+                    if (portraitImg.isValid() && portraitImg.baseRows() >= 150 && portraitImg.baseColumns() >= 150) {
+                        if (portraitImg.baseColumns() != portraitImg.baseRows()) {
+                            UInt newSize = Utils::Max(portraitImg.baseColumns(), portraitImg.baseRows());
+                            portraitImg.extent(Geometry(newSize, newSize), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
+                        }
+                        portraitImg.filterType(FilterType::LanczosFilter);
+                        portraitImg.resize(Geometry(160, 160));
+                        SafeWriteImage(portraitImg, outputPath.string());
                     }
-                    portraitImg.filterType(FilterType::LanczosFilter);
-                    portraitImg.resize(Geometry(160, 160));
-                    SafeWriteImage(portraitImg, outputPath.string());
                 }
             }
         }
     }
+    catch (std::exception e) {
+        ::Error("Failed to convert portrait %d\n%s", person->mID, e.what());
+    }
 }
 
 void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
-    if (referee->mConverterData.mFifamReferee) {
-        Path portraitPath = fmGraphicsPath / L"sortitoutsi" / L"faces" / (std::to_wstring(referee->mID) + L".png");
-        if (exists(portraitPath)) {
-            String targetFormat = L".png";
-            FifamReferee *fifamReferee = (FifamReferee *)referee->mConverterData.mFifamReferee;
-            Path basePath;
-            if (mOnlyUpdates || mOutputToGameFolder)
-                basePath = gameOutputPath;
-            else
-                basePath = contentPath / Utils::Format(L"fm%02d", gameId) / L"art_02";
-            Path outputPath = basePath / L"portraits" / L"Referees" / L"160x160" /
-                (FifamNames::GetPersonStringId(gameId, fifamReferee->mFirstName, fifamReferee->mLastName, String(), Date(), 0) + targetFormat);
-            if (!mOnlyUpdates || !exists(outputPath)) {
-                Image portraitImg(portraitPath.string());
-                if (portraitImg.isValid() && portraitImg.baseRows() >= 150 && portraitImg.baseColumns() >= 150) {
-                    if (portraitImg.baseColumns() != portraitImg.baseRows()) {
-                        UInt newSize = Utils::Max(portraitImg.baseColumns(), portraitImg.baseRows());
-                        portraitImg.extent(Geometry(newSize, newSize), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
+    try {
+        if (referee->mConverterData.mFifamReferee) {
+            Path portraitPath = fmGraphicsPath / L"sortitoutsi" / L"faces" / (std::to_wstring(referee->mID) + L".png");
+            if (exists(portraitPath)) {
+                String targetFormat = L".png";
+                FifamReferee *fifamReferee = (FifamReferee *)referee->mConverterData.mFifamReferee;
+                Path basePath;
+                if (mOnlyUpdates || mOutputToGameFolder)
+                    basePath = gameOutputPath;
+                else
+                    basePath = contentPath / Utils::Format(L"fm%02d", gameId) / L"art_02";
+                Path outputPath = basePath / L"portraits" / L"Referees" / L"160x160" /
+                    (FifamNames::GetPersonStringId(gameId, fifamReferee->mFirstName, fifamReferee->mLastName, String(), Date(), 0) + targetFormat);
+                if (!mOnlyUpdates || !exists(outputPath)) {
+                    Image portraitImg(portraitPath.string());
+                    if (portraitImg.isValid() && portraitImg.baseRows() >= 150 && portraitImg.baseColumns() >= 150) {
+                        if (portraitImg.baseColumns() != portraitImg.baseRows()) {
+                            UInt newSize = Utils::Max(portraitImg.baseColumns(), portraitImg.baseRows());
+                            portraitImg.extent(Geometry(newSize, newSize), Magick::Color(0, 0, 0, 0), MagickCore::GravityType::CenterGravity);
+                        }
+                        portraitImg.filterType(FilterType::LanczosFilter);
+                        portraitImg.resize(Geometry(160, 160));
+                        SafeWriteImage(portraitImg, outputPath.string());
                     }
-                    portraitImg.filterType(FilterType::LanczosFilter);
-                    portraitImg.resize(Geometry(160, 160));
-                    SafeWriteImage(portraitImg, outputPath.string());
                 }
             }
         }
+    }
+    catch (std::exception e) {
+        ::Error("Failed to convert referee portrait %d\n%s", referee->mID, e.what());
     }
 }
 
@@ -754,8 +763,8 @@ void GraphicsConverter::ConvertPortraits(foom::db *db, Path const &fmGraphicsPat
     create_directories(contentPath / gameFolder / L"art_08\\portraits\\club\\160x160");
     create_directories(contentPath / gameFolder / L"art_09\\portraits\\club\\160x160");
     {
-        ProgressBar pb(db->mPlayers.size());
         std::wcout << L"Converting player portraits..." << std::endl;
+        ProgressBar pb(db->mPlayers.size());
         UInt max = db->mPlayers.size();
         UInt counter = 0;
         for (auto e : db->mPlayers) {
@@ -767,8 +776,8 @@ void GraphicsConverter::ConvertPortraits(foom::db *db, Path const &fmGraphicsPat
     }
     if (gameId >= 10) {
         {
-            ProgressBar pb(db->mNonPlayers.size());
             std::wcout << L"Converting staff portraits..." << std::endl;
+            ProgressBar pb(db->mNonPlayers.size());
             for (auto e : db->mNonPlayers) {
                 auto &p = e.second;
                 if (p.mCurrentAbility > minCA)
@@ -777,8 +786,8 @@ void GraphicsConverter::ConvertPortraits(foom::db *db, Path const &fmGraphicsPat
             }
         }
         {
-            ProgressBar pb(db->mOfficials.size());
             std::wcout << L"Converting referee portraits..." << std::endl;
+            ProgressBar pb(db->mOfficials.size());
             for (auto e : db->mOfficials) {
                 auto &p = e.second;
                 if (p.mCurrentAbility > minCA)
@@ -1044,18 +1053,16 @@ Bool DownloadAndSavePlayerPhoto(Int playerId, Char const *filepath) {
 
 Bool DownloadAndSavePlayerPhotoFIFA21(Int playerId, Path const &filepath) {
     char url[MAX_PATH];
-    sprintf(url, "https://media.contentapi.ea.com/content/dam/ea/fifa/fifa-23/ratings/common/player-small-portraits/%d.png", playerId);
+    sprintf(url, "https://cdn.futbin.com/content/fifa24/img/players/%d.png", playerId);
     return DownloadAndSavePlayerPhoto(filepath.string().c_str(), url, false);
 }
 
-void GraphicsConverter::DownloadPlayerPortraitsFIFA21(FifaDatabase *db, Path const &gameOutputPath) {
-    Path outputPath = gameOutputPath / L"portraits" / L"club" / L"512x512";
+void GraphicsConverter::DownloadPlayerPortraitsFIFA21(FifaDatabase *db, Path const &outputPath) {
     create_directories(outputPath);
+    ProgressBar pb(db->m_players.size());
     db->ForAllPlayers([&](FifaPlayer &p) {
-        if (p.GetId() > 241852) {
-            std::cout << p.GetId() << std::endl;
-            DownloadAndSavePlayerPhotoFIFA21(p.GetId(), outputPath / (Utils::GetStringWithoutUnicodeChars(p.m_quickName) + L" (" + std::to_wstring(p.GetId()) + L").png"));
-        }
+        DownloadAndSavePlayerPhotoFIFA21(p.GetId(), outputPath / (std::to_wstring(p.GetId()) + L".png"));
+        pb.Step();
     });
 }
 
@@ -1069,9 +1076,9 @@ void GraphicsConverter::DownloadPlayerPortraitsFIFA(FifamDatabase *db, Path cons
                 for (auto b : c->mClubs) {
                     for (auto p : b->mPlayers) {
                         try {
-                            if (p->mEmpicsId != 0) {
+                            if (p->mFifaID != 0) {
                                 Path outputPic = outputPath / (p->mWriteableStringID + L".tga");
-                                DownloadAndSavePlayerPhoto(p->mEmpicsId, outputPic.string().c_str());
+                                DownloadAndSavePlayerPhoto(p->mFifaID, outputPic.string().c_str());
                             }
                         }
                         catch (std::exception &e) {
@@ -1084,9 +1091,9 @@ void GraphicsConverter::DownloadPlayerPortraitsFIFA(FifamDatabase *db, Path cons
         std::wcout << L"Portraits: Free agents" << std::endl;
         for (auto p : db->mPlayers) {
             try {
-                if (!p->mClub && p->mEmpicsId != 0) {
+                if (!p->mClub && p->mFifaID != 0) {
                     Path outputPic = outputPath / (p->mWriteableStringID + L".tga");
-                    DownloadAndSavePlayerPhoto(p->mEmpicsId, outputPic.string().c_str());
+                    DownloadAndSavePlayerPhoto(p->mFifaID, outputPic.string().c_str());
                 }
             }
             catch (std::exception &e) {
@@ -1192,8 +1199,8 @@ void GraphicsConverter::ConvertPlayerPortraitsFIFA(FifamDatabase *db, Path const
                 for (auto b : c->mClubs) {
                     for (auto p : b->mPlayers) {
                         try {
-                            if (p->mEmpicsId != 0) {
-                                picPath = assetsDir / Utils::Format(L"p%d.dds", p->mEmpicsId);
+                            if (p->mFifaID != 0) {
+                                picPath = assetsDir / Utils::Format(L"p%d.dds", p->mFifaID);
                                 if (exists(picPath)) {
                                     Image pic(picPath.string());
                                     pic.filterType(FilterType::LanczosFilter);
@@ -1213,8 +1220,8 @@ void GraphicsConverter::ConvertPlayerPortraitsFIFA(FifamDatabase *db, Path const
         std::wcout << L"Free agents" << std::endl;
         for (auto p : db->mPlayers) {
             try {
-                if (!p->mClub && p->mEmpicsId != 0) {
-                    picPath = assetsDir / Utils::Format(L"p%d.dds", p->mEmpicsId);
+                if (!p->mClub && p->mFifaID != 0) {
+                    picPath = assetsDir / Utils::Format(L"p%d.dds", p->mFifaID);
                     if (exists(picPath)) {
                         Image pic(picPath.string());
                         pic.filterType(FilterType::LanczosFilter);

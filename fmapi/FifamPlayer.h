@@ -134,6 +134,8 @@ public:
     Set<FifamPlayer *> mBrothers;
     // @since FM13
     Set<FifamPlayer *> mCousins;
+    // @since FM24
+    UInt mFifaID = 0;
 
     // Unknown data
     struct {

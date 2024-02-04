@@ -5,6 +5,11 @@
 #include "FifamNames.h"
 #include "FifamCompLeague.h"
 
+#define BADGES 0
+#define PORTRAITS_FMZ 0
+#define PORTRAITS_SORTITOUTSI 1
+#define PORTRAITS_XXL 0
+
 class DbGraphicsStats {
 public:
     static String NationName(FifamDatabase *db, FifamNation const &id) {
@@ -30,7 +35,7 @@ public:
     DbGraphicsStats() {
         UInt gameVersion = 13;
         FifamDatabase *db = new FifamDatabase(gameVersion, L"D:\\Games\\FIFA Manager 22\\database");
-        db->SetupWriteableStatus(gameVersion);
+        db->SetupWriteableStatus(gameVersion, false);
         Map<FifamClub *, FifamCompLeague *> clubLeague;
 
         for (auto const &[id, c] : db->mCompMap) {
@@ -45,26 +50,26 @@ public:
 
         Vector<Path> badgesClubPathClean = {
             R"(D:\Projects\fifam\content\fm13\clean_badges\badges\badges\clubs\256x256)",
-            R"(C:\Users\Dmitri\Desktop\FM 23 update 1\_UPDATE_BADGES_1\badges\clubs\256x256)",
-            R"(C:\Users\Dmitri\Desktop\FM 23 update 2\_UPDATE_BADGES_1\badges\clubs\256x256)",
+            //R"(C:\Users\Dmitri\Desktop\FM 24 update 1\_UPDATE_BADGES_1\badges\clubs\256x256)",
+            //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_BADGES_1\badges\clubs\256x256)",
         };
 
         Vector<Path> badgesClubPathDvx = {
             R"(D:\Projects\fifam\content\fm13\badges\badges\clubs\256x256)",
-            R"(C:\Users\Dmitri\Desktop\FM 23 update 1\_UPDATE_BADGES_2\badges\clubs\256x256)",
-            R"(C:\Users\Dmitri\Desktop\FM 23 update 2\_UPDATE_BADGES_2\badges\clubs\256x256)",
+            //R"(C:\Users\Dmitri\Desktop\FM 24 update 1\_UPDATE_BADGES_2\badges\clubs\256x256)",
+            //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_BADGES_2\badges\clubs\256x256)",
         };
 
         Vector<Path> badgesLeaguePathClean = {
             R"(D:\Projects\fifam\content\fm13\clean_badges\badges\badges\Leagues\256x256)",
-            R"(C:\Users\Dmitri\Desktop\FM 23 update 1\_UPDATE_BADGES_1\badges\Leagues\256x256)",
-            R"(C:\Users\Dmitri\Desktop\FM 23 update 2\_UPDATE_BADGES_1\badges\Leagues\256x256)",
+            //R"(C:\Users\Dmitri\Desktop\FM 24 update 1\_UPDATE_BADGES_1\badges\Leagues\256x256)",
+            //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_BADGES_1\badges\Leagues\256x256)",
         };
 
         Vector<Path> badgesLeaguePathDvx = {
             R"(D:\Projects\fifam\content\fm13\badges\badges\Leagues\256x256)",
-            R"(C:\Users\Dmitri\Desktop\FM 23 update 1\_UPDATE_BADGES_2\badges\Leagues\256x256)",
-            R"(C:\Users\Dmitri\Desktop\FM 23 update 2\_UPDATE_BADGES_2\badges\Leagues\256x256)",
+            //R"(C:\Users\Dmitri\Desktop\FM 24 update 1\_UPDATE_BADGES_2\badges\Leagues\256x256)",
+            //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_BADGES_2\badges\Leagues\256x256)",
         };
 
         Vector<Path> portraitsPlayerPathSortitoutsi = {
@@ -74,27 +79,26 @@ public:
             R"(D:\Projects\fifam\content\fm13\art_07\portraits\club\160x160)",
             R"(D:\Projects\fifam\content\fm13\art_08\portraits\club\160x160)",
             R"(D:\Projects\fifam\content\fm13\art_09\portraits\club\160x160)",
-            R"(C:\Users\Dmitri\Desktop\FM 23 update 1\_UPDATE_PORTRAITS_1\portraits\club\160x160)",
-            R"(C:\Users\Dmitri\Desktop\FM 23 update 2\_UPDATE_PORTRAITS_1\portraits\club\160x160)",
+            //R"(C:\Users\Dmitri\Desktop\FM 24 update 1\_UPDATE_PORTRAITS_1\portraits\club\160x160)",
+            //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_PORTRAITS_1\portraits\club\160x160)",
         };
 
         Vector<Path> portraitsPlayerPathFMZ = {
             R"(D:\Projects\fifam\content\fm13\portraits_fmz\art_02\portraits\club\160x160)",
             R"(D:\Projects\fifam\content\fm13\portraits_fmz\art_03\portraits\club\160x160)",
-            R"(C:\Users\Dmitri\Desktop\FM 23 update 1\_UPDATE_PORTRAITS_2\portraits\club\160x160)",
-            R"(C:\Users\Dmitri\Desktop\FM 23 update 2\_UPDATE_PORTRAITS_2\portraits\club\160x160)",
+            //R"(C:\Users\Dmitri\Desktop\FM 24 update 1\_UPDATE_PORTRAITS_2\portraits\club\160x160)",
+            //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_PORTRAITS_2\portraits\club\160x160)",
         };
 
         Vector<Path> portraitsRefereePathSortitoutsi = {
             R"(D:\Projects\fifam\content\fm13\art_02\portraits\Referees\160x160)",
-            R"(C:\Users\Dmitri\Desktop\FM 23 update 1\_UPDATE_PORTRAITS_1\portraits\Referees\160x160)",
-            R"(C:\Users\Dmitri\Desktop\FM 23 update 2\_UPDATE_PORTRAITS_1\portraits\Referees\160x160)",
+            //R"(C:\Users\Dmitri\Desktop\FM 24 update 1\_UPDATE_PORTRAITS_1\portraits\Referees\160x160)",
+            //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_PORTRAITS_1\portraits\Referees\160x160)",
         };
 
         Vector<Path> portraitsRefereePathFMZ = {
             R"(D:\Projects\fifam\content\fm13\portraits_fmz\art_02\portraits\Referees\160x160)",
-            R"(D:\Projects\fifam\content\fm13\update_portraits_fifam_style\portraits\Referees\160x160)",
-            //R"(D:\Projects\fifam\content\fm13\update_portraits_fifam_style\portraits\Referees\160x160)",
+            //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_PORTRAITS_2\portraits\Referees\160x160)",
         };
 
         Vector<Path> portraitsXXLPath = {
@@ -102,13 +106,14 @@ public:
             R"(D:\Projects\fifam\content\fm13\art_13\portraits\club\512x512)",
             R"(D:\Projects\fifam\content\fm13\art_14\portraits\club\512x512)",
             R"(D:\Projects\fifam\content\fm13\art_15\portraits\club\512x512)",
-            R"(C:\Users\Dmitri\Desktop\FM 23 update 1\_UPDATE_XXL\portraits\club\512x512)",
-            R"(C:\Users\Dmitri\Desktop\FM 23 update 2\_UPDATE_XXL\portraits\club\512x512)",
+            //R"(C:\Users\Dmitri\Desktop\FM 24 update 1\_UPDATE_XXL\portraits\club\512x512)",
+            //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_XXL\portraits\club\512x512)",
         };
 
         wcout << endl;
         wcout << L"Graphics statistics:" << endl;
         wcout << endl;
+#if BADGES == 1
         {
             UInt numClubBadgesClean = 0, numLeagueBadgesClean = 0, numClubBadgesDvx = 0, numLeagueBadgesDvx = 0;
             for (auto const &[id, c] : db->mCompMap) {
@@ -137,9 +142,11 @@ public:
             wcout << L"  Clubs: " << numClubBadgesDvx << endl;
             wcout << endl;
         }
+#endif
+#if PORTRAITS_XXL == 1
         {
             FifamWriter w(L"players_without_portrait_xxl.csv");
-            w.WriteLine(L"id", L"foomid", L"empicsId", L"name", L"status", L"birthdate", L"nationality", L"club", L"country", L"league", L"position", L"level", L"talent");
+            w.WriteLine(L"id", L"foomid", L"empicsId", L"creator", L"name", L"status", L"birthdate", L"nationality", L"club", L"country", L"league", L"position", L"level", L"talent");
             UInt numXXLPortraits = 0;
             for (auto const &p : db->mPlayers) {
                 String id = p->mWriteableStringID;
@@ -159,7 +166,7 @@ public:
                         if (clubLeague.contains(p->mClub))
                             clubLeagueLevel = clubLeague[p->mClub]->mLeagueLevel + 1;
                     }
-                    w.WriteLine(p->mWriteableStringID, p->mFootballManagerID, p->mEmpicsId, Quoted(p->GetName()), status, p->mBirthday.ToString(),
+                    w.WriteLine(p->mWriteableStringID, p->mFootballManagerID, p->mEmpicsId, p->mCreator, Quoted(p->GetName()), status, p->mBirthday.ToString(),
                         Quoted(NationName(db, p->mNationality[0])), Quoted(clubName), Quoted(clubCountry), clubLeagueLevel, p->mMainPosition.ToStr(),
                         p->GetLevel(), p->mTalent);
                 }
@@ -169,27 +176,33 @@ public:
             wcout << L"Portraits XXL: " << numXXLPortraits << endl;
             wcout << endl;
         }
+#endif
         UInt numStaffPortraitsSortitoutsi = 0;
         UInt numPlayerPortraitsSortitoutsi = 0;
         UInt numStaffPortraitsFMZ = 0;
         UInt numPlayerPortraitsFMZ = 0;
         UInt numRefereePortraitsSortitoutsi = 0;
         UInt numRefereePortraitsFMZ = 0;
+#if PORTRAITS_SORTITOUTSI == 1
         {
             for (auto const &r : db->mReferees) {
                 if (PictureStatus(portraitsRefereePathSortitoutsi, FifamNames::GetPersonStringId(gameVersion, r->mFirstName, r->mLastName, String(), Date(), 0) + L".png"))
                     numRefereePortraitsSortitoutsi++;
             }
         }
+#endif
+#if PORTRAITS_FMZ == 1
         {
             for (auto const &r : db->mReferees) {
                 if (PictureStatus(portraitsRefereePathFMZ, FifamNames::GetPersonStringId(gameVersion, r->mFirstName, r->mLastName, String(), Date(), 0) + L".png"))
                     numRefereePortraitsFMZ++;
             }
         }
+#endif
+#if PORTRAITS_SORTITOUTSI == 1
         {
             FifamWriter w(L"staff_without_portrait_sortitoutsi.csv");
-            w.WriteLine(L"id", L"foomid", L"name", L"birthdate", L"nationality", L"club", L"country", L"league", L"position", L"level", L"talent");
+            w.WriteLine(L"id", L"foomid", L"creator", L"name", L"birthdate", L"nationality", L"club", L"country", L"league", L"position", L"level", L"talent");
             for (auto const &s : db->mStaffs) {
                 UInt status = PictureStatus(portraitsPlayerPathSortitoutsi, s->mWriteableStringID + L".png");
                 if (status == 0) {
@@ -206,15 +219,17 @@ public:
                         level = s->GetManagerLevel() * 99 / 15;
                     else
                         level = s->GetStaffLevel();
-                    w.WriteLine(s->mWriteableStringID, s->mFootballManagerID, Quoted(s->GetName()), s->mBirthday.ToString(), NationName(db, s->mNationality[0]), Quoted(clubName), Quoted(clubCountry), clubLeagueLevel, s->mClubPosition.ToStr(), level, s->mTalent);
+                    w.WriteLine(s->mWriteableStringID, s->mFootballManagerID, s->mCreator, Quoted(s->GetName()), s->mBirthday.ToString(), NationName(db, s->mNationality[0]), Quoted(clubName), Quoted(clubCountry), clubLeagueLevel, s->mClubPosition.ToStr(), level, s->mTalent);
                 }
                 else
                     numStaffPortraitsSortitoutsi++;
             }
         }
+#endif
+#if PORTRAITS_FMZ == 1
         {
             FifamWriter w(L"staff_without_portrait_fmz.csv");
-            w.WriteLine(L"id", L"foomid", L"name", L"birthdate", L"nationality", L"club", L"country", L"league", L"position", L"level", L"talent");
+            w.WriteLine(L"id", L"foomid", L"creator", L"name", L"birthdate", L"nationality", L"club", L"country", L"league", L"position", L"level", L"talent");
             for (auto const &s : db->mStaffs) {
                 UInt status = PictureStatus(portraitsPlayerPathFMZ, s->mWriteableStringID + L".png");
                 if (status == 0) {
@@ -231,15 +246,17 @@ public:
                         level = s->GetManagerLevel() * 99 / 15;
                     else
                         level = s->GetStaffLevel();
-                    w.WriteLine(s->mWriteableStringID, s->mFootballManagerID, Quoted(s->GetName()), s->mBirthday.ToString(), NationName(db, s->mNationality[0]), Quoted(clubName), Quoted(clubCountry), clubLeagueLevel, s->mClubPosition.ToStr(), level, s->mTalent);
+                    w.WriteLine(s->mWriteableStringID, s->mFootballManagerID, s->mCreator, Quoted(s->GetName()), s->mBirthday.ToString(), NationName(db, s->mNationality[0]), Quoted(clubName), Quoted(clubCountry), clubLeagueLevel, s->mClubPosition.ToStr(), level, s->mTalent);
                 }
                 else
                     numStaffPortraitsFMZ++;
             }
         }
+#endif
+#if PORTRAITS_SORTITOUTSI == 1
         {
             FifamWriter w(L"players_without_portrait_sortitoutsi.csv");
-            w.WriteLine(L"id", L"foomid", L"empicsId", L"name", L"status", L"birthdate", L"nationality", L"club", L"country", L"league", L"position", L"level", L"talent");
+            w.WriteLine(L"id", L"foomid", L"empicsId", L"creator", L"name", L"status", L"birthdate", L"nationality", L"club", L"country", L"league", L"position", L"level", L"talent");
             for (auto const &p : db->mPlayers) {
                 String id = p->mWriteableStringID;
                 String id2;
@@ -258,7 +275,7 @@ public:
                         if (clubLeague.contains(p->mClub))
                             clubLeagueLevel = clubLeague[p->mClub]->mLeagueLevel + 1;
                     }
-                    w.WriteLine(p->mWriteableStringID, p->mFootballManagerID, p->mEmpicsId, Quoted(p->GetName()), status, p->mBirthday.ToString(),
+                    w.WriteLine(p->mWriteableStringID, p->mFootballManagerID, p->mEmpicsId, p->mCreator, Quoted(p->GetName()), status, p->mBirthday.ToString(),
                         Quoted(NationName(db, p->mNationality[0])), Quoted(clubName), Quoted(clubCountry), clubLeagueLevel, p->mMainPosition.ToStr(),
                         p->GetLevel(), p->mTalent);
                 }
@@ -266,9 +283,11 @@ public:
                     numPlayerPortraitsSortitoutsi++;
             }
         }
+#endif
+#if PORTRAITS_FMZ == 1
         {
             FifamWriter w(L"players_without_portrait_fmz.csv");
-            w.WriteLine(L"id", L"foomid", L"empicsId", L"name", L"status", L"birthdate", L"nationality", L"club", L"country", L"league", L"position", L"level", L"talent");
+            w.WriteLine(L"id", L"foomid", L"empicsId", L"creator", L"name", L"status", L"birthdate", L"nationality", L"club", L"country", L"league", L"position", L"level", L"talent");
             for (auto const &p : db->mPlayers) {
                 String id = p->mWriteableStringID;
                 String id2;
@@ -287,7 +306,7 @@ public:
                         if (clubLeague.contains(p->mClub))
                             clubLeagueLevel = clubLeague[p->mClub]->mLeagueLevel + 1;
                     }
-                    w.WriteLine(p->mWriteableStringID, p->mFootballManagerID, p->mEmpicsId, Quoted(p->GetName()), status, p->mBirthday.ToString(),
+                    w.WriteLine(p->mWriteableStringID, p->mFootballManagerID, p->mEmpicsId, p->mCreator, Quoted(p->GetName()), status, p->mBirthday.ToString(),
                         Quoted(NationName(db, p->mNationality[0])), Quoted(clubName), Quoted(clubCountry), clubLeagueLevel, p->mMainPosition.ToStr(),
                         p->GetLevel(), p->mTalent);
                 }
@@ -295,16 +314,20 @@ public:
                     numPlayerPortraitsFMZ++;
             }
         }
+#endif
+#if PORTRAITS_SORTITOUTSI == 1
         wcout << L"Portraits Sortitoutsi: " << (numPlayerPortraitsSortitoutsi + numStaffPortraitsSortitoutsi + numRefereePortraitsSortitoutsi) << endl;
         wcout << L"  Players: " << numPlayerPortraitsSortitoutsi << endl;
         wcout << L"  Staff: " << numStaffPortraitsSortitoutsi << endl;
         wcout << L"  Referees: " << numRefereePortraitsSortitoutsi << endl;
         wcout << endl;
+#endif
+#if PORTRAITS_FMZ == 1
         wcout << L"Portraits FMZ: " << (numPlayerPortraitsFMZ + numStaffPortraitsFMZ + numRefereePortraitsFMZ) << endl;
         wcout << L"  Players: " << numPlayerPortraitsFMZ << endl;
         wcout << L"  Staff: " << numStaffPortraitsFMZ << endl;
         wcout << L"  Referees: " << numRefereePortraitsFMZ << endl;
-
+#endif
         delete db;
     }
 };

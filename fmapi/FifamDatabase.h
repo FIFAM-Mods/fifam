@@ -101,7 +101,8 @@ public:
     UInt GetNextFreePersonID();
     void ReadNamesFile(Path const &filepath, UInt gameId, NamesMap &outNames);
     void WriteNamesFile(Path const &filepath, UInt gameId, NamesMap &names);
-    void SetupWriteableStatus(UInt gameId);
+    void SetupWriteableStatus(UInt gameId, Bool generateEmpicsIDs, Vector<Pair<FifamPlayer *, UInt>> &newEmpicsIDs, Vector<Pair<FifamPlayer *, UInt>> &removedEmpicsIDs);
+    void SetupWriteableStatus(UInt gameId, Bool generateEmpicsIDs = true);
     void ResetWriteableStatus();
     FifamCompetition *ReadCompetition(FifamReader &reader, FifamNation nationId);
     void WriteCompetition(FifamWriter &writer, FifamCompetition *comp, FifamNation nationId);

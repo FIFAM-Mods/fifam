@@ -965,7 +965,7 @@ bool KitConverter::ConvertKitV2(string const &inputShirt, string const &inputSho
         si.cb = sizeof(si);
         ZeroMemory(&pi, sizeof(pi));
         path inpaintPath = "tools\\inpaint.exe";
-        wstring commandLine = inpaintPath.wstring() + L" -i \"" + savePath.c_str() + L"\" -radius 0";
+        wstring commandLine = inpaintPath.wstring() + L" -i \"" + savePath.c_str() + L"\" -radius 0 -ns";
         WCHAR wargs[2048];
         wcscpy_s(wargs, commandLine.c_str());
         if (CreateProcessW(inpaintPath.c_str(), wargs, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi)) {

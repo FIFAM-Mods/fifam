@@ -19,6 +19,8 @@ public:
     FifamRefereeType mType;
     // @since FM22
     Int mFootballManagerID = -1;
+    // @since FM24
+    UInt mCreator = 0;
 
     FifamCountry *mCountry = nullptr;
 

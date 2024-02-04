@@ -9,7 +9,7 @@ public:
             FifamDatabase::mReadingOptions.mUseCustomFormations = true;
             FifamDatabase db(13, "initial_db");
             for (auto s : db.mStaffs) {
-                if (s->mFootballManagerID != 0 && !s->mScoutPreferredCountries.empty())
+                if (s->mFootballManagerID >= 0 && !s->mScoutPreferredCountries.empty())
                     preferredCountries[s->mFootballManagerID] = s->mScoutPreferredCountries;
             }
         }
@@ -18,7 +18,7 @@ public:
             FifamDatabase::mReadingOptions.mUseCustomFormations = true;
             FifamDatabase db(13, "db");
             for (auto s : db.mStaffs) {
-                if (s->mFootballManagerID != 0 && !s->mScoutPreferredCountries.empty()) {
+                if (s->mFootballManagerID >= 0 && !s->mScoutPreferredCountries.empty()) {
                     if (preferredCountries.contains(s->mFootballManagerID)) {
                         String line = s->GetName() + L": ";
                         Vector<String> countriesBefore;

@@ -609,7 +609,7 @@ void Converter::ConvertReserveClub(UInt gameId, FifamClub * dst, foom::club * te
     // Youth players come from
     if (team->mBasedNation)
         dst->mYouthPlayersCountry.SetFromInt(team->mBasedNation->mConverterData.mFIFAManagerReplacementID);
-    else
+    else if (country)
         dst->mYouthPlayersCountry.SetFromInt(country->mId);
     // Youth players are basques
     dst->mYouthPlayersAreBasques = team->is_basque();
@@ -1347,6 +1347,31 @@ void Converter::ConvertKitsAndColors(FifamClub * dst, Int foomId, Vector<foom::k
     }
 }
 
+void Converter::ApplyClubCustomNames(UInt foomID, FifamClub *club) {
+    for (UInt i = 0; i < mNamesMap.size(); i++) {
+        if (mNamesMap[i].contains(foomID)) {
+            if (i == 0)
+                FifamTrSetAll<String>(club->mName, mNamesMap[i][foomID]);
+            else
+                club->mName[i - 1] = mNamesMap[i][foomID];
+            club->mName2 = club->mName;
+        }
+        if (mShortNamesMap[i].contains(foomID)) {
+            if (i == 0)
+                FifamTrSetAll<String>(club->mShortName, mShortNamesMap[i][foomID]);
+            else
+                club->mShortName[i - 1] = mShortNamesMap[i][foomID];
+            club->mShortName2 = club->mShortName;
+        }
+        if (mAbbreviationMap[i].contains(foomID)) {
+            if (i == 0)
+                FifamTrSetAll<String>(club->mAbbreviation, mAbbreviationMap[i][foomID]);
+            else
+                club->mAbbreviation[i - 1] = mAbbreviationMap[i][foomID];
+        }
+    }
+}
+
 FifamClub *Converter::CreateAndConvertClub(UInt gameId, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div, bool convertSquad) {
     if (!mainTeam)
         mainTeam = team;
@@ -1385,29 +1410,7 @@ FifamClub *Converter::CreateAndConvertClub(UInt gameId, foom::club *team, foom::
         club->mPenaltyType = FifamClubPenaltyType::Points;
         club->mPenaltyPoints = mPenaltyPointsMap[team->mID];
     }
-    for (UInt i = 0; i < mNamesMap.size(); i++) {
-        if (mNamesMap[i].contains(team->mID)) {
-            if (i == 0)
-                FifamTrSetAll<String>(club->mName, mNamesMap[i][team->mID]);
-            else
-                club->mName[i - 1] = mNamesMap[i][team->mID];
-            club->mName2 = club->mName;
-        }
-        if (mShortNamesMap[i].contains(team->mID)) {
-            if (i == 0)
-                FifamTrSetAll<String>(club->mShortName, mShortNamesMap[i][team->mID]);
-            else
-                club->mShortName[i - 1] = mShortNamesMap[i][team->mID];
-            club->mShortName2 = club->mShortName;
-        }
-        if (mAbbreviationMap[i].contains(team->mID)) {
-            if (i == 0)
-                FifamTrSetAll<String>(club->mAbbreviation, mAbbreviationMap[i][team->mID]);
-            else
-                club->mAbbreviation[i - 1] = mAbbreviationMap[i][team->mID];
-        }
-    }
-
+    ApplyClubCustomNames(team->mID, club);
     mFifamDatabase->AddClubToMap(club);
     country->mClubsMap[club->mUniqueID] = club;
 

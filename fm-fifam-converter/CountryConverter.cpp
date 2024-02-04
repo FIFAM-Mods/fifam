@@ -108,4 +108,5 @@ void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt 
     ConvertClubStadium(&dst->mNationalTeam, gameId);
     ConvertKitsAndColors(&dst->mNationalTeam, -1, nation->mVecKits, -1, nation->mBackgroundColor, nation->mForegroundColor, gameId);
     dst->mNationalTeam.mKit.mSpecialKitId = 0;
+    ApplyClubCustomNames(nation->mID, &dst->mNationalTeam);
 }

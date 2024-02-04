@@ -21,8 +21,8 @@ public:
             Map<UInt, FifamPlayer *> ref_players;
             Map<String, FifamStaff *> ref_staff;
             for (FifamPlayer *p : ref_db->mPlayers) {
-                if (p->mEmpicsId != 0)
-                    ref_players[p->mEmpicsId] = p;
+                if (p->mFootballManagerID >= 0)
+                    ref_players[p->mFootballManagerID] = p;
             }
             //for (FifamStaff *s : ref_db->mStaffs) {
             //    String id = s->GetStringUniqueId(gameVersion);
@@ -32,8 +32,8 @@ public:
             //    ref_staff[id] = s;
             //}
             for (FifamPlayer *p : db->mPlayers) {
-                if (p->mEmpicsId != 0) {
-                    auto it = ref_players.find(p->mEmpicsId);
+                if (p->mFootballManagerID >= 0) {
+                    auto it = ref_players.find(p->mFootballManagerID);
                     if (it != ref_players.end()) {
                         FifamPlayer *oldP = (*it).second;
                         if (p->mSpecialFace != oldP->mSpecialFace) {

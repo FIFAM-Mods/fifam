@@ -355,7 +355,8 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
             appearanceGenerator.SetFromFifaPlayer(player, fifaPlayer);
         if (mFaceIDs.contains(p->mConverterData.mFifaPlayerId))
             player->mSpecialFace = p->mConverterData.mFifaPlayerId;
-        player->mComment = L"FIFAID:" + Utils::Format(L"%d", p->mConverterData.mFifaPlayerId);
+        //player->mComment = L"FIFAID:" + Utils::Format(L"%d", p->mConverterData.mFifaPlayerId);
+        player->mFifaID = p->mConverterData.mFifaPlayerId;
     }
 
     // fourth - apply custom appearance (if available)
@@ -1672,7 +1673,7 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
             player->mStartingConditions.mInjury.Setup(selectedInjury->mStartDate, selectedInjury->mEndDate, injuryType);
     }
 
-    // debug
+    // temporary
     player->mEmpicsId = p->mID;
 
     return player;

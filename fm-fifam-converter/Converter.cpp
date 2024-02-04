@@ -97,7 +97,7 @@ void Converter::Convert() {
 
     GraphicsConverter graphicsConverter;
     //mFifaDatabase = new FifaDatabase(dbPath / L"fifa");
-    //graphicsConverter.DownloadPlayerPortraitsFIFA21(mFifaDatabase, "D:\\FIFA23");
+    //graphicsConverter.DownloadPlayerPortraitsFIFA21(mFifaDatabase, "D:\\FC24_portraits");
     //delete mFifaDatabase;
     //return;
 
@@ -124,8 +124,10 @@ void Converter::Convert() {
 
         mPreviousDb = new FifamDatabase(gameId, mOutputGameFolder / L"database text");
         
-        for (FifamPlayer *p : mPreviousDb->mPlayers)
-            mPreviousPlayers[p->mEmpicsId] = p;
+        for (FifamPlayer *p : mPreviousDb->mPlayers) {
+            if (p->mFootballManagerID >= 0)
+                mPreviousPlayers[p->mFootballManagerID] = p;
+        }
     }
 
     if (false && DB_REF_COLORS) {

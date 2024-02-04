@@ -13,51 +13,53 @@ FifamPlayer *Converter::GetPreviousPlayer(UInt id) {
 
 void Converter::UpdateDataFromPreviousDb() {
     for (FifamPlayer *p : mFifamDatabase->mPlayers) {
-        FifamPlayer *oldP = GetPreviousPlayer(p->mEmpicsId);
-        if (oldP) {
-            // talent
-            p->mTalent = oldP->mTalent;
-            // experience
-            p->mGeneralExperience = oldP->mGeneralExperience;
-            p->mInternationalExperience = oldP->mInternationalExperience;
-            p->mNationalExperience = oldP->mNationalExperience;
-            // character
-            p->mCharacter = oldP->mCharacter;
-            // position bias
-            p->mPositionBias = oldP->mPositionBias;
-            // main position
-            p->mMainPosition = oldP->mMainPosition;
-            // abilities
-            auto oldLeadership = p->mAttributes.Leadership;
-            p->mAttributes = oldP->mAttributes;
-            p->mAttributes.Leadership = oldLeadership;
-            // appearance
-            p->mAppearance = oldP->mAppearance;
-            // NT stats
-            p->mNationalTeamGoals = oldP->mNationalTeamGoals;
-            p->mNationalTeamMatches = oldP->mNationalTeamMatches;
-            p->mCurrentlyInNationalTeam = oldP->mCurrentlyInNationalTeam;
-            p->mRetiredFromNationalTeam = oldP->mRetiredFromNationalTeam;
-            // agent
-            p->mPlayerAgent = oldP->mPlayerAgent;
-            // other
-            p->mPlayingStyle = oldP->mPlayingStyle;
+        if (p->mFootballManagerID >= 0) {
+            FifamPlayer *oldP = GetPreviousPlayer(p->mFootballManagerID);
+            if (oldP) {
+                // talent
+                p->mTalent = oldP->mTalent;
+                // experience
+                p->mGeneralExperience = oldP->mGeneralExperience;
+                p->mInternationalExperience = oldP->mInternationalExperience;
+                p->mNationalExperience = oldP->mNationalExperience;
+                // character
+                p->mCharacter = oldP->mCharacter;
+                // position bias
+                p->mPositionBias = oldP->mPositionBias;
+                // main position
+                p->mMainPosition = oldP->mMainPosition;
+                // abilities
+                auto oldLeadership = p->mAttributes.Leadership;
+                p->mAttributes = oldP->mAttributes;
+                p->mAttributes.Leadership = oldLeadership;
+                // appearance
+                p->mAppearance = oldP->mAppearance;
+                // NT stats
+                p->mNationalTeamGoals = oldP->mNationalTeamGoals;
+                p->mNationalTeamMatches = oldP->mNationalTeamMatches;
+                p->mCurrentlyInNationalTeam = oldP->mCurrentlyInNationalTeam;
+                p->mRetiredFromNationalTeam = oldP->mRetiredFromNationalTeam;
+                // agent
+                p->mPlayerAgent = oldP->mPlayerAgent;
+                // other
+                p->mPlayingStyle = oldP->mPlayingStyle;
             
-            // Disabled this to convert shoes from FIFA
-            p->mShoeType = oldP->mShoeType;
+                // Disabled this to convert shoes from FIFA
+                p->mShoeType = oldP->mShoeType;
             
-            // history
-            /*
-            p->mHistory.mEntries.clear();
-            for (auto h : oldP->mHistory.mEntries) {
-                if (h.mClub.IsValid()) {
-                    h.mClub.mPtr = mFifamDatabase->GetClubFromUID(h.mClub.mPtr->mUniqueID);
-                    if (!h.mClub.mPtr)
-                        h.mClub.mTeamType = FifamClubTeamType::First;
+                // history
+                /*
+                p->mHistory.mEntries.clear();
+                for (auto h : oldP->mHistory.mEntries) {
+                    if (h.mClub.IsValid()) {
+                        h.mClub.mPtr = mFifamDatabase->GetClubFromUID(h.mClub.mPtr->mUniqueID);
+                        if (!h.mClub.mPtr)
+                            h.mClub.mTeamType = FifamClubTeamType::First;
+                    }
+                    p->mHistory.mEntries.push_back(h);
                 }
-                p->mHistory.mEntries.push_back(h);
+                */
             }
-            */
         }
     }
     for (FifamClub *c : mFifamDatabase->mClubs) {

@@ -277,6 +277,24 @@
     <ClInclude Include="tests\StaffTest.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\CopyPortraitsWC.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\GenerateEplColors.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\SortFifaPortraits.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\UpdateDbVersion.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\FixInjuries.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\TestFifaIds.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

@@ -80,7 +80,13 @@
 #include "tests\PlayerNames.h"
 #include "tests\SortShoes.h"
 #include "tests\StaffTest.h"
+#include "tests\CopyPortraitsWC.h"
+#include "tests\GenerateEplColors.h"
+#include "tests\SortFifaPortraits.h"
+#include "tests\UpdateDbVersion.h"
+#include "tests\FixInjuries.h"
+#include "tests\TestFifaIds.h"
 
 void RunTests() {
-    RunTest<StaffTest>();
+    RunTest<CompareDB>();
 }

@@ -170,6 +170,8 @@ Bool FifamCountry::Read(FifamReader &reader) {
                     for (UInt i = 0; i < numStaffs; i++) {
                         FifamStaff *staff = mDatabase->CreateStaff(nullptr, nextFreeId++);
                         staff->ReadWorker(reader);
+                        if (reader.IsVersionGreaterOrEqual(0x2013, 0x0E))
+                            reader.ReadLine(staff->mCreator);
                         if (reader.IsVersionGreaterOrEqual(0x2013, 0x0C))
                             reader.ReadLine(staff->mFootballManagerID);
                         staff->mLinkedCountry.SetFromInt(mId);
@@ -549,6 +551,8 @@ Bool FifamCountry::Write(FifamWriter &writer) {
         writer.WriteLine(staffWorkers.size());
         for (FifamStaff *staff : staffWorkers) {
             staff->WriteWorker(writer);
+            if (writer.IsVersionGreaterOrEqual(0x2013, 0x0E))
+                writer.WriteLine(staff->mCreator);
             if (writer.IsVersionGreaterOrEqual(0x2013, 0x0C))
                 writer.WriteLine(staff->mFootballManagerID);
         }

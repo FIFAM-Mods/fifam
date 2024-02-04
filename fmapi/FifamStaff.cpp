@@ -46,6 +46,8 @@ void FifamStaff::Read(FifamReader &reader) {
         }
         else
             ReadManager(reader);
+        if (reader.IsVersionGreaterOrEqual(0x2013, 0x0E))
+            reader.ReadLine(mCreator);
         if (reader.IsVersionGreaterOrEqual(0x2013, 0x0C))
             reader.ReadLine(mFootballManagerID);
         reader.ReadEndIndex(L"STAFF");
@@ -269,6 +271,8 @@ void FifamStaff::SetFromPlayer(FifamPlayer const &player) {
     mTalent = player.mTalent;
     mJoinedClubDate = player.mContract.mJoined;
     mClub = player.mClub;
+    mFootballManagerID = player.mFootballManagerID;
+    mCreator = player.mCreator;
 }
 
 void FifamStaff::ReadFromPlayer(FifamReader &reader) {
@@ -291,6 +295,8 @@ void FifamStaff::Write(FifamWriter &writer) {
     }
     else
         WriteManager(writer);
+    if (writer.IsVersionGreaterOrEqual(0x2013, 0x0E))
+        writer.WriteLine(mCreator);
     if (writer.IsVersionGreaterOrEqual(0x2013, 0x0C))
         writer.WriteLine(mFootballManagerID);
     writer.WriteEndIndex(L"STAFF");
@@ -545,6 +551,8 @@ void FifamStaff::WriteToPlayer(FifamWriter &writer) {
     player.mAttributes.GkCrosses = 40;
     player.mHeight = 180;
     player.mWeight = 75;
+    player.mFootballManagerID = mFootballManagerID;
+    player.mCreator = mCreator;
     player.Write(writer);
 }
 

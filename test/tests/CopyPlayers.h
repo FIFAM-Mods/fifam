@@ -41,11 +41,11 @@ public:
         Map<UInt, FifamPlayer *> referencePlayers;
         Map<UInt, FifamStaff *> referenceStaff;
         for (auto p : referenceDb->mPlayers) {
-            if (p->mFootballManagerID > 0 && p->mFootballManagerID < 2002042000)
+            if (p->mFootballManagerID >= 0 && p->mFootballManagerID < 2002042000)
                 referencePlayers[p->mFootballManagerID] = p;
         }
         for (auto s : referenceDb->mStaffs) {
-            if (s->mFootballManagerID > 0 && s->mFootballManagerID < 2002042000)
+            if (s->mFootballManagerID >= 0 && s->mFootballManagerID < 2002042000)
                 referenceStaff[s->mFootballManagerID] = s;
         }
 
@@ -199,7 +199,7 @@ public:
         //};
         //baseDb->SetupWriteableStatus(13);
         //for (auto &[id, p] : baseDb->mPersonsMap) {
-        //    if (p->mFootballManagerID > 0) {
+        //    if (p->mFootballManagerID >= 0) {
         //        bool hasPortrait = false;
         //        for (auto const& i : fifamPortrats) {
         //            if (exists(i / (p->mWriteableStringID + L".png"))) {
@@ -217,7 +217,7 @@ public:
         //    }
         //}
         //for (auto& r : baseDb->mReferees) {
-        //    if (r->mFootballManagerID > 0) {
+        //    if (r->mFootballManagerID >= 0) {
         //        auto writeableId = FifamNames::GetPersonStringId(13, r->mFirstName, r->mLastName, String(), Date(), 0);
         //        bool hasPortrait = false;
         //        for (auto const& i : fifamPortratsReferee) {

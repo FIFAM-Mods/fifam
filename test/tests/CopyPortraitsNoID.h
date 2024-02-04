@@ -24,7 +24,7 @@ public:
         create_directories(playerPortraitsPath);
         db.SetupWriteableStatus(13);
         for (auto& [id, p] : db.mPersonsMap) {
-            if (p->mFootballManagerID <= 0) {
+            if (p->mFootballManagerID < 0) {
                 bool hasPortrait = false;
                 for (auto const& i : fifamPortrats) {
                     if (exists(i / (p->mWriteableStringID + L".png"))) {

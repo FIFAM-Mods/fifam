@@ -25,6 +25,7 @@ public:
                 L"Country",
                 L"Club",
                 L"FoomID",
+                L"Creator",
                 L"Name",
                 L"Level",
                 L"Talent"
@@ -43,6 +44,7 @@ public:
                         Quoted(countryName),
                         Quoted(clubName),
                         player->mFootballManagerID,
+                        player->mCreator,
                         Quoted(playerName),
                         player->GetLevel(),
                         player->mTalent

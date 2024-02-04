@@ -575,7 +575,7 @@ void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &
     ResetWriteableStatus();
 }
 
-void FifamDatabase::SetupWriteableStatus(UInt gameId) {
+void FifamDatabase::SetupWriteableStatus(UInt gameId, Bool generateEmpicsIDs, Vector<Pair<FifamPlayer *, UInt>> &newEmpicsIDs, Vector<Pair<FifamPlayer *, UInt>> &removedEmpicsIDs) {
     for (auto country : mCountries) {
         if (country) {
             // TODO: update this
@@ -613,7 +613,7 @@ void FifamDatabase::SetupWriteableStatus(UInt gameId) {
         stadium->SetWriteableUniqueID(id);
     }
 
-    UInt lastEmpicsId = 0;
+    UInt lastEmpicsId = 2'140'000'000;
     Map<String, Vector<FifamPlayer *>> playerStrIDsCollisionsMap;
 
     UInt nextFreePersonId = 1;
@@ -651,19 +651,32 @@ void FifamDatabase::SetupWriteableStatus(UInt gameId) {
         auto &players = entry.second;
         if (players.size() == 1) {
             players[0]->mWriteableStringID = entry.first;
-            // TODO: uncomment this
-            //players[0]->mEmpicsId = 0;
+            if (players[0]->mEmpicsId == 0) {
+                removedEmpicsIDs.emplace_back(players[0], players[0]->mEmpicsId);
+                if (generateEmpicsIDs)
+                    players[0]->mEmpicsId = 0;
+            }
         }
         else {
             for (auto player : players) {
                 if (player->mEmpicsId == 0) {
-                    // TODO: maybe replace it with 'local' IDs (1,2,3,...)
-                    player->mEmpicsId = ++lastEmpicsId;
+                    UInt newEmpicsId = (player->mFootballManagerID > 0) ? player->mFootballManagerID : lastEmpicsId++;
+                    newEmpicsIDs.emplace_back(player, newEmpicsId);
+                    if (generateEmpicsIDs)
+                        player->mEmpicsId = newEmpicsId;
                 }
-                player->mWriteableStringID = entry.first + Utils::Format(L"-%d", player->mEmpicsId);
+                player->mWriteableStringID = entry.first;
+                if (player->mEmpicsId != 0)
+                    player->mWriteableStringID += Utils::Format(L"-%d", player->mEmpicsId);
             }
         }
     }
+}
+
+void FifamDatabase::SetupWriteableStatus(UInt gameId, Bool generateEmpicsIDs) {
+    Vector<Pair<FifamPlayer *, UInt>> newEmpicsIDs;
+    Vector<Pair<FifamPlayer *, UInt>> removedEmpicsIDs;
+    SetupWriteableStatus(gameId, generateEmpicsIDs, newEmpicsIDs, removedEmpicsIDs);
 }
 
 void FifamDatabase::ResetWriteableStatus() {
@@ -1297,9 +1310,9 @@ FifamVersion FifamDatabase::GetGameDbVersion(UInt gameId) {
     else if (gameId == 12)
         version.Set(0x2012, 0x04);
     else if (gameId == 13)
-        version.Set(0x2013, 0x0D); // original 0xA
+        version.Set(0x2013, 0x0E); // original 0xA
     else if (gameId == 14)
-        version.Set(0x2013, 0x0D); // original 0xA
+        version.Set(0x2013, 0x0E); // original 0xA
     return version;
 }
 

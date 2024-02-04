@@ -319,7 +319,6 @@ void ConvertKitnumbers(KitConverter &kitConverter) {
                             else if (fifaClub->m_league->GetId() == 53 || fifaClub->m_league->GetId() == 54) { // Spain
                                 numberNames.push_back("2D010000_" + clubId);
                                 numberNames.push_back("2D010001_" + clubId);
-                                numberNames.push_back("2D030000_" + clubId);
                             }
                             else if (fifaClub->m_league->GetId() == 66) { // Poland 1
                                 numberNames.push_back("25010000_" + clubId);
@@ -352,37 +351,37 @@ void ConvertKitnumbers(KitConverter &kitConverter) {
         }
     }
     kitConverter.ConvertClubKitNumbersSet(171, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(5))) + "_h", ::Color(220, 220, 220), ::Color(1, 58, 124), ::Color(1, 58, 124));
-    kitConverter.ConvertClubKitNumbersSet(171, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(5))) + "_a", ::Color(28, 189, 208), ::Color(1, 58, 124), ::Color(1, 58, 124));
+    kitConverter.ConvertClubKitNumbersSet(171, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(5))) + "_a", ::Color(220, 220, 220), ::Color(1, 58, 124), ::Color(1, 58, 124));
     kitConverter.ConvertClubKitNumbersSet(171, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(5))) + "_g", ::Color(12, 12, 12), ::Color(220, 220, 220), ::Color(220, 220, 220));
     kitConverter.ConvertClubKitNumbersSet(171, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(5))) + "_t", ::Color(12, 12, 12), ::Color(220, 220, 220), ::Color(220, 220, 220));
     kitConverter.ConvertClubKitNumbersSet(174, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(9))) + "_h", ::Color(220, 220, 220), ::Color(231, 31, 41), ::Color(253, 183, 19));
     kitConverter.ConvertClubKitNumbersSet(174, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(9))) + "_a", ::Color(12, 12, 12), ::Color(123, 125, 141), ::Color(123, 125, 141));
     kitConverter.ConvertClubKitNumbersSet(174, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(9))) + "_g", ::Color(220, 220, 220), ::Color(231, 31, 41), ::Color(253, 183, 19));
-    kitConverter.ConvertClubKitNumbersSet(174, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(9))) + "_t", ::Color(220, 220, 220), ::Color(231, 31, 41), ::Color(231, 31, 41));
-    kitConverter.ConvertClubKitNumbersSet(206, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(10))) + "_h", ::Color(33, 31, 65), ::Color(95, 157, 211), ::Color(95, 157, 211));
-    kitConverter.ConvertClubKitNumbersSet(206, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(10))) + "_a", ::Color(221, 156, 4), ::Color(12, 12, 12), ::Color(12, 12, 12));
-    kitConverter.ConvertClubKitNumbersSet(206, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(10))) + "_g", ::Color(12, 12, 12), ::Color(220, 220, 220), ::Color(220, 220, 220));
-    kitConverter.ConvertClubKitNumbersSet(206, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(10))) + "_t", ::Color(49, 52, 65), ::Color(228, 233, 130), ::Color(228, 233, 130));
-    kitConverter.ConvertClubKitNumbersSet(151, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(18))) + "_h", ::Color(20, 27, 77), ::Color(220, 220, 220), ::Color(220, 220, 220));
-    kitConverter.ConvertClubKitNumbersSet(151, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(18))) + "_a", ::Color(220, 220, 220), ::Color(20, 27, 77), ::Color(20, 27, 77));
-    kitConverter.ConvertClubKitNumbersSet(151, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(18))) + "_g", ::Color(12, 12, 12), ::Color(220, 220, 220), ::Color(220, 220, 220));
-    kitConverter.ConvertClubKitNumbersSet(151, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(18))) + "_t", ::Color(220, 220, 220), ::Color(20, 27, 77), ::Color(20, 27, 77));
+    kitConverter.ConvertClubKitNumbersSet(174, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(9))) + "_t", ::Color(220, 220, 220), ::Color(231, 31, 41), ::Color(253, 183, 19));
+    kitConverter.ConvertClubKitNumbersSet(271, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(10))) + "_h", ::Color(15, 41, 85), ::Color(89, 134, 170), ::Color(89, 134, 170));
+    kitConverter.ConvertClubKitNumbersSet(271, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(10))) + "_a", ::Color(217, 87, 22), ::Color(220, 220, 220), ::Color(220, 220, 220));
+    kitConverter.ConvertClubKitNumbersSet(271, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(10))) + "_g", ::Color(200, 221, 136), ::Color(75, 66, 89), ::Color(75, 66, 89));
+    kitConverter.ConvertClubKitNumbersSet(271, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(10))) + "_t", ::Color(236, 51, 112), ::Color(12, 12, 12), ::Color(12, 12, 12));
+    kitConverter.ConvertClubKitNumbersSet(151, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(18))) + "_h", ::Color(11, 25, 69), ::Color(11, 25, 69), ::Color(11, 25, 69));
+    kitConverter.ConvertClubKitNumbersSet(151, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(18))) + "_a", ::Color(220, 220, 220), ::Color(220, 220, 220), ::Color(220, 220, 220));
+    kitConverter.ConvertClubKitNumbersSet(151, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(18))) + "_g", ::Color(12, 12, 12), ::Color(12, 12, 12), ::Color(12, 12, 12));
+    kitConverter.ConvertClubKitNumbersSet(151, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(18))) + "_t", ::Color(12, 12, 12), ::Color(12, 12, 12), ::Color(12, 12, 12));
     kitConverter.ConvertClubKitNumbersSet(239, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(66))) + "_h", ::Color(160, 37, 42), ::Color(220, 220, 220), ::Color(220, 220, 220));
-    kitConverter.ConvertClubKitNumbersSet(239, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(66))) + "_a", ::Color(36, 53, 89), ::Color(220, 220, 220), ::Color(220, 220, 220));
-    kitConverter.ConvertClubKitNumbersSet(239, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(66))) + "_g", ::Color(220, 220, 220), ::Color(38, 109, 181), ::Color(220, 220, 220));
-    kitConverter.ConvertClubKitNumbersSet(239, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(66))) + "_t", ::Color(95, 98, 99), ::Color(158, 115, 168), ::Color(158, 115, 168));
-    kitConverter.ConvertClubKitNumbersSet(218, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(73))) + "_h", ::Color(220, 220, 220), ::Color(20, 20, 132), ::Color(220, 48, 52));
-    kitConverter.ConvertClubKitNumbersSet(219, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(73))) + "_a", ::Color(12, 12, 12), ::Color(220, 220, 220), ::Color(220, 220, 220));
-    kitConverter.ConvertClubKitNumbersSet(218, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(73))) + "_g", ::Color(12, 12, 12), ::Color(220, 220, 220), ::Color(220, 220, 220));
-    kitConverter.ConvertClubKitNumbersSet(218, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(73))) + "_t", ::Color(26, 48, 117), ::Color(220, 220, 220), ::Color(220, 48, 52));
-    kitConverter.ConvertClubKitNumbersSet(153, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(240))) + "_h", ::Color(220, 220, 220), ::Color(179, 31, 41), ::Color(179, 31, 41));
+    kitConverter.ConvertClubKitNumbersSet(239, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(66))) + "_a", ::Color(220, 220, 220), ::Color(36, 53, 89), ::Color(36, 53, 89));
+    kitConverter.ConvertClubKitNumbersSet(239, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(66))) + "_g", ::Color(12, 12, 12), ::Color(231, 205, 39), ::Color(231, 205, 39));
+    kitConverter.ConvertClubKitNumbersSet(239, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(66))) + "_t", ::Color(220, 220, 220), ::Color(12, 12, 12), ::Color(12, 12, 12));
+    kitConverter.ConvertClubKitNumbersSet(220, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(73))) + "_h", ::Color(220, 220, 220), ::Color(163, 2, 26), ::Color(163, 2, 26));
+    kitConverter.ConvertClubKitNumbersSet(220, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(73))) + "_a", ::Color(50, 55, 77), ::Color(163, 2, 26), ::Color(163, 2, 26));
+    kitConverter.ConvertClubKitNumbersSet(220, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(73))) + "_g", ::Color(220, 220, 220), ::Color(50, 114, 88), ::Color(50, 114, 88));
+    kitConverter.ConvertClubKitNumbersSet(220, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(73))) + "_t", ::Color(236, 75, 15), ::Color(174, 169, 149), ::Color(174, 169, 149));
+    kitConverter.ConvertClubKitNumbersSet(153, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(240))) + "_h", ::Color(220, 220, 220), ::Color(12, 12, 12), ::Color(12, 12, 12));
     kitConverter.ConvertClubKitNumbersSet(153, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(240))) + "_a", ::Color(220, 220, 220), ::Color(12, 12, 12), ::Color(12, 12, 12));
-    kitConverter.ConvertClubKitNumbersSet(153, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(240))) + "_g", ::Color(12, 12, 12), ::Color(182, 242, 92), ::Color(182, 242, 92));
-    kitConverter.ConvertClubKitNumbersSet(153, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(240))) + "_t", ::Color(12, 12, 12), ::Color(253, 174, 95), ::Color(253, 174, 95));
-    kitConverter.ConvertClubKitNumbersSet(197, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(243))) + "_h", ::Color(12, 12, 12), ::Color(180, 167, 214), ::Color(180, 167, 214));
-    kitConverter.ConvertClubKitNumbersSet(197, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(243))) + "_a", ::Color(12, 12, 12), ::Color(180, 167, 214), ::Color(180, 167, 214));
-    kitConverter.ConvertClubKitNumbersSet(197, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(243))) + "_g", ::Color(220, 220, 220), ::Color(12, 12, 12), ::Color(12, 12, 12));
-    kitConverter.ConvertClubKitNumbersSet(237, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(243))) + "_t", ::Color(193, 216, 111), ::Color(12, 12, 12), ::Color(12, 12, 12));
+    kitConverter.ConvertClubKitNumbersSet(153, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(240))) + "_g", ::Color(220, 220, 220), ::Color(12, 12, 12), ::Color(12, 12, 12));
+    kitConverter.ConvertClubKitNumbersSet(153, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(240))) + "_t", ::Color(12, 12, 12), ::Color(125, 182, 136), ::Color(125, 182, 136));
+    kitConverter.ConvertClubKitNumbersSet(263, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(243))) + "_h", ::Color(30, 29, 46), ::Color(210, 162, 78), ::Color(30, 29, 46));
+    kitConverter.ConvertClubKitNumbersSet(263, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(243))) + "_a", ::Color(208, 163, 77), ::Color(12, 12, 12), ::Color(208, 163, 77));
+    kitConverter.ConvertClubKitNumbersSet(263, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(243))) + "_g", ::Color(220, 220, 220), ::Color(12, 12, 12), ::Color(12, 12, 12));
+    kitConverter.ConvertClubKitNumbersSet(263, true, outPath + Utils::WtoA(Utils::Format(L"%08X", GetClubUniqueIdByFifaID(243))) + "_t", ::Color(208, 163, 77), ::Color(12, 12, 12), ::Color(208, 163, 77));
 
 }
 
@@ -627,12 +626,13 @@ int main(int argc, char *argv[]) {
     KitConverter::options.ConvertThirdKit = true; // true
     KitConverter::options.ConvertMinikits = true; // true
     KitConverter::options.ConvertOnlyMinikits = false;
-    KitConverter::options.OnlyCustomKits = true;
+    KitConverter::options.OnlyCustomKits = false;
     KitConverter::options.AllowCustomKits = true;
     KitConverter::options.Allow2xSize = true;
     KitConverter::options.Force2x = true; // true
     KitConverter::options.V2 = true; // true
     KitConverter::options.AddKitOverlay = false; // false
     KitConverter kitConverter;
+    //ConvertKitnumbers(kitConverter);
     ConvertKits(kitConverter);
 }

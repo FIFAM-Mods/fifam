@@ -59,15 +59,15 @@ public:
       //  }
         // delete players
         for (auto p : db->mPlayers) {
-            if (p->mEmpicsId >= 1915386510) {
+            if (p->mFootballManagerID >= 1915386510) {
                 //DeletePortrait(p->mWriteableStringID, false);
-                //if (p->mEmpicsId >= 1915394345 && p->mEmpicsId <= 1915394608) {
-                //    Path fmpp = fmPath / (std::to_string(p->mEmpicsId) + ".png");
+                //if (p->mFootballManagerID >= 1915394345 && p->mFootballManagerID <= 1915394608) {
+                //    Path fmpp = fmPath / (std::to_string(p->mFootballManagerID) + ".png");
                 //    if (exists(fmpp))
                 //        copy(fmpp, fmPath / (p->mWriteableStringID + L".png"));
                 //}
                 //else {
-                //    Path fmpp = jPath / (std::to_string(p->mEmpicsId) + ".png");
+                //    Path fmpp = jPath / (std::to_string(p->mFootballManagerID) + ".png");
                 //    if (exists(fmpp))
                 //        copy(fmpp, jPath / (p->mWriteableStringID + L".png"));
                 //}
