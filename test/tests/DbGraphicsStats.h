@@ -5,10 +5,10 @@
 #include "FifamNames.h"
 #include "FifamCompLeague.h"
 
-#define BADGES 0
-#define PORTRAITS_FMZ 0
+#define BADGES 1
+#define PORTRAITS_FMZ 1
 #define PORTRAITS_SORTITOUTSI 1
-#define PORTRAITS_XXL 0
+#define PORTRAITS_XXL 1
 
 class DbGraphicsStats {
 public:
@@ -42,7 +42,7 @@ public:
             FifamCompLeague *l = c->AsLeague();
             if (l && l->mID.mType == FifamCompType::League) {
                 for (auto const &t : l->mTeams) {
-                    if (t.IsValid())
+                    if (t.IsValid() && t.IsFirstTeam())
                         clubLeague[t.mPtr] = l;
                 }
             }
@@ -106,6 +106,7 @@ public:
             R"(D:\Projects\fifam\content\fm13\art_13\portraits\club\512x512)",
             R"(D:\Projects\fifam\content\fm13\art_14\portraits\club\512x512)",
             R"(D:\Projects\fifam\content\fm13\art_15\portraits\club\512x512)",
+            R"(D:\Projects\fifam\content\fm13\art_16\portraits\club\512x512)",
             //R"(C:\Users\Dmitri\Desktop\FM 24 update 1\_UPDATE_XXL\portraits\club\512x512)",
             //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_XXL\portraits\club\512x512)",
         };

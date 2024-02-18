@@ -18,13 +18,10 @@ public:
         FifamDatabase db(13, "db");
 
         for (auto& p : db.mPlayers) {
-            if (p->mSpecialFace == 0) {
-                if (p->mComment.starts_with(L"FIFAID:")) {
-                    UInt fifaId = Utils::SafeConvertInt<UInt>(p->mComment.substr(7));
-                    if (fifaId != 0 && faceIDs.contains(fifaId))
-                        p->mSpecialFace = fifaId;
-                }
-            }
+            if (p->mFifaID != 0 && faceIDs.contains(p->mFifaID))
+                p->mSpecialFace = p->mFifaID;
+            else
+                p->mSpecialFace = 0;
         }
 
         db.mWritingOptions.mWriteFixtures = false;

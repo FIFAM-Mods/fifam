@@ -88,5 +88,5 @@
 #include "tests\TestFifaIds.h"
 
 void RunTests() {
-    RunTest<CompareDB>();
+    RunTest<AssignPlayerFaces>();
 }
