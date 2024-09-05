@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include <string>
 #include <vector>
+#include <map>
+#include <set>
 #include <ctime>
 #include <filesystem>
 
@@ -147,10 +149,35 @@ namespace Utils {
         return std::find(container.begin(), container.end(), item) != container.end();
     }
 
+	template<typename KeyType, typename ValueType>
+	bool Contains(std::map<KeyType, ValueType> const &container, KeyType const &item) {
+		return container.find(item) != container.end();
+	}
+
+	template<typename ItemType>
+	bool Contains(std::set<ItemType> const &container, ItemType const &item) {
+		return container.find(item) != container.end();
+	}
+
     template<typename Container, typename ItemType>
     void Remove(Container &container, ItemType const &item) {
         container.erase(std::remove(container.begin(), container.end(), item), container.end());
     }
+
+	template<typename KeyType, typename ValueType>
+	void Remove(std::map<KeyType, ValueType> const &container, KeyType const &item) {
+		container.erase(item);
+	}
+
+	template<typename ItemType>
+	void Remove(std::set<ItemType> const &container, ItemType const &item) {
+		container.erase(item);
+	}
+
+	template<typename Container, typename Callback>
+	void Sort(Container &container, Callback callback) {
+		std::sort(container.begin(), container.end(), callback);
+	}
 
     template<typename T>
     std::vector<T> VecToArray(std::vector<T> const &vec, size_t size) {

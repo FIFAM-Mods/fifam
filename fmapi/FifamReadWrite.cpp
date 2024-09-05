@@ -620,7 +620,7 @@ Bool FifamReader::ReadStartIndex(String const &name, Bool moveToEofIfNotFound) {
 }
 
 Bool FifamReader::ReadStartIndex(StringA const &name, Bool moveToEofIfNotFound) {
-    return ReadStartIndex(name, moveToEofIfNotFound);
+    return ReadStartIndex(Utils::AtoW(name), moveToEofIfNotFound);
 }
 
 Bool FifamReader::ReadEndIndex(String const &name, Bool moveToEofIfNotFound) {
@@ -628,7 +628,7 @@ Bool FifamReader::ReadEndIndex(String const &name, Bool moveToEofIfNotFound) {
 }
 
 Bool FifamReader::ReadEndIndex(StringA const &name, Bool moveToEofIfNotFound) {
-    return ReadEndIndex(name, moveToEofIfNotFound);
+	return ReadEndIndex(Utils::AtoW(name), moveToEofIfNotFound);
 }
 
 void FifamReader::ReadLine(FifamDate &date) {

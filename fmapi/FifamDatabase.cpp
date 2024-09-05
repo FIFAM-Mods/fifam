@@ -20,7 +20,7 @@ FifamDatabase::FifamDatabase(UInt gameId, const Path &dbPath) {
 Bool GetNationCustomReplacement(UChar nationId, UChar &translatedNationId) {
     FifamNation nation;
     nation.SetFromInt(nationId);
-    if (FifamDatabase::mWritingOptions.mCountryTranslationMap.contains(nation)) {
+    if (Utils::Contains(FifamDatabase::mWritingOptions.mCountryTranslationMap, nation)) {
         translatedNationId = FifamDatabase::mWritingOptions.mCountryTranslationMap[nation].second.ToInt();
         return true;
     }
@@ -30,7 +30,7 @@ Bool GetNationCustomReplacement(UChar nationId, UChar &translatedNationId) {
 UInt FifamDatabase::GetInternalGameCountryId(UInt gameId, UChar nationId) {
     FifamNation nation;
     nation.SetFromInt(nationId);
-    if (mWritingOptions.mCountryTranslationMap.contains(nation))
+    if (Utils::Contains(mWritingOptions.mCountryTranslationMap, nation))
         nation = mWritingOptions.mCountryTranslationMap[nation].first;
     if (gameId <= 7) {
         if (nation == FifamNation::Montenegro)
@@ -1030,7 +1030,7 @@ FifamCompetition *FifamDatabase::GetCompetition(FifamCompID const & compID) {
 
 UInt FifamDatabase::GetNextFreePersonID() {
     const UInt BASE_NEW_PERSON_ID = 1'000'000'000;
-    if (mPersonsMap.contains(BASE_NEW_PERSON_ID))
+    if (Utils::Contains(mPersonsMap, BASE_NEW_PERSON_ID))
         return (*mPersonsMap.rbegin()).first + 1;
     return BASE_NEW_PERSON_ID;
 }
