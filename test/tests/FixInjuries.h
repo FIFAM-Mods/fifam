@@ -7,14 +7,14 @@ public:
         FifamWriter log("log_injuries.txt");
         FifamDatabase::mReadingOptions.mUseCustomFormations = true;
         FifamDatabase db1(13, "db_initial");
-        Map<UInt, FifamPlayer *> initialPlayers;
+        Map<Int, FifamPlayer *> initialPlayers;
         for (auto p : db1.mPlayers) {
             if (p->mFootballManagerID >= 0)
                 initialPlayers[p->mFootballManagerID] = p;
         }
         FifamDatabase db2(13, "db");
         for (auto p : db2.mPlayers) {
-            if (p->mFootballManagerID >= 0 && initialPlayers.contains(p->mFootballManagerID)) {
+            if (p->mFootballManagerID >= 0 && Utils::Contains(initialPlayers, p->mFootballManagerID)) {
                 if (!p->mStartingConditions.mInjury.Enabled()) {
                     auto &injury = initialPlayers[p->mFootballManagerID]->mStartingConditions.mInjury;
                     if (injury.Enabled()) {

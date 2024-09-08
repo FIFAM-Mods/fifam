@@ -220,7 +220,7 @@ void SetStaffLevel(FifamStaff *staff, FifamClubStaffPosition position, Int level
             if (increase)
                 savedSkills = staff->mSkills;
             staff->ForAllSkills(position, [=](FifamStaffSkillID skillID, UChar &value, Float weight) {
-                if (skillsToChange.empty() || skillsToChange.contains(skillID)) {
+                if (skillsToChange.empty() || Utils::Contains(skillsToChange, skillID)) {
                     if (increase) {
                         if (weight > 0.0f)
                             value = Utils::Clamp((Int)value + roundf((Float)iterations * weight), 1, 99);
@@ -689,7 +689,7 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
             });
             Set<FifamStaffSkillID> skillsToChange;
             staff->ForAllSkills(pos, [&](FifamStaffSkillID skillID, UChar &value, Float weight) {
-                if (weight > 0.0f && !mySkills.contains(skillID))
+                if (weight > 0.0f && !Utils::Contains(mySkills, skillID))
                     skillsToChange.insert(skillID);
             });
             if (!skillsToChange.empty())
@@ -710,7 +710,7 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
             skillsToIgnore.insert(FifamStaffSkillID::GoalkeeperTraining);
         Set<FifamStaffSkillID> skillsToChange;
         staff->ForAllSkills([&](FifamStaffSkillID skillID, UChar &value, Float weight) {
-            if (weight > 0.0f && !skillsToIgnore.contains(skillID))
+            if (weight > 0.0f && !Utils::Contains(skillsToIgnore, skillID))
                 skillsToChange.insert(skillID);
         });
         SetStaffLevel(staff, staff->mClubPosition, targetLevel, true, skillsToChange);

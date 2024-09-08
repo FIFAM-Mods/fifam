@@ -21,7 +21,7 @@ public:
                     if (bp == String::npos)
                         return ::Error("No Hash at line %d", lineId);
                     auto hashStr = line.substr(0, bp);
-                    if (!hashStr.starts_with(L"HASH#"))
+                    if (!Utils::StartsWith(hashStr, L"HASH#"))
                         return ::Error("Wrong Hash format at line %d", lineId);
                     lines.push_back(line + L" (" + hashStr.substr(5) + L")");
                 }

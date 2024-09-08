@@ -75,7 +75,7 @@ public:
         { L'я', 0xFF },
         };
         for (WideChar &c : name) {
-            if (chars.contains(c))
+            if (Utils::Contains(chars, c))
                 c = chars[c];
         }
     }
@@ -133,7 +133,7 @@ public:
             auto const &p = i.path();
             if (is_regular_file(p) && p.extension() == L".png") {
                 String filename = p.stem().c_str();
-                if (!filename.empty() && !filename.starts_with(L"notfound")) {
+                if (!filename.empty() && !Utils::StartsWith(filename, L"notfound")) {
                     if (filename[0] == L'p')
                         filename = filename.substr(1);
                     Int playerid = Utils::SafeConvertInt<Int>(filename);

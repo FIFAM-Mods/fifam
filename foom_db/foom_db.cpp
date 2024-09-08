@@ -217,7 +217,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
             Int playerID = -1;
             player::contract c;
             reader.ReadLine(playerID, IntPtr(c.mClub), c.mJob, c.mSecondaryJob, c.mDateJoined, c.mContractExpires, c.mContractType, c.mWage, c.mOnRollingContract, c.mSquadStatus, c.mSquadNumber, c.mPreferredSquadNumber, c.mAppearanceFee, c.mGoalBonus, c.mCleanSheetBonus, c.mInternationalCapBonus, c.mYearlyWageRise, c.mPromotionWageRise, c.mRelegationWageDrop, c.mOneYearExtensionAfterLeagueGamesFinalSeason, c.mOptionalContractExtensionByClub, c.mMatchHighestEarnerClause, c.mWillLeaveAtEndOfContract, c.mMinimumFeeReleaseClause, c.mMinimumFeeReleaseClauseExpiryDate, c.mSellOnFeePercentage);
-            if (playerID != -1 && c.mClub != (club *)-1 && mClubs.contains(Int(c.mClub))) {
+            if (playerID != -1 && c.mClub != (club *)-1 && Utils::Contains(mClubs, (Int)c.mClub)) {
                 MAP_SET_ENTITY_ATTR(mPlayers, playerID, mContract, c);
             }
         });
@@ -226,9 +226,9 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
                 Int playerID = -1;
                 player::playing_history h;
                 reader.ReadLine(playerID, h.mYear, h.mOrder, IntPtr(h.mClub), IntPtr(h.mDivision), h.mDateJoined, h.mDateLeft, h.mOnLoan, h.mYouthTeam, h.mApps, h.mGoals, h.mTransferFee);
-                if (!mClubs.contains(Int(h.mClub)))
+                if (!Utils::Contains(mClubs, (Int)h.mClub))
                     *(Int *)(&h.mClub) = -1;
-                if (!mComps.contains(Int(h.mDivision)))
+                if (!Utils::Contains(mComps, (Int)h.mDivision))
                     *(Int *)(&h.mDivision) = -1;
                 MAP_ADD_ENTITY_ATTR(mPlayers, playerID, mVecPlayingHistory, h);
             });
@@ -249,7 +249,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
             Int playerID = -1;
             player::favourite_club f;
             reader.ReadLine(playerID, IntPtr(f.mClub), f.mReason, f.mLevel);
-            if (playerID != -1 && f.mClub != (club *)-1 && mClubs.contains(Int(f.mClub))) {
+            if (playerID != -1 && f.mClub != (club *)-1 && Utils::Contains(mClubs, (Int)f.mClub)) {
                 MAP_ADD_ENTITY_ATTR(mPlayers, playerID, mVecFavouriteClubs, f);
             }
         });
@@ -257,7 +257,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
             Int playerID = -1;
             player::disliked_club d;
             reader.ReadLine(playerID, IntPtr(d.mClub), d.mLevel);
-            if (playerID != -1 && d.mClub != (club *)-1 && mClubs.contains(Int(d.mClub))) {
+            if (playerID != -1 && d.mClub != (club *)-1 && Utils::Contains(mClubs, (Int)d.mClub)) {
                 MAP_ADD_ENTITY_ATTR(mPlayers, playerID, mVecDislikedClubs, d);
             }
         });
@@ -265,7 +265,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
             Int playerID = -1;
             player::favourite_people f;
             reader.ReadLine(playerID, IntPtr(f.mPerson), f.mLevel, f.mReason, f.mPermanent);
-            if (playerID != -1 && f.mPerson != (person *)-1 && (mPlayers.contains(Int(f.mPerson)) || mNonPlayers.contains(Int(f.mPerson)))) {
+            if (playerID != -1 && f.mPerson != (person *)-1 && (Utils::Contains(mPlayers, (Int)f.mPerson) || Utils::Contains(mNonPlayers, (Int)f.mPerson))) {
                 MAP_ADD_ENTITY_ATTR(mPlayers, playerID, mVecFavouritePeople, f);
             }
         });
@@ -293,7 +293,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
             Int playerID = -1;
             player::loan l;
             reader.ReadLine(playerID, IntPtr(l.mClub), l.mStartDate, l.mEndDate, l.mSquadNumber, l.mWage, l.mMonthlyFee, l.mFeeToBuy);
-            if (playerID != -1 && l.mClub != (club *)-1 && mClubs.contains(Int(l.mClub))) {
+            if (playerID != -1 && l.mClub != (club *)-1 && Utils::Contains(mClubs, (Int)l.mClub)) {
                 MAP_SET_ENTITY_ATTR(mPlayers, playerID, mLoan, l);
             }
         });
@@ -301,7 +301,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
             Int playerID = -1;
             player::future_transfer f;
             reader.ReadLine(playerID, IntPtr(f.mClub), f.mTransferDate, f.mContractEndDate, f.mTransferFee, f.mNewJob);
-            if (playerID != -1 && f.mClub != (club *)-1 && mClubs.contains(Int(f.mClub))) {
+            if (playerID != -1 && f.mClub != (club *)-1 && Utils::Contains(mClubs, (Int)f.mClub)) {
                 MAP_SET_ENTITY_ATTR(mPlayers, playerID, mFutureTransfer, f);
             }
         });
@@ -328,7 +328,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
             Int nonplayerID = -1;
             non_player::favourite_club f;
             reader.ReadLine(nonplayerID, IntPtr(f.mClub), f.mReason, f.mLevel);
-            if (nonplayerID != -1 && f.mClub != (club *)-1 && mClubs.contains(Int(f.mClub))) {
+            if (nonplayerID != -1 && f.mClub != (club *)-1 && Utils::Contains(mClubs, (Int)f.mClub)) {
                 MAP_ADD_ENTITY_ATTR(mNonPlayers, nonplayerID, mVecFavouriteClubs, f);
             }
         });
@@ -336,7 +336,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
             Int nonplayerID = -1;
             non_player::disliked_club d;
             reader.ReadLine(nonplayerID, IntPtr(d.mClub), d.mLevel);
-            if (nonplayerID != -1 && d.mClub != (club *)-1 && mClubs.contains(Int(d.mClub))) {
+            if (nonplayerID != -1 && d.mClub != (club *)-1 && Utils::Contains(mClubs, (Int)d.mClub)) {
                 MAP_ADD_ENTITY_ATTR(mNonPlayers, nonplayerID, mVecDislikedClubs, d);
             }
         });
@@ -344,7 +344,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
             Int nonplayerID = -1;
             non_player::club_contract c;
             reader.ReadLine(nonplayerID, IntPtr(c.mClub), c.mJob, c.mSecondaryJob, c.mDateJoined, c.mContractExpires, c.mContractType, c.mOnRollingContract, c.mSquadStatus);
-            if (nonplayerID != -1 && c.mClub != (club *)-1 && mClubs.contains(Int(c.mClub))) {
+            if (nonplayerID != -1 && c.mClub != (club *)-1 && Utils::Contains(mClubs, (Int)c.mClub)) {
                 MAP_SET_ENTITY_ATTR(mNonPlayers, nonplayerID, mClubContract, c);
             }
         });
@@ -360,7 +360,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
             Int nonplayerID = -1;
             non_player::days_at_club_or_nation d;
             reader.ReadLine(nonplayerID, IntPtr(d.mClubOrNation), d.mDays);
-            if ((mClubs.contains(Int(d.mClubOrNation)) || mNations.contains(Int(d.mClubOrNation))) && nonplayerID != -1 && d.mClubOrNation != (nation *)-1) {
+            if ((Utils::Contains(mClubs, (Int)d.mClubOrNation) || Utils::Contains(mNations, (Int)d.mClubOrNation)) && nonplayerID != -1 && d.mClubOrNation != (nation *)-1) {
                 MAP_ADD_ENTITY_ATTR(mNonPlayers, nonplayerID, mDaysAtClubOrNation, d);
             }
         });
@@ -422,7 +422,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
         ReaderCallback(L"names_cities_" + translations[tr], [&](FifamReader &reader) {
             Int id = -1; String name;
             reader.ReadLine(id, name);
-            if (mCities.contains(id))
+            if (Utils::Contains(mCities, id))
                 mCities[id].mTranslatedNames[tr] = name;
         });
         //ReaderCallback(L"names_clubs_" + translations[tr], [&](FifamReader &reader) {
@@ -448,7 +448,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
         ReaderCallback(L"names_derbies_" + translations[tr], [&](FifamReader &reader) {
             Int id = -1; String name; String shortName; String alternativeName; String alternativeShortName;
             reader.ReadLine(id, name, shortName, alternativeName, alternativeShortName);
-            if (mDerbies.contains(id)) {
+            if (Utils::Contains(mDerbies, id)) {
                 mDerbies[id].mTranslatedNames[tr] = name;
                 mDerbies[id].mTranslatedShortNames[tr] = shortName;
                 mDerbies[id].mTranslatedNames[tr] = name;
@@ -459,7 +459,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
         ReaderCallback(L"names_nations_" + translations[tr], [&](FifamReader &reader) {
             Int id = -1; String name; String shortName; String nickname; String threeLetterName; String nationalityName;
             reader.ReadLine(id, name, shortName, nickname, threeLetterName, nationalityName);
-            if (mNations.contains(id)) {
+            if (Utils::Contains(mNations, id)) {
                 mNations[id].mTranslatedNames[tr] = name;
                 mNations[id].mTranslatedShortNames[tr] = shortName;
                 mNations[id].mTranslatedNames[tr] = name;
@@ -471,7 +471,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
         ReaderCallback(L"names_stadiums_" + translations[tr], [&](FifamReader &reader) {
             Int id = -1; String name;
             reader.ReadLine(id, name);
-            if (mStadiums.contains(id))
+            if (Utils::Contains(mStadiums, id))
                 mStadiums[id].mTranslatedNames[tr] = name;
         });
     }

@@ -10,26 +10,26 @@ CommandLine::CommandLine(int argc, char *argv[], std::set<std::string> const &ar
         _options.insert(Utils::ToLower(s));
     for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
-        if (arg.starts_with('-')) {
+        if (Utils::StartsWith(arg, "-")) {
             arg = Utils::ToLower(arg.substr(1));
-            if (_arguments.contains(arg)) {
+            if (Utils::Contains(_arguments, arg)) {
                 if ((i + 1) < argc)
                     mArguments[arg] = argv[i + 1];
                 else
                     break;
             }
-            else if (_options.contains(arg))
+            else if (Utils::Contains(_options, arg))
                 mOptions.insert(arg);
         }
     }
 }
 
 bool CommandLine::HasOption(std::string const &option) {
-    return mOptions.contains(Utils::ToLower(option));
+    return Utils::Contains(mOptions, Utils::ToLower(option));
 }
 
 bool CommandLine::HasArgument(std::string const &argument) {
-    return mArguments.contains(Utils::ToLower(argument));
+    return Utils::Contains(mArguments, Utils::ToLower(argument));
 }
 
 std::string CommandLine::GetArgumentString(std::string const &argument, std::string const &defaultValue) {

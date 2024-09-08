@@ -353,7 +353,7 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         FifaPlayer *fifaPlayer = mFifaDatabase->GetPlayer(p->mConverterData.mFifaPlayerId);
         if (fifaPlayer)
             appearanceGenerator.SetFromFifaPlayer(player, fifaPlayer);
-        if (mFaceIDs.contains(p->mConverterData.mFifaPlayerId))
+        if (Utils::Contains(mFaceIDs, (UInt)p->mConverterData.mFifaPlayerId))
             player->mSpecialFace = p->mConverterData.mFifaPlayerId;
         //player->mComment = L"FIFAID:" + Utils::Format(L"%d", p->mConverterData.mFifaPlayerId);
         player->mFifaID = p->mConverterData.mFifaPlayerId;

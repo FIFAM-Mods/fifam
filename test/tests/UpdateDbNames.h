@@ -102,7 +102,7 @@ public:
                 UpdateTranslationsArticle(c->mTermForTeam2Article, oldc->mTermForTeam2Article);
 
                 // get some data from original DB
-                if (c->mFifaID != 0 && origClubByFifaID.contains(c->mFifaID)) {
+                if (c->mFifaID != 0 && Utils::Contains(origClubByFifaID, c->mFifaID)) {
                     auto origc = origClubByFifaID[c->mFifaID];
                     if (c->mAiStrategy == FifamClubAiStrategy::General)
                         c->mAiStrategy = oldc->mAiStrategy;

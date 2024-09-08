@@ -108,7 +108,7 @@ public:
                 if (league) {
                     league->ForAllTeams([&](FifaTeam &team) {
                         UInt fifaId = team.GetId();
-                        if (mFifaClubs.contains(fifaId)) {
+                        if (Utils::Contains(mFifaClubs, fifaId)) {
                             UInt fifamId = mFifaClubs[fifaId];
                             String fifamIdHex = Utils::Format(L"%08X", fifamId);
                             for (auto const &k : kitTypes) {

@@ -18,7 +18,7 @@ public:
         FifamDatabase db(13, "db");
 
         for (auto& p : db.mPlayers) {
-            if (p->mFifaID != 0 && faceIDs.contains(p->mFifaID))
+            if (p->mFifaID != 0 && Utils::Contains(faceIDs, p->mFifaID))
                 p->mSpecialFace = p->mFifaID;
             else
                 p->mSpecialFace = 0;

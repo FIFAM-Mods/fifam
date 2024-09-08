@@ -31,7 +31,7 @@ public:
         Map<String, FifamPlayer *> playersMap;
         Map<UInt, Vector<Pair<FifamPlayer *, UInt>>> mapCountries;
         for (auto p : db.mPlayers) {
-            if (playersMap.contains(p->mWriteableStringID))
+            if (Utils::Contains(playersMap, p->mWriteableStringID))
                 ::Error(L"Duplicate player ID '%s'", p->mWriteableStringID.c_str());
             playersMap[p->mWriteableStringID] = p;
             p->SetProperty<Bool>(L"ignore", false);
@@ -86,12 +86,12 @@ public:
             std::sort(pl.begin(), pl.end(), [](Pair<FifamPlayer *, UInt> const &a, Pair<FifamPlayer *, UInt> const &b) {
                 return a.second > b.second;
             });
-            UInt plCount = wcCountries.contains(countryId) ? 200 : 100;
+            UInt plCount = Utils::Contains(wcCountries, countryId) ? 200 : 100;
             for (UInt i = 0; i < Utils::Min(plCount, pl.size()); i++)
                 IncludePlayer(pl[i].first);
         }
         for (auto const &s : additionalPlayers) {
-            if (playersMap.contains(s))
+            if (Utils::Contains(playersMap, s))
                 IncludePlayer(playersMap[s]);
             else
                 ::Error(L"Can't find player with ID '%s'", s.c_str());

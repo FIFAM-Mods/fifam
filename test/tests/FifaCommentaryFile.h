@@ -10,7 +10,7 @@ public:
         while (!r.IsEof()) {
             if (!r.EmptyLine()) {
                 auto line = r.ReadFullLine();
-                if (!line.ends_with(L".wav")) {
+                if (!Utils::EndsWith(line, L".wav")) {
                     ::Error("Not a .wav file");
                     continue;
                 }

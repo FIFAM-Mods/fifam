@@ -71,7 +71,7 @@ public:
                 }
                 else
                     usedComps.insert(id.ToInt());
-                if (id.mType == FifamCompType::Relegation && !leagueSplitComps.contains(id.ToInt()))
+                if (id.mType == FifamCompType::Relegation && !Utils::Contains(leagueSplitComps, id.ToInt()))
                     relegationComps.insert(id.ToInt());
             }
         }

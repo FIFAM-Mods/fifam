@@ -32,7 +32,7 @@ public:
                         if (player) {
                             String name = player->m_commonName.empty() ? player->m_lastName : player->m_commonName;
                             UInt commentaryId = 0;
-                            if (commentaries.contains(name))
+                            if (Utils::Contains(commentaries, name))
                                 commentaryId = commentaries[name];
                             writer.WriteLineWithSeparator(L'\t', fifaId, name, commentaryId);
                         }

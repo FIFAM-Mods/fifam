@@ -88,7 +88,7 @@ public:
                         nation = FifamNation::France;
                     String nationId = nation.GetWasSetFromUnknown() ? nationName : std::to_wstring(nation.ToInt());
                     String playerId;
-                    if (players.contains(playerName)) {
+                    if (Utils::Contains(players, playerName)) {
                         auto &pm = players[playerName];
                         for (auto &p : pm) {
                             UInt page = p->GetAge(FifamDate(1, 7, 2021));

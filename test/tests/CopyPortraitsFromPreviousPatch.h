@@ -150,7 +150,7 @@ public:
             String uidNoEmpics;
             if (p->mFootballManagerID >= 0) {
                 String empicsIdStr = Utils::Format(L"-%u", p->mFootballManagerID);
-                if (p->mWriteableStringID.ends_with(empicsIdStr))
+                if (Utils::EndsWith(p->mWriteableStringID, empicsIdStr))
                     uidNoEmpics = p->mWriteableStringID.substr(0, p->mWriteableStringID.size() - empicsIdStr.size());
             }
             ProcessPortrait(p->mWriteableStringID, uidNoEmpics, 1, p->mFootballManagerID >= 2002042000);

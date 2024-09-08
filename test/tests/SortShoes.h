@@ -131,7 +131,7 @@ public:
                 auto const &p = i.path();
                 if (is_regular_file(p) && Utils::ToLower(p.extension().string()) == ".png") {
                     string fileName = p.stem().string();
-                    if (fileName.starts_with("shoe_")) {
+                    if (Utils::StartsWith(fileName, "shoe_")) {
                         auto fileNameParts = Utils::Split(fileName, '_', false, false, false);
                         if (fileNameParts.size() >= 2) {
                             Int shoeId = Utils::SafeConvertInt<UInt>(fileNameParts[1]);

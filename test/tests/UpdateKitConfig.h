@@ -54,7 +54,7 @@ public:
 						kitId += L"g";
 					else if (e.teamkittypetechid == 3)
 						kitId += L"t";
-					if (kitsToUpdate.contains(kitId)) {
+					if (Utils::Contains(kitsToUpdate, kitId)) {
 						bool updatedExistingEntry = false;
 						for (auto &existingEntry : kitEntries) {
 							if (existingEntry.teamid == e.teamid && existingEntry.teamkittypetechid == e.teamkittypetechid) {

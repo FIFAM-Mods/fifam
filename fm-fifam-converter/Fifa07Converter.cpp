@@ -120,7 +120,7 @@ void Fifa07Converter::Convert(Converter *c, Path const &dbPath) {
                         fifa07league.SetProperty("NationalityName", nation.mNationalityName);
                         fifa07league.SetProperty("CountryName", nation.mName);
                         UInt fifamId = (nation.mConverterData.mFIFAManagerReplacementID << 24) | 0x10000 | leagueIndex;
-                        if (c->mFifamCompIdToFifa07LeagueId.contains(fifamId))
+                        if (Utils::Contains(c->mFifamCompIdToFifa07LeagueId, fifamId))
                             fifa07league.leagueid = c->mFifamCompIdToFifa07LeagueId[fifamId];
                         else
                             fifa07league.leagueid = fifaLeagueNextId++;
@@ -154,7 +154,7 @@ void Fifa07Converter::Convert(Converter *c, Path const &dbPath) {
                                         team->mName.c_str(), lg->mName.c_str());
                                 }
                             }
-                            else if (foomTeamIdsInCountryLeagues.contains(team->mID)) {
+                            else if (Utils::Contains(foomTeamIdsInCountryLeagues, (UInt)team->mID)) {
                                 if (c->mErrors) {
                                     Message(Utils::Format(L"Team already present in other league\nClub: '%s'\nLeague: '%s'",
                                         team->mName.c_str(), lg->mName.c_str()));

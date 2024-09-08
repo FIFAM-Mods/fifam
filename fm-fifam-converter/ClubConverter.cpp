@@ -1349,21 +1349,21 @@ void Converter::ConvertKitsAndColors(FifamClub * dst, Int foomId, Vector<foom::k
 
 void Converter::ApplyClubCustomNames(UInt foomID, FifamClub *club) {
     for (UInt i = 0; i < mNamesMap.size(); i++) {
-        if (mNamesMap[i].contains(foomID)) {
+        if (Utils::Contains(mNamesMap[i], (Int)foomID)) {
             if (i == 0)
                 FifamTrSetAll<String>(club->mName, mNamesMap[i][foomID]);
             else
                 club->mName[i - 1] = mNamesMap[i][foomID];
             club->mName2 = club->mName;
         }
-        if (mShortNamesMap[i].contains(foomID)) {
+        if (Utils::Contains(mShortNamesMap[i], (Int)foomID)) {
             if (i == 0)
                 FifamTrSetAll<String>(club->mShortName, mShortNamesMap[i][foomID]);
             else
                 club->mShortName[i - 1] = mShortNamesMap[i][foomID];
             club->mShortName2 = club->mShortName;
         }
-        if (mAbbreviationMap[i].contains(foomID)) {
+        if (Utils::Contains(mAbbreviationMap[i], (Int)foomID)) {
             if (i == 0)
                 FifamTrSetAll<String>(club->mAbbreviation, mAbbreviationMap[i][foomID]);
             else
@@ -1406,7 +1406,7 @@ FifamClub *Converter::CreateAndConvertClub(UInt gameId, foom::club *team, foom::
     else
         ConvertClub(gameId, club, team, mainTeam, country, div);
 
-    if (mPenaltyPointsMap.contains(team->mID)) {
+    if (Utils::Contains(mPenaltyPointsMap, (Int)team->mID)) {
         club->mPenaltyType = FifamClubPenaltyType::Points;
         club->mPenaltyPoints = mPenaltyPointsMap[team->mID];
     }

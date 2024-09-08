@@ -420,10 +420,10 @@ void FindBannersWithoutId() {
         auto const &p = e.path();
         if (p.extension() == ".png") {
             auto filename = p.stem().string();
-            if (filename.starts_with("l")) {
+            if (Utils::StartsWith(filename, "l")) {
                 filename = filename.substr(1);
                 auto fifaId = Utils::SafeConvertInt<UInt>(filename);
-                if (fifaId != 0 && !usedFifaIDs.contains(fifaId) && exists("H:\\FIFA_ASSETS\\banners\\24\\banner_" + filename + "_color.png")) {
+                if (fifaId != 0 && !Utils::Contains(usedFifaIDs, fifaId) && exists("H:\\FIFA_ASSETS\\banners\\24\\banner_" + filename + "_color.png")) {
                     Magick::Image image(p.string());
                     image.write((withoutFifaIdDir / (p.stem().string() + ".png")).string());
                 }

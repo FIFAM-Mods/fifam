@@ -9,7 +9,7 @@ String FixPersonName(String const &name, UInt gameId) {
     String result;
     static Set<WideChar> restrictedChars = { L',', L'|', L':', L'<', L'>', L'/', L'\\', L'?', L'*', 0x327, 0x301, 0x308, 0x30C, 0x200E };
     for (auto c : name) {
-        if (!restrictedChars.contains(c)) {
+        if (!Utils::Contains(restrictedChars, c)) {
             if (c == L'Ị')
                 result += L'I';
             else if (c == L'ị')
@@ -136,7 +136,7 @@ public:
                 if (p->mClub) {
                     clubName = FifamTr(p->mClub->mName);
                     clubCountry = FifamTr(p->mClub->mCountry->mName);
-                    if (clubLeague1.contains(p->mClub))
+                    if (Utils::Contains(clubLeague1, p->mClub))
                         clubLeagueLevel = clubLeague1[p->mClub]->mLeagueLevel + 1;
                 }
                 w.WriteLineWithSeparator(L'\t', p->mWriteableStringID, p->mFootballManagerID, p->mCreator, p->mEmpicsId, p->GetName(),
@@ -155,7 +155,7 @@ public:
                 if (p->mClub) {
                     clubName = FifamTr(p->mClub->mName);
                     clubCountry = FifamTr(p->mClub->mCountry->mName);
-                    if (clubLeague1.contains(p->mClub))
+                    if (Utils::Contains(clubLeague1, p->mClub))
                         clubLeagueLevel = clubLeague1[p->mClub]->mLeagueLevel + 1;
                 }
                 w.WriteLineWithSeparator(L'\t', p->mWriteableStringID, p->mFootballManagerID, p->mCreator, p->mEmpicsId, p->GetName(),
@@ -169,7 +169,7 @@ public:
             FifamWriter w(L"clubs_removed_ids.txt");
             w.WriteLineWithSeparator(L'\t', L"id", L"name", L"prestige");
             for (auto const &[id, c] : db1->mClubsMap) {
-                if (!db2->mClubsMap.contains(id))
+                if (!Utils::Contains(db2->mClubsMap, id))
                     w.WriteLineWithSeparator(L'\t', Utils::Format(L"0x%08X", id), FifamTr(c->mName), (c->mInternationalPrestige * 20 + c->mNationalPrestige) * 99 / 420);
             }
         }
@@ -177,7 +177,7 @@ public:
             FifamWriter w(L"clubs_added_ids.txt");
             w.WriteLineWithSeparator(L'\t', L"id", L"name", L"prestige");
             for (auto const &[id, c] : db2->mClubsMap) {
-                if (!db1->mClubsMap.contains(id))
+                if (!Utils::Contains(db1->mClubsMap, id))
                     w.WriteLineWithSeparator(L'\t', Utils::Format(L"0x%08X", id), FifamTr(c->mName), (c->mInternationalPrestige * 20 + c->mNationalPrestige) * 99 / 420);
             }
         }
@@ -190,7 +190,7 @@ public:
             w.WriteLineWithSeparator(L'\t', L"id", L"foomid", L"creator", L"name", L"firstname", L"lastname", L"country");
             for (auto const &r : db1->mReferees) {
                 String id = FifamNames::GetPersonStringId(gameVersion, r->mFirstName, r->mLastName, String(), Date(), 0);
-                if (!referees.contains(id))
+                if (!Utils::Contains(referees, id))
                     w.WriteLineWithSeparator(L'\t', id, r->mFootballManagerID, r->mCreator, r->mFirstName + L" " + r->mLastName, r->mFirstName, r->mLastName, FifamTr(r->mCountry->mName));
             }
         }
@@ -202,12 +202,12 @@ public:
             w.WriteLineWithSeparator(L'\t', L"id", L"foomid", L"creator", L"name", L"firstname", L"lastname", L"country");
             for (auto const &r : db2->mReferees) {
                 String id = FifamNames::GetPersonStringId(gameVersion, r->mFirstName, r->mLastName, String(), Date(), 0);
-                if (!referees.contains(id))
+                if (!Utils::Contains(referees, id))
                     w.WriteLineWithSeparator(L'\t', id, r->mFootballManagerID, r->mCreator, r->mFirstName + L" " + r->mLastName, r->mFirstName, r->mLastName, FifamTr(r->mCountry->mName));
             }
         }
         {
-            Map<UInt, FifamReferee *> referees;
+            Map<Int, FifamReferee *> referees;
             for (auto const &r : db2->mReferees) {
                 if (r->mFootballManagerID >= 0)
                     referees[r->mFootballManagerID] = r;
@@ -215,14 +215,14 @@ public:
             FifamWriter w(L"foom_referee_removed.txt");
             w.WriteLineWithSeparator(L'\t', L"id", L"foomid", L"creator", L"name", L"firstname", L"lastname", L"country");
             for (auto const &r : db1->mReferees) {
-                if (r->mFootballManagerID >= 0 && !referees.contains(r->mFootballManagerID)) {
+                if (r->mFootballManagerID >= 0 && !Utils::Contains(referees, r->mFootballManagerID)) {
                     String id = FifamNames::GetPersonStringId(gameVersion, r->mFirstName, r->mLastName, String(), Date(), 0);
                     w.WriteLineWithSeparator(L'\t', id, r->mFootballManagerID, r->mCreator, r->mFirstName + L" " + r->mLastName, r->mFirstName, r->mLastName, FifamTr(r->mCountry->mName));
                 }
             }
         }
         {
-            Map<UInt, FifamReferee *> referees;
+            Map<Int, FifamReferee *> referees;
             for (auto const &r : db1->mReferees) {
                 if (r->mFootballManagerID >= 0)
                     referees[r->mFootballManagerID] = r;
@@ -230,7 +230,7 @@ public:
             FifamWriter w(L"foom_referee_changed_id.txt");
             w.WriteLineWithSeparator(L'\t', L"oldid", L"newid", L"foomid", L"creator", L"name", L"firstname", L"lastname", L"country");
             for (auto const &r : db2->mReferees) {
-                if (r->mFootballManagerID >= 0 && referees.contains(r->mFootballManagerID)) {
+                if (r->mFootballManagerID >= 0 && Utils::Contains(referees, r->mFootballManagerID)) {
                     auto ro = referees[r->mFootballManagerID];
                     String id1 = FifamNames::GetPersonStringId(gameVersion, ro->mFirstName, ro->mLastName, String(), Date(), 0);
                     String id2 = FifamNames::GetPersonStringId(gameVersion, r->mFirstName, r->mLastName, String(), Date(), 0);
@@ -252,7 +252,7 @@ public:
             }
         }
         {
-            Map<UInt, FifamReferee *> referees;
+            Map<Int, FifamReferee *> referees;
             for (auto const &r : db1->mReferees) {
                 if (r->mFootballManagerID >= 0)
                     referees[r->mFootballManagerID] = r;
@@ -260,7 +260,7 @@ public:
             FifamWriter w(L"foom_referee_added.txt");
             w.WriteLineWithSeparator(L'\t', L"id", L"foomid", L"creator", L"name", L"firstname", L"lastname", L"country");
             for (auto const &r : db2->mReferees) {
-                if (r->mFootballManagerID >= 0 && !referees.contains(r->mFootballManagerID)) {
+                if (r->mFootballManagerID >= 0 && !Utils::Contains(referees, r->mFootballManagerID)) {
                     String id = FifamNames::GetPersonStringId(gameVersion, r->mFirstName, r->mLastName, String(), Date(), 0);
                     w.WriteLineWithSeparator(L'\t', id, r->mFootballManagerID, r->mCreator, r->mFirstName + L" " + r->mLastName, r->mFirstName, r->mLastName, FifamTr(r->mCountry->mName));
                 }
@@ -285,13 +285,13 @@ public:
             w.WriteLineWithSeparator(L'\t', L"id", L"foomid", L"creator", L"name", L"firstname", L"lastname", L"pseudonym", L"nickname", L"birthdate", L"nationality",
                 L"clubname", L"clubcountry", "clubleaguelevel", L"position", L"level", L"talent");
             for (auto const &s : db1->mStaffs) {
-                if (!staffs.contains(s->mWriteableStringID)) {
+                if (!Utils::Contains(staffs, s->mWriteableStringID)) {
                     UInt clubLeagueLevel = 255;
                     String clubName, clubCountry;
                     if (s->mClub) {
                         clubName = FifamTr(s->mClub->mName);
                         clubCountry = FifamTr(s->mClub->mCountry->mName);
-                        if (clubLeague1.contains(s->mClub))
+                        if (Utils::Contains(clubLeague1, s->mClub))
                             clubLeagueLevel = clubLeague1[s->mClub]->mLeagueLevel + 1;
                     }
                     UInt level = 0;
@@ -312,13 +312,13 @@ public:
             w.WriteLineWithSeparator(L'\t', L"id", L"foomid", L"creator", L"name", L"firstname", L"lastname", L"pseudonym", L"nickname", L"birthdate", L"nationality",
                 L"clubname", L"clubcountry", "clubleaguelevel", L"position", L"level", L"talent");
             for (auto const &s : db2->mStaffs) {
-                if (!staffs.contains(s->mWriteableStringID)) {
+                if (!Utils::Contains(staffs, s->mWriteableStringID)) {
                     UInt clubLeagueLevel = 255;
                     String clubName, clubCountry;
                     if (s->mClub) {
                         clubName = FifamTr(s->mClub->mName);
                         clubCountry = FifamTr(s->mClub->mCountry->mName);
-                        if (clubLeague2.contains(s->mClub))
+                        if (Utils::Contains(clubLeague2, s->mClub))
                             clubLeagueLevel = clubLeague2[s->mClub]->mLeagueLevel + 1;
                     }
                     UInt level = 0;
@@ -332,7 +332,7 @@ public:
             }
         }
         {
-            Map<UInt, FifamStaff *> staffs;
+            Map<Int, FifamStaff *> staffs;
             for (auto const &s : db2->mStaffs) {
                 if (s->mFootballManagerID >= 0)
                     staffs[s->mFootballManagerID] = s;
@@ -341,13 +341,13 @@ public:
             w.WriteLineWithSeparator(L'\t', L"id", L"foomid", L"creator", L"name", L"firstname", L"lastname", L"pseudonym", L"nickname", L"birthdate", L"nationality",
                 L"clubname", L"clubcountry", "clubleaguelevel", L"position", L"level", L"talent");
             for (auto const &s : db1->mStaffs) {
-                if (s->mFootballManagerID >= 0 && !staffs.contains(s->mFootballManagerID)) {
+                if (s->mFootballManagerID >= 0 && !Utils::Contains(staffs, s->mFootballManagerID)) {
                     UInt clubLeagueLevel = 255;
                     String clubName, clubCountry;
                     if (s->mClub) {
                         clubName = FifamTr(s->mClub->mName);
                         clubCountry = FifamTr(s->mClub->mCountry->mName);
-                        if (clubLeague1.contains(s->mClub))
+                        if (Utils::Contains(clubLeague1, s->mClub))
                             clubLeagueLevel = clubLeague1[s->mClub]->mLeagueLevel + 1;
                     }
                     UInt level = 0;
@@ -361,7 +361,7 @@ public:
             }
         }
         {
-            Map<UInt, FifamStaff *> staffs;
+            Map<Int, FifamStaff *> staffs;
             for (auto const &s : db1->mStaffs) {
                 if (s->mFootballManagerID >= 0)
                     staffs[s->mFootballManagerID] = s;
@@ -370,13 +370,13 @@ public:
             w.WriteLineWithSeparator(L'\t', L"id", L"foomid", L"creator", L"name", L"firstname", L"lastname", L"pseudonym", L"nickname", L"birthdate", L"nationality",
                 L"clubname", L"clubcountry", "clubleaguelevel", L"position", L"level", L"talent");
             for (auto const &s : db2->mStaffs) {
-                if (s->mFootballManagerID >= 0 && !staffs.contains(s->mFootballManagerID)) {
+                if (s->mFootballManagerID >= 0 && !Utils::Contains(staffs, s->mFootballManagerID)) {
                     UInt clubLeagueLevel = 255;
                     String clubName, clubCountry;
                     if (s->mClub) {
                         clubName = FifamTr(s->mClub->mName);
                         clubCountry = FifamTr(s->mClub->mCountry->mName);
-                        if (clubLeague2.contains(s->mClub))
+                        if (Utils::Contains(clubLeague2, s->mClub))
                             clubLeagueLevel = clubLeague2[s->mClub]->mLeagueLevel + 1;
                     }
                     UInt level = 0;
@@ -390,7 +390,7 @@ public:
             }
         }
         {
-            Map<UInt, FifamStaff *> staffs;
+            Map<Int, FifamStaff *> staffs;
             for (auto const &s : db1->mStaffs) {
                 if (s->mFootballManagerID >= 0)
                     staffs[s->mFootballManagerID] = s;
@@ -399,7 +399,7 @@ public:
             w.WriteLineWithSeparator(L'\t', L"oldid", L"newid", L"foomid", L"creator", L"name", L"firstname", L"lastname", L"pseudonym", L"nickname", L"birthdate", L"nationality",
                 L"clubname", L"clubcountry", "clubleaguelevel", L"position", L"level", L"talent");
             for (auto const &s : db2->mStaffs) {
-                if (s->mFootballManagerID >= 0 && staffs.contains(s->mFootballManagerID)) {
+                if (s->mFootballManagerID >= 0 && Utils::Contains(staffs, s->mFootballManagerID)) {
                     FifamStaff *olds = staffs[s->mFootballManagerID];
                     if (s->mWriteableStringID != olds->mWriteableStringID) {
                         UInt clubLeagueLevel = 255;
@@ -407,7 +407,7 @@ public:
                         if (s->mClub) {
                             clubName = FifamTr(s->mClub->mName);
                             clubCountry = FifamTr(s->mClub->mCountry->mName);
-                            if (clubLeague2.contains(s->mClub))
+                            if (Utils::Contains(clubLeague2, s->mClub))
                                 clubLeagueLevel = clubLeague2[s->mClub]->mLeagueLevel + 1;
                         }
                         UInt level = 0;
@@ -433,7 +433,7 @@ public:
                     if (s->mClub) {
                         clubName = FifamTr(s->mClub->mName);
                         clubCountry = FifamTr(s->mClub->mCountry->mName);
-                        if (clubLeague2.contains(s->mClub))
+                        if (Utils::Contains(clubLeague2, s->mClub))
                             clubLeagueLevel = clubLeague2[s->mClub]->mLeagueLevel + 1;
                     }
                     UInt level = 0;
@@ -457,7 +457,7 @@ public:
                     if (s->mClub) {
                         clubName = FifamTr(s->mClub->mName);
                         clubCountry = FifamTr(s->mClub->mCountry->mName);
-                        if (clubLeague2.contains(s->mClub))
+                        if (Utils::Contains(clubLeague2, s->mClub))
                             clubLeagueLevel = clubLeague2[s->mClub]->mLeagueLevel + 1;
                     }
                     UInt level = 0;
@@ -479,13 +479,13 @@ public:
             w.WriteLineWithSeparator(L'\t', L"id", L"foomid", L"creator", L"name", L"firstname", L"lastname", L"pseudonym", L"nickname", L"birthdate", L"nationality",
                 L"clubname", L"clubcountry", "clubleaguelevel", L"position", L"level", L"talent");
             for (auto const &p : db1->mPlayers) {
-                if (!players.contains(p->mWriteableStringID)) {
+                if (!Utils::Contains(players, p->mWriteableStringID)) {
                     UInt clubLeagueLevel = 255;
                     String clubName, clubCountry;
                     if (p->mClub) {
                         clubName = FifamTr(p->mClub->mName);
                         clubCountry = FifamTr(p->mClub->mCountry->mName);
-                        if (clubLeague1.contains(p->mClub))
+                        if (Utils::Contains(clubLeague1, p->mClub))
                             clubLeagueLevel = clubLeague1[p->mClub]->mLeagueLevel + 1;
                     }
                     w.WriteLineWithSeparator(L'\t', p->mWriteableStringID, p->mFootballManagerID, p->mCreator, p->GetName(), p->mFirstName, p->mLastName, p->mPseudonym, p->mNickname,
@@ -501,13 +501,13 @@ public:
             w.WriteLineWithSeparator(L'\t', L"id", L"foomid", L"creator", L"name", L"firstname", L"lastname", L"pseudonym", L"nickname", L"birthdate", L"nationality",
                 L"clubname", L"clubcountry", "clubleaguelevel", L"position", L"level", L"talent");
             for (auto const &p : db2->mPlayers) {
-                if (!players.contains(p->mWriteableStringID)) {
+                if (!Utils::Contains(players, p->mWriteableStringID)) {
                     UInt clubLeagueLevel = 255;
                     String clubName, clubCountry;
                     if (p->mClub) {
                         clubName = FifamTr(p->mClub->mName);
                         clubCountry = FifamTr(p->mClub->mCountry->mName);
-                        if (clubLeague2.contains(p->mClub))
+                        if (Utils::Contains(clubLeague2, p->mClub))
                             clubLeagueLevel = clubLeague2[p->mClub]->mLeagueLevel + 1;
                     }
                     w.WriteLineWithSeparator(L'\t', p->mWriteableStringID, p->mFootballManagerID, p->mCreator, p->GetName(), p->mFirstName, p->mLastName, p->mPseudonym, p->mNickname,
@@ -526,7 +526,7 @@ public:
                     if (p->mClub) {
                         clubName = FifamTr(p->mClub->mName);
                         clubCountry = FifamTr(p->mClub->mCountry->mName);
-                        if (clubLeague2.contains(p->mClub))
+                        if (Utils::Contains(clubLeague2, p->mClub))
                             clubLeagueLevel = clubLeague2[p->mClub]->mLeagueLevel + 1;
                     }
                     w.WriteLineWithSeparator(L'\t', p->mWriteableStringID, p->mFootballManagerID, p->mCreator, p->GetName(), p->mFirstName, p->mLastName, p->mPseudonym, p->mNickname,
@@ -535,7 +535,7 @@ public:
             }
         }
         {
-            Map<UInt, FifamPlayer *> players;
+            Map<Int, FifamPlayer *> players;
             for (auto const &p : db2->mPlayers) {
                 if (p->mFootballManagerID >= 0)
                     players[p->mFootballManagerID] = p;
@@ -544,13 +544,13 @@ public:
             w.WriteLineWithSeparator(L'\t', L"id", L"foomid", L"creator", L"name", L"firstname", L"lastname", L"pseudonym", L"nickname", L"birthdate", L"nationality",
                 L"clubname", L"clubcountry", "clubleaguelevel", L"position", L"level", L"talent");
             for (auto const &p : db1->mPlayers) {
-                if (p->mFootballManagerID >= 0 && !players.contains(p->mFootballManagerID)) {
+                if (p->mFootballManagerID >= 0 && !Utils::Contains(players, p->mFootballManagerID)) {
                     UInt clubLeagueLevel = 255;
                     String clubName, clubCountry;
                     if (p->mClub) {
                         clubName = FifamTr(p->mClub->mName);
                         clubCountry = FifamTr(p->mClub->mCountry->mName);
-                        if (clubLeague1.contains(p->mClub))
+                        if (Utils::Contains(clubLeague1, p->mClub))
                             clubLeagueLevel = clubLeague1[p->mClub]->mLeagueLevel + 1;
                     }
                     w.WriteLineWithSeparator(L'\t', p->mWriteableStringID, p->mFootballManagerID, p->mCreator, p->GetName(), p->mFirstName, p->mLastName, p->mPseudonym, p->mNickname,
@@ -559,7 +559,7 @@ public:
             }
         }
         {
-            Map<UInt, FifamPlayer *> players;
+            Map<Int, FifamPlayer *> players;
             for (auto const &p : db1->mPlayers) {
                 if (p->mFootballManagerID >= 0)
                     players[p->mFootballManagerID] = p;
@@ -568,13 +568,13 @@ public:
             w.WriteLineWithSeparator(L'\t', L"id", L"foomid", L"creator", L"name", L"firstname", L"lastname", L"pseudonym", L"nickname", L"birthdate", L"nationality",
                 L"clubname", L"clubcountry", "clubleaguelevel", L"position", L"level", L"talent");
             for (auto const &p : db2->mPlayers) {
-                if (p->mFootballManagerID >= 0 && !players.contains(p->mFootballManagerID)) {
+                if (p->mFootballManagerID >= 0 && !Utils::Contains(players, p->mFootballManagerID)) {
                     UInt clubLeagueLevel = 255;
                     String clubName, clubCountry;
                     if (p->mClub) {
                         clubName = FifamTr(p->mClub->mName);
                         clubCountry = FifamTr(p->mClub->mCountry->mName);
-                        if (clubLeague2.contains(p->mClub))
+                        if (Utils::Contains(clubLeague2, p->mClub))
                             clubLeagueLevel = clubLeague2[p->mClub]->mLeagueLevel + 1;
                     }
                     w.WriteLineWithSeparator(L'\t', p->mWriteableStringID, p->mFootballManagerID, p->mCreator, p->GetName(), p->mFirstName, p->mLastName, p->mPseudonym, p->mNickname,
@@ -588,7 +588,7 @@ public:
                 UInt empicsIDLength = 0;
                 if (empicsID != 0) {
                     String empicsIDStr = Utils::Format(L"-%d", empicsID);
-                    if (stringID.ends_with(empicsIDStr)) {
+                    if (Utils::EndsWith(stringID, empicsIDStr)) {
                         outEmpicsID = empicsIDStr.substr(1);
                         empicsIDLength = empicsIDStr.length();
                     }
@@ -596,7 +596,7 @@ public:
                 outName = stringID.substr(0, stringID.size() - 8 - empicsIDLength);
                 outDate = stringID.substr(stringID.size() - 8 - empicsIDLength, 8);
             };
-            Map<UInt, FifamPlayer *> players;
+            Map<Int, FifamPlayer *> players;
             for (auto const &p : db1->mPlayers) {
                 if (p->mFootballManagerID >= 0)
                     players[p->mFootballManagerID] = p;
@@ -606,7 +606,7 @@ public:
                 L"clubname", L"clubcountry", "clubleaguelevel", L"position", L"level", L"talent");
             for (auto const &p : db2->mPlayers) {
                 try {
-                    if (p->mFootballManagerID >= 0 && players.contains(p->mFootballManagerID)) {
+                    if (p->mFootballManagerID >= 0 && Utils::Contains(players, p->mFootballManagerID)) {
                         FifamPlayer *oldp = players[p->mFootballManagerID];
                         if (p->mWriteableStringID != oldp->mWriteableStringID) {
                             UInt clubLeagueLevel = 255;
@@ -614,7 +614,7 @@ public:
                             if (p->mClub) {
                                 clubName = FifamTr(p->mClub->mName);
                                 clubCountry = FifamTr(p->mClub->mCountry->mName);
-                                if (clubLeague2.contains(p->mClub))
+                                if (Utils::Contains(clubLeague2, p->mClub))
                                     clubLeagueLevel = clubLeague2[p->mClub]->mLeagueLevel + 1;
                             }
                             String name1, name2, date1, date2, empics1, empics2;
@@ -640,7 +640,7 @@ public:
             }
         }
         {
-            Map<UInt, FifamPlayer *> players;
+            Map<Int, FifamPlayer *> players;
             for (auto const &p : db1->mPlayers) {
                 if (p->mFootballManagerID >= 0)
                     players[p->mFootballManagerID] = p;
@@ -649,7 +649,7 @@ public:
             w.WriteLineWithSeparator(L'\t', L"foomid", L"creator", L"name", L"birthdate", L"nationality", L"clubname",
                 L"clubcountry", "clubleaguelevel", L"position", L"oldposition", L"positionchange", L"level", L"oldlevel", L"levelchange", L"talent");
             for (auto const &p : db2->mPlayers) {
-                if (p->mFootballManagerID >= 0 && players.contains(p->mFootballManagerID)) {
+                if (p->mFootballManagerID >= 0 && Utils::Contains(players, p->mFootballManagerID)) {
                     FifamPlayer *oldp = players[p->mFootballManagerID];
                     if (p->GetLevel() != oldp->GetLevel()) {
                         UInt clubLeagueLevel = 255;
@@ -657,7 +657,7 @@ public:
                         if (p->mClub) {
                             clubName = FifamTr(p->mClub->mName);
                             clubCountry = FifamTr(p->mClub->mCountry->mName);
-                            if (clubLeague2.contains(p->mClub))
+                            if (Utils::Contains(clubLeague2, p->mClub))
                                 clubLeagueLevel = clubLeague2[p->mClub]->mLeagueLevel + 1;
                         }
                         w.WriteLineWithSeparator(L'\t', p->mFootballManagerID, p->mCreator, p->GetName(), p->mBirthday.ToString(), NationName(db2, p->mNationality[0]), clubName,
@@ -668,7 +668,7 @@ public:
             }
         }
         {
-            Map<UInt, FifamPlayer *> players;
+            Map<Int, FifamPlayer *> players;
             for (auto const &p : db1->mPlayers) {
                 if (p->mFootballManagerID >= 0)
                     players[p->mFootballManagerID] = p;
@@ -677,7 +677,7 @@ public:
             w.WriteLineWithSeparator(L'\t', L"foomid", L"creator", L"name", L"birthdate", L"nationality", L"clubname", L"clubcountry",
                 "clubleaguelevel", L"position", L"level", L"oldlevel", L"talent", L"oldtalent", L"talentchange");
             for (auto const &p : db2->mPlayers) {
-                if (p->mFootballManagerID >= 0 && players.contains(p->mFootballManagerID)) {
+                if (p->mFootballManagerID >= 0 && Utils::Contains(players, p->mFootballManagerID)) {
                     FifamPlayer *oldp = players[p->mFootballManagerID];
                     if (p->mTalent != oldp->mTalent) {
                         UInt clubLeagueLevel = 255;
@@ -685,7 +685,7 @@ public:
                         if (p->mClub) {
                             clubName = FifamTr(p->mClub->mName);
                             clubCountry = FifamTr(p->mClub->mCountry->mName);
-                            if (clubLeague2.contains(p->mClub))
+                            if (Utils::Contains(clubLeague2, p->mClub))
                                 clubLeagueLevel = clubLeague2[p->mClub]->mLeagueLevel + 1;
                         }
                         w.WriteLineWithSeparator(L'\t', p->mFootballManagerID, p->mCreator, p->GetName(), p->mBirthday.ToString(), NationName(db2, p->mNationality[0]), clubName,
@@ -706,7 +706,7 @@ public:
                     if (p->mClub) {
                         clubName = FifamTr(p->mClub->mName);
                         clubCountry = FifamTr(p->mClub->mCountry->mName);
-                        if (clubLeague2.contains(p->mClub))
+                        if (Utils::Contains(clubLeague2, p->mClub))
                             clubLeagueLevel = clubLeague2[p->mClub]->mLeagueLevel + 1;
                     }
                     w.WriteLineWithSeparator(L'\t', p->mWriteableStringID, p->mFootballManagerID, p->mCreator, p->GetName(), p->mFirstName, p->mLastName, p->mPseudonym, p->mNickname,
@@ -750,15 +750,15 @@ public:
 
         FifamWriter dupWriter(L"duplicates.csv");
         dupWriter.WriteLine(L"Id", L"Type", L"Name1", L"Club1", L"Name2", L"Club2");
-        Map<UInt, FifamReferee *> mapReferees;
+        Map<Int, FifamReferee *> mapReferees;
         for (auto const &r : db2->mReferees) {
             if (r->mFootballManagerID >= 0)
                 mapReferees[r->mFootballManagerID] = r;
         }
-        Map<UInt, FifamStaff *> mapStaffs;
+        Map<Int, FifamStaff *> mapStaffs;
         for (auto const &s : db2->mStaffs) {
             if (s->mFootballManagerID >= 0) {
-                if (mapReferees.contains(s->mFootballManagerID)) {
+                if (Utils::Contains(mapReferees, s->mFootballManagerID)) {
                     FifamReferee *r = mapReferees[s->mFootballManagerID];
                     dupWriter.WriteLine(s->mFootballManagerID, L"staff-referee",
                         s->GetName(), ClubNameAndNation(s->mClub), r->mFirstName + L" " + r->mLastName, FifamTr(r->mCountry->mName));
@@ -766,15 +766,15 @@ public:
                 mapStaffs[s->mFootballManagerID] = s;
             }
         }
-        Map<UInt, FifamPlayer *> mapPlayers;
+        Map<Int, FifamPlayer *> mapPlayers;
         for (auto const &p : db2->mPlayers) {
             if (p->mFootballManagerID >= 0) {
-                if (mapReferees.contains(p->mFootballManagerID)) {
+                if (Utils::Contains(mapReferees, p->mFootballManagerID)) {
                     FifamReferee *r = mapReferees[p->mFootballManagerID];
                     dupWriter.WriteLine(p->mFootballManagerID, L"player-referee",
                         p->GetName(), ClubNameAndNation(p->mClub), r->mFirstName + L" " + r->mLastName, FifamTr(r->mCountry->mName));
                 }
-                if (mapStaffs.contains(p->mFootballManagerID)) {
+                if (Utils::Contains(mapStaffs, p->mFootballManagerID)) {
                     FifamStaff *s = mapStaffs[p->mFootballManagerID];
                     dupWriter.WriteLine(p->mFootballManagerID, L"player-staff",
                         p->GetName(), ClubNameAndNation(p->mClub), s->GetName(), ClubNameAndNation(s->mClub));
@@ -817,11 +817,11 @@ public:
                 }
                 catch (...) {}
                 if (id != -1) {
-                    if (mapPlayers.contains(id))
+                    if (Utils::Contains(mapPlayers, id))
                         ConvertPortrait(p, mapPlayers[id]->mWriteableStringID, playerPortraitsPath, portraitsWriter);
-                    else if (mapStaffs.contains(id))
+                    else if (Utils::Contains(mapStaffs, id))
                         ConvertPortrait(p, mapStaffs[id]->mWriteableStringID, playerPortraitsPath, portraitsWriter);
-                    else if (mapReferees.contains(id)) {
+                    else if (Utils::Contains(mapReferees, id)) {
                         auto r = mapReferees[id];
                         ConvertPortrait(p, FifamNames::GetPersonStringId(13, r->mFirstName, r->mLastName, String(), Date(), 0),
                             refereePortraitsPath, portraitsWriter);

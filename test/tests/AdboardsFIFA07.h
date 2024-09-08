@@ -13,7 +13,7 @@ public:
             Path p = d.path();
             if (is_directory(p)) {
                 String dirName = p.stem();
-                if (dirName.starts_with(L"t223__")) {
+                if (Utils::StartsWith(dirName, L"t223__")) {
                     Path adboardPath = p / L"adba.tga";
                     Image adboard(adboardPath.string());
                     adboard.autoOrient();

@@ -36,18 +36,18 @@ public:
                     Utils::Trim(k);
                     auto key = Utils::SafeConvertInt<UInt>(k);
                     String t;
-                    if (l.ends_with(L"#0"))
+                    if (Utils::EndsWith(l, L"#0"))
                         t = l.substr(13, l.size() - 15);
-                    else if (l.ends_with(L"#0s") || l.ends_with(L"#0ì"))
+                    else if (Utils::EndsWith(l, L"#0s") || Utils::EndsWith(l, L"#0ì"))
                         t = l.substr(13, l.size() - 16);
                     else {
                         t = l.substr(13);
                         l = trEng.ReadFullLine();
                         Bool endOfFile = false;
                         while (true) {
-                            if (l.ends_with(L"#0"))
+                            if (Utils::EndsWith(l, L"#0"))
                                 break;
-                            else if (l.ends_with(L"#0s")) {
+                            else if (Utils::EndsWith(l, L"#0s")) {
                                 endOfFile = true;
                                 break;
                             }

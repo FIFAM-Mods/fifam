@@ -38,8 +38,8 @@ public:
         //::Error("setup reference info");
 
         // setup reference info
-        Map<UInt, FifamPlayer *> referencePlayers;
-        Map<UInt, FifamStaff *> referenceStaff;
+        Map<Int, FifamPlayer *> referencePlayers;
+        Map<Int, FifamStaff *> referenceStaff;
         for (auto p : referenceDb->mPlayers) {
             if (p->mFootballManagerID >= 0 && p->mFootballManagerID < 2002042000)
                 referencePlayers[p->mFootballManagerID] = p;
@@ -123,7 +123,7 @@ public:
             if (p->mStartingConditions.mFutureReLoan.Enabled() && !p->mStartingConditions.mFutureReLoan.mLoanedClub.IsValid())
                 p->mStartingConditions.mFutureReLoan.Disable();
             // update from reference
-            if (referencePlayers.contains(p->mFootballManagerID)) {
+            if (Utils::Contains(referencePlayers, p->mFootballManagerID)) {
                 auto ref = referencePlayers[p->mFootballManagerID];
                 p->mBirthday = ref->mBirthday;
                 p->mFirstName = ref->mFirstName;
@@ -140,7 +140,7 @@ public:
             UpdateClubLink(s->mFavouriteClub);
             UpdateClubLink(s->mWouldnSignFor);
             // update from reference
-            if (referenceStaff.contains(s->mFootballManagerID)) {
+            if (Utils::Contains(referenceStaff, s->mFootballManagerID)) {
                 auto ref = referenceStaff[s->mFootballManagerID];
                 s->mBirthday = ref->mBirthday;
                 s->mFirstName = ref->mFirstName;

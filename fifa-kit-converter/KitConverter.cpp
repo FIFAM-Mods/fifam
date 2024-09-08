@@ -1150,10 +1150,10 @@ void KitConverter::ConvertAdboards(Map<UInt, UInt> const &fifaClubToFifam, Map<U
     Set<UInt> writtenAdboards;
     for (auto const &i : recursive_directory_iterator(inPath)) {
         auto fileName = i.path().stem().string();
-        if (fileName.starts_with("adboard_") && fileName.ends_with("_color"))
+        if (Utils::StartsWith(fileName, "adboard_") && Utils::EndsWith(fileName, "_color"))
             adboards[Utils::SafeConvertInt<UInt>(fileName.substr(8, fileName.size() - 14))] = i.path();
     }
-    if (adboards.contains(0)) {
+    if (Utils::Contains(adboards, 0u)) {
         Image img(adboards[0].string());
         img.type(TrueColorAlphaType);
         resizeImage_noAspect(img, 512, 1024);
@@ -1161,7 +1161,7 @@ void KitConverter::ConvertAdboards(Map<UInt, UInt> const &fifaClubToFifam, Map<U
         writtenAdboards.insert(0);
     }
     for (auto const &[fifaId, fifamIds] : compsMap) {
-        if (adboards.contains(fifaId) && !fifamIds.empty()) {
+        if (Utils::Contains(adboards, fifaId) && !fifamIds.empty()) {
             Image img(adboards[fifaId].string());
             img.type(TrueColorAlphaType);
             resizeImage_noAspect(img, 512, 1024);
@@ -1175,7 +1175,7 @@ void KitConverter::ConvertAdboards(Map<UInt, UInt> const &fifaClubToFifam, Map<U
     }
     Image bundesliga, bundesliga2;
     Bool hasBundesliga = false;
-    if (adboards.contains(19) && adboards.contains(20)) {
+    if (Utils::Contains(adboards, 19u) && Utils::Contains(adboards, 20u)) {
         bundesliga = Image(adboards[19].string(), Geometry(1024, 128));
         resizeImage_noAspect(bundesliga, bundesliga.columns() / 2, bundesliga.rows() / 2);
         bundesliga2 = Image(adboards[20].string(), Geometry(1024, 128));
@@ -1183,7 +1183,7 @@ void KitConverter::ConvertAdboards(Map<UInt, UInt> const &fifaClubToFifam, Map<U
         hasBundesliga = true;
     }
     for (auto const &[fifaId, fifamId] : fifaClubToFifam) {
-        if (adboards.contains(1000000 + fifaId)) {
+        if (Utils::Contains(adboards, 1000000u + fifaId)) {
             Image img(adboards[1000000 + fifaId].string());
             img.type(TrueColorAlphaType);
             resizeImage_noAspect(img, 512, 1024);
@@ -1228,7 +1228,7 @@ void KitConverter::ConvertAdboards(Map<UInt, UInt> const &fifaClubToFifam, Map<U
     if (exists(notConvertedPath))
         remove(notConvertedPath);
     for (auto const &[fifaId, filePath] : adboards) {
-        if (!writtenAdboards.contains(fifaId)) {
+        if (!Utils::Contains(writtenAdboards, fifaId)) {
             create_directories(notConvertedPath);
             copy(filePath, notConvertedPath / filePath.filename(), copy_options::overwrite_existing);
         }

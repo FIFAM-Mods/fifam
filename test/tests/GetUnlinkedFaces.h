@@ -12,7 +12,7 @@ public:
         Map<UInt, Vector<String>> duplicatedFaces;
         for (auto player : db->mPlayers) {
             if (player->mSpecialFace != 0) {
-                if (usedFaces.contains(player->mSpecialFace))
+                if (Utils::Contains(usedFaces, player->mSpecialFace))
                     duplicatedFaces[player->mSpecialFace].push_back(player->GetName());
                 else
                     usedFaces.insert(player->mSpecialFace);
@@ -27,9 +27,9 @@ public:
                         auto const &p = i.path();
                         if (p.extension() == ".o") {
                             auto filename = p.stem().string();
-                            if (filename.starts_with("m228__")) {
+                            if (Utils::StartsWith(filename, "m228__")) {
                                 auto playerId = Utils::SafeConvertInt<Int>(filename.substr(6));
-                                if (playerId > 0 && !usedFaces.contains(playerId)) {
+                                if (playerId > 0 && !Utils::Contains(usedFaces, playerId)) {
                                     FifaPlayer *palyer = fifadb->GetPlayer(playerId);
                                     if (palyer)
                                         unlinkedFacesWriter.WriteLine(playerId, palyer->m_quickName);

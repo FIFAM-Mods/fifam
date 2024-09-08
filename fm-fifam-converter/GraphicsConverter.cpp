@@ -345,7 +345,7 @@ void GraphicsConverter::ConvertCountryFlags(FifamDatabase *db, Path const &fmGra
     Map<Int, Path> availableAssociationLogos;
     for (auto const &i : directory_iterator(fmGraphicsPath / L"dvx-logos" / L"associations" / L"primary" / L"@2x")) {
         Int id = Utils::SafeConvertInt<Int>(i.path().filename().c_str());
-        if (id > 0 && i.path().extension() == ".png" && !availableAssociationLogos.contains(id))
+        if (id > 0 && i.path().extension() == ".png" && !Utils::Contains(availableAssociationLogos, id))
             availableAssociationLogos[id] = i.path();
     }
     Map<Int, Path> availableFlags;
@@ -1118,7 +1118,7 @@ void GraphicsConverter::ProcessFIFAXXLPortraits(foom::db *db, Path const& gameOu
             if (is_regular_file(fp) && fp.extension().string() == ".png") {
                 UInt picid = Utils::SafeConvertInt<UInt>(fp.stem().string());
                 if (picid > 0) {
-                    if (fifaToFoomPlayers.contains(picid))
+                    if (Utils::Contains(fifaToFoomPlayers, picid))
                         copy(fp, outputPath / (fifaToFoomPlayers[picid]->mWriteableStringID + L".png"), std::filesystem::copy_options::overwrite_existing);
                     else
                         ::Error(L"Can't find player by FIFA ID: %s", fp.c_str());

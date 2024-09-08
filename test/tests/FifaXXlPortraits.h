@@ -75,7 +75,7 @@ public:
         { L'ÿ', 0xFF },
         };
         for (WideChar& c : name) {
-            if (chars.contains(c))
+            if (Utils::Contains(chars, c))
                 c = chars[c];
         }
     }
@@ -110,7 +110,7 @@ public:
                 string playerIdStr = filename.substr(first + 1, filename.size() - first - 2);
                 //::Error(playerIdStr);
                 Int playerid = Utils::SafeConvertInt<Int>(playerIdStr);
-                if (fifaPlayers.contains(playerid)) {
+                if (Utils::Contains(fifaPlayers, playerid)) {
                     FifamPlayer* player = fifaPlayers[playerid];
                     copy(p, outputDir / (player->mWriteableStringID + L".png"), copy_options::overwrite_existing);
                 }

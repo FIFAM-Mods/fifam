@@ -154,7 +154,7 @@ public:
                 String id2;
                 if (p->mEmpicsId != 0) {
                     String empicsIdStr = Utils::Format(L"-%u", p->mEmpicsId);
-                    if (p->mWriteableStringID.ends_with(empicsIdStr))
+                    if (Utils::EndsWith(p->mWriteableStringID, empicsIdStr))
                         id2 = id.substr(0, id.size() - empicsIdStr.size());
                 }
                 UInt status = PictureStatus(portraitsXXLPath, id + L".png", id2 + L".png");
@@ -164,7 +164,7 @@ public:
                     if (p->mClub) {
                         clubName = FifamTr(p->mClub->mName);
                         clubCountry = FifamTr(p->mClub->mCountry->mName);
-                        if (clubLeague.contains(p->mClub))
+                        if (Utils::Contains(clubLeague, p->mClub))
                             clubLeagueLevel = clubLeague[p->mClub]->mLeagueLevel + 1;
                     }
                     w.WriteLine(p->mWriteableStringID, p->mFootballManagerID, p->mEmpicsId, p->mCreator, Quoted(p->GetName()), status, p->mBirthday.ToString(),
@@ -212,7 +212,7 @@ public:
                     if (s->mClub) {
                         clubName = FifamTr(s->mClub->mName);
                         clubCountry = FifamTr(s->mClub->mCountry->mName);
-                        if (clubLeague.contains(s->mClub))
+                        if (Utils::Contains(clubLeague, s->mClub))
                             clubLeagueLevel = clubLeague[s->mClub]->mLeagueLevel + 1;
                     }
                     UInt level = 0;
@@ -239,7 +239,7 @@ public:
                     if (s->mClub) {
                         clubName = FifamTr(s->mClub->mName);
                         clubCountry = FifamTr(s->mClub->mCountry->mName);
-                        if (clubLeague.contains(s->mClub))
+                        if (Utils::Contains(clubLeague, s->mClub))
                             clubLeagueLevel = clubLeague[s->mClub]->mLeagueLevel + 1;
                     }
                     UInt level = 0;
@@ -263,7 +263,7 @@ public:
                 String id2;
                 if (p->mEmpicsId != 0) {
                     String empicsIdStr = Utils::Format(L"-%u", p->mEmpicsId);
-                    if (p->mWriteableStringID.ends_with(empicsIdStr))
+                    if (Utils::EndsWith(p->mWriteableStringID, empicsIdStr))
                         id2 = id.substr(0, id.size() - empicsIdStr.size()) + L".png";
                 }
                 UInt status = PictureStatus(portraitsPlayerPathSortitoutsi, id + L".png", id2);
@@ -273,7 +273,7 @@ public:
                     if (p->mClub) {
                         clubName = FifamTr(p->mClub->mName);
                         clubCountry = FifamTr(p->mClub->mCountry->mName);
-                        if (clubLeague.contains(p->mClub))
+                        if (Utils::Contains(clubLeague, p->mClub))
                             clubLeagueLevel = clubLeague[p->mClub]->mLeagueLevel + 1;
                     }
                     w.WriteLine(p->mWriteableStringID, p->mFootballManagerID, p->mEmpicsId, p->mCreator, Quoted(p->GetName()), status, p->mBirthday.ToString(),
@@ -294,7 +294,7 @@ public:
                 String id2;
                 if (p->mEmpicsId != 0) {
                     String empicsIdStr = Utils::Format(L"-%u", p->mEmpicsId);
-                    if (p->mWriteableStringID.ends_with(empicsIdStr))
+                    if (Utils::EndsWith(p->mWriteableStringID, empicsIdStr))
                         id2 = id.substr(0, id.size() - empicsIdStr.size()) + L".png";
                 }
                 UInt status = PictureStatus(portraitsPlayerPathFMZ, id + L".png", id2);
@@ -304,7 +304,7 @@ public:
                     if (p->mClub) {
                         clubName = FifamTr(p->mClub->mName);
                         clubCountry = FifamTr(p->mClub->mCountry->mName);
-                        if (clubLeague.contains(p->mClub))
+                        if (Utils::Contains(clubLeague, p->mClub))
                             clubLeagueLevel = clubLeague[p->mClub]->mLeagueLevel + 1;
                     }
                     w.WriteLine(p->mWriteableStringID, p->mFootballManagerID, p->mEmpicsId, p->mCreator, Quoted(p->GetName()), status, p->mBirthday.ToString(),

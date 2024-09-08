@@ -4,7 +4,7 @@
 class UpdateDbVersion {
 public:
     unsigned int GetCreator(Int footballManagerId, Set<Int> const &ids) {
-        if (footballManagerId >= 0 && ids.contains(footballManagerId))
+        if (footballManagerId >= 0 && Utils::Contains(ids, footballManagerId))
             return 2;
         return 0;
     }
@@ -69,13 +69,13 @@ public:
     
     void CopyInjuries(FifamDatabase &db, FifamDatabase &initialDb) {
         FifamWriter log("log_injuries.txt");
-        Map<UInt, FifamPlayer *> initialPlayers;
+        Map<Int, FifamPlayer *> initialPlayers;
         for (auto p : initialDb.mPlayers) {
             if (p->mFootballManagerID >= 0)
                 initialPlayers[p->mFootballManagerID] = p;
         }
         for (auto p : db.mPlayers) {
-            if (p->mFootballManagerID >= 0 && initialPlayers.contains(p->mFootballManagerID)) {
+            if (p->mFootballManagerID >= 0 && Utils::Contains(initialPlayers, p->mFootballManagerID)) {
                 if (!p->mStartingConditions.mInjury.Enabled()) {
                     auto &injury = initialPlayers[p->mFootballManagerID]->mStartingConditions.mInjury;
                     if (injury.Enabled()) {

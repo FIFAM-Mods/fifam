@@ -110,7 +110,7 @@ public:
         writer.WriteLine(L"playerfifaid,comment,jerseystyle,sleeves,socks,acc1,acccolor1,acc2,acccolor2,acc3,acccolor3,acc4,acccolor4");
         if (writer.Available()) {
             fifadb->ForAllPlayers([&](FifaPlayer &p) {
-                if (fifaIds.contains(p.GetId()))
+                if (Utils::Contains(fifaIds, p.GetId()))
                     WritePlayerAccessories(&p, writer);
             });
             writer.Close();
@@ -122,7 +122,7 @@ public:
         writer2.WriteLine(L"playerfifaid,shoeid,comment");
         if (writer2.Available()) {
             fifadb->ForAllPlayers([&](FifaPlayer &p) {
-                if (fifaIds.contains(p.GetId())) {
+                if (Utils::Contains(fifaIds, p.GetId())) {
                     UChar shoeid = p.internal.shoetypecode;
                     if (shoeid != 0 && exists(Path(L"D:\\Games\\FIFA Manager 22\\data\\assets") / Utils::Format(L"t20__%d.fsh", shoeid)))
                         writer2.WriteLine(p.GetId(), shoeid, Quoted(p.m_quickName));

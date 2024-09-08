@@ -39,7 +39,7 @@ public:
         FifamDatabase::mReadingOptions.mUseCustomFormations = true;
         FifamDatabase db(13, "db");
         for (auto [clubId, cityId] : clubCity) {
-            if (ids.mFoomClubs.contains(clubId) && cityCoords.contains(cityId)) {
+            if (Utils::Contains(ids.mFoomClubs, clubId) && Utils::Contains(cityCoords, cityId)) {
                 auto club = db.GetClubFromUID(ids.mFoomClubs[clubId]);
                 if (club)
                     club->mGeoCoords.SetFromFloat(cityCoords[cityId].first, cityCoords[cityId].second);

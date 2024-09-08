@@ -6,7 +6,7 @@ String Converter::FixPersonName(String const &name, UInt gameId) {
     String result;
     static Set<WideChar> restrictedChars = { L',', L'|', L':', L'<', L'>', L'/', L'\\', L'?', L'*', 0x327, 0x301, 0x308, 0x30C, 0x200E };
     for (auto c : name) {
-        if (!restrictedChars.contains(c)) {
+        if (!Utils::Contains(restrictedChars, c)) {
             if (c == L'Ị')
                 result += L'I';
             else if (c == L'ị')
@@ -81,7 +81,7 @@ void Converter::ConvertPersonAttributes(FifamPerson * person, foom::person * p, 
         { 86, -1040 }
     };
     auto PriorityForNation = [&](Int info, UInt number) {
-        Int result = nationInfoToPriority.contains(info) ? nationInfoToPriority[info] : nationInfoToPriority[-1];
+        Int result = Utils::Contains(nationInfoToPriority, info) ? nationInfoToPriority[info] : nationInfoToPriority[-1];
         if (number == 0)
             result += 1000;
         else

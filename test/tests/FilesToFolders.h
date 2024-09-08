@@ -10,7 +10,7 @@ public:
             auto p = i.path();
             if (is_regular_file(p) && p.extension() == ".gltf") {
                 wstring modelname = p.stem().c_str();
-                if (modelname.ends_with(L"_m"))
+                if (Utils::EndsWith(modelname, L"_m"))
                     modelname = modelname.substr(0, modelname.size() - 2);
                 create_directory(modelname);
                 rename(p, path(modelname) / (modelname + L".gltf"));

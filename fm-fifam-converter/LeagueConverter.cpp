@@ -1049,7 +1049,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                     else
                                         relNameGer = FifamNames::LimitName(lg->mShortName + roundNamesGer[relId], MAX_COMP_NAME_LENGTH);
                                     relLeague[relId]->mName[FifamTranslation::German] = relNameGer;
-                                    if (mSplitNames.contains(lg->mID)) {
+                                    if (Utils::Contains(mSplitNames, (UInt)lg->mID)) {
                                         FifamTrArray<String> splitNames = (relId == 0) ? mSplitNames[lg->mID].first : mSplitNames[lg->mID].second;
                                         for (UInt n = 0; n < FifamTranslation::NUM_TRANSLATIONS; n++) {
                                             if (!splitNames[n].empty())

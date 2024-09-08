@@ -19,7 +19,7 @@ public:
             FifamDatabase db(13, "db");
             for (auto s : db.mStaffs) {
                 if (s->mFootballManagerID >= 0 && !s->mScoutPreferredCountries.empty()) {
-                    if (preferredCountries.contains(s->mFootballManagerID)) {
+                    if (Utils::Contains(preferredCountries, (UInt)s->mFootballManagerID)) {
                         String line = s->GetName() + L": ";
                         Vector<String> countriesBefore;
                         for (auto const &i : s->mScoutPreferredCountries)

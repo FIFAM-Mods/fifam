@@ -19,11 +19,11 @@ public:
             if (fifaId == 0)
                 fifaId = c->mKit.mSpecialKitId;
             if (fifaId != 0) {
-                if (usedIds.contains(fifaId))
+                if (Utils::Contains(usedIds, fifaId))
                     ::Error("Warning: ID %d was already used", fifaId);
                 else {
                     auto badgeSubPath = Utils::ToLower(c->mBadge.GetBadgePath(7));
-                    if (!badgeSubPath.starts_with(L"color") && badgeSubPath.find(L"badge%d") != String::npos) {
+                    if (!Utils::StartsWith(badgeSubPath, L"color") && badgeSubPath.find(L"badge%d") != String::npos) {
                         Utils::Replace(badgeSubPath, L"badge%d", L"badge256");
                         Path badgePath = badgesFolder / badgeSubPath;
                         if (exists(badgePath))

@@ -40,7 +40,7 @@ public:
                 Bool hasPortrait = false;
                 if (p->AsPlayer() && p->AsPlayer()->mEmpicsId != 0) {
                     String empicsStr = Utils::Format(L"-%d", p->AsPlayer()->mEmpicsId);
-                    if (p->mWriteableStringID.ends_with(empicsStr)) {
+                    if (Utils::EndsWith(p->mWriteableStringID, empicsStr)) {
                         String stringID = p->mWriteableStringID.substr(0, p->mWriteableStringID.size() - empicsStr.size());
                         hasPortrait = FindPortrait(stringID, fifamPortrats).empty() ? false : true;
                     }

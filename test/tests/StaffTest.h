@@ -123,7 +123,7 @@ void SetStaffLevel(FifamStaff *staff, FifamClubStaffPosition position, Int level
             if (increase)
                 savedSkills = staff->mSkills;
             staff->ForAllSkills(position, [=](FifamStaffSkillID skillID, UChar &value, Float weight) {
-                if (skillsToChange.empty() || skillsToChange.contains(skillID)) {
+                if (skillsToChange.empty() || Utils::Contains(skillsToChange, skillID)) {
                     if (!increase) {
                         if (!decreaseOnlyImportantAttributes || weight > 0.0f)
                             value = Utils::Clamp(value - 1, 1, 99);
@@ -251,7 +251,7 @@ public:
                     });
                 Set<FifamStaffSkillID> skillsToChange;
                 staff->ForAllSkills(pos, [&](FifamStaffSkillID skillID, UChar &value, Float weight) {
-                    if (weight > 0.0f && !mySkills.contains(skillID))
+                    if (weight > 0.0f && !Utils::Contains(mySkills, skillID))
                         skillsToChange.insert(skillID);
                     });
                 if (!skillsToChange.empty())

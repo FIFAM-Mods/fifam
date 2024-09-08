@@ -1414,7 +1414,7 @@ void Converter::Convert() {
         auto &p = entry.second;
         if (p.mConverterData.mFitsIntoDbLimit) {
             if (!p.mConverterData.mFifamPerson) {
-                if (!p.mContract.mClub && (p.mCurrentAbility >= (Int)MIN_FREE_AGENT_CA || (p.mNation && p.mNation->mConverterData.mFIFAManagerID == FifamCompRegion::Liechtenstein)) || mFreeAgentsToAdd.contains(p.mID)) {
+                if (!p.mContract.mClub && (p.mCurrentAbility >= (Int)MIN_FREE_AGENT_CA || (p.mNation && p.mNation->mConverterData.mFIFAManagerID == FifamCompRegion::Liechtenstein)) || Utils::Contains(mFreeAgentsToAdd, (UInt)p.mID)) {
                     FifamPlayer *player = CreateAndConvertPlayer(gameId, &p, nullptr);
                 }
             }

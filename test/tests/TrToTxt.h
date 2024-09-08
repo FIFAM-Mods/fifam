@@ -21,7 +21,7 @@ public:
                             auto k = l.substr(0, 12);
                             Utils::Trim(k);
                             auto key = Utils::SafeConvertInt<UInt>(k);
-                            if (keys.contains(key))
+                            if (Utils::Contains(keys, key))
                                 ::Error("Duplicated key %u at %u", key, i);
                             auto ep = l.find(L"#0", 13);
                             if (ep != String::npos)
@@ -47,7 +47,7 @@ public:
                     if (!r.EmptyLine()) {
                         i++;
                         auto l = r.ReadFullLine();
-                        if (l.starts_with(L"HASH#")) {
+                        if (Utils::StartsWith(l, L"HASH#")) {
                             auto sp = l.find(L'|', 5);
                             if (sp != String::npos) {
                                 auto k = l.substr(5, sp - 5);
