@@ -424,6 +424,9 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
     }
     switch (fifaPlayer->internal.skintypecode) {
     case 0:
+    case 5:
+    case 6:
+    case 7:
     case 50:
     case 100:
     case 102:
@@ -537,6 +540,7 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
     case 9:
     case 16:
     case 17:
+    case 29:
     case 46:
     case 47:
     case 48:

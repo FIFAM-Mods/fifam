@@ -4,7 +4,7 @@
 #include "Utils.h"
 
 unsigned int FifaDatabase::m_firstSupportedGameVersion = 11;
-unsigned int FifaDatabase::m_lastSupportedGameVersion = 24;
+unsigned int FifaDatabase::m_lastSupportedGameVersion = 25;
 unsigned int FifaDatabase::m_currentGameVersion = m_lastSupportedGameVersion;
 
 FifaDatabase::FifaDatabase(std::filesystem::path const &path, bool readFut) {

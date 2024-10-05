@@ -36,6 +36,12 @@ public:
         int hairstylecode = 0;
         int bodytypecode = 0;
         int facialhaircolorcode = 0;
+        // @since FC25
+        int lipcolor = 0;
+        int skinsurfacepack = 0;
+        int skinmakeup = 0;
+        int eyedetail = 0;
+        int skincomplexion = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

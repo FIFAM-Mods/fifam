@@ -50,6 +50,20 @@ public:
         int facialhaircolorcode = 0;
         // @since FIFA23
         int managerjointeamdate = 0;
+        // @since FC25
+        int accessorycode1 = 0;
+        int accessorycode2 = 0;
+        int accessorycode3 = 0;
+        int accessorycode4 = 0;
+        int accessorycolourcode1 = 0;
+        int accessorycolourcode2 = 0;
+        int accessorycolourcode3 = 0;
+        int accessorycolourcode4 = 0;
+        int lipcolor = 0;
+        int skinsurfacepack = 0;
+        int skinmakeup = 0;
+        int eyedetail = 0;
+        int skincomplexion = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

@@ -14,6 +14,9 @@ void FifaAgent::Internal::Read(FifaDataFile::Line &line) {
     case 24:
         line >> firstname >> commonname >> surname >> skintypecode >> haircolorcode >> facialhairtypecode >> hairtypecode >> agentid >> headtypecode >> height >> seasonaloutfitid >> weight >> hashighqualityhead >> gender >> headassetid >> ethnicity >> faceposerpreset >> eyebrowcode >> eyecolorcode >> personalityid >> headclasscode >> nationality >> sideburnscode >> headvariation >> skintonecode >> outfitid >> hairstylecode >> bodytypecode >> facialhaircolorcode;
         break;
+    case 25:
+        line >> firstname >> commonname >> surname >> eyebrowcode >> skintypecode >> haircolorcode >> facialhairtypecode >> hairtypecode >> lipcolor >> agentid >> skinsurfacepack >> headtypecode >> height >> seasonaloutfitid >> skinmakeup >> weight >> hashighqualityhead >> eyedetail >> gender >> headassetid >> ethnicity >> faceposerpreset >> eyecolorcode >> personalityid >> headclasscode >> nationality >> sideburnscode >> headvariation >> skintonecode >> outfitid >> skincomplexion >> hairstylecode >> bodytypecode >> facialhaircolorcode;
+        break;
     }
 }
 

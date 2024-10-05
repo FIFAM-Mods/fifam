@@ -76,6 +76,9 @@ void FifaLeague::Internal::Read(FifaDataFile::Line &line) {
     case 24:
         line >> countryid >> leaguename >> leaguetype >> level >> iscompetitionscarfenabled >> isbannerenabled >> leagueid >> iscompetitionpoleflagenabled >> iscompetitioncrowdcardsenabled >> leaguetimeslice >> iswomencompetition >> iswithintransferwindow >> isinternationalleague;
         break;
+    case 25:
+        line >> countryid >> leaguename >> leaguetype >> level >> iscompetitionscarfenabled >> isbannerenabled >> leagueid >> iscompetitionpoleflagenabled >> iscompetitioncrowdcardsenabled >> leaguetimeslice >> iswomencompetition >> iswithintransferwindow >> isinternationalleague;
+        break;
     }
 }
 

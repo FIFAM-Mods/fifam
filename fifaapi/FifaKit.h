@@ -74,9 +74,14 @@ public:
         int teamcolortertpercent = 0;
         int shortstyle = 0;
         int jerseyfit = 0;
-        // @since FIFA23:
+        // @since FIFA23
         int armbandtype = 0;
         int jerseyrestriction = 0;
+        // @since FC25
+        int jerseynameoutlinecolorr = 0;
+        int jerseynameoutlinecolorg = 0;
+        int jerseynameoutlinecolorb = 0;
+        int jerseynameoutlinewidth = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

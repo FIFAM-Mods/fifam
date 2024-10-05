@@ -197,6 +197,16 @@ public:
         int icontrait2 = 0;
         int icontrait1 = 0;
         int muscularitycode = 0;
+        // @since FC25
+        int role1 = 0;
+        int role2 = 0;
+        int role3 = 0;
+        int lipcolor = 0;
+        int skinsurfacepack = 0;
+        int skinmakeup = 0;
+        int eyedetail = 0;
+        int skincomplexion = 0;
+        int undershortstyle = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

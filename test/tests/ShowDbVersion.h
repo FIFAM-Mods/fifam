@@ -29,6 +29,6 @@ public:
         FifaDatabase *db = GetEnvironment<FifaDbEnvironment>().GetDatabase();
         std::wcout << db->GetVersionString() << L" " << db->GetVersionDateString();
 
-        WriteCurrentPlayersToHistory(db, L"D:\\Projects\\fifam\\db", 18);
+        //WriteCurrentPlayersToHistory(db, L"D:\\Projects\\fifam\\db", 18);
     }
 };

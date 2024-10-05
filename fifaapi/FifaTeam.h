@@ -157,6 +157,11 @@ public:
         int haslargeflag = 0;
         // @since FC24
         int hassuncanthem = 0;
+        // @since FC25
+        int gender = 0;
+        int cksupport1 = 0;
+        int cksupport2 = 0;
+        int cksupport3 = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

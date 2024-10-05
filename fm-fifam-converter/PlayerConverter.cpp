@@ -236,40 +236,36 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         player->mAppearance.mHairColor = FifamHairColor::Black;
 
     // fix skin type
-    if (age >= 45)
-        player->mAppearance.mFaceVariation = 3;
-    else {
-        if (age >= 35)
-            player->mAppearance.mFaceVariation = FifamFaceVariation::Wrinkles;
-        else if (age >= 26) {
-            if (player->mAppearance.mFaceVariation != FifamFaceVariation::Freckles) {
-                if (age >= 32) {
-                    if (Random::Get(1, 100) > 75)
-                        player->mAppearance.mFaceVariation = FifamFaceVariation::Normal;
-                    else
-                        player->mAppearance.mFaceVariation = FifamFaceVariation::Wrinkles;
-                }
-                if (age >= 29) {
-                    if (Random::Get(1, 100) > 40)
-                        player->mAppearance.mFaceVariation = FifamFaceVariation::Normal;
-                    else
-                        player->mAppearance.mFaceVariation = FifamFaceVariation::Wrinkles;
-                }
-                else {
-                    if (Random::Get(1, 100) > 20)
-                        player->mAppearance.mFaceVariation = FifamFaceVariation::Normal;
-                    else
-                        player->mAppearance.mFaceVariation = FifamFaceVariation::Wrinkles;
-                }
-            }
-        }
-        else {
-            if (player->mAppearance.mFaceVariation == FifamFaceVariation::Wrinkles) {
-                if (Random::Get(1, 100) > 5)
+    if (age >= 35)
+        player->mAppearance.mFaceVariation = FifamFaceVariation::Wrinkles;
+    else if (age >= 26) {
+        if (player->mAppearance.mFaceVariation != FifamFaceVariation::Freckles) {
+            if (age >= 32) {
+                if (Random::Get(1, 100) > 75)
                     player->mAppearance.mFaceVariation = FifamFaceVariation::Normal;
                 else
-                    player->mAppearance.mFaceVariation = FifamFaceVariation::Freckles;
+                    player->mAppearance.mFaceVariation = FifamFaceVariation::Wrinkles;
             }
+            if (age >= 29) {
+                if (Random::Get(1, 100) > 40)
+                    player->mAppearance.mFaceVariation = FifamFaceVariation::Normal;
+                else
+                    player->mAppearance.mFaceVariation = FifamFaceVariation::Wrinkles;
+            }
+            else {
+                if (Random::Get(1, 100) > 20)
+                    player->mAppearance.mFaceVariation = FifamFaceVariation::Normal;
+                else
+                    player->mAppearance.mFaceVariation = FifamFaceVariation::Wrinkles;
+            }
+        }
+    }
+    else {
+        if (player->mAppearance.mFaceVariation == FifamFaceVariation::Wrinkles) {
+            if (Random::Get(1, 100) > 5)
+                player->mAppearance.mFaceVariation = FifamFaceVariation::Normal;
+            else
+                player->mAppearance.mFaceVariation = FifamFaceVariation::Freckles;
         }
     }
 
