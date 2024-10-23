@@ -17,10 +17,10 @@ public:
         FifaDatabase::m_firstSupportedGameVersion = FifaDatabase::m_lastSupportedGameVersion;
         FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
         auto const &ids = GetEnvironment<FifaFifamIDsEnvironment>();
-        std::string outputPathVert = "D:\\Games\\FIFA Manager 22\\ucp_popups\\colors\\vert\\";
-        std::string outputPathHor = "D:\\Games\\FIFA Manager 22\\ucp_popups\\colors\\hor\\";
-        std::string outputPathRot = "D:\\Games\\FIFA Manager 22\\ucp_popups\\colors\\rot\\";
-        std::string outputPathOne = "D:\\Games\\FIFA Manager 22\\ucp_popups\\colors\\one\\";
+        std::string outputPathVert = "D:\\Games\\FIFA Manager 25\\ucp_popups\\colors\\vert\\";
+        std::string outputPathHor = "D:\\Games\\FIFA Manager 25\\ucp_popups\\colors\\hor\\";
+        std::string outputPathRot = "D:\\Games\\FIFA Manager 25\\ucp_popups\\colors\\rot\\";
+        std::string outputPathOne = "D:\\Games\\FIFA Manager 25\\ucp_popups\\colors\\one\\";
 
         if (!exists(outputPathVert))
             create_directories(outputPathVert);

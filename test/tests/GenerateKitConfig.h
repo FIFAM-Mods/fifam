@@ -88,7 +88,7 @@ public:
         auto const &ids = GetEnvironment<FifaFifamIDsEnvironment>();
         FifaDatabase::m_firstSupportedGameVersion = FifaDatabase::m_lastSupportedGameVersion;
         FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
-        FifamWriter writer("D:\\Games\\FIFA Manager 22\\plugins\\ucp\\kits.csv", 14, FifamVersion());
+        FifamWriter writer("D:\\Games\\FIFA Manager 25\\plugins\\ucp\\kits.csv", 14, FifamVersion());
         writer.WriteLine(L"country,league,team,teamid,kittype,collar,nameplacement,frontnumber,jerseynumbercolor,jerseynamecolor,jerseynumbersize,jerseynumberoffset,canusecompbadges,canusesponsorlogo");
         
         struct team_kit_desc {
@@ -119,9 +119,7 @@ public:
                     filename += L"_g";
                 else if (fifaKit->internal.teamkittypetechid == 3)
                     filename += L"_t";
-                if (exists(L"D:\\Projects\\fifam\\content\\fm13\\art_04\\data\\kits\\" + filename + L".tga")
-                    )
-                {
+                if (exists(L"D:\\Projects\\fifam\\content\\fm13\\art_04\\data\\kits\\" + filename + L".tga")) {
                     // teamid - hexadecimal team id
                     // kittype - 0 - home, 1 - away, 2 - gk, 3 - third
                     // collar - 0 - 8                                   4b
@@ -154,6 +152,9 @@ public:
                             break;
                         case 23:
                             collar = 0;
+                            break;
+                        case 26:
+                            collar = 3;
                             break;
                         default:
                             collar = 0;

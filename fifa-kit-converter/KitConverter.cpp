@@ -3,6 +3,7 @@
 #include "Utils.h"
 #include "Error.h"
 #include "FifamReadWrite.h"
+#include "FifaDataFile.h"
 
 using namespace std;
 using namespace std::filesystem;
@@ -572,7 +573,9 @@ void KitConverter::ConvertClubKits(string const &clubIdName, int fifaId, int fif
 }
 
 void KitConverter::ConvertRefereeKit(int fifaId) {
-    ConvertFifaClubKit(fifaId, std::to_string(fifaId), 5, 0, "D:\\Projects\\FIFA\\kit\\referee_kits\\" + std::to_string(fifaId));
+    StringA refereeKitsPath = "D:\\Projects\\FIFA\\kit\\referee_kits\\";
+    create_directories(refereeKitsPath);
+    ConvertFifaClubKit(fifaId, std::to_string(fifaId), 5, 0, refereeKitsPath + "tp00@t75__5_0_" + std::to_string(fifaId));
 }
 
 bool KitConverter::ConvertClubArmband(int fifaId, string const &clubIdStr, int set, int variation, string const &outputFile) {
@@ -1013,14 +1016,14 @@ Image ConvertNewGenBannerToOldGen(Image const &inImg) {
 }
 
 void KitConverter::ConvertBanners(int fifaId, int fifaManagerId, Magick::Color const &primCol, Magick::Color const &secCol) {
-    const path assetsDir = "H:\\FIFA_ASSETS";
-    const path gameDir = "D:\\Games\\FIFA Manager 22";
-    auto bannersFilename = assetsDir / "banners" / "24" / ("banner_" + std::to_string(fifaId) + "_color.png");
-    auto crestFilename = assetsDir / "crest" / "24" / ("l" + std::to_string(fifaId) + ".png");
-    auto flag1Filename = assetsDir / "flags" / "24" / ("flag_" + std::to_string(fifaId) + "_0_color.png");
-    auto flag2Filename = assetsDir / "flags" / "24" / ("flag_" + std::to_string(fifaId) + "_1_color.png");
-    auto flag3Filename = assetsDir / "flags" / "24" / ("flag_" + std::to_string(fifaId) + "_2_color.png");
-    auto flag4Filename = assetsDir / "flags" / "24" / ("flag_" + std::to_string(fifaId) + "_3_color.png");
+    const path assetsDir = "D:\\FIFA_ASSETS";
+    const path gameDir = "D:\\Games\\FIFA Manager 25";
+    auto bannersFilename = assetsDir / "banners" / "25" / ("banner_" + std::to_string(fifaId) + "_color.png");
+    auto crestFilename = assetsDir / "crest" / "25" / ("l" + std::to_string(fifaId) + ".png");
+    auto flag1Filename = assetsDir / "flags" / "25" / ("flag_" + std::to_string(fifaId) + "_0_color.png");
+    auto flag2Filename = assetsDir / "flags" / "25" / ("flag_" + std::to_string(fifaId) + "_1_color.png");
+    auto flag3Filename = assetsDir / "flags" / "25" / ("flag_" + std::to_string(fifaId) + "_2_color.png");
+    auto flag4Filename = assetsDir / "flags" / "25" / ("flag_" + std::to_string(fifaId) + "_3_color.png");
     if (exists(bannersFilename) && exists(crestFilename) && exists(flag1Filename) && exists(flag2Filename) && exists(flag3Filename) && exists(flag4Filename)) {
         path outputDir = gameDir / "data" / "banners" / Utils::Format("%08X", fifaManagerId);
         create_directories(outputDir);
@@ -1032,10 +1035,9 @@ void KitConverter::ConvertBanners(int fifaId, int fifaManagerId, Magick::Color c
         auto saveFlagImage = [&](Path const &flagPath, string const &fileName) {
             Image flagImg(flagPath.string());
             resizeImage_noAspect(flagImg, 128, 128);
-            auto flagOverlayFilename = assetsDir / "flags" / "flag_overlay_2.tga";
+            auto flagOverlayFilename = assetsDir / "flags" / "flag_overlay.png";
             if (exists(flagOverlayFilename)) {
                 Image flagOverlayImg(flagOverlayFilename.string());
-                flagOverlayImg.autoOrient();
                 flagImg.composite(flagOverlayImg, 0, 0, MultiplyCompositeOp);
             }
             flagImg.type(ImageType::TrueColorAlphaType);
@@ -1058,10 +1060,9 @@ void KitConverter::ConvertBanners(int fifaId, int fifaManagerId, Magick::Color c
         crestImg.filterType(Magick::LanczosFilter);
         crestImg.resize(Geometry(80, 80));
         cornerFlagImg.composite(crestImg, (cornerFlagImg.columns() - crestImg.columns()) / 2, (cornerFlagImg.rows() - crestImg.rows()) / 2, OverCompositeOp);
-        auto flagOverlayFilename = assetsDir / "flags" / "flag_overlay.tga";
+        auto flagOverlayFilename = assetsDir / "flags" / "corner_flag_overlay.png";
         if (exists(flagOverlayFilename)) {
             Image cornerFlagOverlayImg(flagOverlayFilename.string());
-            cornerFlagOverlayImg.autoOrient();
             cornerFlagImg.composite(cornerFlagOverlayImg, 0, 0, MultiplyCompositeOp);
         }
         cornerFlagImg.type(ImageType::TrueColorAlphaType);
@@ -1143,14 +1144,14 @@ void KitConverter::ConvertBannersFIFA_NewFormat(int fifaId, bool fifa14stadiums,
 }
 
 void KitConverter::ConvertAdboards(Map<UInt, UInt> const &fifaClubToFifam, Map<UInt, Vector<UInt>> const &compsMap) {
-    const Path inPath = "H:\\FIFA_ASSETS\\fc24\\Worlds\\adboard\\textures";
-    const Path outPath = "D:\\Projects\\fifam\\content\\fm13\\art_05\\sponsors\\512x1024";
+    const Path inPath = "D:\\FIFA_ASSETS\\fc25\\Worlds\\adboard\\textures";
+    const Path outPath = "D:\\Projects\\fifam\\content\\fm13\\art_01\\sponsors\\512x1024";
     create_directories(outPath);
     Map<UInt, Path> adboards;
     Set<UInt> writtenAdboards;
     for (auto const &i : recursive_directory_iterator(inPath)) {
         auto fileName = i.path().stem().string();
-        if (Utils::StartsWith(fileName, "adboard_") && Utils::EndsWith(fileName, "_color"))
+        if (is_regular_file(i.path()) && Utils::StartsWith(fileName, "adboard_") && Utils::EndsWith(fileName, "_color"))
             adboards[Utils::SafeConvertInt<UInt>(fileName.substr(8, fileName.size() - 14))] = i.path();
     }
     if (Utils::Contains(adboards, 0u)) {
@@ -1232,6 +1233,85 @@ void KitConverter::ConvertAdboards(Map<UInt, UInt> const &fifaClubToFifam, Map<U
             create_directories(notConvertedPath);
             copy(filePath, notConvertedPath / filePath.filename(), copy_options::overwrite_existing);
         }
+    }
+}
+
+void KitConverter::ConvertSponsors512x64(Map<UInt, UInt>& fifaClubToFifam, Map<UInt, Vector<UInt>>& compsMap) {
+    const Path inPath = "D:\\FIFA_ASSETS\\fc25\\imgAssets\\adSponsors512x64";
+    const Path outPath = "D:\\Projects\\fifam\\content\\fm13\\art_01\\sponsors\\512x64";
+    create_directories(outPath);
+    struct DynamicImage {
+        UInt color;
+        String name;
+    };
+    Map<Int, DynamicImage> dynamicImages;
+    FifaDataFile file;
+    Path fifaDbFolderPath = "D:\\Projects\\fifam\\db\\fifa\\25\\2024.10.01";
+    if (file.Open(fifaDbFolderPath / L"dynamicimages.txt")) {
+        String basecolour, name;
+        Int dynamicimageid;
+        for (FifaDataFile::Line line; file.NextLine(line); ) {
+            line >> basecolour >> name >> dynamicimageid;
+            if (!name.empty()) {
+                //::Message(name);
+                dynamicImages[dynamicimageid].color = Utils::ToNumber(basecolour);
+                dynamicImages[dynamicimageid].name = name;
+            }
+        }
+        file.Close();
+    }
+    auto RecolorImage = [](Path imgPath, UInt color) {
+        Image img(imgPath.string().c_str());
+        Image newImg(Magick::Geometry(img.columns(), img.rows()), Magick::Color((color >> 16) & 0xFF, (color >> 8) & 0xFF, color & 0xFF));
+        newImg.type(ImageType::TrueColorAlphaType);
+        newImg.composite(img, 0, 0, CompositeOperator::OverCompositeOp);
+        return newImg;
+    };
+    if (file.Open(fifaDbFolderPath / L"teamsponsorlinks.txt")) {
+        Map<Int, UInt> count;
+        Int artificialkey, adsponserid, teamid, isapproved, dynamicimageid;
+        for (FifaDataFile::Line line; file.NextLine(line); ) {
+            line >> artificialkey >> adsponserid >> teamid >> isapproved >> dynamicimageid;
+            if (teamid != 0 && Utils::Contains(dynamicImages, dynamicimageid) && Utils::Contains(fifaClubToFifam, (UInt)teamid)) {
+                auto const& dynamicImage = dynamicImages[dynamicimageid];
+                Path imagePath = inPath / (L"adSponsors512x64" + dynamicImage.name + L".dds");
+                //::Message(imagePath.string());
+                if (exists(imagePath.string())) {
+                    Image img = RecolorImage(imagePath, dynamicImage.color);
+                    if (Utils::Contains(count, teamid))
+                        count[teamid] += 1;
+                    else
+                        count[teamid] = 1;
+                    Path newImagePath = outPath / Utils::Format(L"%08X_%u.tga", fifaClubToFifam[teamid], count[teamid]);
+                    img.write(newImagePath.string().c_str());
+                }
+            }
+        }
+        file.Close();
+    }
+    if (file.Open(fifaDbFolderPath / L"competitionsponsorlinks.txt")) {
+        Map<UInt, UInt> count;
+        Int competitionid, artificialkey, adsponserid, isapproved, dynamicimageid;
+        for (FifaDataFile::Line line; file.NextLine(line); ) {
+            line >> competitionid >> artificialkey >> adsponserid >> isapproved >> dynamicimageid;
+            if (competitionid != 0 && Utils::Contains(dynamicImages, dynamicimageid) && Utils::Contains(compsMap, (UInt)competitionid)) {
+                auto const& dynamicImage = dynamicImages[dynamicimageid];
+                Path imagePath = inPath / (L"adSponsors512x64" + dynamicImage.name + L".dds");
+                if (exists(imagePath.string())) {
+                    Image img = RecolorImage(imagePath, dynamicImage.color);
+                    for (auto fifamCompId : compsMap[competitionid]) {
+                        if (Utils::Contains(count, fifamCompId))
+                            count[fifamCompId] += 1;
+                        else
+                            count[fifamCompId] = 1;
+                        String compFormat = fifamCompId <= 0xFFFF ? L"%04X_%u.tga" : L"%08X_%u.tga";
+                        Path newImagePath = outPath / Utils::Format(compFormat, fifamCompId, count[fifamCompId]);
+                        img.write(newImagePath.string().c_str());
+                    }
+                }
+            }
+        }
+        file.Close();
     }
 }
 

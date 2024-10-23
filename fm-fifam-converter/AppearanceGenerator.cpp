@@ -99,153 +99,227 @@ enum ShoeType {
 int GetPlayerShoesIdFromFifaId(int shoeTypeCode) {
     int ShoeType = 0;
     switch (shoeTypeCode) {
-    case 16:
-    case 17:
-    case 35:
-    case 43:
-    case 44:
-    case 45:
-    case 51:
-    case 57:
-    case 58:
-    case 61:
-    case 63:
-    case 67:
-    case 80:
+    case 21:
+    case 24:
+    case 47:
     case 94:
-    case 106:
-    case 107:
+    case 112:
+    case 140:
+    case 141:
+    case 162:
+    case 182:
     case 213:
     case 214:
     case 220:
-    case 241:
+    case 238:
     case 242:
+    case 245:
+    case 316:
     case 318:
+    case 319:
+    case 320:
+    case 321:
     case 330:
+    case 354:
+    case 356:
+    case 358:
+    case 368:
+    case 369:
+    case 370:
+    case 380:
+    case 381:
+    case 382:
+    case 383:
+    case 385:
         ShoeType = SHOE_WHITE;
         break;
     case 25:
+    case 37:
     case 54:
     case 55:
     case 56:
     case 65:
-    case 83:
     case 84:
     case 85:
-    case 93:
-    case 155:
-    case 161:
+    case 173:
     case 176:
     case 179:
+    case 183:
     case 185:
     case 225:
-    case 226:
     case 227:
+    case 228:
     case 229:
     case 234:
-    case 302:
-    case 303:
-    case 307:
-    case 308:
-    case 314:
-    case 315:
+    case 250:
     case 339:
+    case 355:
+    case 357:
+    case 359:
+    case 411:
+    case 427:
+    case 428:
+    case 435:
+    case 437:
+    case 438:
+    case 447:
+    case 449:
+    case 451:
+    case 454:
+    case 464:
+    case 477:
         ShoeType = SHOE_BLACK;
         break;
     case 48:
-    case 59:
     case 62:
-    case 70:
-    case 71:
-    case 74:
-    case 79:
-    case 89:
+    case 64:
+    case 69:
+    case 75:
     case 90:
-    case 91:
     case 95:
     case 96:
     case 100:
     case 101:
-    case 137:
-    case 138:
-    case 157:
-    case 170:
-    case 182:
-    case 193:
-    case 195:
-    case 215:
-    case 216:
-        ShoeType = SHOE_BLUE;
-        break;
-    case 36:
-    case 49:
-    case 50:
-    case 97:
-    case 143:
-    case 183:
-    case 184:
-    case 186:
-    case 309:
-    case 340:
-        ShoeType = SHOE_RED;
-        break;
-    case 98:
-    case 99:
-    case 130:
-    case 131:
-    case 144:
-    case 145:
-    case 173:
-    case 174:
-    case 317:
-        ShoeType = SHOE_GOLD;
-        break;
-    case 40:
-    case 77:
-    case 81:
-    case 82:
-    case 105:
-    case 156:
-    case 311:
-        ShoeType = SHOE_WHITE_BLUE;
-        break;
-    case 37:
-    case 60:
-    case 142:
-    case 238:
-    case 300:
-    case 306:
-        ShoeType = SHOE_WHITE_BLACK;
-        break;
-    case 64:
-    case 66:
     case 102:
     case 103:
     case 104:
-    case 210:
-    case 211:
+    case 137:
+    case 138:
+    case 167:
+    case 193:
+    case 195:
+    case 226:
+    case 301:
+    case 323:
+    case 361:
+    case 366:
+    case 371:
+    case 404:
+    case 413:
+    case 425:
+    case 440:
+    case 452:
+    case 462:
+        ShoeType = SHOE_BLUE;
+        break;
+    case 52:
+    case 117:
+    case 158:
+    case 184:
+    case 186:
+    case 340:
+    case 407:
+    case 410:
+    case 423:
+    case 426:
+    case 459:
+    case 467:
+    case 474:
+    case 480:
+        ShoeType = SHOE_RED;
+        break;
+    case 29:
+    case 35:
+    case 66:
+    case 67:
+    case 68:
+    case 71:
+    case 98:
+    case 99:
+    case 150:
+    case 331:
+    case 412:
+    case 429:
+    case 453:
+    case 458:
+    case 460:
+    case 463:
+    case 465:
+    case 472:
+        ShoeType = SHOE_GOLD;
+        break;
+    case 108:
+    case 170:
+    case 304:
     case 305:
+    case 311:
+    case 362:
+    case 363:
+    case 408:
+        ShoeType = SHOE_WHITE_BLUE;
+        break;
+    case 42:
+    case 60:
+    case 82:
+    case 241:
+    case 300:
+    case 302:
+    case 303:
+    case 306:
+    case 307:
+    case 308:
+    case 315:
+    case 418:
+    case 434:
+    case 441:
+        ShoeType = SHOE_WHITE_BLACK;
+        break;
+    case 457:
         ShoeType = SHOE_WHITE_LIGHT_BLUE;
         break;
     case 26:
-    case 75:
     case 76:
+    case 83:
+    case 88:
+    case 91:
+    case 109:
+    case 111:
+    case 114:
+    case 147:
     case 152:
+    case 157:
     case 166:
-    case 194:
+    case 180:
+    case 212:
     case 219:
+    case 247:
+    case 424:
+    case 430:
+    case 431:
+    case 432:
+    case 436:
+    case 443:
         ShoeType = SHOE_GREEN;
         break;
-    case 34:
+    case 49:
+    case 50:
+    case 57:
+    case 58:
+    case 59:
     case 87:
-    case 108:
+    case 142:
+    case 155:
     case 159:
+    case 239:
+    case 402:
+    case 456:
+    case 461:
+    case 468:
+    case 469:
+    case 471:
+    case 476:
+    case 479:
         ShoeType = SHOE_BLACK_RED;
         break;
-    case 24:
+    case 16:
+    case 17:
+    case 22:
     case 33:
-    case 68:
-    case 73:
+    case 61:
+    case 80:
+    case 92:
+    case 106:
+    case 107:
     case 153:
     case 154:
     case 160:
@@ -255,76 +329,103 @@ int GetPlayerShoesIdFromFifaId(int shoeTypeCode) {
     case 187:
     case 191:
     case 192:
+    case 194:
     case 196:
     case 198:
-    case 202:
-    case 203:
     case 207:
-    case 212:
-    case 228:
+    case 210:
+    case 211:
     case 236:
-    case 237:
     case 312:
-    case 316:
-    case 319:
-    case 320:
     case 333:
     case 334:
     case 338:
+    case 360:
+    case 405:
+    case 409:
+    case 416:
+    case 417:
+    case 420:
+    case 422:
+    case 442:
+    case 450:
+    case 466:
+    case 478:
         ShoeType = SHOE_GREY;
         break;
-    case 42:
+    case 45:
     case 46:
+    case 51:
     case 86:
-    case 92:
-    case 140:
-    case 141:
-    case 304:
+    case 156:
+    case 202:
+    case 203:
+    case 309:
     case 313:
-    case 321:
     case 322:
+    case 406:
+    case 446:
+    case 455:
+    case 473:
+    case 475:
         ShoeType = SHOE_WHITE_RED;
         break;
-    case 21:
-    case 29:
+    case 23:
     case 41:
+    case 81:
+    case 110:
+    case 113:
+    case 121:
+    case 122:
     case 135:
     case 136:
-    case 150:
-    case 180:
+    case 378:
+    case 379:
+    case 470:
         ShoeType = SHOE_YELLOW;
         break;
     case 18:
     case 19:
     case 32:
+    case 78:
+    case 79:
+    case 116:
+    case 131:
     case 139:
+    case 144:
+    case 145:
+    case 168:
     case 171:
     case 172:
-    case 175:
+    case 174:
+    case 181:
     case 199:
     case 200:
+    case 201:
+    case 237:
     case 310:
-    case 323:
+    case 317:
     case 324:
     case 325:
     case 326:
     case 327:
     case 328:
-    case 331:
         ShoeType = SHOE_ORANGE;
         break;
     case 27:
     case 28:
     case 30:
+    case 34:
+    case 38:
+    case 39:
+    case 40:
+    case 43:
     case 53:
-    case 69:
-    case 72:
-    case 78:
-    case 88:
+    case 70:
+    case 73:
+    case 89:
     case 146:
-    case 147:
-    case 167:
-    case 181:
+    case 175:
     case 190:
     case 197:
     case 205:
@@ -334,52 +435,77 @@ int GetPlayerShoesIdFromFifaId(int shoeTypeCode) {
     case 230:
     case 231:
     case 235:
-    case 301:
+    case 314:
+    case 401:
+    case 415:
+    case 419:
+    case 421:
         ShoeType = SHOE_DARK_BLUE;
         break;
     case 15:
-    case 22:
-    case 23:
-    case 47:
+    case 63:
+    case 72:
+    case 74:
+    case 105:
+    case 130:
     case 132:
     case 133:
     case 134:
     case 148:
     case 149:
-    case 162:
     case 165:
-    case 201:
-    case 208:
-    case 209:
+    case 215:
+    case 216:
     case 217:
     case 218:
     case 224:
     case 232:
+    case 243:
+    case 244:
+    case 246:
     case 332:
     case 335:
         ShoeType = SHOE_LIGHT_GREEN;
         break;
     case 20:
     case 31:
+    case 36:
+    case 93:
+    case 97:
+    case 115:
+    case 118:
+    case 119:
+    case 120:
+    case 143:
+    case 161:
     case 223:
-    case 239:
     case 240:
+    case 248:
     case 329:
     case 336:
     case 337:
+    case 364:
+    case 365:
+    case 367:
+    case 400:
+    case 448:
         ShoeType = SHOE_MAGENTA;
         break;
-    case 38:
-    case 39:
-    case 52:
+    case 44:
+    case 77:
     case 151:
     case 163:
     case 164:
-    case 168:
     case 188:
     case 189:
     case 204:
+    case 208:
+    case 209:
     case 233:
+    case 249:
+    case 252:
+    case 254:
+    case 439:
         ShoeType = SHOE_BRIGHT_RED;
         break;
     default:
@@ -485,15 +611,21 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
 
     switch (fifaPlayer->internal.facialhairtypecode) {
     case 0:
+    case 246:
         player->mAppearance.mBeardType = 0; // Clean Shaved
         break;
     case 1:
+    case 254:
+    case 259:
+    case 288:
         player->mAppearance.mBeardType = 1; // Chin Stubble Light  _
         break;
     case 2:
+    case 285:
         player->mAppearance.mBeardType = 2; // Chin Strap \_/
         break;
     case 3:
+    case 251:
         player->mAppearance.mBeardType = 3; // Goatee |_|
         break;
     case 4:
@@ -503,6 +635,8 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
     case 50:
     case 53:
     case 64:
+    case 243:
+    case 255:
         player->mAppearance.mBeardType = 4; // Casual Beard \|_|/
         break;
     case 5:
@@ -535,6 +669,13 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
     case 65:
     case 66:
     case 67:
+    case 238:
+    case 245:
+    case 249:
+    case 252:
+    case 266:
+    case 270:
+    case 289:
         player->mAppearance.mBeardType = 8; // Full Beard \|_|/
         break;
     case 9:
@@ -545,6 +686,8 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
     case 47:
     case 48:
     case 49:
+    case 257:
+    case 286:
         player->mAppearance.mBeardType = 9; // Light Goatee |_|
         break;
     case 10:
@@ -555,15 +698,23 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
         player->mAppearance.mBeardType = 10; // Moustache --
         break;
     case 11:
+    case 236:
         player->mAppearance.mBeardType = 11; // Light Chin Curtain \\//
         break;
     case 12:
     case 19:
     case 60:
+    case 248:
+    case 253:
+    case 258:
         player->mAppearance.mBeardType = 12; // FullGoatee |_|
         break;
     case 13:
     case 22:
+    case 237:
+    case 247:
+    case 260:
+    case 272:
         player->mAppearance.mBeardType = 13; // Chin Curtain \\//
         break;
     case 14:
@@ -574,6 +725,7 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
     case 55:
     case 56:
     case 58:
+    case 244:
         player->mAppearance.mBeardType = 14; // Beard \|_|/
         break;
     case 15:
@@ -582,6 +734,7 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
     case 40:
     case 52:
     case 59:
+    case 287:
         player->mAppearance.mBeardType = 15; // Patchy Beard \|_|/
         break;
     }
@@ -656,7 +809,7 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
     }
     bool fifaHairSet = false;
     static Map<UInt, UInt> fifaHairsNew = {
-        {159,45},{160,35},{161,17},{162,132},{163,27},{164,70},{165,26},{166,71},{167,66},{168,217},{169,18},{170,73},{171,10},{172,17},{173,171},{174,18},{175,35},{176,41},{177,72},{178,25},{179,38},{180,119},{181,15},{182,73},{183,15},{184,18},{185,171},{186,40},{187,25},{188,50},{189,24},{190,35},{191,24},{192,24},{193,217},{194,20},{195,10},{196,21},{197,30},{198,39},{199,30},{200,29},{201,9},{202,10},{204,73},{205,35},{206,6},{207,52},{208,18},{209,52},{211,14},{212,18},{218,15},{219,32},{220,35},{221,19},{222,27},{223,73},{224,142},{225,83},{226,84},{227,6},{228,124},{229,73},{230,35},{231,13},{232,45},{233,38},{234,36},{235,52},{236,36},{237,49},{239,15},{240,12},{241,28},{242,19},{243,19},{244,73},{245,73},{250,6},{257,104},{263,112},{264,162},{265,19},{267,208},{273,124},{274,187},{275,38},{276,96},{277,20},{278,32},{280,83},{283,25},{284,19},{285,27},{289,17},{290,8},{291,13},{292,37},{293,24},{294,28},{295,15},{296,187},{297,7},{298,41},{299,77},{376,88},{390,12},{394,14},{419,83},{431,203},{434,137},{445,40},{446,15},{450,110},{451,10},{460,197},{463,18},{586,150},{597,196},{617,199},{630,20},{631,128},{632,119},{633,82},{634,128},{635,24},{636,41},{637,101},{638,16},{639,40},{640,18},{641,69},{642,28},{643,14},{644,82},{645,48},{646,17},{647,200},{648,54},{649,82},{650,51},{651,44},{652,40},{653,89},{654,41},{655,26},{656,45},{657,39},{659,80},{660,45},{662,60},{664,211},{665,9},{666,217},{667,83},{668,48},{673,63},{677,75},{683,32},{685,18},{688,236},{691,68},{692,65},{693,73},{694,131},{695,13},{902,58},{238,131},{386,157},{603,174},{611,187},{619,209},{621,209},{661,94},{663,216},{669,216},{670,100},{671,99},{672,204},{675,22},{676,35},{678,39},{679,53},{681,19},{682,30},{686,39},{687,15},{689,16},{690,28},{697,15},{698,10},{923,196}
+        {159,45},{160,35},{161,17},{162,132},{163,27},{164,70},{165,26},{166,71},{167,66},{168,217},{169,18},{170,73},{171,10},{172,17},{173,171},{174,18},{175,35},{176,41},{177,72},{178,25},{179,38},{180,119},{181,15},{182,73},{183,15},{184,18},{185,171},{186,40},{187,25},{188,50},{189,24},{190,35},{191,24},{192,24},{193,217},{194,20},{195,10},{196,21},{197,30},{198,39},{199,30},{200,29},{201,9},{202,10},{204,73},{205,35},{206,6},{207,52},{208,18},{209,52},{211,14},{212,18},{218,15},{219,32},{220,35},{221,19},{222,27},{223,73},{224,142},{225,83},{226,84},{227,6},{228,124},{229,73},{230,35},{231,13},{232,45},{233,38},{234,36},{235,52},{236,36},{237,49},{239,15},{240,12},{241,28},{242,19},{243,19},{244,73},{245,73},{250,6},{257,104},{263,112},{264,162},{265,19},{267,208},{273,124},{274,187},{275,38},{276,96},{277,20},{278,32},{280,83},{283,25},{284,19},{285,27},{289,17},{290,8},{291,13},{292,37},{293,24},{294,28},{295,15},{296,187},{297,7},{298,41},{299,77},{376,88},{390,12},{394,14},{419,83},{431,203},{434,137},{445,40},{446,15},{450,110},{451,10},{460,197},{463,18},{586,150},{597,196},{617,199},{630,20},{631,128},{632,119},{633,82},{634,128},{635,24},{636,41},{637,101},{638,16},{639,40},{640,18},{641,69},{642,28},{643,14},{644,82},{645,48},{646,17},{647,200},{648,54},{649,82},{650,51},{651,44},{652,40},{653,89},{654,41},{655,26},{656,45},{657,39},{659,80},{660,45},{662,60},{664,211},{665,9},{666,217},{667,83},{668,48},{673,63},{677,75},{683,32},{685,18},{688,236},{691,68},{692,65},{693,73},{694,131},{695,13},{902,58},{238,131},{386,157},{603,174},{611,187},{619,209},{621,209},{661,94},{663,216},{669,216},{670,100},{671,99},{672,204},{675,22},{676,35},{678,39},{679,53},{681,19},{682,30},{686,39},{687,15},{689,16},{690,28},{697,15},{698,10},{923,196},{279,201},{281,162},{286,223},{385,158},{432,172},{433,162},{435,165},{436,192},{437,173},{461,227},{582,173},{583,201},{584,226},{587,173},{596,192},{598,227},{599,174},{600,167},{601,195},{604,196},{606,196},{607,162},{608,179},{609,243},{610,212},{612,198},{613,227},{614,179},{615,169},{616,179},{618,212},{622,222},{623,212},{624,212},{625,227},{627,179},{628,212},{629,196},{720,165},{722,238},{723,188},{727,227},{728,192},{729,173},{730,199},{731,158},{732,198},{733,194},{734,208},{735,173},{738,162},{739,193},{740,226},{741,197},{742,165},{743,243},{744,192},{746,226},{748,165},{749,187},{816,192},{900,169},{901,165},{904,196},{905,196},{906,162},{907,195},{908,212},{909,200},{910,162},{911,240},{912,240},{913,162},{915,162},{916,212},{917,162},{922,196},{924,124},{925,162},{926,157},{927,182},{928,212},{1061,109},{1062,18},{1063,19},{1064,20},{1065,18},{1066,210},{1067,44},{1068,75},{1069,82},{1070,100},{1071,18},{1072,19},{1073,93},{1074,41},{1075,44},{1076,157},{1077,97},{1078,45},{1079,67},{1080,33},{1081,133},{1082,31},{1083,38},{1084,80},{1085,65},{1086,54},{1087,113},{1088,38},{1089,120},{1090,92},{1091,120},{1092,19},{1093,94}
     };
     if (Utils::Contains(fifaHairsNew, (UInt)fifaPlayer->internal.hairtypecode)) {
         auto hairId = fifaHairsNew[fifaPlayer->internal.hairtypecode];
@@ -770,7 +923,7 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
 
     bool fifaHeadSet = false;
     static Map<UInt, UInt> fifaHeadsNew = {
-        {61,71},{68,91},{69,87},{563,38},{565,163},{567,154},{603,67},{604,215},{605,196},{606,144},{607,132},{608,297},{1042,115},{1050,186},{1550,317},{1551,266},{1552,11},{1553,192},{1554,205},{1555,136},{1556,80},{4018,12},{4019,3},{4020,111},{4021,201},{4024,193},{66,69},{1046,55},{1047,52},{1048,183},{1052,88},{4022,91},{4023,238}
+        {61,71},{68,91},{69,87},{563,38},{565,163},{567,154},{603,67},{604,215},{605,196},{606,144},{607,132},{608,297},{1042,115},{1050,186},{1550,317},{1551,266},{1552,11},{1553,192},{1554,205},{1555,136},{1556,80},{4018,12},{4019,3},{4020,111},{4021,201},{4024,193},{66,69},{1046,55},{1047,52},{1048,183},{1052,88},{4022,91},{4023,238},{568,43},{3520,5},{5512,408},{5513,318},{5514,391},{5515,393},{5516,399},{5517,448},{5518,414},{5519,346},{5520,318},{5522,378},{5523,401},{6031,342},{6032,338},{6033,336},{6035,321},{6504,438},{6505,441},{6506,440},{6507,441},{6508,372},{6509,423},{6510,417},{6511,183},{6512,133},{6513,183},{6516,430},{6517,428},{7027,432},{7029,338},{7030,321},{7032,343},{7033,324},{7034,363},{7035,330},{7036,381},{7037,346},{7038,326},{7039,419},{7041,374},{9003,342},{9004,363},{9005,366},{9006,320},{9008,323},{9010,320},{9011,324},{9012,338},{9013,378},{9014,330},{9015,329},{9016,368},{9017,414},{9018,362},{9514,353},{9515,351},{9516,320},{9517,319},{9518,333},{9520,327},{9521,325},{9522,320},{9524,329},{9525,322},{9526,318},{9527,342},{9528,319},{9529,322},{9530,323},{9531,334},{9532,329},{9536,390},{9538,331},{9540,445},{10028,338},{10029,364},{10030,439}
     };
     if (Utils::Contains(fifaHeadsNew, (UInt)fifaPlayer->internal.headtypecode)) {
         auto headId = fifaHeadsNew[fifaPlayer->internal.headtypecode];

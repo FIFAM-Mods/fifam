@@ -2080,19 +2080,25 @@ void Converter::Convert() {
                         case 39: // Atalanta
                             fmClubFifaId = 115845;
                             break;
+                        case 44: // Inter
+                            fmClubFifaId = 131682;
+                            break;
                         //case 45: // Juventus
                         //    fmClubFifaId = 114153;
                         //    break;
                         case 46: // Lazio
                             fmClubFifaId = 115841;
                             break;
-                        case 48: // Napoli
-                            fmClubFifaId = 116365;
+                        case 47: // Milan
+                            fmClubFifaId = 131681;
                             break;
-                        case 52: // AS Roma
-                            fmClubFifaId = 114912;
-                            break;
-                        //case 1876: // Riveer Plate
+                        //case 48: // Napoli
+                        //    fmClubFifaId = 116365;
+                        //    break;
+                        //case 52: // AS Roma
+                        //    fmClubFifaId = 114912;
+                        //    break;
+                        //case 1876: // River Plate
                         //    fmClubFifaId = 114144;
                         //    break;
                         //case 1877: // Boca Juniors
