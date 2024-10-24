@@ -3,6 +3,7 @@
 #include "FifamNames.h"
 #include <exception>
 #include "FifaDatabase.h"
+#include "FifaDataFile.h"
 #include "commandline.h"
 
 FifamDatabase *db = nullptr;
@@ -641,5 +642,5 @@ int main(int argc, char *argv[]) {
     KitConverter::options.V2 = true; // true
     KitConverter::options.AddKitOverlay = false; // false
     KitConverter kitConverter;
-    ConvertKits(kitConverter);
+    kitConverter.GenerateBallsDat(GetCompsMap());
 }

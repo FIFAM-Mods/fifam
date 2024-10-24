@@ -77,4 +77,5 @@ public:
     void ConvertSponsors512x64(Map<UInt, UInt>& fifaClubToFifam, Map<UInt, Vector<UInt>>& compsMap);
     void GenerateGenericBanners();
     void GenerateGenericBannersFIFA(bool fifa14stadiums);
+    void GenerateBallsDat(Map<UInt, Vector<UInt>>& compsMap);
 };

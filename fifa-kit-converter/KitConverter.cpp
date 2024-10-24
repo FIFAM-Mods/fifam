@@ -1454,3 +1454,143 @@ void KitConverter::GenerateGenericBannersFIFA(bool fifa14stadiums) {
         WriteBanner(outputDir / "_flc.tga", bannersImg, 256 * 2, 128 * 2);
     }
 }
+
+void KitConverter::GenerateBallsDat(Map<UInt, Vector<UInt>>& compsMap) {
+    Map<UInt, String> compNames = {
+        { 0x0, L"Default" },
+        { 0xFF11, L"World Cup" },
+        { 0xFF21, L"Copa America" },
+        { 0xF909, L"Champions League" },
+        { 0xF90A, L"Europa League" },
+        { 0xF933, L"Europa Conference League" },
+        { 0xF90C, L"UEFA SuperCup" },
+        { 0xFA09, L"Copa Libertadores" },
+        { 0xFA0A, L"Copa Sudamericana" },
+        { 0xFA0C, L"Supercopa Sudamericana" },
+        { 0x07010000, L"Belgium Pro League" },
+        { 0x0D010000, L"Denmark Superleague" },
+        { 0x0D080000, L"Denmark Superleague Split 1" },
+        { 0x0D080001, L"Denmark Superleague Split 2" },
+        { 0x0D030000, L"Denmark Cup" },
+        { 0x22010000, L"Eredivisie" },
+        { 0x0E010000, L"EPL" },
+        { 0x0E010001, L"Championship" },
+        { 0x0E010002, L"League One" },
+        { 0x0E010003, L"League Two" },
+        { 0x0E080000, L"Championship Play-Off 1" },
+        { 0x0E080001, L"Championship Play-Off 2" },
+        { 0x0E080002, L"League One Play-Off 1" },
+        { 0x0E080003, L"League One Play-Off 2" },
+        { 0x0E080004, L"League Two Play-Off 1" },
+        { 0x0E080005, L"League Two Play-Off 2" },
+        { 0x0E030000, L"FA Cup" },
+        { 0x0E040000, L"Carabao Cup" },
+        { 0x0E040001, L"Bristol Street Motors Trophy" },
+        { 0x0E070000, L"England Supercup" },
+        { 0x12010000, L"Ligue 1" },
+        { 0x12010001, L"Ligue 2" },
+        { 0x12070000, L"Trophee des Champions" },
+        { 0x15010000, L"Bundesliga" },
+        { 0x15080000, L"Bundesliga Relegation 1<>2" },
+        { 0x15010001, L"Bundesliga 2" },
+        { 0x15080001, L"Bundesliga Relegation 2<>3" },
+        { 0x15010002, L"3. Liga" },
+        { 0x15030000, L"DFB Pokal" },
+        { 0x15070000, L"DFL-Supercup" },
+        { 0x1B010000, L"Serie A" },
+        { 0x1B010001, L"Serie B" },
+        { 0x1B030000, L"Italy Cup" },
+        { 0x1B070000, L"Italy Supercup" },
+        { 0x5F010000, L"MLS" },
+        { 0x5F080000, L"MLS Play-Off East" },
+        { 0x5F080001, L"MLS Play-Off West" },
+        { 0x5F040000, L"MLS Cup" },
+        { 0x24010000, L"Norway" },
+        { 0x24030000, L"Norway Cup" },
+        { 0x2A010000, L"Scottish PFL" },
+        { 0x2A080000, L"Scottish PFL Split 1" },
+        { 0x2A080001, L"Scottish PFL Split 2" },
+        { 0x2D010000, L"LaLiga" },
+        { 0x2D010001, L"Segunda" },
+        { 0x2E010000, L"Sweden" },
+        { 0x19010000, L"Ireland league" },
+        { 0x25010000, L"Ekstraklasa" },
+        { 0x30010000, L"Turkey league" },
+        { 0x04010000, L"Austrian Bundesliga" },
+        { 0x04080000, L"Austrian Bundesliga Split 1" },
+        { 0x04080001, L"Austrian Bundesliga Split 2" },
+        { 0xA7010000, L"Korea league" },
+        { 0xA7080000, L"Korea league Split 1" },
+        { 0xA7080001, L"Korea league Split 2" },
+        { 0x2F010000, L"Switzerland" },
+        { 0x26010000, L"Portugal league" },
+        { 0x27010000, L"Romania league" },
+        { 0x27080000, L"Romania league Split 1" },
+        { 0x27080001, L"Romania league Split 2" },
+        { 0x27030000, L"Romania cup" },
+        { 0xB7010000, L"Saudi Arabia League" },
+        { 0x9B010000, L"China league" },
+        { 0x53010000, L"Mexican Liga" },
+        { 0x34010000, L"Argentina Liga" },
+        { 0xC3010000, L"Australia League" },
+        { 0xC3040000, L"Australia League Finals" },
+        { 0x9F010000, L"IHero Indian SuperLeague" }
+    };
+    struct BallEntry {
+        Int ballId = -1;
+        Int winterBallId = -1;
+    };
+    Map<UInt, BallEntry> entries;
+    FifaDataFile file;
+    Path fifaDbFolderPath = "D:\\Projects\\fifam\\db\\fifa\\25\\2024.10.01";
+    if (file.Open(fifaDbFolderPath / L"competitionballs.txt")) {
+        Int competitionid, stage, weather, ballid;
+        for (FifaDataFile::Line line; file.NextLine(line); ) {
+            line >> competitionid >> stage >> weather >> ballid;
+            if (stage == 0 && ballid >= 22 && Utils::Contains(compsMap, (UInt)competitionid)) {
+                for (auto const& i : compsMap[(UInt)competitionid]) {
+                    if (weather == 0)
+                        entries[i].ballId = ballid;
+                    else if (weather == 2)
+                        entries[i].winterBallId = ballid;
+                }
+            }
+        }
+        file.Close();
+    }
+    FifamWriter w(L"D:\\Games\\FIFA Manager 25\\plugins\\ucp\\balls.dat", 13, FifamVersion(), false);
+    w.WriteLine(L";CompetitionId, BallId, BallIdWinter");
+    auto PadString = [](String& s, UInt size, Bool right) {
+        if (s.size() < size) {
+            String p(size - s.size(), L' ');
+            if (right)
+                s.append(p);
+            else
+                s = p + s;
+        }
+        };
+    for (auto const& [id, e] : entries) {
+        String compId;
+        if (id == 0)
+            compId = L"0";
+        else if (id <= 0xFFFF)
+            compId = Utils::Format(L"%04X,", id);
+        else
+            compId = Utils::Format(L"%08X,", id);
+        Int ballId = e.ballId;
+        Int winterBallId = e.winterBallId;
+        if (ballId == -1)
+            ballId = winterBallId;
+        else if (winterBallId == -1)
+            winterBallId = ballId;
+        PadString(compId, 15, true);
+        String strBallId = Utils::Format(L"%u,", ballId);
+        PadString(strBallId, 4, false);
+        String strWinterBallId = Utils::Format(L"%u", winterBallId);
+        PadString(strWinterBallId, 7, false);
+        String comment;
+        if (Utils::Contains(compNames, id))
+            comment = compNames[id];
+        w.WriteLine(compId + strBallId + strWinterBallId + L"          ; " + comment);
+    }
+}
