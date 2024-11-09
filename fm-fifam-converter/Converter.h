@@ -7,7 +7,7 @@
 #include "FifamCompCup.h"
 #include "FifamCompRound.h"
 
-const UShort CURRENT_YEAR = 2023;
+const UShort CURRENT_YEAR = 2024;
 
 class Converter {
 public:

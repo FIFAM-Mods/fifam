@@ -148,21 +148,22 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         player->mRightFoot = 4;
 
     // appearance
-    player->mHeight = Utils::Clamp(p->mHeight, 150, 220);
-    if (player->mHeight <= 0) {
+    if (p->mHeight <= 0) {
         if (playerCountry->mAverageHeight > 10)
             player->mHeight = Utils::Clamp(playerCountry->mAverageHeight - 10 + Random::Get(0, 20), 150, 220);
         else
             player->mHeight = 175 + Random::Get(0, 10);
     }
-    player->mWeight = Utils::Clamp(p->mWeight, 50, 150);
-    if (player->mWeight == 50) {
+    else
+        player->mHeight = Utils::Clamp(p->mHeight, 150, 220);
+    if (p->mWeight <= 0) {
         if (playerCountry->mAverageWeight > 10)
             player->mWeight = Utils::Clamp(playerCountry->mAverageWeight - 10 + Random::Get(0, 20), 50, 150);
         else
             player->mWeight = 70 + Random::Get(0, 10);
     }
-
+    else
+        player->mWeight = Utils::Clamp(p->mWeight, 50, 150);
     UInt randomShoeType = Random::Get(1, 99);
     if (randomShoeType > 66)
         player->mShoeType = FifamShoeType::Blue;
@@ -1668,9 +1669,6 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         else
             player->mStartingConditions.mInjury.Setup(selectedInjury->mStartDate, selectedInjury->mEndDate, injuryType);
     }
-
-    // temporary
-    player->mEmpicsId = p->mID;
 
     return player;
 }
