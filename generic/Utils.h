@@ -5,6 +5,8 @@
 #include <set>
 #include <ctime>
 #include <filesystem>
+#include <algorithm>
+#include <random>
 
 namespace Utils {
     std::wstring TimeString(std::time_t const &time);
@@ -176,8 +178,33 @@ namespace Utils {
 
 	template<typename Container, typename Callback>
 	void Sort(Container &container, Callback callback) {
-		std::sort(container.begin(), container.end(), callback);
+        if (container.size() > 1)
+		    std::sort(container.begin(), container.end(), callback);
 	}
+
+    template<typename Container>
+    void Shuffle(Container &container, size_t sizeToShuffle = 0) {
+        if (container.size() > 1) {
+            if (sizeToShuffle == 0)
+                sizeToShuffle = container.size();
+            std::random_device rd;
+            std::mt19937 gen(rd());
+            std::shuffle(container.begin(), container.begin() + Utils::Min(sizeToShuffle, container.size()), gen);
+        }
+    }
+    
+    template<typename Container>
+    void Shuffle(Container &container, size_t startIndex, size_t sizeToShuffle) {
+        if (container.size() > 1 && startIndex < container.size()) {
+            if ((startIndex + sizeToShuffle) > container.size())
+                sizeToShuffle = container.size() - startIndex;
+            if (sizeToShuffle > 1) {
+                std::random_device rd;
+                std::mt19937 gen(rd());
+                std::shuffle(container.begin() + startIndex, container.begin() + Utils::Min(sizeToShuffle, container.size()), gen);
+            }
+        }
+    }
 
     template<typename T>
     std::vector<T> VecToArray(std::vector<T> const &vec, size_t size) {
