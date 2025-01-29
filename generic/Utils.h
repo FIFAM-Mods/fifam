@@ -184,24 +184,27 @@ namespace Utils {
 
     template<typename Container>
     void Shuffle(Container &container, size_t sizeToShuffle = 0) {
-        if (container.size() > 1) {
-            if (sizeToShuffle == 0)
-                sizeToShuffle = container.size();
-            std::random_device rd;
-            std::mt19937 gen(rd());
-            std::shuffle(container.begin(), container.begin() + Utils::Min(sizeToShuffle, container.size()), gen);
+        if (container.empty())
+            return;
+        if (sizeToShuffle == 0 || sizeToShuffle > container.size())
+            sizeToShuffle = container.size();
+        if (sizeToShuffle > 1) {
+            static std::random_device rd;
+            static std::mt19937 gen(rd());
+            std::shuffle(container.begin(), container.begin() + sizeToShuffle, gen);
         }
     }
     
     template<typename Container>
     void Shuffle(Container &container, size_t startIndex, size_t sizeToShuffle) {
         if (container.size() > 1 && startIndex < container.size()) {
-            if ((startIndex + sizeToShuffle) > container.size())
-                sizeToShuffle = container.size() - startIndex;
+            const size_t maxPossible = container.size() - startIndex;
+            if (sizeToShuffle > maxPossible)
+                sizeToShuffle = maxPossible;
             if (sizeToShuffle > 1) {
-                std::random_device rd;
-                std::mt19937 gen(rd());
-                std::shuffle(container.begin() + startIndex, container.begin() + Utils::Min(sizeToShuffle, container.size()), gen);
+                static std::random_device rd;
+                static std::mt19937 gen(rd());
+                std::shuffle(container.begin() + startIndex, container.begin() + startIndex + sizeToShuffle, gen);
             }
         }
     }
