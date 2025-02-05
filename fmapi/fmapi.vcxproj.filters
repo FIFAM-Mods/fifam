@@ -108,6 +108,9 @@
     <ClInclude Include="FifamGraphics.h" />
     <ClInclude Include="FifamPropertied.h" />
     <ClInclude Include="FifamStaffSkillID.h" />
+    <ClInclude Include="..\shared\CompetitionsShared.h">
+      <Filter>shared</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamDate.cpp" />
@@ -156,5 +159,13 @@
     <ClCompile Include="FifamNames.cpp" />
     <ClCompile Include="FifamGraphics.cpp" />
     <ClCompile Include="FifamPerson.cpp" />
+    <ClCompile Include="..\shared\CompetitionsShared.cpp">
+      <Filter>shared</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="shared">
+      <UniqueIdentifier>{fdd9876f-4f1e-47f5-9be6-e8d7e7ede0c9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

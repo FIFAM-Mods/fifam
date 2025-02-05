@@ -124,9 +124,7 @@ void FifamPlayerStartingConditions::Read(FifamReader &reader, UInt contractFlags
         }
     }
     else {
-        UChar startConditionFlags = 0;
-        //if ()
-        reader.ReadLine<UChar>();
+        UChar startConditionFlags = reader.ReadLine<UChar>();
         reader.SkipLine();
         UInt transferClub = reader.ReadLine<UInt>();
         FifamDate transferStartDate = reader.ReadLine<FifamDate>();

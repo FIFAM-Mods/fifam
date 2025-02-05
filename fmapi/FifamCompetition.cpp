@@ -1,30 +1,23 @@
 #include "FifamCompetition.h"
 #include "FifamUtils.h"
 #include "FifamDatabase.h"
+#include "CompetitionsShared.h"
 
 FifamCompetition::~FifamCompetition() {}
 
 FifamCompLeague *FifamCompetition::AsLeague() {
-    if (!this)
-        return nullptr;
     return GetDbType() == FifamCompDbType::League ? reinterpret_cast<FifamCompLeague *>(this) : nullptr;
 }
 
 FifamCompRound *FifamCompetition::AsRound() {
-    if (!this)
-        return nullptr;
     return GetDbType() == FifamCompDbType::Round ? reinterpret_cast<FifamCompRound *>(this) : nullptr;
 }
 
 FifamCompCup *FifamCompetition::AsCup() {
-    if (!this)
-        return nullptr;
     return GetDbType() == FifamCompDbType::Cup ? reinterpret_cast<FifamCompCup *>(this) : nullptr;
 }
 
 FifamCompPool *FifamCompetition::AsPool() {
-    if (!this)
-        return nullptr;
     return GetDbType() == FifamCompDbType::Pool ? reinterpret_cast<FifamCompPool *>(this) : nullptr;
 }
 
@@ -85,31 +78,5 @@ void FifamCompetition::SetName(FifamTrArray<String> const &names) {
 }
 
 bool FifamCompetition::TakesPlaceInSeason(UShort year) const {
-    switch (mID.mType.ToInt()) {
-    case FifamCompType::QualiWC:
-    case FifamCompType::ConfedCup:
-        return !(year % 4); // 16/17, 20/21
-    case FifamCompType::QualiEC:
-    case FifamCompType::AsiaCup:
-    case FifamCompType::AsiaCupQ:
-        return (year % 4) == 2; // 14/15, 18/19
-    case FifamCompType::WorldCup:
-        return (year % 4) == 1; // 13/14, 17/18
-    case FifamCompType::EuroCup:
-    case FifamCompType::OfcCup:
-    case FifamCompType::CopaAmerica:
-        return (year % 4) == 3; // 19/20, 23/24
-    case FifamCompType::U20WorldCup:
-        return (year % 2) == 1; // 17/18, 19/20
-    case FifamCompType::EuroNL:
-    case FifamCompType::EuroNLQ:
-    case FifamCompType::AfricaCup:
-    case FifamCompType::AfricaCupQ:
-    case FifamCompType::NamCup:
-        return !(year % 2); // 16/17, 18/19
-    case FifamCompType::NamNL:
-    case FifamCompType::NamNLQ:
-        return (year % 2) == 1; // 17/18, 19/20
-    }
-    return true;
+    return LaunchesInSeason(mID.mRegion.ToInt(), mID.mType.ToInt(), year);
 }
