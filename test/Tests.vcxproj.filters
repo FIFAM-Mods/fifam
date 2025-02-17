@@ -295,6 +295,15 @@
     <ClInclude Include="tests\TestFifaIds.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\ParseStructs.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\GeneratePlayerFacesList.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\MergeFaceIDs.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

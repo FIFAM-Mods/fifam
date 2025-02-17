@@ -148,7 +148,9 @@
     <ClInclude Include="tests\GenerateEplColors.h" />
     <ClInclude Include="tests\GenerateKitColors.h" />
     <ClInclude Include="tests\GenerateKitConfig.h" />
+    <ClInclude Include="tests\GeneratePlayerFacesList.h" />
     <ClInclude Include="tests\GetUnlinkedFaces.h" />
+    <ClInclude Include="tests\MergeFaceIDs.h" />
     <ClInclude Include="tests\MissingPortraits.h" />
     <ClInclude Include="tests\HistoricTest.h" />
     <ClInclude Include="tests\FlagsTest.h" />
@@ -157,6 +159,7 @@
     <ClInclude Include="tests\PackABK.h" />
     <ClInclude Include="tests\PackMusic.h" />
     <ClInclude Include="tests\Parameters.h" />
+    <ClInclude Include="tests\ParseStructs.h" />
     <ClInclude Include="tests\ParseTransfermarktStats.h" />
     <ClInclude Include="tests\PlayerIdTest.h" />
     <ClInclude Include="tests\PlayerNames.h" />

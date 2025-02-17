@@ -1310,9 +1310,9 @@ FifamVersion FifamDatabase::GetGameDbVersion(UInt gameId) {
     else if (gameId == 12)
         version.Set(0x2012, 0x04);
     else if (gameId == 13)
-        version.Set(0x2013, 0x0E); // original 0xA
+        version.Set(0x2013, 0x0F); // original 0xA
     else if (gameId == 14)
-        version.Set(0x2013, 0x0E); // original 0xA
+        version.Set(0x2013, 0x0F); // original 0xA
     return version;
 }
 

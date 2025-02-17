@@ -86,7 +86,10 @@
 #include "tests\UpdateDbVersion.h"
 #include "tests\FixInjuries.h"
 #include "tests\TestFifaIds.h"
+#include "tests\ParseStructs.h"
+#include "tests\GeneratePlayerFacesList.h"
+#include "tests\MergeFaceIDs.h"
 
 void RunTests() {
-    RunTest<Translation>();
+    RunTest<PngFix>();
 }

@@ -19,14 +19,15 @@ public:
             }
         }
         Set<UInt> wcCountries = {
-            182, 14, 52, 18, 45, 7, 54, 38, 57, 161, 183, 195, 72, 70, 51, 117, 136, 95, 83, 13, 21, 129, 47, 60, 34, 50, 37, 145, 163, 10, 103, 167
+            83, 70, 38, 95, 18, 45, 27, 7, 14, 34, 54, 52, 47, 4, 60, 21, 167, 161, 136, 56, 163, 129, 13, 10, 97, 133,
+			50, 59, 48, 46, 49, 108, 111, 57, 87, 195, 182, 61, 140, 183, 126, 103, 198, 162, 72, 191, 145, 82
         };
         Set<String> additionalPlayers = {
-            L"RodriguezKe04032000",
-            L"AguileraBr28062003",
-            L"SequeiraPa01031999",
-            L"HernandezAn11102001",
-            L"DengTh20031997"
+            //L"RodriguezKe04032000",
+            //L"AguileraBr28062003",
+            //L"SequeiraPa01031999",
+            //L"HernandezAn11102001",
+            //L"DengTh20031997"
         };
         Map<String, FifamPlayer *> playersMap;
         Map<UInt, Vector<Pair<FifamPlayer *, UInt>>> mapCountries;
@@ -55,7 +56,7 @@ public:
                 case FifamNation::Poland:
                     maxClubIndex = db.GetCompetition(FifamCompID(p->mClub->mCountry->mId, FifamCompType::League, 0))->mNumTeams + 5;
                     break;
-                case FifamNation::Qatar:
+                case FifamNation::United_States:
                     maxClubIndex = 9999;
                     break;
                 default:

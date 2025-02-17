@@ -138,7 +138,7 @@ public:
     // @since FM08
     FifamTerritory mPreferredTransfersTerritory;
     // @since FM08
-    UShort mFifaRanking = 0;
+    Float mFifaRanking = 0;
     // @since FM07
     UShort mNumContinentalChampions = 0;
     // @since FM07

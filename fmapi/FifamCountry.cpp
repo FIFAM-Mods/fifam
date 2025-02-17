@@ -367,7 +367,10 @@ Bool FifamCountry::Read(FifamReader &reader) {
             }
             if (reader.IsVersionGreaterOrEqual(0x2007, 0x0E)) {
                 reader.ReadLine(mPreferredTransfersTerritory);
-                reader.ReadLine(mFifaRanking);
+                if (reader.IsVersionGreaterOrEqual(0x2013, 0x0F))
+                    reader.ReadLine(mFifaRanking);
+                else
+                    mFifaRanking = (UShort)reader.ReadLine<UShort>();
             }
             if (reader.GetGameId() < 11)
                 reader.ReadFullLine(mMostImportantMagazine);
@@ -744,7 +747,10 @@ Bool FifamCountry::Write(FifamWriter &writer) {
     }
     if (writer.IsVersionGreaterOrEqual(0x2007, 0xEu)) {
         writer.WriteLine(mPreferredTransfersTerritory);
-        writer.WriteLine(mFifaRanking);
+        if (writer.IsVersionGreaterOrEqual(0x2013, 0x0F))
+            writer.WriteLine(mFifaRanking);
+        else
+            writer.WriteLine<UShort>((UShort)mFifaRanking);
     }
     if (writer.GetGameId() < 11)
         writer.WriteLine(mMostImportantMagazine);
