@@ -1130,8 +1130,8 @@ void GraphicsConverter::ProcessFIFAXXLPortraits(foom::db *db, Path const& gameOu
     }
 }
 
-FifamClubTeamColor GraphicsConverter::GetBadgeColor(Path const &filepath) {
-    ColorPair clr;
+Bool GraphicsConverter::GetImageColor(Path const &filepath, ColorPair &clr) {
+    Bool result = false;
     Image img(filepath.string());
     if (img.isValid()) {
         const UInt badgeSize = 8;
@@ -1175,14 +1175,24 @@ FifamClubTeamColor GraphicsConverter::GetBadgeColor(Path const &filepath) {
                     return a.second >= b.second;
                 });
                 clr.first = clrsVec[0].first;
-                clr.second = ::Color(255, 255, 255);
+                clr.second = clr.first;
                 if (clrsVec.size() > 1 && clrsVec[0].second != 0 && clrsVec[1].second != 0) {
                     if (Float(clrsVec[0].second) / Float(clrsVec[1].second) < secondColorFactor)
                         clr.second = clrsVec[1].first;
                 }
-                return FifamClubTeamColor::MakeFromInt(clr.FindIndexInTable(FifamClub::mTeamColorsTable));
+                result = true;
             }
         }
+    }
+    return result;
+}
+
+FifamClubTeamColor GraphicsConverter::GetBadgeColor(Path const &filepath) {
+    ColorPair clr;
+    if (GetImageColor(filepath, clr)) {
+        if (clr.first == clr.second)
+            clr.second.Set(255, 255, 255);
+        return FifamClubTeamColor::MakeFromInt(clr.FindIndexInTable(FifamClub::mTeamColorsTable));
     }
     return FifamClubTeamColor::MakeFromInt(Random::Get(0, 27));
 }

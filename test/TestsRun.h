@@ -89,7 +89,10 @@
 #include "tests\ParseStructs.h"
 #include "tests\GeneratePlayerFacesList.h"
 #include "tests\MergeFaceIDs.h"
+#include "tests\PopupColorsFromKits.h"
+#include "tests\FifaBadgesToFifam.h"
+#include "tests\WritePlayersAndStaff.h"
 
 void RunTests() {
-    RunTest<PngFix>();
+    RunTest<DbGraphicsStats>();
 }

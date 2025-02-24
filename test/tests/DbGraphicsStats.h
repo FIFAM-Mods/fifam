@@ -5,10 +5,10 @@
 #include "FifamNames.h"
 #include "FifamCompLeague.h"
 
-#define BADGES 1
-#define PORTRAITS_FMZ 1
+#define BADGES 0
+#define PORTRAITS_FMZ 0
 #define PORTRAITS_SORTITOUTSI 1
-#define PORTRAITS_XXL 1
+#define PORTRAITS_XXL 0
 
 class DbGraphicsStats {
 public:
@@ -34,7 +34,7 @@ public:
 
     DbGraphicsStats() {
         UInt gameVersion = 13;
-        FifamDatabase *db = new FifamDatabase(gameVersion, L"D:\\Games\\FIFA Manager 22\\database");
+        FifamDatabase *db = new FifamDatabase(gameVersion, L"D:\\Games\\FIFA Manager 24\\database");
         db->SetupWriteableStatus(gameVersion, false);
         Map<FifamClub *, FifamCompLeague *> clubLeague;
 
@@ -49,7 +49,7 @@ public:
         }
 
         Vector<Path> badgesClubPathClean = {
-            R"(D:\Projects\fifam\content\fm13\clean_badges\badges\badges\clubs\256x256)",
+            R"(D:\Projects\fifam\content\fm13\fmz_badges\badges\badges\clubs\256x256)",
             //R"(C:\Users\Dmitri\Desktop\FM 24 update 1\_UPDATE_BADGES_1\badges\clubs\256x256)",
             //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_BADGES_1\badges\clubs\256x256)",
         };
@@ -61,7 +61,7 @@ public:
         };
 
         Vector<Path> badgesLeaguePathClean = {
-            R"(D:\Projects\fifam\content\fm13\clean_badges\badges\badges\Leagues\256x256)",
+            R"(D:\Projects\fifam\content\fm13\fmz_badges\badges\badges\Leagues\256x256)",
             //R"(C:\Users\Dmitri\Desktop\FM 24 update 1\_UPDATE_BADGES_1\badges\Leagues\256x256)",
             //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_BADGES_1\badges\Leagues\256x256)",
         };
@@ -79,13 +79,14 @@ public:
             R"(D:\Projects\fifam\content\fm13\art_07\portraits\club\160x160)",
             R"(D:\Projects\fifam\content\fm13\art_08\portraits\club\160x160)",
             R"(D:\Projects\fifam\content\fm13\art_09\portraits\club\160x160)",
+            R"(D:\Projects\fifam\content\fm13\art_10\portraits\club\160x160)",
             //R"(C:\Users\Dmitri\Desktop\FM 24 update 1\_UPDATE_PORTRAITS_1\portraits\club\160x160)",
             //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_PORTRAITS_1\portraits\club\160x160)",
         };
 
         Vector<Path> portraitsPlayerPathFMZ = {
-            R"(D:\Projects\fifam\content\fm13\portraits_fmz\art_02\portraits\club\160x160)",
-            R"(D:\Projects\fifam\content\fm13\portraits_fmz\art_03\portraits\club\160x160)",
+            R"(D:\Projects\fifam\content\fm13\fmz_portraits\art_02\portraits\club\160x160)",
+            R"(D:\Projects\fifam\content\fm13\fmz_portraits\art_03\portraits\club\160x160)",
             //R"(C:\Users\Dmitri\Desktop\FM 24 update 1\_UPDATE_PORTRAITS_2\portraits\club\160x160)",
             //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_PORTRAITS_2\portraits\club\160x160)",
         };
@@ -97,16 +98,16 @@ public:
         };
 
         Vector<Path> portraitsRefereePathFMZ = {
-            R"(D:\Projects\fifam\content\fm13\portraits_fmz\art_02\portraits\Referees\160x160)",
+            R"(D:\Projects\fifam\content\fm13\fmz_portraits\art_02\portraits\Referees\160x160)",
             //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_PORTRAITS_2\portraits\Referees\160x160)",
         };
 
         Vector<Path> portraitsXXLPath = {
-            R"(D:\Projects\fifam\content\fm13\art_12\portraits\club\512x512)",
-            R"(D:\Projects\fifam\content\fm13\art_13\portraits\club\512x512)",
             R"(D:\Projects\fifam\content\fm13\art_14\portraits\club\512x512)",
             R"(D:\Projects\fifam\content\fm13\art_15\portraits\club\512x512)",
             R"(D:\Projects\fifam\content\fm13\art_16\portraits\club\512x512)",
+            R"(D:\Projects\fifam\content\fm13\art_17\portraits\club\512x512)",
+            R"(D:\Projects\fifam\content\fm13\art_18\portraits\club\512x512)",
             //R"(C:\Users\Dmitri\Desktop\FM 24 update 1\_UPDATE_XXL\portraits\club\512x512)",
             //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_XXL\portraits\club\512x512)",
         };

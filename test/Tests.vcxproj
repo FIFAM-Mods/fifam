@@ -134,6 +134,7 @@
     <ClInclude Include="tests\Fifa07Convert.h" />
     <ClInclude Include="tests\Fifa07Kits.h" />
     <ClInclude Include="tests\Fifa07Portraits.h" />
+    <ClInclude Include="tests\FifaBadgesToFifam.h" />
     <ClInclude Include="tests\FifaCommentaryFile.h" />
     <ClInclude Include="tests\FifaConverter.h" />
     <ClInclude Include="tests\FifaXXlPortraits.h" />
@@ -165,6 +166,7 @@
     <ClInclude Include="tests\PlayerNames.h" />
     <ClInclude Include="tests\PlayerRelationsTest.h" />
     <ClInclude Include="tests\PngFix.h" />
+    <ClInclude Include="tests\PopupColorsFromKits.h" />
     <ClInclude Include="tests\ReadWriteTest.h" />
     <ClInclude Include="tests\RenameCityPictures.h" />
     <ClInclude Include="tests\RenameHeadFiles.h" />
@@ -194,6 +196,7 @@
     <ClInclude Include="tests\WritePlayerContractTest.h" />
     <ClInclude Include="tests\WritePlayerHistoryTest.h" />
     <ClInclude Include="tests\WritePlayerIDs.h" />
+    <ClInclude Include="tests\WritePlayersAndStaff.h" />
     <ClInclude Include="tests\WritePlayersTest.h" />
   </ItemGroup>
   <ItemGroup>

@@ -304,6 +304,15 @@
     <ClInclude Include="tests\MergeFaceIDs.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\PopupColorsFromKits.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\FifaBadgesToFifam.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\WritePlayersAndStaff.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">
