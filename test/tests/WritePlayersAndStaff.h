@@ -22,6 +22,7 @@ public:
         FifamWriter writer(L"players_and_staff.txt");
         if (writer.Available()) {
             writer.WriteLineWithSeparator(L'\t',
+                L"Person",
                 L"Country",
                 L"Club",
                 L"Creator",
@@ -66,6 +67,7 @@ public:
                         league = clubLeague[p->mClub]->mLeagueLevel + 1;
                 }
                 writer.WriteLineWithSeparator(L'\t',
+                    L"Player",
                     country,
                     club,
                     p->mCreator,
@@ -116,6 +118,7 @@ public:
                 else
                     level = p->GetStaffLevel();
                 writer.WriteLineWithSeparator(L'\t',
+                    L"Staff",
                     country,
                     club,
                     p->mCreator,

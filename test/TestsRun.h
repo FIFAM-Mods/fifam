@@ -94,5 +94,5 @@
 #include "tests\WritePlayersAndStaff.h"
 
 void RunTests() {
-    RunTest<DbGraphicsStats>();
+    RunTest<AssignPlayerFaces>();
 }

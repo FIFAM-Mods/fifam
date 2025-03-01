@@ -5,10 +5,10 @@
 #include "FifamNames.h"
 #include "FifamCompLeague.h"
 
-#define BADGES 0
-#define PORTRAITS_FMZ 0
+#define BADGES 1
+#define PORTRAITS_FMZ 1
 #define PORTRAITS_SORTITOUTSI 1
-#define PORTRAITS_XXL 0
+#define PORTRAITS_XXL 1
 
 class DbGraphicsStats {
 public:
@@ -49,7 +49,7 @@ public:
         }
 
         Vector<Path> badgesClubPathClean = {
-            R"(D:\Projects\fifam\content\fm13\fmz_badges\badges\badges\clubs\256x256)",
+            R"(D:\Projects\fifam\content\fm13\fmz_badges\badges\clubs\256x256)",
             //R"(C:\Users\Dmitri\Desktop\FM 24 update 1\_UPDATE_BADGES_1\badges\clubs\256x256)",
             //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_BADGES_1\badges\clubs\256x256)",
         };

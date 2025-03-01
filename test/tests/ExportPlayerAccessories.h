@@ -100,13 +100,13 @@ public:
         FifaDatabase::m_firstSupportedGameVersion = FifaDatabase::m_lastSupportedGameVersion;
         FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
         FifamDatabase::mReadingOptions.mUseCustomFormations = true;
-        FifamDatabase db(13, "D:\\Games\\FIFA Manager 22\\database");
+        FifamDatabase db(13, "D:\\Games\\FIFA Manager 24\\database");
         Map<UInt, Vector<FifamPlayer *>> fifaIds;
         for (FifamPlayer *p : db.mPlayers) {
             if (p->mFifaID != 0)
                 fifaIds[p->mFifaID].push_back(p);
         }
-        FifamWriter writer(L"D:\\Games\\FIFA Manager 22\\plugins\\ucp\\player_accessories.csv", 14, FifamVersion());
+        FifamWriter writer(L"D:\\Games\\FIFA Manager 24\\plugins\\ucp\\player_accessories.csv", 14, FifamVersion());
         writer.WriteLine(L"playerfifaid,comment,jerseystyle,sleeves,socks,acc1,acccolor1,acc2,acccolor2,acc3,acccolor3,acc4,acccolor4");
         if (writer.Available()) {
             fifadb->ForAllPlayers([&](FifaPlayer &p) {
@@ -118,13 +118,13 @@ public:
         else
             ::Error(L"Unable to open output file");
 
-        FifamWriter writer2(L"D:\\Games\\FIFA Manager 22\\plugins\\ucp\\player_shoes.csv", 14, FifamVersion());
+        FifamWriter writer2(L"D:\\Games\\FIFA Manager 24\\plugins\\ucp\\player_shoes.csv", 14, FifamVersion());
         writer2.WriteLine(L"playerfifaid,shoeid,comment");
         if (writer2.Available()) {
             fifadb->ForAllPlayers([&](FifaPlayer &p) {
                 if (Utils::Contains(fifaIds, p.GetId())) {
                     UChar shoeid = p.internal.shoetypecode;
-                    if (shoeid != 0 && exists(Path(L"D:\\Games\\FIFA Manager 22\\data\\assets") / Utils::Format(L"t20__%d.fsh", shoeid)))
+                    if (shoeid != 0 && exists(Path(L"D:\\Games\\FIFA Manager 24\\data\\assets\\shoes") / Utils::Format(L"t20__%d.fsh", shoeid)))
                         writer2.WriteLine(p.GetId(), shoeid, Quoted(p.m_quickName));
                 }
             });
