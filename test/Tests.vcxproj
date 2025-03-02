@@ -116,6 +116,7 @@
     <ClInclude Include="tests\CopyPortraitsLight.h" />
     <ClInclude Include="tests\CopyPortraitsNoID.h" />
     <ClInclude Include="tests\CopyPortraitsWC.h" />
+    <ClInclude Include="tests\CopyTeamColors.h" />
     <ClInclude Include="tests\CopyTeamKits.h" />
     <ClInclude Include="tests\CreateStarheadsFile.h" />
     <ClInclude Include="tests\CreateWorldCupDatabase.h" />

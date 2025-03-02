@@ -92,7 +92,8 @@
 #include "tests\PopupColorsFromKits.h"
 #include "tests\FifaBadgesToFifam.h"
 #include "tests\WritePlayersAndStaff.h"
+#include "tests\CopyTeamColors.h"
 
 void RunTests() {
-    RunTest<AssignPlayerFaces>();
+    RunTest<CopyTeamColors>();
 }
