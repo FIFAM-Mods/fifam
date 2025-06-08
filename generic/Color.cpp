@@ -8,10 +8,20 @@ Color::Color(unsigned char red, unsigned char green, unsigned char blue) {
     Set(red, green, blue);
 }
 
+Color::Color(unsigned int intValue) {
+    Set(intValue);
+}
+
 void Color::Set(unsigned char red, unsigned char green, unsigned char blue) {
     r = red;
     g = green;
     b = blue;
+}
+
+void Color::Set(unsigned int intValue) {
+    r = (intValue >> 16) & 0xFF;
+    g = (intValue >> 8) & 0xFF;
+    b = intValue & 0xFF;
 }
 
 double Color::Distance(Color const &e1, Color const &e2) {
@@ -90,6 +100,10 @@ std::wstring Color::ToHexStr() const {
 
 std::string Color::ToHexStrA() const {
     return Utils::Format("#%02X%02X%02X", r, g, b);
+}
+
+unsigned int Color::ToInt() const {
+    return 0xFF000000 | (r << 16) | (g << 8) | b;
 }
 
 bool operator<(::Color const &a, ::Color const &b) {

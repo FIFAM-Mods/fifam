@@ -89,11 +89,11 @@ public:
 
     void DumpEAMailText() {
         Map<UInt, String> keys;
-        ReadTranslationHuf(LR"(D:\Games\FIFA Manager 24\fmdata\eng\Translations.csv)", keys);
-        FifamReader r(LR"(D:\Games\FIFA Manager 24\fmdata\EAMailText.txt)");
+        ReadTranslationHuf(LR"(D:\Games\FIFA Manager 25\fmdata\eng\Translations.csv)", keys);
+        FifamReader r(LR"(D:\Games\FIFA Manager 25\fmdata\EAMailText.txt)");
         r.SkipLines(2);
         UInt count = r.ReadLine<UInt>();
-        FifamWriter w(LR"(D:\Games\FIFA Manager 24\fmdata\EAMailText_dump.txt)", 14, FifamVersion());
+        FifamWriter w(LR"(D:\Games\FIFA Manager 25\fmdata\EAMailText_dump.txt)", 14, FifamVersion());
         w.SetReplaceQuotes(false);
         w.WriteLine(L"id\ttype\tu3\tflags\tu5\tu6\tu7\tu8\tprobability\tu10\tl1\tl2\tl3\tl4\tl5\tl6\tl7\tl8\td11\td12\td13\td14\td15\td16\td21\td22\td23\td24\td25\td26\td31\td32\td33\td34\td35\td36\ttitle\ttext\tremark\talt1\talt2\talt3\tanswer1\tanswer2\tanswer3\t");
         auto Append = [&w](auto value) {
@@ -136,12 +136,12 @@ public:
     }
 
     Translation() {
-        DumpEAMailText();
-        return;
+        //DumpEAMailText();
+        //return;
         Map<UInt, String> eng;
-        ReadTranslationHuf(LR"(D:\Games\FIFA Manager 24\fmdata\eng\Translations.csv)", eng);
+        ReadTranslationHuf(LR"(D:\Games\FIFA Manager 25\fmdata\eng\Translations.csv)", eng);
         std::wcout << L"Writing" << std::endl;
-        FifamWriter w(LR"(D:\Games\FIFA Manager 24\fmdata\eng\Translations_mail_en.csv)", 14, FifamVersion());
+        FifamWriter w(LR"(D:\Games\FIFA Manager 25\fmdata\eng\Translations_mail_en.csv)", 14, FifamVersion());
         w.SetReplaceQuotes(false);
         for (UInt i = 0; i < 5000; i++) {
             WriteTranslation(w, eng, Utils::Format(L"IDS_EA_MAIL_TITLE_%d", i));

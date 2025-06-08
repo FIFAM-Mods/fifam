@@ -7,7 +7,9 @@ struct Color {
     unsigned char r, g, b;
     Color();
     Color(unsigned char red, unsigned char green, unsigned char blue);
+    Color(unsigned int intValue);
     void Set(unsigned char red, unsigned char green, unsigned char blue);
+    void Set(unsigned int intValue);
     static double Distance(Color const &e1, Color const &e2);
     Color &operator=(Color const &rhs);
     bool operator== (Color const &rhs) const;
@@ -18,6 +20,7 @@ struct Color {
     std::wstring ToHexStr() const;
     std::string ToStrA() const;
     std::string ToHexStrA() const;
+    unsigned int ToInt() const;
 };
 
 bool operator<(::Color const &a, ::Color const &b);
