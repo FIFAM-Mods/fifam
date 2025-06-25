@@ -1001,7 +1001,7 @@ class AssignPlayerFaces {
 public:
     AssignPlayerFaces() {
         Set<UInt> faceIDs;
-        FifamReader r(R"(D:\Games\FIFA Manager 24\fmdata\eng\FaceIDs.txt)", 14, false, false);
+        FifamReader r(R"(D:\Games\FIFA Manager 25\fmdata\eng\FaceIDs.txt)", 14, false, false);
         UInt count = r.ReadLine<UInt>();
         for (UInt i = 0; i < count; i++) {
             r.SkipLine();

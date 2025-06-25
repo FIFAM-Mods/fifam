@@ -204,9 +204,8 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
                 withoutReader.ReadVersion();
             if (withoutReader.ReadStartIndex(L"WITHOUT")) {
                 UInt numPlayers = withoutReader.ReadLine<UInt>();
-                UInt nextFreeId = GetNextFreePersonID();
                 for (UInt i = 0; i < numPlayers; i++)
-                    CreatePlayer(nullptr, nextFreeId++)->Read(withoutReader);
+                    CreatePlayer(nullptr, GetNextFreePersonID())->Read(withoutReader);
                 withoutReader.ReadEndIndex(L"WITHOUT");
             }
             withoutReader.Close();
@@ -320,6 +319,7 @@ void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &
         historicPath.clear();
     Bool unicode = gameId >= 8;
 
+    RecalculatePersonIDs();
     SetupWriteableStatus(gameId);
 
     //WriteNamesFile(dbPath / L"MaleNames.txt", gameId, mMaleNames);
@@ -775,12 +775,9 @@ void FifamDatabase::AddClubToMap(FifamClub *club) {
 
 FifamPlayer *FifamDatabase::CreatePlayer(FifamClub *club, UInt id) {
     FifamPlayer *player = new FifamPlayer;
-    player->mID = id;
+    player->mID = Utils::Contains(mPersonsMap, id) ? GetNextFreePersonID() : id;
     mPlayers.insert(player);
-    auto it = mPersonsMap.find(id);
-    if (it != mPersonsMap.end())
-        Error(L"FifamDatabase::CreatePlayer: ID is already in use (%d)", id);
-    mPersonsMap[id] = player;
+    mPersonsMap[player->mID] = player;
     if (club)
         club->mPlayers.push_back(player);
     player->mClub = club;
@@ -789,12 +786,9 @@ FifamPlayer *FifamDatabase::CreatePlayer(FifamClub *club, UInt id) {
 
 FifamStaff *FifamDatabase::CreateStaff(FifamClub *club, UInt id) {
     FifamStaff *staff = new FifamStaff;
-    staff->mID = id;
+    staff->mID = Utils::Contains(mPersonsMap, id) ? GetNextFreePersonID() : id;
     mStaffs.insert(staff);
-    auto it = mPersonsMap.find(id);
-    if (it != mPersonsMap.end())
-        Error(L"FifamDatabase::CreateStaff: ID is already in use (%d)", id);
-    mPersonsMap[id] = staff;
+    mPersonsMap[staff->mID] = staff;
     if (club)
         club->mStaffs.push_back(staff);
     staff->mClub = club;
@@ -1318,4 +1312,14 @@ FifamVersion FifamDatabase::GetGameDbVersion(UInt gameId) {
 
 Bool FifamDatabase::IsUnicodeUsedInGameVersion(UInt gameId) {
     return gameId >= 8;
+}
+
+void FifamDatabase::RecalculatePersonIDs() {
+    auto oldMap = mPersonsMap;
+    mPersonsMap.clear();
+    UInt newId = 1;
+    for (auto &[oldId, p] : oldMap) {
+        p->mID = newId;
+        mPersonsMap[newId++] = p;
+    }
 }

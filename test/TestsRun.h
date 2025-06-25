@@ -95,5 +95,5 @@
 #include "tests\CopyTeamColors.h"
 
 void RunTests() {
-    RunTest<GenerateKitConfig>();
+    RunTest<CompareDB>();
 }

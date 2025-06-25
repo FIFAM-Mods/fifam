@@ -166,9 +166,8 @@ Bool FifamCountry::Read(FifamReader &reader) {
             if (reader.IsVersionGreaterOrEqual(0x2009, 0x05)) {
                 if (reader.ReadStartIndex(L"STAFFS")) {
                     UInt numStaffs = reader.ReadLine<UInt>();
-                    UInt nextFreeId = mDatabase->GetNextFreePersonID();
                     for (UInt i = 0; i < numStaffs; i++) {
-                        FifamStaff *staff = mDatabase->CreateStaff(nullptr, nextFreeId++);
+                        FifamStaff *staff = mDatabase->CreateStaff(nullptr, mDatabase->GetNextFreePersonID());
                         staff->ReadWorker(reader);
                         if (reader.IsVersionGreaterOrEqual(0x2013, 0x0E))
                             reader.ReadLine(staff->mCreator);
@@ -184,9 +183,8 @@ Bool FifamCountry::Read(FifamReader &reader) {
         if (FifamDatabase::mReadingOptions.mReadPersons) {
             if (reader.ReadStartIndex(L"ADDMANAGER")) {
                 UInt numStaffs = reader.ReadLine<UInt>();
-                UInt nextFreeId = mDatabase->GetNextFreePersonID();
                 for (UInt i = 0; i < numStaffs; i++) {
-                    FifamStaff *staff = mDatabase->CreateStaff(nullptr, nextFreeId++);
+                    FifamStaff *staff = mDatabase->CreateStaff(nullptr, mDatabase->GetNextFreePersonID());
                     if (reader.IsVersionGreaterOrEqual(0x2009, 0x05))
                         staff->Read(reader);
                     else

@@ -114,4 +114,5 @@ public:
     FifamCountry *GetCountry(Int countryId);
     void ReadPlayerRelations(Path const &filepath, UInt gameId, Map<String, Vector<FifamPlayer *>> const &playerStrIDsMap);
     void WritePlayerRelations(Path const &filepath, UInt gameId);
+    void RecalculatePersonIDs();
 };

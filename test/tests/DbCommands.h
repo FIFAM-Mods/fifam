@@ -403,21 +403,6 @@ public:
             }
         }
 
-        if ((db->mPlayers.size() + db->mStaffs.size()) != numPersons) {
-            db->mPersonsMap.clear();
-            UInt id = 1;
-            for (auto p : db->mPlayers) {
-                p->mID = id;
-                db->mPersonsMap[id] = p;
-                id++;
-            }
-            for (auto s : db->mStaffs) {
-                s->mID = id;
-                db->mPersonsMap[id] = s;
-                id++;
-            }
-        }
-
         db->mWritingOptions.mWriteAssessment = false;
         db->mWritingOptions.mWriteFixtures = false;
         db->mWritingOptions.mWriteExternalScripts = false;

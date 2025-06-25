@@ -67,8 +67,8 @@ public:
         if (it == keys.end() || (*it).second.empty())
             return;
         String t = (*it).second;
-        Utils::Replace(t, L"\"", L"\"\"");
-        w.WriteLine(k, Quoted(t));
+        //Utils::Replace(t, L"\"", L"\"\"");
+        w.WriteLineWithSeparator(L'\t', k, t);
     };
 
     void ExtractCityDescs() {
@@ -141,7 +141,7 @@ public:
         Map<UInt, String> eng;
         ReadTranslationHuf(LR"(D:\Games\FIFA Manager 25\fmdata\eng\Translations.csv)", eng);
         std::wcout << L"Writing" << std::endl;
-        FifamWriter w(LR"(D:\Games\FIFA Manager 25\fmdata\eng\Translations_mail_en.csv)", 14, FifamVersion());
+        FifamWriter w(LR"(D:\Games\FIFA Manager 25\fmdata\eng\Translations_mail_en.tsv)", 14, FifamVersion());
         w.SetReplaceQuotes(false);
         for (UInt i = 0; i < 5000; i++) {
             WriteTranslation(w, eng, Utils::Format(L"IDS_EA_MAIL_TITLE_%d", i));
