@@ -111,6 +111,7 @@
     <ClInclude Include="tests\CalendarDatabase.h" />
     <ClInclude Include="tests\ClubNames.h" />
     <ClInclude Include="tests\CompareDB.h" />
+    <ClInclude Include="tests\CopyHistoric.h" />
     <ClInclude Include="tests\CopyPlayers.h" />
     <ClInclude Include="tests\CopyPortraitsFromPreviousPatch.h" />
     <ClInclude Include="tests\CopyPortraitsLight.h" />

@@ -93,7 +93,8 @@
 #include "tests\FifaBadgesToFifam.h"
 #include "tests\WritePlayersAndStaff.h"
 #include "tests\CopyTeamColors.h"
+#include "tests\CopyHistoric.h"
 
 void RunTests() {
-    RunTest<CompareDB>();
+    RunTest<CopyHistoric>();
 }
