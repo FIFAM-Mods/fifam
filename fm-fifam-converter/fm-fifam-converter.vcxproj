@@ -1,10 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Release_Qt|Win32">
-      <Configuration>Release_Qt</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Release|Win32">
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
@@ -24,13 +20,6 @@
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Qt|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
@@ -39,17 +28,10 @@
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
-  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release_Qt|Win32'" Label="PropertySheets">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IntDir>$(SolutionDir)output\obj\$(ProjectName)\$(Configuration)\</IntDir>
     <OutDir>D:\Projects\fifam\output\converters\</OutDir>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release_Qt|Win32'">
-    <IntDir>$(SolutionDir)output\obj\$(ProjectName)\$(Configuration)\</IntDir>
-    <OutDir>$(SolutionDir)output\converters\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -72,26 +54,6 @@
       <AdditionalDependencies>CORE_RL_bzlib_.lib;CORE_RL_cairo_.lib;CORE_RL_coders_.lib;CORE_RL_croco_.lib;CORE_RL_exr_.lib;CORE_RL_ffi_.lib;CORE_RL_filters_.lib;CORE_RL_flif_.lib;CORE_RL_freetype_.lib;CORE_RL_glib_.lib;CORE_RL_jp2_.lib;CORE_RL_jpeg_.lib;CORE_RL_lcms_.lib;CORE_RL_libde265_.lib;CORE_RL_libheif_.lib;CORE_RL_liblzma_.lib;CORE_RL_libraw_.lib;CORE_RL_librsvg_.lib;CORE_RL_libxml_.lib;CORE_RL_lqr_.lib;CORE_RL_Magick++_.lib;CORE_RL_MagickCore_.lib;CORE_RL_MagickWand_.lib;CORE_RL_openjpeg_.lib;CORE_RL_pango_.lib;CORE_RL_pixman_.lib;CORE_RL_png_.lib;CORE_RL_tiff_.lib;CORE_RL_webp_.lib;CORE_RL_zlib_.lib;ImageMagickObject.lib;generic.lib;fmapi.lib;foom_db.lib;fifaapi.lib;fifa07api.lib;Urlmon.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
       <GenerateDebugInformation>false</GenerateDebugInformation>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release_Qt|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>Disabled</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)generic;$(SolutionDir)fmapi;$(SolutionDir)foom_db;$(SolutionDir)fifaapi;C:\Program Files (x86)\ImageMagick-7.0.10-Q8\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-    </ClCompile>
-    <Link>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(SolutionDir)output\libs;D:\Projects\ImageMagick-Windows\VisualMagick\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>CORE_RL_bzlib_.lib;CORE_RL_cairo_.lib;CORE_RL_coders_.lib;CORE_RL_croco_.lib;CORE_RL_exr_.lib;CORE_RL_ffi_.lib;CORE_RL_filters_.lib;CORE_RL_flif_.lib;CORE_RL_freetype_.lib;CORE_RL_glib_.lib;CORE_RL_jp2_.lib;CORE_RL_jpeg_.lib;CORE_RL_lcms_.lib;CORE_RL_libde265_.lib;CORE_RL_libheif_.lib;CORE_RL_liblzma_.lib;CORE_RL_libraw_.lib;CORE_RL_librsvg_.lib;CORE_RL_libxml_.lib;CORE_RL_lqr_.lib;CORE_RL_Magick++_.lib;CORE_RL_MagickCore_.lib;CORE_RL_MagickWand_.lib;CORE_RL_openjpeg_.lib;CORE_RL_pango_.lib;CORE_RL_pixman_.lib;CORE_RL_png_.lib;CORE_RL_tiff_.lib;CORE_RL_webp_.lib;CORE_RL_zlib_.lib;ImageMagickObject.lib;generic.lib;fmapi.lib;foom_db.lib;fifaapi.lib;fifa07api.lib;Urlmon.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

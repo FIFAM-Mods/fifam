@@ -319,6 +319,9 @@
     <ClInclude Include="tests\CopyHistoric.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\FindLargestUIDIndex.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

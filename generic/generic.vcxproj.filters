@@ -10,6 +10,7 @@
     <ClCompile Include="Hexadecimal.cpp" />
     <ClCompile Include="OptionalInt.cpp" />
     <ClCompile Include="ProgressBar.cpp" />
+    <ClCompile Include="TextFileTable.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Date.h" />
@@ -22,5 +23,6 @@
     <ClInclude Include="Hexadecimal.h" />
     <ClInclude Include="OptionalInt.h" />
     <ClInclude Include="ProgressBar.h" />
+    <ClInclude Include="TextFileTable.h" />
   </ItemGroup>
 </Project>

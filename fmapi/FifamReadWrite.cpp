@@ -422,7 +422,7 @@ void FifamReader::Open(Path const &filename, UInt gameId, Bool linesWithComments
                 }
             }
             else if (!inComment) {
-                if (data[i] == L';' && (i == 0 || linesWithComments)) {
+                if (data[i] == L';' && linesWithComments) {
                     if (!currentLine.empty()) {
                         mLines.push_back(currentLine);
                         currentLine.clear();
@@ -433,7 +433,7 @@ void FifamReader::Open(Path const &filename, UInt gameId, Bool linesWithComments
                     currentLine += data[i];
             }
         }
-        if (!inComment)
+        if (!currentLine.empty())
             mLines.push_back(currentLine);
         delete[] data;
     }
@@ -469,7 +469,7 @@ void FifamReader::Open(String *inputString, UInt gameId, Bool linesWithComments,
             }
         }
         else if (!inComment) {
-            if ((*inputString)[i] == L';' && (i == 0 || linesWithComments)) {
+            if ((*inputString)[i] == L';' && linesWithComments) {
                 if (!currentLine.empty()) {
                     mLines.push_back(currentLine);
                     currentLine.clear();
@@ -480,7 +480,7 @@ void FifamReader::Open(String *inputString, UInt gameId, Bool linesWithComments,
                 currentLine += (*inputString)[i];
         }
     }
-    if (!inComment)
+    if (!currentLine.empty())
         mLines.push_back(currentLine);
 }
 
