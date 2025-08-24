@@ -32,7 +32,10 @@ namespace Utils {
     public:
         template<typename T> static T const &Arg(T const &arg) { return arg; }
         static char const *Arg(std::string const &arg) { return arg.c_str(); }
-        static char const *Arg(std::filesystem::path const &arg) { return arg.string().c_str(); }
+        static char const *Arg(std::filesystem::path const &arg) {
+            static auto str = arg.string();
+            return str.c_str();
+        }
     };
 
     template<typename ...ArgTypes>
