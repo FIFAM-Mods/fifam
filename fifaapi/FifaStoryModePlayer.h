@@ -161,6 +161,15 @@ public:
         int eyedetail = 0;
         int skincomplexion = 0;
         int undershortstyle = 0;
+        // @since FC26
+        int role4 = 0;
+        int role5 = 0;
+        int preferredposition5 = 0;
+        int preferredposition6 = 0;
+        int preferredposition7 = 0;
+        int facepsdlayer0 = 0;
+        int facepsdlayer1 = 0;
+        int sockstylecode = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

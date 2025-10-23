@@ -162,6 +162,16 @@ public:
         int cksupport1 = 0;
         int cksupport2 = 0;
         int cksupport3 = 0;
+        // @since FC26
+        int cornerflagpolecolor = 0;
+        int cksupport4 = 0;
+        int cksupport5 = 0;
+        int cksupport6 = 0;
+        int cksupport7 = 0;
+        int cksupport8 = 0;
+        int cksupport9 = 0;
+        int throwerleft = 0;
+        int throwerright = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

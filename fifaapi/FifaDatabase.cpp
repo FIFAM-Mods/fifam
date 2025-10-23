@@ -4,7 +4,7 @@
 #include "Utils.h"
 
 unsigned int FifaDatabase::m_firstSupportedGameVersion = 11;
-unsigned int FifaDatabase::m_lastSupportedGameVersion = 25;
+unsigned int FifaDatabase::m_lastSupportedGameVersion = 26;
 unsigned int FifaDatabase::m_currentGameVersion = m_lastSupportedGameVersion;
 
 FifaDatabase::FifaDatabase(std::filesystem::path const &path, bool readFut) {
@@ -346,7 +346,7 @@ FifaDatabase::FifaDatabase(std::filesystem::path const &path, bool readFut) {
         for (FifaDataFile::Line line; file.NextLine(line); ) {
             std::wstring stadiumname;
             int stadiumid, teamid, forcedhome, swapcrowdplacement;
-            line >> stadiumname >> swapcrowdplacement >> stadiumid >> teamid >> forcedhome;
+            line >> swapcrowdplacement >> stadiumid >> teamid >> forcedhome;
             if (teamid) {
                 FifaStadium *stadium = nullptr;
                 FifaTeam *stadiumTeam = GetTeam(teamid);

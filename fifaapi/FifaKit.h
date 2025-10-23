@@ -82,6 +82,11 @@ public:
         int jerseynameoutlinecolorg = 0;
         int jerseynameoutlinecolorb = 0;
         int jerseynameoutlinewidth = 0;
+        // @since FC26
+        int isgeneric = 0;
+        int jerseytemplateindex = 0;
+        int shortstemplateindex = 0;
+        int sockstemplateindex = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

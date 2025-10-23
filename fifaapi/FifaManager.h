@@ -64,6 +64,15 @@ public:
         int skinmakeup = 0;
         int eyedetail = 0;
         int skincomplexion = 0;
+        // @since FC26
+        int starrating = 0;
+        int facepsdlayer0 = 0;
+        int facepsdlayer1 = 0;
+        int isrewardable = 0;
+        int trait1vweak = 0;
+        int trait1vequal = 0;
+        int trait1vstrong = 0;
+        int islicensed = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;

@@ -130,6 +130,8 @@ public:
         int hasdroneshots = 0;
         // @since FC25
         int enhancedcrowdcardsupport = 0;
+        // @since FC26
+        int goalnetstanchiontype = 0;
 
         void Read(FifaDataFile::Line &line);
     } internal;
