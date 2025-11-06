@@ -24,13 +24,15 @@ struct nation : public team {
     Int mRankingPoints = 0;
     Int mYouthRating = 0;
     Float mEuroCoeff11 = 0;
+    nation *mNationalTeamMen = 0;
+    nation *mNationalTeamWomen = 0;
 
-    struct language {
+    struct nation_language {
         language *mLanguage = 0;
         Int mPercentage = 0;
     };
 
-    Vector<language> mVecLanguages;
+    Vector<nation_language> mVecLanguages;
 
     struct region_transfer_preference {
         region *mRegion = 0;

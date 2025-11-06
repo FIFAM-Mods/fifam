@@ -52,7 +52,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="binary_read_write.h" />
     <ClInclude Include="foom_basic.h" />
     <ClInclude Include="foom_city.h" />
     <ClInclude Include="foom_club.h" />
@@ -62,6 +61,7 @@
     <ClInclude Include="foom_injury.h" />
     <ClInclude Include="foom_kit.h" />
     <ClInclude Include="foom_language.h" />
+    <ClInclude Include="foom_local_region.h" />
     <ClInclude Include="foom_nation.h" />
     <ClInclude Include="foom_non_player.h" />
     <ClInclude Include="foom_official.h" />
@@ -70,7 +70,6 @@
     <ClInclude Include="foom_region.h" />
     <ClInclude Include="foom_stadium.h" />
     <ClInclude Include="foom_stage_name.h" />
-    <ClInclude Include="db_map.h" />
     <ClInclude Include="foom_team.h" />
   </ItemGroup>
   <ItemGroup>

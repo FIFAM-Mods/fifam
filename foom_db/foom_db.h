@@ -1,6 +1,6 @@
 #pragma once
 #include "FifamReadWrite.h"
-#include "db_map.h"
+#include "foom_basic.h"
 #include "foom_nation.h"
 #include "foom_comp.h"
 #include "foom_club.h"
@@ -14,11 +14,13 @@
 #include "foom_city.h"
 #include "foom_stadium.h"
 #include "foom_stage_name.h"
+#include "foom_local_region.h"
 
 namespace foom {
 
 struct db {
     Path mDbPath;
+    Bool mWomen = false;
     db_map<language> mLanguages;
     db_map<injury> mInjuries;
     db_map<stage_name> mStageNames;
@@ -32,6 +34,7 @@ struct db {
     db_map<player> mPlayers;
     db_map<non_player> mNonPlayers;
     db_map<official> mOfficials;
+    db_map<local_region> mLocalRegions;
 
     template<typename T> T *get(Int id) { return nullptr; }
     template<> nation *get<nation>(Int id) { return map_find_ptr(mNations, id); }
@@ -47,6 +50,7 @@ struct db {
     template<> player *get<player>(Int id) { return map_find_ptr(mPlayers, id); }
     template<> non_player *get<non_player>(Int id) { return map_find_ptr(mNonPlayers, id); }
     template<> official *get<official>(Int id) { return map_find_ptr(mOfficials, id); }
+    template<> local_region *get<local_region>(Int id) { return map_find_ptr(mLocalRegions, id); }
 
     static Int convert_money(Int value);
 
@@ -75,9 +79,10 @@ struct db {
 
     void ReaderCallback(String const &filename, Function<void(FifamReader &)> callback);
 
+    enum class db_gender { Men, Women };
     enum class db_size { Full, Average, Small, Tiny };
 
-    db(Path const &dbpath, bool readPersons = true, db_size playersCount = db_size::Full);
+    db(Path const &dbpath, db_gender gender, bool readPersons = true, db_size playersCount = db_size::Full);
 };
 
 }

@@ -1,11 +1,12 @@
 #pragma once
 #include "FifamTypes.h"
 #include "foom_person.h"
-#include "binary_read_write.h"
+#include "foom_local_region.h"
 
 namespace foom {
 
 struct injury;
+struct city;
 
 struct player : public person {
     Int mEthnicity = 0;
@@ -14,6 +15,7 @@ struct player : public person {
     Int mSkinTone = 0;
     Int mAgent = 0;
     Bool mDeclaredForNation = 0;
+    nation *mDeclaredForNationYouth = 0;
     Int mNationalityInfo = 0;
     Bool mInternationalRetirement = 0;
     Date mInternationalRetirementDate;
@@ -32,7 +34,7 @@ struct player : public person {
     Int mHomeReputation = 0;
     Int mWorldReputation = 0;
     Int mHeight = 0;
-    Int mWeight = 0;
+    Int mBodyType = 0;
     Int mLeftFoot = 0;
     Int mRightFoot = 0;
     Int mPosition = 0;
@@ -152,7 +154,12 @@ struct player : public person {
     Bool mCutsInsideFromRightWing = 0;
     Bool mCrossesEarly = 0;
     Bool mBringBallOutofDefence = 0;
-    Bool mIsBasque = 0;
+    Bool mEarliestDOB = 0;
+    Bool mWearsHijab = 0;
+    Bool mSlowRetirement = 0;
+    nation *mNationOfBirth = 0;
+    local_region *mRegionOfBirth = 0;
+    city *mCityOfBirth = 0;
 
     struct contract {
         club *mClub = 0;
@@ -252,10 +259,16 @@ struct player : public person {
 
     Vector<injury> mVecInjuries;
 
-    // TODO
-
     player() {
         mIsPlayer = true;
+    }
+
+    Bool IsBasque() {
+        return mRegionOfBirth &&
+            mRegionOfBirth->mID == 67249095 ||
+            mRegionOfBirth->mID == 67023591 ||
+            mRegionOfBirth->mID == 34015446 ||
+            mRegionOfBirth->mID == 67023592;
     }
 };
 

@@ -7,9 +7,12 @@ struct injury {
     Int mID = 0;
     String mName;
     String mSentenceName;
-    Int mCategory = 0;
+    Int mClassification = 0;
+    Int mSubClassification = 0;
     Int mMinimumDays = 0;
     Int mExtraDays = 0;
+    Int mMinimumDaysWomen = 0;
+    Int mExtraDaysWomen = 0;
     Int mInactiveRatio = 0;
     Float mOccuranceRatio = 0;
     Int mMatchInjuryPercentage = 0;

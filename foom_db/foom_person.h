@@ -1,7 +1,6 @@
 #pragma once
 #include "FifamTypes.h"
 #include "Date.h"
-#include "binary_read_write.h"
 
 namespace foom {
 

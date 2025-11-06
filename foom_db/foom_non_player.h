@@ -53,9 +53,7 @@ struct non_player : public person {
     Int mCoachingAttacking = 0;
     Int mCoachingDefending = 0;
     Int mCoachingFitness = 0;
-    Int mCoachingGKDistribution = 0;
-    Int mCoachingGKHandling = 0;
-    Int mCoachingGKShotStopping = 0;
+    Int mCoachingGoalkeeping = 0;
     Int mCoachingMental = 0;
     Int mCoachingTactical = 0;
     Int mCoachingTechnical = 0;
@@ -72,6 +70,8 @@ struct non_player : public person {
     Int mWillMakeEarlyTacticalChanges = 0;
     Int mWillFitPlayersIntoPreferredTactic = 0;
     Int mWillLookToPlayOutOfDefence = 0;
+    Int mSideOfGameWilling = 0;
+    Int mSideOfGameCurrent = 0;
 
     struct club_contract {
         club *mClub = 0;

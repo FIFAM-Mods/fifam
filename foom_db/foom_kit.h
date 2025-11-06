@@ -7,7 +7,7 @@ namespace foom {
 struct comp;
 
 struct kit {
-    Int mKit = 0; // home or away
+    Int mKit = 0; // home (0), away (1), gk (2), third (3), gk2 (4), gk3 (5)
     Int mType = 0; // kit part
     Int mKitStyle = 0;
     Int mBackOfShirtStyle = 0;

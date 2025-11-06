@@ -11,6 +11,7 @@ struct city;
 struct stadium;
 struct comp;
 struct player;
+struct local_region;
 
 struct club : public team {
     String mSixLetterName;
@@ -60,13 +61,35 @@ struct club : public team {
     Int mSupporterExpectations = 0;
     Bool mInstituteClub = 0;
     Int mScoutingSystem = 0;
+    Color mShirtForeground;
+    Color mShirtBackground;
+    Color mAwayShirtForeground;
+    Color mAwayShirtBackground;
+    local_region *mLocalRegion = 0;
 
     Bool mIsReserveDummyClub = false;
     Bool mIsReserveToCreateClub = false;
+    non_player *mReserveManager = 0;
 
     struct reserve_team {
         club *mReserveClub = 0;
         Int mReserveTeamType = 0;
+        Bool mDisabled = 0;
+        Bool mNewTeam = 0;
+        String mName;
+        String mShortName;
+        String m6LetterName;
+        Int mReputation = 0;
+        stadium *mStadium = 0;
+        Int mAttendance = 0;
+        Int mMinAttendance = 0;
+        Int mMaxAttendance = 0;
+        comp *mDivision = 0;
+        comp *mSecondaryDivision = 0;
+        comp *mLastDivision = 0;
+        Int mLastPosition = 0;
+        comp *mNextDivision = 0;
+        non_player *mManager = 0;
     };
 
     Vector<reserve_team> mVecReserveTeams;
@@ -74,6 +97,10 @@ struct club : public team {
     struct reserve_team_to_create {
         Int mReserveTeamType = 0;
         comp *mDivision = 0;
+        stadium *mStadium = 0;
+        Int mAttendance = 0;
+        Int mMinAttendance = 0;
+        Int mMaxAttendance = 0;
     };
 
     Vector<reserve_team_to_create> mVecReserveTeamsToCreate;
@@ -81,11 +108,13 @@ struct club : public team {
     struct affiliation {
         club *mAffiliatedClub = 0;
         Date mStartDate;
-        Date mEndDate;
         Int mAffiliationType = 0;
         Bool mIsMainClub = false;
         Bool mPlayersMoveFreely = false;
         Bool mSameBoard = false;
+        Int mReason = 0;
+        Bool mPermanent = false;
+        Bool mCannotPlayInSameDivision = false;
     };
 
     Vector<affiliation> mVecAffiliations;
@@ -94,6 +123,8 @@ struct club : public team {
         player *mPlayer = 0;
         club *mFromClub = 0;
         Int mBuyBackFee = 0;
+        Date mStartDate;
+        Date mEndDate;
     };
 
     Vector<buy_back_clause> mVecBuyBackClauses;
@@ -156,6 +187,7 @@ struct club : public team {
         nation *mFirstNation = 0;
         nation *mSecondNation = 0;
         Int mPercentage = 0;
+        Bool mIgnoreSecondNationalityForNames = 0;
     };
 
     Vector<nation_newgen_specification> mVecNationNewgenSpecifications;
@@ -176,6 +208,14 @@ struct club : public team {
     };
 
     Vector<vision> mVecVision;
+
+    struct retired_number {
+        player *mPlayer = 0;
+        Int mNumber = 0;
+        Int mReason = 0;
+    };
+
+    Vector<retired_number> mVecRetiredNumbers;
 
     struct converter_data {
         UInt mFIFAManagerID = 0;

@@ -17,10 +17,9 @@
     <ClInclude Include="foom_non_player.h" />
     <ClInclude Include="foom_person.h" />
     <ClInclude Include="foom_player.h" />
-    <ClInclude Include="db_map.h" />
     <ClInclude Include="foom_basic.h" />
     <ClInclude Include="foom_team.h" />
-    <ClInclude Include="binary_read_write.h" />
+    <ClInclude Include="foom_local_region.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="foom_db.cpp" />

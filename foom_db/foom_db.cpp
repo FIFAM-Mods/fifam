@@ -30,13 +30,16 @@ void foom::db::ReaderCallback(String const &filename, Function<void(FifamReader 
             pb.Step();
         }
     }
+    else
+        std::wcout << L"Can't read " << filename << std::endl;
 }
 
 #define MAP_SET_ENTITY_ATTR(entitymap, entityid, entityattr, value) auto ent = map_find_ptr(entitymap, entityid); if (ent) ent->entityattr = value
 #define MAP_ADD_ENTITY_ATTR(entitymap, entityid, entityattr, value) auto ent = map_find_ptr(entitymap, entityid); if (ent) ent->entityattr.push_back(value)
 
-foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
+foom::db::db(Path const &dbpath, db_gender gender, bool readPersons, db_size playersCount) {
     mDbPath = dbpath;
+    mWomen = gender == db_gender::Women;
     std::wcout << L"Reading foom database..." << std::endl;
     // read nations
     ReaderCallback(L"fm_nations", [&](FifamReader &reader) {
@@ -52,7 +55,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
     });
     ReaderCallback(L"fm_nation_languages", [&](FifamReader &reader) {
         Int nationID = -1;
-        nation::language l;
+        nation::nation_language l;
         reader.ReadLine(nationID, IntPtr(l.mLanguage), l.mPercentage);
         MAP_ADD_ENTITY_ATTR(mNations, nationID, mVecLanguages, l);
     });
@@ -100,8 +103,10 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
     // read clubs
     ReaderCallback(L"fm_clubs", [&](FifamReader &reader) {
         club c;
-        reader.ReadLine(c.mID, c.mGender, c.mName, c.mShortName, c.mSixLetterName, c.mThreeLetterName, c.mAlternativeThreeLetterName, c.mNickname, c.mExtinct, IntPtr(c.mNation), IntPtr(c.mBasedNation), IntPtr(c.mContinentalCupNation), IntPtr(c.mCity), c.mYearFounded, c.mStatus, c.mReputation, c.mLatitude, c.mLongitude, c.mChairmanTitle, c.mOwnershipType, IntPtr(c.mStadium), c.mAttendance, c.mMinimumAttendance, c.mMaximumAttendance, c.mTraining, c.mYouthCoaching, c.mYouthFacilities, c.mYouthRecruitment, c.mYouthImportance, c.mCorporateFacilities, c.mBalance, c.mTransferBudget, c.mSugarDaddy, c.mNumberOfSeasonTicketHolders, IntPtr(c.mDivision), IntPtr(c.mLastDivision), c.mLastPosition, IntPtr(c.mNextDivision), c.mLastPositionForNextDivision, IntPtr(c.mSecondaryDivision), c.mEuroCoeff1, c.mEuroCoeff2, c.mEuroCoeff3, c.mEuroCoeff4, c.mEuroCoeff5, c.mEuroCoeff6, c.mEuroCoeff7, c.mEuroCoeff8, c.mEuroCoeff9, c.mEuroCoeff10, c.mPreferredFormation, c.mSecondPreferredFormation, IntPtr(c.mRecordWinOpposition), c.mRecordWinTG, c.mRecordWinOG, c.mRecordWinYear, IntPtr(c.mRecordDefeatOpposition), c.mRecordDefeatTG, c.mRecordDefeatOG, c.mRecordDefeatYear, IntPtr(c.mRecordAttendanceOpposition), c.mRecordAttendance, c.mRecordAttendanceYear, IntPtr(c.mCaptain), IntPtr(c.mViceCaptain), c.mBadge, c.mForegroundColor.r, c.mForegroundColor.g, c.mForegroundColor.b, c.mBackgroundColor.r, c.mBackgroundColor.g, c.mBackgroundColor.b, c.mSupporterExpectations, c.mInstituteClub, c.mScoutingSystem);
-        mClubs[c.mID] = c;
+        Bool isNation;
+        reader.ReadLine(c.mID, isNation, c.mGender, c.mName, c.mShortName, c.mSixLetterName, c.mThreeLetterName, c.mAlternativeThreeLetterName, c.mNickname, c.mExtinct, IntPtr(c.mNation), IntPtr(c.mBasedNation), IntPtr(c.mContinentalCupNation), IntPtr(c.mCity), c.mYearFounded, c.mStatus, c.mReputation, c.mLatitude, c.mLongitude, c.mChairmanTitle, c.mOwnershipType, IntPtr(c.mStadium), c.mAttendance, c.mMinimumAttendance, c.mMaximumAttendance, c.mTraining, c.mYouthCoaching, c.mYouthFacilities, c.mYouthRecruitment, c.mYouthImportance, c.mCorporateFacilities, c.mBalance, c.mTransferBudget, c.mSugarDaddy, c.mNumberOfSeasonTicketHolders, IntPtr(c.mDivision), IntPtr(c.mLastDivision), c.mLastPosition, IntPtr(c.mNextDivision), c.mLastPositionForNextDivision, IntPtr(c.mSecondaryDivision), c.mEuroCoeff1, c.mEuroCoeff2, c.mEuroCoeff3, c.mEuroCoeff4, c.mEuroCoeff5, c.mEuroCoeff6, c.mEuroCoeff7, c.mEuroCoeff8, c.mEuroCoeff9, c.mEuroCoeff10, c.mPreferredFormation, c.mSecondPreferredFormation, IntPtr(c.mRecordWinOpposition), c.mRecordWinTG, c.mRecordWinOG, c.mRecordWinYear, IntPtr(c.mRecordDefeatOpposition), c.mRecordDefeatTG, c.mRecordDefeatOG, c.mRecordDefeatYear, IntPtr(c.mRecordAttendanceOpposition), c.mRecordAttendance, c.mRecordAttendanceYear, IntPtr(c.mCaptain), IntPtr(c.mViceCaptain), c.mBadge, c.mForegroundColor.r, c.mForegroundColor.g, c.mForegroundColor.b, c.mBackgroundColor.r, c.mBackgroundColor.g, c.mBackgroundColor.b, c.mSupporterExpectations, c.mInstituteClub, c.mScoutingSystem, c.mShirtForeground.r, c.mShirtForeground.g, c.mShirtForeground.b, c.mShirtBackground.r, c.mShirtBackground.g, c.mShirtBackground.b, c.mAwayShirtForeground.r, c.mAwayShirtForeground.g, c.mAwayShirtForeground.b, c.mAwayShirtBackground.r, c.mAwayShirtBackground.g, c.mAwayShirtBackground.b, IntPtr(c.mLocalRegion));
+        if ((Bool)c.mGender == mWomen)
+            mClubs[c.mID] = c;
     });
     ReaderCallback(L"fm_club_kits", [&](FifamReader &reader) {
         Int clubID = -1;
@@ -124,16 +129,30 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
     ReaderCallback(L"fm_club_reserve_teams", [&](FifamReader &reader) {
         Int clubID = -1;
         club::reserve_team r;
-        reader.ReadLine(clubID, IntPtr(r.mReserveClub), r.mReserveTeamType);
+        reader.ReadLine(clubID, IntPtr(r.mReserveClub), r.mReserveTeamType, r.mDisabled, r.mNewTeam, r.mName, r.mShortName, r.m6LetterName, r.mReputation, IntPtr(r.mStadium), r.mAttendance, r.mMinAttendance, r.mMaxAttendance, IntPtr(r.mDivision), IntPtr(r.mSecondaryDivision), IntPtr(r.mLastDivision), r.mLastPosition, IntPtr(r.mNextDivision), IntPtr(r.mManager));
         auto c = get<club>(clubID);
         if (c) {
             c->mVecReserveTeams.push_back(r);
-            if ((Int)r.mReserveClub != -1) {
+            if ((Int)r.mReserveClub != -1 && !r.mDisabled) {
                 club *reserveClub = get<club>((Int)r.mReserveClub);
                 if (!reserveClub) {
                     club rc;
                     rc.mID = (Int)r.mReserveClub;
                     rc.mIsReserveDummyClub = true;
+                    rc.mName = r.mName;
+                    rc.mShortName = r.mShortName;
+                    rc.mSixLetterName = r.m6LetterName;
+                    rc.mReputation = r.mReputation;
+                    rc.mStadium = r.mStadium;
+                    rc.mAttendance = r.mAttendance;
+                    rc.mMinimumAttendance = r.mMinAttendance;
+                    rc.mMaximumAttendance = r.mMaxAttendance;
+                    rc.mDivision = r.mDivision;
+                    rc.mSecondaryDivision = r.mSecondaryDivision;
+                    rc.mLastDivision = r.mLastDivision;
+                    rc.mLastPosition = r.mLastPosition;
+                    rc.mNextDivision = r.mNextDivision;
+                    rc.mReserveManager = r.mManager;
                     mClubs[rc.mID] = rc;
                 }
             }
@@ -142,13 +161,13 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
     ReaderCallback(L"fm_club_reserve_teams_to_create", [&](FifamReader &reader) {
         Int clubID = -1;
         club::reserve_team_to_create r;
-        reader.ReadLine(clubID, r.mReserveTeamType, IntPtr(r.mDivision));
+        reader.ReadLine(clubID, r.mReserveTeamType, IntPtr(r.mDivision), IntPtr(r.mStadium), r.mAttendance, r.mMinAttendance, r.mMaxAttendance);
         MAP_ADD_ENTITY_ATTR(mClubs, clubID, mVecReserveTeamsToCreate, r);
     });
     ReaderCallback(L"fm_club_affiliations", [&](FifamReader &reader) {
         Int clubID = -1;
         club::affiliation a;
-        reader.ReadLine(clubID, IntPtr(a.mAffiliatedClub), a.mIsMainClub, a.mStartDate, a.mEndDate, a.mAffiliationType, a.mPlayersMoveFreely, a.mSameBoard);
+        reader.ReadLine(clubID, IntPtr(a.mAffiliatedClub), a.mIsMainClub, a.mReason, a.mStartDate, a.mAffiliationType, a.mPlayersMoveFreely, a.mSameBoard, a.mPermanent, a.mCannotPlayInSameDivision);
         MAP_ADD_ENTITY_ATTR(mClubs, clubID, mVecAffiliations, a);
     });
     ReaderCallback(L"fm_club_rival_clubs", [&](FifamReader &reader) {
@@ -166,7 +185,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
     ReaderCallback(L"fm_club_buy_back_clauses", [&](FifamReader &reader) {
         Int clubID = -1;
         club::buy_back_clause b;
-        reader.ReadLine(clubID, IntPtr(b.mPlayer), IntPtr(b.mFromClub), b.mBuyBackFee);
+        reader.ReadLine(clubID, IntPtr(b.mPlayer), IntPtr(b.mFromClub), b.mBuyBackFee, b.mStartDate, b.mEndDate);
         MAP_ADD_ENTITY_ATTR(mClubs, clubID, mVecBuyBackClauses, b);
     });
     ReaderCallback(L"fm_club_nation_transfer_preferences", [&](FifamReader &reader) {
@@ -178,7 +197,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
     ReaderCallback(L"fm_club_nation_newgen_specifications", [&](FifamReader &reader) {
         Int clubID = -1;
         club::nation_newgen_specification s;
-        reader.ReadLine(clubID, IntPtr(s.mFirstNation), IntPtr(s.mSecondNation), s.mPercentage);
+        reader.ReadLine(clubID, IntPtr(s.mFirstNation), IntPtr(s.mSecondNation), s.mPercentage, s.mIgnoreSecondNationalityForNames);
         MAP_ADD_ENTITY_ATTR(mClubs, clubID, mVecNationNewgenSpecifications, s);
     });
     ReaderCallback(L"fm_club_new_clubs", [&](FifamReader &reader) {
@@ -192,6 +211,12 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
         club::vision v;
         reader.ReadLine(clubID, v.mType, v.mImportance, v.mStartYear, v.mEndYear, v.mMaxAge, v.mMinLength, v.mIsOngoing, IntPtr(v.mCompetition), IntPtr(v.mNation), v.mWorldRepClassification);
         MAP_ADD_ENTITY_ATTR(mClubs, clubID, mVecVision, v);
+    });
+    ReaderCallback(L"fm_club_retired_numbers", [&](FifamReader &reader) {
+        Int clubID = -1;
+        club::retired_number n;
+        reader.ReadLine(clubID, IntPtr(n.mPlayer), n.mNumber, n.mReason);
+        MAP_ADD_ENTITY_ATTR(mClubs, clubID, mVecRetiredNumbers, n);
     });
     if (readPersons) {
         // read players
@@ -207,10 +232,10 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
         ReaderCallback(playersFile, [&](FifamReader &reader) {
             player p;
             if (playersCount == db_size::Full)
-                reader.ReadLine(p.mID, p.mFirstName, p.mSecondName, p.mCommonName, p.mFullName, p.mGender, p.mEthnicity, p.mHairColour, p.mHairLength, p.mSkinTone, p.mDateOfBirth, IntPtr(p.mNation), IntPtr(p.mLanguage), p.mAgent, p.mDeclaredForNation, p.mNationalityInfo, p.mInternationalRetirement, p.mInternationalRetirementDate, p.mInternationalApps, p.mInternationalGoals, p.mAdaptability, p.mAmbition, p.mControversy, p.mLoyalty, p.mPressure, p.mProfessionalism, p.mSportsmanship, p.mTemperament, p.mShirtName, p.mCurrentAbility, p.mRecommendedCurrentAbility, p.mPotentialAbility, p.mPerceivedPotentialAbility, p.mPeakCA, p.mPeakPA, p.mOriginalCA, p.mOriginalPA, p.mCurrentReputation, p.mHomeReputation, p.mWorldReputation, p.mHeight, p.mWeight, p.mLeftFoot, p.mRightFoot, p.mPosition, p.mGoalkeeper, p.mDefenderLeft, p.mDefenderCentral, p.mDefenderRight, p.mDefensiveMidfielder, p.mWingBackLeft, p.mWingBackRight, p.mMidfielderLeft, p.mMidfielderCentral, p.mMidfielderRight, p.mAttackingMidfielderLeft, p.mAttackingMidfielderCentral, p.mAttackingMidfielderRight, p.mStriker, p.mAggression, p.mAnticipation, p.mBravery, p.mComposure, p.mConcentration, p.mConsistency, p.mVision, p.mDecisions, p.mDetermination, p.mDirtiness, p.mFlair, p.mImportantMatches, p.mLeadership, p.mMovement, p.mPositioning, p.mTeamWork, p.mWorkRate, p.mAcceleration, p.mAgility, p.mBalance, p.mInjuryProneness, p.mJumpingReach, p.mNaturalFitness, p.mPace, p.mStamina, p.mStrength, p.mCorners, p.mCrossing, p.mDribbling, p.mFinishing, p.mFirstTouch, p.mFreeKicks, p.mHeading, p.mLongShots, p.mLongThrows, p.mMarking, p.mPassing, p.mPenaltyTaking, p.mTackling, p.mTechnique, p.mVersatility, p.mAerialAbility, p.mCommandOfArea, p.mCommunication, p.mEccentricity, p.mHandling, p.mKicking, p.mOneOnOnes, p.mReflexes, p.mRushingOut, p.mTendencyToPunch, p.mThrowing, p.mRunsWithBallDownLeft, p.mRunsWithBallDownRight, p.mRunsWithBallThroughTheCentre, p.mGetsIntoOppositionArea, p.mMovesIntoChannels, p.mGetsForwardWheneverPossible, p.mPlaysShortSimplePasses, p.mTriesKillerBallsOften, p.mShootsFromDistance, p.mShootsWithPower, p.mPlacesShots, p.mCurlsBall, p.mLikesToRoundKeeper, p.mLikesToTryToBreakOffsideTrap, p.mArguesWithOfficials, p.mLikesToLobKeeper, p.mPlaysNoThroughBalls, p.mDwellsOnBall, p.mArrivesLateInOppositionArea, p.mTriesToPlayWayOutOfTrouble, p.mStaysBackAtAllTimes, p.mDivesIntoTackles, p.mDoesNotDiveIntoTackles, p.mHitsFreekicksWithPower, p.mRunsWithBallOften, p.mRunsWithBallRarely, p.mAvoidsUsingWeakerFoot, p.mTriesLongRangeFreeKicks, p.mCutsInsideFromBothWings, p.mPlaysOneTwos, p.mDictatesTempo, p.mAttemptsOverheadKicks, p.mKnocksBallPastOpponent, p.mTriesLongRangePasses, p.mLikesToSwitchBallToOtherFlank, p.mComesDeepToGetBall, p.mHugsLine, p.mLooksForPassRatherThanAttemptingToScore, p.mMarksOpponentTightly, p.mPlaysWithBackToGoal, p.mPossessesLongFlatThrow, p.mStopsPlay, p.mTriesFirstTimeShots, p.mUsesLongThrowToStartCounterAttacks, p.mRefrainsFromTakingLongShots, p.mPenaltyBoxPlayer, p.mCutsInsideFromLeftWing, p.mCutsInsideFromRightWing, p.mCrossesEarly, p.mBringBallOutofDefence, p.mIsBasque);
+                reader.ReadLine(p.mID, p.mFirstName, p.mSecondName, p.mCommonName, p.mFullName, p.mGender, p.mEthnicity, p.mHairColour, p.mHairLength, p.mSkinTone, p.mDateOfBirth, p.mEarliestDOB, IntPtr(p.mNation), IntPtr(p.mLanguage), p.mAgent, p.mDeclaredForNation, IntPtr(p.mDeclaredForNationYouth), p.mNationalityInfo, p.mInternationalRetirement, p.mInternationalRetirementDate, p.mInternationalApps, p.mInternationalGoals, p.mAdaptability, p.mAmbition, p.mControversy, p.mLoyalty, p.mPressure, p.mProfessionalism, p.mSportsmanship, p.mTemperament, p.mShirtName, p.mCurrentAbility, p.mRecommendedCurrentAbility, p.mPotentialAbility, p.mPerceivedPotentialAbility, p.mPeakCA, p.mPeakPA, p.mOriginalCA, p.mOriginalPA, p.mCurrentReputation, p.mHomeReputation, p.mWorldReputation, p.mHeight, p.mBodyType, p.mLeftFoot, p.mRightFoot, p.mPosition, p.mGoalkeeper, p.mDefenderLeft, p.mDefenderCentral, p.mDefenderRight, p.mDefensiveMidfielder, p.mWingBackLeft, p.mWingBackRight, p.mMidfielderLeft, p.mMidfielderCentral, p.mMidfielderRight, p.mAttackingMidfielderLeft, p.mAttackingMidfielderCentral, p.mAttackingMidfielderRight, p.mStriker, p.mAggression, p.mAnticipation, p.mBravery, p.mComposure, p.mConcentration, p.mConsistency, p.mVision, p.mDecisions, p.mDetermination, p.mDirtiness, p.mFlair, p.mImportantMatches, p.mLeadership, p.mMovement, p.mPositioning, p.mTeamWork, p.mWorkRate, p.mAcceleration, p.mAgility, p.mBalance, p.mInjuryProneness, p.mJumpingReach, p.mNaturalFitness, p.mPace, p.mStamina, p.mStrength, p.mCorners, p.mCrossing, p.mDribbling, p.mFinishing, p.mFirstTouch, p.mFreeKicks, p.mHeading, p.mLongShots, p.mLongThrows, p.mMarking, p.mPassing, p.mPenaltyTaking, p.mTackling, p.mTechnique, p.mVersatility, p.mAerialAbility, p.mCommandOfArea, p.mCommunication, p.mEccentricity, p.mHandling, p.mKicking, p.mOneOnOnes, p.mReflexes, p.mRushingOut, p.mTendencyToPunch, p.mThrowing, p.mRunsWithBallDownLeft, p.mRunsWithBallDownRight, p.mRunsWithBallThroughTheCentre, p.mGetsIntoOppositionArea, p.mMovesIntoChannels, p.mGetsForwardWheneverPossible, p.mPlaysShortSimplePasses, p.mTriesKillerBallsOften, p.mShootsFromDistance, p.mShootsWithPower, p.mPlacesShots, p.mCurlsBall, p.mLikesToRoundKeeper, p.mLikesToTryToBreakOffsideTrap, p.mArguesWithOfficials, p.mLikesToLobKeeper, p.mPlaysNoThroughBalls, p.mDwellsOnBall, p.mArrivesLateInOppositionArea, p.mTriesToPlayWayOutOfTrouble, p.mStaysBackAtAllTimes, p.mDivesIntoTackles, p.mDoesNotDiveIntoTackles, p.mHitsFreekicksWithPower, p.mRunsWithBallOften, p.mRunsWithBallRarely, p.mAvoidsUsingWeakerFoot, p.mTriesLongRangeFreeKicks, p.mCutsInsideFromBothWings, p.mPlaysOneTwos, p.mDictatesTempo, p.mAttemptsOverheadKicks, p.mKnocksBallPastOpponent, p.mTriesLongRangePasses, p.mLikesToSwitchBallToOtherFlank, p.mComesDeepToGetBall, p.mHugsLine, p.mLooksForPassRatherThanAttemptingToScore, p.mMarksOpponentTightly, p.mPlaysWithBackToGoal, p.mPossessesLongFlatThrow, p.mStopsPlay, p.mTriesFirstTimeShots, p.mUsesLongThrowToStartCounterAttacks, p.mRefrainsFromTakingLongShots, p.mPenaltyBoxPlayer, p.mCutsInsideFromLeftWing, p.mCutsInsideFromRightWing, p.mCrossesEarly, p.mBringBallOutofDefence, IntPtr(p.mNationOfBirth), IntPtr(p.mRegionOfBirth), IntPtr(p.mCityOfBirth), p.mWearsHijab, p.mSlowRetirement);
             else
-                reader.ReadLineWithSeparator(L'\t', p.mID, p.mFirstName, p.mSecondName, p.mCommonName, p.mFullName, p.mGender, p.mEthnicity, p.mHairColour, p.mHairLength, p.mSkinTone, p.mDateOfBirth, IntPtr(p.mNation), IntPtr(p.mLanguage), p.mAgent, p.mDeclaredForNation, p.mNationalityInfo, p.mInternationalRetirement, p.mInternationalRetirementDate, p.mInternationalApps, p.mInternationalGoals, p.mAdaptability, p.mAmbition, p.mControversy, p.mLoyalty, p.mPressure, p.mProfessionalism, p.mSportsmanship, p.mTemperament, p.mShirtName, p.mCurrentAbility, p.mRecommendedCurrentAbility, p.mPotentialAbility, p.mPerceivedPotentialAbility, p.mPeakCA, p.mPeakPA, p.mOriginalCA, p.mOriginalPA, p.mCurrentReputation, p.mHomeReputation, p.mWorldReputation, p.mHeight, p.mWeight, p.mLeftFoot, p.mRightFoot, p.mPosition, p.mGoalkeeper, p.mDefenderLeft, p.mDefenderCentral, p.mDefenderRight, p.mDefensiveMidfielder, p.mWingBackLeft, p.mWingBackRight, p.mMidfielderLeft, p.mMidfielderCentral, p.mMidfielderRight, p.mAttackingMidfielderLeft, p.mAttackingMidfielderCentral, p.mAttackingMidfielderRight, p.mStriker, p.mAggression, p.mAnticipation, p.mBravery, p.mComposure, p.mConcentration, p.mConsistency, p.mVision, p.mDecisions, p.mDetermination, p.mDirtiness, p.mFlair, p.mImportantMatches, p.mLeadership, p.mMovement, p.mPositioning, p.mTeamWork, p.mWorkRate, p.mAcceleration, p.mAgility, p.mBalance, p.mInjuryProneness, p.mJumpingReach, p.mNaturalFitness, p.mPace, p.mStamina, p.mStrength, p.mCorners, p.mCrossing, p.mDribbling, p.mFinishing, p.mFirstTouch, p.mFreeKicks, p.mHeading, p.mLongShots, p.mLongThrows, p.mMarking, p.mPassing, p.mPenaltyTaking, p.mTackling, p.mTechnique, p.mVersatility, p.mAerialAbility, p.mCommandOfArea, p.mCommunication, p.mEccentricity, p.mHandling, p.mKicking, p.mOneOnOnes, p.mReflexes, p.mRushingOut, p.mTendencyToPunch, p.mThrowing, p.mRunsWithBallDownLeft, p.mRunsWithBallDownRight, p.mRunsWithBallThroughTheCentre, p.mGetsIntoOppositionArea, p.mMovesIntoChannels, p.mGetsForwardWheneverPossible, p.mPlaysShortSimplePasses, p.mTriesKillerBallsOften, p.mShootsFromDistance, p.mShootsWithPower, p.mPlacesShots, p.mCurlsBall, p.mLikesToRoundKeeper, p.mLikesToTryToBreakOffsideTrap, p.mArguesWithOfficials, p.mLikesToLobKeeper, p.mPlaysNoThroughBalls, p.mDwellsOnBall, p.mArrivesLateInOppositionArea, p.mTriesToPlayWayOutOfTrouble, p.mStaysBackAtAllTimes, p.mDivesIntoTackles, p.mDoesNotDiveIntoTackles, p.mHitsFreekicksWithPower, p.mRunsWithBallOften, p.mRunsWithBallRarely, p.mAvoidsUsingWeakerFoot, p.mTriesLongRangeFreeKicks, p.mCutsInsideFromBothWings, p.mPlaysOneTwos, p.mDictatesTempo, p.mAttemptsOverheadKicks, p.mKnocksBallPastOpponent, p.mTriesLongRangePasses, p.mLikesToSwitchBallToOtherFlank, p.mComesDeepToGetBall, p.mHugsLine, p.mLooksForPassRatherThanAttemptingToScore, p.mMarksOpponentTightly, p.mPlaysWithBackToGoal, p.mPossessesLongFlatThrow, p.mStopsPlay, p.mTriesFirstTimeShots, p.mUsesLongThrowToStartCounterAttacks, p.mRefrainsFromTakingLongShots, p.mPenaltyBoxPlayer, p.mCutsInsideFromLeftWing, p.mCutsInsideFromRightWing, p.mCrossesEarly, p.mBringBallOutofDefence, p.mIsBasque);
-            if (p.mOriginalCA > 0) // skip unknown players
+                reader.ReadLineWithSeparator(L'\t', p.mID, p.mFirstName, p.mSecondName, p.mCommonName, p.mFullName, p.mGender, p.mEthnicity, p.mHairColour, p.mHairLength, p.mSkinTone, p.mDateOfBirth, p.mEarliestDOB, IntPtr(p.mNation), IntPtr(p.mLanguage), p.mAgent, p.mDeclaredForNation, IntPtr(p.mDeclaredForNationYouth), p.mNationalityInfo, p.mInternationalRetirement, p.mInternationalRetirementDate, p.mInternationalApps, p.mInternationalGoals, p.mAdaptability, p.mAmbition, p.mControversy, p.mLoyalty, p.mPressure, p.mProfessionalism, p.mSportsmanship, p.mTemperament, p.mShirtName, p.mCurrentAbility, p.mRecommendedCurrentAbility, p.mPotentialAbility, p.mPerceivedPotentialAbility, p.mPeakCA, p.mPeakPA, p.mOriginalCA, p.mOriginalPA, p.mCurrentReputation, p.mHomeReputation, p.mWorldReputation, p.mHeight, p.mBodyType, p.mLeftFoot, p.mRightFoot, p.mPosition, p.mGoalkeeper, p.mDefenderLeft, p.mDefenderCentral, p.mDefenderRight, p.mDefensiveMidfielder, p.mWingBackLeft, p.mWingBackRight, p.mMidfielderLeft, p.mMidfielderCentral, p.mMidfielderRight, p.mAttackingMidfielderLeft, p.mAttackingMidfielderCentral, p.mAttackingMidfielderRight, p.mStriker, p.mAggression, p.mAnticipation, p.mBravery, p.mComposure, p.mConcentration, p.mConsistency, p.mVision, p.mDecisions, p.mDetermination, p.mDirtiness, p.mFlair, p.mImportantMatches, p.mLeadership, p.mMovement, p.mPositioning, p.mTeamWork, p.mWorkRate, p.mAcceleration, p.mAgility, p.mBalance, p.mInjuryProneness, p.mJumpingReach, p.mNaturalFitness, p.mPace, p.mStamina, p.mStrength, p.mCorners, p.mCrossing, p.mDribbling, p.mFinishing, p.mFirstTouch, p.mFreeKicks, p.mHeading, p.mLongShots, p.mLongThrows, p.mMarking, p.mPassing, p.mPenaltyTaking, p.mTackling, p.mTechnique, p.mVersatility, p.mAerialAbility, p.mCommandOfArea, p.mCommunication, p.mEccentricity, p.mHandling, p.mKicking, p.mOneOnOnes, p.mReflexes, p.mRushingOut, p.mTendencyToPunch, p.mThrowing, p.mRunsWithBallDownLeft, p.mRunsWithBallDownRight, p.mRunsWithBallThroughTheCentre, p.mGetsIntoOppositionArea, p.mMovesIntoChannels, p.mGetsForwardWheneverPossible, p.mPlaysShortSimplePasses, p.mTriesKillerBallsOften, p.mShootsFromDistance, p.mShootsWithPower, p.mPlacesShots, p.mCurlsBall, p.mLikesToRoundKeeper, p.mLikesToTryToBreakOffsideTrap, p.mArguesWithOfficials, p.mLikesToLobKeeper, p.mPlaysNoThroughBalls, p.mDwellsOnBall, p.mArrivesLateInOppositionArea, p.mTriesToPlayWayOutOfTrouble, p.mStaysBackAtAllTimes, p.mDivesIntoTackles, p.mDoesNotDiveIntoTackles, p.mHitsFreekicksWithPower, p.mRunsWithBallOften, p.mRunsWithBallRarely, p.mAvoidsUsingWeakerFoot, p.mTriesLongRangeFreeKicks, p.mCutsInsideFromBothWings, p.mPlaysOneTwos, p.mDictatesTempo, p.mAttemptsOverheadKicks, p.mKnocksBallPastOpponent, p.mTriesLongRangePasses, p.mLikesToSwitchBallToOtherFlank, p.mComesDeepToGetBall, p.mHugsLine, p.mLooksForPassRatherThanAttemptingToScore, p.mMarksOpponentTightly, p.mPlaysWithBackToGoal, p.mPossessesLongFlatThrow, p.mStopsPlay, p.mTriesFirstTimeShots, p.mUsesLongThrowToStartCounterAttacks, p.mRefrainsFromTakingLongShots, p.mPenaltyBoxPlayer, p.mCutsInsideFromLeftWing, p.mCutsInsideFromRightWing, p.mCrossesEarly, p.mBringBallOutofDefence, IntPtr(p.mNationOfBirth), IntPtr(p.mRegionOfBirth), IntPtr(p.mCityOfBirth), p.mWearsHijab, p.mSlowRetirement);
+            if ((Bool)p.mGender == mWomen && p.mOriginalCA > 0) // skip unknown players
                 mPlayers[p.mID] = p;
         });
         ReaderCallback(L"fm_player_club_contracts", [&](FifamReader &reader) {
@@ -309,7 +334,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
         ReaderCallback(L"fm_non_players", [&](FifamReader &reader) {
             non_player n;
             String dummy; // TODO: remove this
-            reader.ReadLine(n.mID, n.mFirstName, n.mSecondName, n.mCommonName, n.mFullName, n.mGender, n.mDateOfBirth, IntPtr(n.mNation), IntPtr(n.mLanguage), n.mAdaptability, n.mAmbition, n.mControversy, n.mLoyalty, n.mPressure, n.mProfessionalism, n.mSportsmanship, n.mTemperament, n.mJobManager, n.mJobAssistantManager, n.mJobCoach, n.mJobFitnessCoach, n.mJobGkCoach, n.mJobPhysio, n.mJobScout, n.mJobDataAnalyst, n.mJobSportsScientist, n.mJobDirectorOfFootball, n.mJobHeadOfYouth, n.mJobChairman, n.mJobTechnicalDirector, n.mJobHeadOfPlayerDevelopment, n.mJobSetPieceCoach, n.mCurrentAbility, n.mPotentialAbility, n.mOriginalCA, n.mOriginalPA, n.mRecommendedCA, n.mRecommendedJobRole, n.mCurrentReputation, n.mWorldReputation, n.mHomeReputation, n.mPreferredFormation, n.mSecondPreferredFormation, n.mCoachingStyle, n.mAttacking, n.mDetermination, n.mTacticalKnowledge, n.mBuyingPlayers, n.mHardnessOfTraining, n.mJudgingPlayerAbility, n.mJudgingPlayerPotential, n.mAnalysingData, n.mLevelOfDiscipline, n.mManManagement, n.mMindGames, n.mMotivating, n.mVersatility, n.mSquadRotation, n.mWorkingWithYoungsters, n.mCoachingAttacking, n.mCoachingDefending, n.mCoachingFitness, n.mCoachingGKDistribution, n.mCoachingGKHandling, n.mCoachingGKShotStopping, n.mCoachingMental, n.mCoachingTactical, n.mCoachingTechnical, n.mCoachingSetPieces, n.mBusiness, n.mNegotiations, n.mInterference, n.mPatience, n.mResources, n.mPhysiotherapy, n.mSportsScience, n.mSignsALotOfYouthPlayers, n.mSignsYoungPlayersForTheFirstTeam, n.mWillMakeEarlyTacticalChanges, n.mWillFitPlayersIntoPreferredTactic, dummy, dummy, n.mWillLookToPlayOutOfDefence);
+            reader.ReadLine(n.mID, n.mFirstName, n.mSecondName, n.mCommonName, n.mFullName, n.mGender, n.mDateOfBirth, IntPtr(n.mNation), IntPtr(n.mLanguage), n.mAdaptability, n.mAmbition, n.mControversy, n.mLoyalty, n.mPressure, n.mProfessionalism, n.mSportsmanship, n.mTemperament, n.mJobManager, n.mJobAssistantManager, n.mJobCoach, n.mJobFitnessCoach, n.mJobGkCoach, n.mJobPhysio, n.mJobScout, n.mJobDataAnalyst, n.mJobSportsScientist, n.mJobDirectorOfFootball, n.mJobHeadOfYouth, n.mJobChairman, n.mJobTechnicalDirector, n.mJobHeadOfPlayerDevelopment, n.mJobSetPieceCoach, n.mCurrentAbility, n.mPotentialAbility, n.mOriginalCA, n.mOriginalPA, n.mRecommendedCA, n.mRecommendedJobRole, n.mCurrentReputation, n.mWorldReputation, n.mHomeReputation, n.mPreferredFormation, n.mSecondPreferredFormation, n.mCoachingStyle, n.mAttacking, n.mDetermination, n.mTacticalKnowledge, n.mBuyingPlayers, n.mHardnessOfTraining, n.mJudgingPlayerAbility, n.mJudgingPlayerPotential, n.mAnalysingData, n.mLevelOfDiscipline, n.mManManagement, n.mMindGames, n.mMotivating, n.mVersatility, n.mSquadRotation, n.mWorkingWithYoungsters, n.mCoachingAttacking, n.mCoachingDefending, n.mCoachingFitness, n.mCoachingGoalkeeping, n.mCoachingMental, n.mCoachingTactical, n.mCoachingTechnical, n.mCoachingSetPieces, n.mBusiness, n.mNegotiations, n.mInterference, n.mPatience, n.mResources, n.mPhysiotherapy, n.mSportsScience, n.mSignsALotOfYouthPlayers, n.mSignsYoungPlayersForTheFirstTeam, n.mWillMakeEarlyTacticalChanges, n.mWillFitPlayersIntoPreferredTactic, n.mWillLookToPlayOutOfDefence, n.mSideOfGameWilling, n.mSideOfGameCurrent);
             mNonPlayers[n.mID] = n;
         });
         ReaderCallback(L"fm_nonplayer_languages", [&](FifamReader &reader) {
@@ -364,7 +389,17 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
                 MAP_ADD_ENTITY_ATTR(mNonPlayers, nonplayerID, mDaysAtClubOrNation, d);
             }
         });
-
+        ReaderCallback(L"fm_non_player_side_of_game", [&](FifamReader &reader) {
+            Int nonplayerID = -1;
+            Int SideOfGameWilling = -1, SideOfGameCurrent = -1;
+            reader.ReadLine(nonplayerID, SideOfGameWilling, SideOfGameCurrent);
+            if (nonplayerID != -1 && SideOfGameWilling != -1) {
+                MAP_SET_ENTITY_ATTR(mNonPlayers, nonplayerID, mSideOfGameWilling, SideOfGameWilling);
+            }
+            if (nonplayerID != -1 && SideOfGameCurrent != -1) {
+                MAP_SET_ENTITY_ATTR(mNonPlayers, nonplayerID, mSideOfGameCurrent, SideOfGameCurrent);
+            }
+        });
     }
 
     // read officials
@@ -379,6 +414,28 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
         region r;
         reader.ReadLine(r.mID, r.mName);
         mRegions[r.mID] = r;
+    });
+    // read local regions
+    ReaderCallback(L"fm_local_regions", [&](FifamReader &reader) {
+        local_region r;
+        reader.ReadLine(r.mID, r.mName, IntPtr(r.mNation), r.mPopulation, r.mWeather);
+        mLocalRegions[r.mID] = r;
+    });
+    ReaderCallback(L"fm_local_region_cities", [&](FifamReader &reader) {
+        Int regionID = -1;
+        city *cityID = nullptr;
+        reader.ReadLine(regionID, IntPtr(cityID));
+        if (regionID != -1 && cityID != (city *)-1 && Utils::Contains(mCities, (Int)cityID)) {
+            MAP_ADD_ENTITY_ATTR(mLocalRegions, regionID, mVecCities, cityID);
+        }
+    });
+    ReaderCallback(L"fm_local_region_languages", [&](FifamReader &reader) {
+        Int regionID = -1;
+        local_region::local_region_language l;
+        reader.ReadLine(regionID, IntPtr(l.mLanguage), l.mPercentage);
+        if (regionID != -1 && l.mLanguage != (language *)-1 && Utils::Contains(mLanguages, (Int)l.mLanguage)) {
+            MAP_ADD_ENTITY_ATTR(mLocalRegions, regionID, mVecLanguages, l);
+        }
     });
     // read cities
     ReaderCallback(L"fm_cities", [&](FifamReader &reader) {
@@ -407,7 +464,7 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
     // read injuries
     ReaderCallback(L"fm_injuries", [&](FifamReader &reader) {
         injury i;
-        reader.ReadLine(i.mID, i.mName, i.mSentenceName, i.mCategory, i.mMinimumDays, i.mExtraDays, i.mInactiveRatio, i.mOccuranceRatio, i.mMatchInjuryPercentage, i.mGoalkeeperPercentage, i.mCentralDefenderPercentage, i.mRecurring, i.mContagious, i.mCause, i.mSeriousness, i.mAgeRule, i.mSeason, i.mTreatmentByPhysion, i.mTreatmentBySpecialist, i.mTreatmentByInjection, i.mTreatmentByIsolation, i.mAllowToPlayWithProtectiveEquipment);
+        reader.ReadLine(i.mID, i.mName, i.mSentenceName, i.mClassification, i.mSubClassification, i.mMinimumDays, i.mExtraDays, i.mMinimumDaysWomen, i.mExtraDaysWomen, i.mInactiveRatio, i.mOccuranceRatio, i.mMatchInjuryPercentage, i.mGoalkeeperPercentage, i.mCentralDefenderPercentage, i.mRecurring, i.mContagious, i.mCause, i.mSeriousness, i.mAgeRule, i.mSeason, i.mTreatmentByPhysion, i.mTreatmentBySpecialist, i.mTreatmentByInjection, i.mTreatmentByIsolation, i.mAllowToPlayWithProtectiveEquipment);
         mInjuries[i.mID] = i;
     });
     // read stage names
@@ -484,6 +541,8 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
         resolve(n.mNationalStadium);
         resolve(n.mCaptain);
         resolve(n.mViceCaptain);
+        resolve(n.mNationalTeamMen);
+        resolve(n.mNationalTeamWomen);
         for (auto &l : n.mVecLanguages)
             resolve(l.mLanguage);
         for (auto &r : n.mVecRegionTransferPreferences)
@@ -522,15 +581,25 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
         resolve(c.mRecordAttendanceOpposition);
         resolve(c.mCaptain);
         resolve(c.mViceCaptain);
+        resolve(c.mLocalRegion);
+        resolve(c.mReserveManager);
 
         for (auto &k : c.mVecKits)
             resolve(k.mCompetition);
         for (auto &h : c.mVecTeamLeagueHistory)
             resolve(h.mDivision);
-        for (auto &r : c.mVecReserveTeams)
+        for (auto &r : c.mVecReserveTeams) {
             resolve(r.mReserveClub);
-        for (auto &r : c.mVecReserveTeamsToCreate)
+            resolve(r.mStadium);
             resolve(r.mDivision);
+            resolve(r.mSecondaryDivision);
+            resolve(r.mNextDivision);
+            resolve(r.mManager);
+        }
+        for (auto &r : c.mVecReserveTeamsToCreate) {
+            resolve(r.mDivision);
+            resolve(r.mStadium);
+        }
         for (auto &a : c.mVecAffiliations)
             resolve(a.mAffiliatedClub);
         for (auto &r : c.mVecRivalClubs)
@@ -545,6 +614,8 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
             resolve(v.mCompetition);
             resolve(v.mNation);
         }
+        for (auto &n : c.mVecRetiredNumbers)
+            resolve(n.mPlayer);
     }
     for (auto &entry : mPlayers) {
         player &p = entry.second;
@@ -624,6 +695,14 @@ foom::db::db(Path const &dbpath, bool readPersons, db_size playersCount) {
     for (auto &entry : mLanguages) {
         language &l = entry.second;
         resolve(l.mNation);
+    }
+    for (auto &entry : mLocalRegions) {
+        local_region &r = entry.second;
+        resolve(r.mNation);
+        for (auto &c : r.mVecCities)
+            resolve(c);
+        for (auto &l : r.mVecLanguages)
+            resolve(l.mLanguage);
     }
 
     // swap rgb
