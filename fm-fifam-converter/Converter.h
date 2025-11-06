@@ -27,6 +27,7 @@ public:
     Bool mGenerateLeagueConfigFiles = true;
     Bool mGenerateSpecialScripts = true;
     Bool mQuickTest = false;
+    Bool mWomen = false;
     Bool mToFifa07Database = false;
 
     FifamDatabase *mPreviousDb = nullptr;

@@ -118,7 +118,158 @@ Int Converter::LinearConvertPlayerAttribute(Int attr, UInt gameId) {
     return Random::Get(fmRatingAry[originalAttr - 1].first, fmRatingAry[originalAttr - 1].second);
 }
 
-FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, FifamClub * club) {
+namespace weight_calculator {
+
+enum Ethnicity {
+    Ethnicity_Unknown = -1,
+    Ethnicity_Northern_European = 0,
+    Ethnicity_Mediterranean_or_Hispanic = 1,
+    Ethnicity_North_African_or_Middle_Eastern = 2,
+    Ethnicity_African_or_Caribbean = 3,
+    Ethnicity_Asian = 4,
+    Ethnicity_South_East_Asian = 5,
+    Ethnicity_Pacific_Islander = 6,
+    Ethnicity_Native_American = 7,
+    Ethnicity_Native_Australian = 8,
+    Ethnicity_Mixed_Race = 9,
+    Ethnicity_East_Asian = 10,
+};
+
+enum BodyType {
+    Body_Ectomorph = 1,
+    Body_EctoMesomorph = 2,
+    Body_Mesomorph = 3,
+    Body_MesoEndomorph = 4,
+    Body_Endomorph = 5
+};
+
+Double clamp_double(Double v, Double lo, Double hi) {
+    return Utils::Max(lo, Utils::Min(hi, v));
+}
+
+Int height_band_from_cm(Int cm) {
+    if (cm < 165) return 0;
+    if (cm < 175) return 1;
+    if (cm < 185) return 2;
+    if (cm < 195) return 3;
+    return 4;
+}
+
+Double age_bmi_offset(Int age) {
+    if (age <= 20) return -0.2;
+    if (age <= 24) return  0.0;
+    if (age <= 28) return  0.3;
+    if (age <= 32) return  0.6;
+    if (age <= 36) return  0.9;
+    return 1.2;
+}
+
+Double bodytype_bmi_offset(Int bt) {
+    switch (bt) {
+    case Body_Ectomorph:     return -2.5;
+    case Body_EctoMesomorph: return -1.0;
+    case Body_Mesomorph:     return  0.0;
+    case Body_MesoEndomorph: return  2.0;
+    case Body_Endomorph:     return  4.0;
+    default:                 return  0.0;
+    }
+}
+
+Double ethnicity_bmi_offset(Int e) {
+    switch (e) {
+    case Ethnicity_Northern_European:               return 0.0;
+    case Ethnicity_Mediterranean_or_Hispanic:       return 0.5;
+    case Ethnicity_North_African_or_Middle_Eastern: return 0.3;
+    case Ethnicity_African_or_Caribbean:            return -0.5;
+    case Ethnicity_Asian:                           return 1.0;
+    case Ethnicity_South_East_Asian:                return 0.8;
+    case Ethnicity_Pacific_Islander:                return -0.3;
+    case Ethnicity_Native_American:                 return 0.3;
+    case Ethnicity_Native_Australian:               return 0.5;
+    case Ethnicity_Mixed_Race:                      return 0.0;
+    case Ethnicity_East_Asian:                      return 1.0;
+    case Ethnicity_Unknown:
+    default:                                        return 0.0;
+    }
+}
+
+Double position_bmi_offset(FifamPlayerPosition pos) {
+    switch (pos.ToInt()) {
+    case FifamPlayerPosition::GK: return 0.6;
+    case FifamPlayerPosition::CB: return 0.4;
+    case FifamPlayerPosition::SW: return 0.4;
+    case FifamPlayerPosition::DM: return 0.2;
+    case FifamPlayerPosition::RB:
+    case FifamPlayerPosition::LB:
+    case FifamPlayerPosition::RWB:
+    case FifamPlayerPosition::LWB: return 0.0;
+    case FifamPlayerPosition::CF:
+    case FifamPlayerPosition::ST: return 0.2;
+    case FifamPlayerPosition::RW:
+    case FifamPlayerPosition::LW:
+    case FifamPlayerPosition::RM:
+    case FifamPlayerPosition::LM: return -0.3;
+    case FifamPlayerPosition::CM: return 0.0;
+    case FifamPlayerPosition::AM: return -0.1;
+    case FifamPlayerPosition::ANC: return 0.0;
+    case FifamPlayerPosition::None:
+    default: return 0.0;
+    }
+}
+
+struct KgRange { int min; int max; };
+
+const KgRange BASE_RANGES[5][6] = {
+    // band 0 (150-164)
+    { {0,0}, {50,62}, {56,68}, {58,70}, {65,78}, {72,86} },
+    // band 1 (165-174)
+    { {0,0}, {55,66}, {60,72}, {62,76}, {70,84}, {76,92} },
+    // band 2 (175-184)
+    { {0,0}, {60,72}, {66,78}, {68,82}, {76,92}, {84,100} },
+    // band 3 (185-194)
+    { {0,0}, {66,78}, {72,84}, {75,90}, {84,102}, {92,110} },
+    // band 4 (195-210)
+    { {0,0}, {72,86}, {80,94}, {82,98}, {92,112}, {100,120} }
+};
+
+int GuessWeightFromAttributes(Int body, Int age, Int ethnicity, Int height, Bool women, FifamPlayerPosition pos) {
+    Int h_cm = Utils::Max(140, Utils::Min(220, height));
+    Int a = Utils::Max(15, Utils::Min(50, age));
+    Int bt = Utils::Max(1, Utils::Min(5, body));
+    Double BMI_BASE = women ? 20.5 : 22.8;
+    Double d_bt = bodytype_bmi_offset(bt);
+    Double d_eth = ethnicity_bmi_offset(ethnicity);
+    Double d_age = age_bmi_offset(a);
+    Double d_pos = position_bmi_offset(pos);
+    Double bmi_target = BMI_BASE + d_bt + d_eth + d_age + d_pos;
+    bmi_target = clamp_double(bmi_target, 18.5, 30.0);
+    Double h_m = clamp_double(h_cm / 100.0, 1.40, 2.20);
+    Double raw_mass = bmi_target * (h_m * h_m);
+    Int band = height_band_from_cm(h_cm);
+    KgRange base = BASE_RANGES[band][static_cast<Int>(bt)];
+    Double S_eth = (std::abs(d_eth) >= 1.0) ? 0.03 : ((std::abs(d_eth) >= 0.4) ? 0.015 : 0.0);
+    Double S_age = (a <= 28) ? 0.0 : ((a <= 32) ? 0.02 : ((a <= 36) ? 0.035 : 0.05));
+    Double S = S_eth + S_age;
+    Int kg_min_adj, kg_max_adj;
+    if (d_eth < 0.0) {
+        kg_min_adj = static_cast<Int>(std::lround(base.min * (1.0 - S)));
+        kg_max_adj = static_cast<Int>(std::lround(base.max * (1.0 - S)));
+    }
+    else {
+        kg_min_adj = static_cast<Int>(std::lround(base.min * (1.0 + S)));
+        kg_max_adj = static_cast<Int>(std::lround(base.max * (1.0 + S)));
+    }
+    if (kg_max_adj - kg_min_adj < 2) kg_max_adj = kg_min_adj + 2;
+    Double clamped_mass = clamp_double(raw_mass, static_cast<Double>(kg_min_adj), static_cast<Double>(kg_max_adj));
+    Double min_w = women ? 45.0 : 55.0;
+    Double max_w = women ? 110.0 : 140.0;
+    clamped_mass = clamp_double(clamped_mass, min_w, max_w);
+    return static_cast<Int>(std::lround(clamped_mass));
+}
+
+}
+
+FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, FifamClub * club) {
     if (!p->mNation) {
         Error(L"Player without nation\nPlayerId: %d\nPlayerName: %s", p->mID, p->mFullName.c_str());
         return nullptr;
@@ -137,7 +288,7 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     }
     player->SetProperty(L"foom::player", p);
     player->mIsRealPlayer = true;
-    player->mIsBasque = p->mIsBasque;
+    player->mIsBasque = p->IsBasque();
 
     UInt age = player->GetAge(GetCurrentDate());
 
@@ -156,14 +307,7 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
     }
     else
         player->mHeight = Utils::Clamp(p->mHeight, 150, 220);
-    if (p->mWeight <= 0) {
-        if (playerCountry->mAverageWeight > 10)
-            player->mWeight = Utils::Clamp(playerCountry->mAverageWeight - 10 + Random::Get(0, 20), 50, 150);
-        else
-            player->mWeight = 70 + Random::Get(0, 10);
-    }
-    else
-        player->mWeight = Utils::Clamp(p->mWeight, 50, 150);
+
     UInt randomShoeType = Random::Get(1, 99);
     if (randomShoeType > 66)
         player->mShoeType = FifamShoeType::Blue;
@@ -1065,6 +1209,29 @@ FifamPlayer * Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, F
         }
         player->mPlayingStyle = bestStyle;
     }
+
+    // weight
+    UChar weight = 0;
+    // 1) get weight from FIFA
+    if (p->mConverterData.mFifaPlayerId > 0) {
+        FifaPlayer *fifaPlayer = mFifaDatabase->GetPlayer(p->mConverterData.mFifaPlayerId);
+        if (fifaPlayer)
+            weight = fifaPlayer->internal.weight;
+    }
+    // 2) get weight from previous version
+    if (weight == 0 && p->mConverterData.mWeight != 0)
+        weight = p->mConverterData.mWeight;
+    // 3) try to convert body type to weight
+    if (weight == 0)
+        weight = weight_calculator::GuessWeightFromAttributes(p->mBodyType, age, p->mEthnicity, player->mHeight, p->mGender, player->mMainPosition);
+    // 4) generate random weight
+    if (weight == 0) {
+        if (playerCountry->mAverageWeight > 10)
+            weight = playerCountry->mAverageWeight - 10 + Random::Get(0, 20);
+        else
+            weight = 70 + Random::Get(0, 10);
+    }
+    player->mWeight = Utils::Clamp(weight, 45, 150);
 
     // player history
     player->mNationalTeamMatches = p->mInternationalApps;

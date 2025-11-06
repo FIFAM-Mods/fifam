@@ -86,6 +86,8 @@ void Converter::Convert() {
     mErrors = GetIniInt(L"HIDE_ERRORS", 0) == 0;
 
     mToFifa07Database = GetIniInt(L"TO_FIFA_07_DATABASE", 0);
+
+    mWomen = GetIniInt(L"WOMEN", 0);
     
     Bool READ_FOOM_PERSONS = !mQuickTest;
     Bool MAKE_CORRECTIONS_FOR_UPDATE = !mQuickTest;
@@ -145,7 +147,8 @@ void Converter::Convert() {
 
     if (!mQuickTest || mFromFifaDatabase || mToFifa07Database)
         mFifaDatabase = new FifaDatabase(dbPath / L"fifa");
-    mFoomDatabase = new foom::db(dbPath / L"foom", fromFifaDatabase? false : READ_FOOM_PERSONS, foom::db::db_size::DB_SIZE);
+    mFoomDatabase = new foom::db(dbPath / L"foom", mWomen ? foom::db::db_gender::Women : foom::db::db_gender::Men,
+        fromFifaDatabase? false : READ_FOOM_PERSONS, foom::db::db_size::DB_SIZE);
 
     Path infoPath = dbPath;
 
@@ -260,7 +263,7 @@ void Converter::Convert() {
         // 24 - Extinct B or C Club
         for (auto &a : c.mVecAffiliations) {
             if (a.mAffiliatedClub && a.mIsMainClub) {
-                if (a.mStartDate <= GetCurrentDate() && (a.mEndDate == FmEmptyDate() || a.mEndDate > GetCurrentDate())) {
+                if (a.mStartDate <= GetCurrentDate()) {
                     foom::club *child = nullptr;
                     foom::club::converter_data::child_type childType;
                     if (a.mAffiliationType == 4 || a.mAffiliationType == 6 || a.mAffiliationType == 8) {
@@ -1441,7 +1444,12 @@ void Converter::Convert() {
     std::wcout << L"Creating spare managers/staff..." << std::endl;
     for (auto &entry : mFoomDatabase->mNonPlayers) {
         auto &p = entry.second;
-        if (IsConvertable(&p, gameId) && !p.mConverterData.mFifamPerson) {
+        Bool canWorkWithGender = false;
+        if (mWomen)
+            canWorkWithGender = p.mSideOfGameCurrent == 1 || p.mSideOfGameWilling == 2 || p.mSideOfGameWilling == 3;
+        else
+            canWorkWithGender = p.mSideOfGameCurrent != 1 && p.mSideOfGameWilling != 2;
+        if (canWorkWithGender && IsConvertable(&p, gameId) && !p.mConverterData.mFifamPerson) {
             if ((!p.mClubContract.mClub || SPARE_STAFF_FROM_CLUBS) && (!p.mNationContract.mNation || SPARE_STAFF_FROM_NTS) && p.mCurrentAbility >= (Int)MIN_SPARE_STAFF_CA) {
                 auto bestPosition = Utils::GetMaxElementId<Int, FifamClubStaffPosition>({
                     { p.mJobManager, FifamClubStaffPosition::Manager },

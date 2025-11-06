@@ -167,7 +167,7 @@ foom::db::db(Path const &dbpath, db_gender gender, bool readPersons, db_size pla
     ReaderCallback(L"fm_club_affiliations", [&](FifamReader &reader) {
         Int clubID = -1;
         club::affiliation a;
-        reader.ReadLine(clubID, IntPtr(a.mAffiliatedClub), a.mIsMainClub, a.mReason, a.mStartDate, a.mAffiliationType, a.mPlayersMoveFreely, a.mSameBoard, a.mPermanent, a.mCannotPlayInSameDivision);
+        reader.ReadLine(clubID, IntPtr(a.mAffiliatedClub), a.mIsMainClub, a.mStartDate, a.mEndDate, a.mAffiliationType, a.mPlayersMoveFreely, a.mSameBoard, a.mPermanent, a.mCannotPlayInSameDivision);
         MAP_ADD_ENTITY_ATTR(mClubs, clubID, mVecAffiliations, a);
     });
     ReaderCallback(L"fm_club_rival_clubs", [&](FifamReader &reader) {

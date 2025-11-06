@@ -1153,4 +1153,24 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
             }
         }
     }
+    {
+        std::wcout << L"Reading fm_player_weight.txt..." << std::endl;
+        FifamReader reader(infoPath / L"fm_player_weight.txt", 0);
+        if (reader.Available()) {
+            while (!reader.IsEof()) {
+                if (!reader.EmptyLine()) {
+                    Int playerId = -1;
+                    UChar weight = 0;
+                    reader.ReadLineWithSeparator(L'\t', playerId, weight);
+                    if (playerId != -1 && weight >= 50 && weight <= 120) {
+                        foom::player *p = mFoomDatabase->get<foom::player>(playerId);
+                        if (p)
+                            p->mConverterData.mWeight = weight;
+                    }
+                }
+                else
+                    reader.SkipLine();
+            }
+        }
+    }
 }

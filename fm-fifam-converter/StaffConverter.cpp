@@ -508,7 +508,7 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
     auto coachingSkillsPart = Utils::Clamp(ConvertStaffAttribute_100_15((coachingSkills[0] + coachingSkills[1] + coachingSkills[2]) / 3) / 2, 1, 7);
     staff->mManagerCoachingSkills = overallSkillPart + coachingSkillsPart;
 
-    auto gkSkillPart = Utils::GetMaxElement<Int>({ p->mCoachingGKDistribution, p->mCoachingGKHandling, p->mCoachingGKShotStopping });
+    auto gkSkillPart = p->mCoachingGoalkeeping;
     gkSkillPart = Utils::Clamp(ConvertStaffAttribute_100_15(gkSkillPart) / 2, 1, 7);
     staff->mManagerGoalkeepersTraining = overallSkillPart + gkSkillPart;
 
@@ -546,10 +546,7 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
             { p->mCoachingAttacking, p->mCoachingDefending, p->mCoachingMental, p->mCoachingTactical, p->mCoachingTechnical }, 2, true)
     );
 
-    staff->mSkills.GoalkeeperTraining = ConvertStaffAttribute(
-        BestFrom_Avg<Int>(
-            { p->mCoachingGKDistribution, p->mCoachingGKHandling, p->mCoachingGKShotStopping }, 3, true)
-    );
+    staff->mSkills.GoalkeeperTraining = ConvertStaffAttribute(p->mCoachingGoalkeeping);
 
     staff->mSkills.FitnessTraining = Utils::Clamp((Int)((Float)ConvertStaffAttribute(staffFitness) * (Float)staffCA * 1.1f / 100.0f), 1, 99);
     staff->mSkills.MotivationAbility = ConvertStaffAttribute(p->mMotivating);
