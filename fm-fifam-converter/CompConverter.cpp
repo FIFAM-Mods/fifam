@@ -166,9 +166,7 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
 
     // is valid country
     if (!country) {
-        if (mErrors) {
-            Error(L"Calendar generator: unknown country (ID %d)", countryId.ToInt());
-        }
+        Alert(AL_ERROR, L"Calendar generator: unknown country (ID %d)", countryId.ToInt());
         return false;
     }
 
@@ -547,9 +545,7 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
             Int endDate = l->GetProperty<Int>(L"endDate", 0);
 
             if ((endDate > 0 && endDate < startDate) || startDate > 365 || endDate > 365) {
-                if (mErrors) {
-                    Error(L"Incorrect startDate/endDate in league\nLeague: %s\nstartDate: %d\nendDate: %d", FifamTr(l->mName).c_str(), startDate, endDate);
-                }
+                Alert(AL_ERROR, L"Incorrect startDate/endDate in league\nLeague: %s\nstartDate: %d\nendDate: %d", FifamTr(l->mName).c_str(), startDate, endDate);
                 startDate = 0;
                 endDate = 0;
             }
@@ -629,10 +625,8 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
                 UInt requiredMatchdaysForSplit = (split.first && l->mLeagueLevel == 0) ? Utils::Max(split.first->GetNumMatchdays(), split.second->GetNumMatchdays()) : 0;
                 UInt requiredMatchdays = requiredMatchdaysForLeague + requiredMatchdaysForSplit;
                 if (availableMatchdays.size() < requiredMatchdays) {
-                    if (mErrors) {
-                        Error(L"Not enough available matches in calendar for league\nLeague: %s\nSeason: %d\nRequired matches: %d\nAvailable matches: %d",
-                            FifamTr(l->mName).c_str(), s + 1, requiredMatchdays, availableMatchdays.size());
-                    }
+                    Alert(AL_ERROR, L"Not enough available matches in calendar for league\nLeague: %s\nSeason: %d\nRequired matches: %d\nAvailable matches: %d",
+                        FifamTr(l->mName).c_str(), s + 1, requiredMatchdays, availableMatchdays.size());
                 }
                 else {
                     std::sort(availableMatchdays.begin(), availableMatchdays.end(), [](Pair<UInt, UInt> const &a, Pair<UInt, UInt> const &b) {
@@ -947,9 +941,7 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
             }
 
             if (matchdayIndex[s] < numMatchesForLeAndFaCups) {
-                if (mWarnings) {
-                    Message(Utils::Format(L"Too difficult calendar in %s (season %d)", FifamTr(country->mName).c_str(), s + 1));
-                }
+                Alert(AL_WARNING, L"Too difficult calendar in %s (season %d)", FifamTr(country->mName).c_str(), s + 1);
 
                 // phase 10 - add matches when possible
                 for (Int m = cupsStartMatchday2; m < cupsEndMatchday2; m += 3)
@@ -966,10 +958,8 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
                     availableMatchdays.emplace_back(cupcc[s][i], i);
             }
             if (availableMatchdays.size() < numMatchesForLeAndFaCups) {
-                if (mErrors) {
-                    Error(L"Not enough available matches in calendar for cups\nCountry: %s\nSeason: %d\nRequired matches: %d\nAvailable matches: %d",
-                        FifamTr(country->mName).c_str(), s + 1, numMatchesForLeAndFaCups, availableMatchdays.size());
-                }
+                Alert(AL_ERROR, L"Not enough available matches in calendar for cups\nCountry: %s\nSeason: %d\nRequired matches: %d\nAvailable matches: %d",
+                    FifamTr(country->mName).c_str(), s + 1, numMatchesForLeAndFaCups, availableMatchdays.size());
             }
             else {
                 // sort by priority
@@ -1042,21 +1032,15 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
 
     if (superCup && !superCup->GetProperty<Bool>(L"custom_calendar", false)) {
         if (numSuperCups > 1) {
-            if (mErrors) {
-                Error(L"More than 1 supercup in %s", FifamTr(country->mName).c_str());
-            }
+            Alert(AL_ERROR, L"More than 1 supercup in %s", FifamTr(country->mName).c_str());
         }
         else {
             if (superCup->mRounds.empty()) {
-                if (mErrors) {
-                    Error(L"Supercup has no rounds\nCountry : %s", FifamTr(country->mName).c_str());
-                }
+                Alert(AL_ERROR, L"Supercup has no rounds\nCountry : %s", FifamTr(country->mName).c_str());
             }
             else if (superCup->mRounds.size() > 1) {
                 if (countryId != FifamNation::Spain) {
-                    if (mErrors) {
-                        Error(L"Supercups with more than 1 round are not supported\nCountry : %s", FifamTr(country->mName).c_str());
-                    }
+                    Alert(AL_ERROR, L"Supercups with more than 1 round are not supported\nCountry : %s", FifamTr(country->mName).c_str());
                 }
             }
             else {
@@ -1097,9 +1081,7 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
 
                     if (firstMatchday > 0) {
                         if (firstMatchday <= supercupMin) {
-                            if (mErrors) {
-                                Error(L"No available matchdays for supercup in %s (season %d)", FifamTr(country->mName).c_str(), s + 1);
-                            }
+                            Alert(AL_ERROR, L"No available matchdays for supercup in %s (season %d)", FifamTr(country->mName).c_str(), s + 1);
                             cantCreate = true;
                         }
                         else
@@ -1128,10 +1110,8 @@ Bool Converter::GenerateCalendar(FifamNation const &countryId, FifamDatabase * d
                                 availableMatchdays.emplace_back(supercupcc[s][i], i);
                         }
                         if (availableMatchdays.size() < numMatches) {
-                            if (mErrors) {
-                                Error(L"Not enough available matches in calendar for SuperCup\nCountry: %s\nSeason: %d\nRequired matches: %d\nAvailable matches: %d",
-                                    FifamTr(country->mName).c_str(), s + 1, numMatches, availableMatchdays.size());
-                            }
+                            Alert(AL_ERROR, L"Not enough available matches in calendar for SuperCup\nCountry: %s\nSeason: %d\nRequired matches: %d\nAvailable matches: %d",
+                                FifamTr(country->mName).c_str(), s + 1, numMatches, availableMatchdays.size());
                         }
                         else {
                             // sort by priority

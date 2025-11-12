@@ -242,12 +242,12 @@ void SetStaffLevel(FifamStaff *staff, FifamClubStaffPosition position, Int level
 
 FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * club, FifamClubStaffPosition position, UInt gameId) {
     if (!p->mNation) {
-        Error(L"Staff without nation\nSaffId: %d\nStaffName: %s", p->mID, p->mFullName.c_str());
+        Alert(AL_ERROR, L"Staff without nation\nSaffId: %d\nStaffName: %s", p->mID, p->mFullName.c_str());
         return nullptr;
     }
     FifamCountry *staffCountry = mFifamDatabase->GetCountry(p->mNation->mConverterData.mFIFAManagerReplacementID);
     if (!staffCountry) {
-        Error(L"Staff without associated country\nSaffId: %d\nStaffName: %s", p->mID, p->mFullName.c_str());
+        Alert(AL_ERROR, L"Staff without associated country\nSaffId: %d\nStaffName: %s", p->mID, p->mFullName.c_str());
         return nullptr;
     }
     FifamStaff *staff = mFifamDatabase->CreateStaff(club, mPersonIdCounter++);

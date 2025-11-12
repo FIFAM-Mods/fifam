@@ -116,6 +116,7 @@
     <ClInclude Include="tests\GeneratePlayerFacesList.h" />
     <ClInclude Include="tests\GetUnlinkedFaces.h" />
     <ClInclude Include="tests\MergeFaceIDs.h" />
+    <ClInclude Include="tests\MergeUIDs.h" />
     <ClInclude Include="tests\MissingPortraits.h" />
     <ClInclude Include="tests\HistoricTest.h" />
     <ClInclude Include="tests\FlagsTest.h" />

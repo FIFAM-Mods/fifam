@@ -95,7 +95,8 @@
 #include "tests\CopyTeamColors.h"
 #include "tests\CopyHistoric.h"
 #include "tests\FindLargestUIDIndex.h"
+#include "tests\MergeUIDs.h"
 
 void RunTests() {
-    RunTest<WritePlayerIDs>();
+    RunTest<MergeUIDs>();
 }

@@ -265,10 +265,10 @@ struct player : public person {
 
     Bool IsBasque() {
         return mRegionOfBirth &&
-            mRegionOfBirth->mID == 67249095 ||
-            mRegionOfBirth->mID == 67023591 ||
-            mRegionOfBirth->mID == 34015446 ||
-            mRegionOfBirth->mID == 67023592;
+            (mRegionOfBirth->mID == 67249095 ||
+                mRegionOfBirth->mID == 67023591 ||
+                mRegionOfBirth->mID == 34015446 ||
+                mRegionOfBirth->mID == 67023592);
     }
 };
 

@@ -109,9 +109,7 @@ void Fifa07Converter::Convert(Converter *c, Path const &dbPath) {
                     for (Converter::DivisionInfo *lg : leagues.second) {
                         foom::comp *comp = c->mFoomDatabase->get<foom::comp>(lg->mID);
                         if (!comp) {
-                            //if (c->mErrors) {
-                            //    Error(L"Competition is not available\nCompetitionName: %s\nCompetitionID: %d", lg->mName.c_str(), lg->mID);
-                            //}
+                            //Alert(AL_ERROR, L"Competition is not available\nCompetitionName: %s\nCompetitionID: %d", lg->mName.c_str(), lg->mID);
                             continue;
                         }
                         if (!nation.mConverterData.mDomesticComps.league)
@@ -137,9 +135,7 @@ void Fifa07Converter::Convert(Converter *c, Path const &dbPath) {
                         for (auto entry : comp->mVecTeams) {
                             foom::club *team = (foom::club *)entry;
                             if (!team) {
-                                if (c->mErrors) {
-                                    ::Error(L"Invalid club pointer in league\nLeague: %s", lg->mName.c_str());
-                                }
+                                c->Alert(Converter::AL_ERROR, L"Invalid club pointer in league\nLeague: %s", lg->mName.c_str());
                                 continue;
                             }
                             UInt fifamTeamId = team->mConverterData.mFIFAManagerID;
@@ -149,16 +145,12 @@ void Fifa07Converter::Convert(Converter *c, Path const &dbPath) {
                             if (team->mConverterData.mParentClub)
                                 isExtinct = team->mConverterData.mParentClub->mExtinct;
                             if (isExtinct) {
-                                if (c->mErrors) {
-                                    ::Error(L"Extinct club in the league\nClub: '%s'\nLeague: '%s'",
-                                        team->mName.c_str(), lg->mName.c_str());
-                                }
+                                c->Alert(Converter::AL_ERROR, L"Extinct club in the league\nClub: '%s'\nLeague: '%s'",
+                                    team->mName.c_str(), lg->mName.c_str());
                             }
                             else if (Utils::Contains(foomTeamIdsInCountryLeagues, (UInt)team->mID)) {
-                                if (c->mErrors) {
-                                    Message(Utils::Format(L"Team already present in other league\nClub: '%s'\nLeague: '%s'",
-                                        team->mName.c_str(), lg->mName.c_str()));
-                                }
+                                c->Alert(Converter::AL_WARNING, L"Team already present in other league\nClub: '%s'\nLeague: '%s'",
+                                    team->mName.c_str(), lg->mName.c_str());
                             }
                             Fifa07Team fifa07team;
                             FifaTeam *fifaTeam = nullptr;

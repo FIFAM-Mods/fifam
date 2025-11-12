@@ -271,12 +271,12 @@ int GuessWeightFromAttributes(Int body, Int age, Int ethnicity, Int height, Bool
 
 FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, FifamClub * club) {
     if (!p->mNation) {
-        Error(L"Player without nation\nPlayerId: %d\nPlayerName: %s", p->mID, p->mFullName.c_str());
+        Alert(AL_ERROR, L"Player without nation\nPlayerId: %d\nPlayerName: %s", p->mID, p->mFullName.c_str());
         return nullptr;
     }
     FifamCountry *playerCountry = mFifamDatabase->GetCountry(p->mNation->mConverterData.mFIFAManagerReplacementID);
     if (!playerCountry) {
-        Error(L"Player without associated country\nPlayerId: %d\nPlayerName: %s", p->mID, p->mFullName.c_str());
+        Alert(AL_ERROR, L"Player without associated country\nPlayerId: %d\nPlayerName: %s", p->mID, p->mFullName.c_str());
         return nullptr;
     }
     FifamPlayer *player = mFifamDatabase->CreatePlayer(club, mPersonIdCounter++);
@@ -754,7 +754,7 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, Fi
     });
     // position prepare
     if (playerPositions[0].first != 20)
-        Error(L"Player has no preferred position\nPlayer: %s\nBest pos: %s (%d)", p->mFullName.c_str(), playerPositions[0].second.ToCStr(), playerPositions[0].first);
+        Alert(AL_ERROR, L"Player has no preferred position\nPlayer: %s\nBest pos: %s (%d)", p->mFullName.c_str(), playerPositions[0].second.ToCStr(), playerPositions[0].first);
     Bool isGoalkeeper = playerPositions[0].second == FifamPlayerPosition::GK;
 
     // attributes
@@ -1240,8 +1240,7 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, Fi
     // history - validate years
     for (auto &h : p->mVecPlayingHistory) {
         if (h.mYear <= 0) {
-            if (mErrors)
-                Error(L"Wrong date in player history\nPlayer: %s\nPlayerID: %d", p->mFullName.c_str(), p->mID);
+            Alert(AL_ERROR, L"Wrong date in player history\nPlayer: %s\nPlayerID: %d", p->mFullName.c_str(), p->mID);
             h.mYear = 1970;
         }
     };

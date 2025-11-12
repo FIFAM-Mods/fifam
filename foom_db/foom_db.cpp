@@ -640,7 +640,10 @@ foom::db::db(Path const &dbpath, db_gender gender, bool readPersons, db_size pla
             resolve(f.mPerson);
         for (auto &i : p.mVecInjuries)
             resolve(i.mInjury);
-        // TODO
+        resolve(p.mDeclaredForNationYouth);
+        resolve(p.mNationOfBirth);
+        resolve(p.mRegionOfBirth);
+        resolve(p.mCityOfBirth);
     }
     for (auto &entry : mNonPlayers) {
         non_player &n = entry.second;

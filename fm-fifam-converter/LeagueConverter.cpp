@@ -10,9 +10,7 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
         return false;
     auto countryId = country->mId;
     auto ErrorMsg = [&](String const &message) {
-        if (mErrors) {
-            Error(L"Error while creating special competition format:\n" + message + L"\nin " + FifamTr(country->mName));
-        }
+        Alert(AL_ERROR, L"Error while creating special competition format:\n" + message + L"\nin " + FifamTr(country->mName));
         return false;
     };
     auto GetNextLeagueCupIndex = [&]() {
@@ -649,31 +647,31 @@ Bool Converter::ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<Fif
         cup->mRounds[0].mNewTeamsRound = 4;
         cup->mRounds[0].mStartBeg = 0;
         cup->mRounds[0].mEndBeg = 2;
-        cup->mRounds[0].mBonuses = { 0, 1000, 0, 0 };
+        cup->mRounds[0].mBonuses = { 0, 1200, 0, 0 };
         cup->mRounds[1].mRoundID = FifamRoundID::_2;
         cup->mRounds[1].mTeamsRound = 8;
         cup->mRounds[1].mNewTeamsRound = 6;
         cup->mRounds[1].mStartBeg = 2;
         cup->mRounds[1].mEndBeg = 6;
-        cup->mRounds[1].mBonuses = { 0, 2000, 0, 0 };
+        cup->mRounds[1].mBonuses = { 0, 2400, 0, 0 };
         cup->mRounds[2].mRoundID = FifamRoundID::Quarterfinal;
         cup->mRounds[2].mTeamsRound = 8;
         cup->mRounds[2].mNewTeamsRound = 4;
         cup->mRounds[2].mStartBeg = 6;
         cup->mRounds[2].mEndBeg = 10;
-        cup->mRounds[2].mBonuses = { 0, 5000, 0, 0 };
+        cup->mRounds[2].mBonuses = { 0, 6000, 0, 0 };
         cup->mRounds[3].mRoundID = FifamRoundID::Semifinal;
         cup->mRounds[3].mTeamsRound = 4;
         cup->mRounds[3].mNewTeamsRound = 0;
         cup->mRounds[3].mStartBeg = 10;
         cup->mRounds[3].mEndBeg = 12;
-        cup->mRounds[3].mBonuses = { 0, 10000, 0, 0 };
+        cup->mRounds[3].mBonuses = { 0, 12000, 0, 0 };
         cup->mRounds[4].mRoundID = FifamRoundID::Final;
         cup->mRounds[4].mTeamsRound = 2;
         cup->mRounds[4].mNewTeamsRound = 0;
         cup->mRounds[4].mStartBeg = 12;
         cup->mRounds[4].mEndBeg = 13;
-        cup->mRounds[4].mBonuses = { 0, 20000, 0, 10000 };
+        cup->mRounds[4].mBonuses = { 0, 24000, 0, 12000 };
         cup->mInstructions.PushBack(new FifamInstruction::GET_CC_SPARE());
         cup->SetProperty<UChar>(L"min_level", 0);
         cup->SetProperty<UChar>(L"max_level", 0);
@@ -933,9 +931,7 @@ void Converter::ConvertLeagues(UInt gameId) {
 
                         foom::comp *comp = mFoomDatabase->get<foom::comp>(lg->mID);
                         if (!comp) {
-                            if (mErrors) {
-                                Error(L"Competition is not available\nCompetitionName: %s\nCompetitionID: %d", lg->mName.c_str(), lg->mID);
-                            }
+                            Alert(AL_ERROR, L"Competition is not available\nCompetitionName: %s\nCompetitionID: %d", lg->mName.c_str(), lg->mID);
                             continue;
                         }
 
@@ -1020,15 +1016,11 @@ void Converter::ConvertLeagues(UInt gameId) {
                             league->mSuccessors.push_back(FifamCompID(country->mId, FifamCompType::Relegation, 1));
 
                             if (lg->mSplit.second <= 0 && lg->mSplit.first + lg->mSplit.second != lg->mTeams) {
-                                if (mErrors) {
-                                    Error(L"Incorrect league split format (%s (%d)) - total teams: %d, split: %d/%d",
-                                        lg->mName.c_str(), lg->mID, lg->mTeams, lg->mSplit.first, lg->mSplit.second);
-                                }
+                                Alert(AL_ERROR, L"Incorrect league split format (%s (%d)) - total teams: %d, split: %d/%d",
+                                    lg->mName.c_str(), lg->mID, lg->mTeams, lg->mSplit.first, lg->mSplit.second);
                             }
                             else if (lg->mLevel != 0) {
-                                if (mErrors) {
-                                    Error(L"League split is possible only on first league level (%s (%d))", lg->mName.c_str(), lg->mID);
-                                }
+                                Alert(AL_ERROR, L"League split is possible only on first league level (%s (%d))", lg->mName.c_str(), lg->mID);
                             }
                             else {
                                 String roundNames[2] = { L" Top " + Utils::Format(L"%u", lg->mSplit.first),
@@ -1087,31 +1079,23 @@ void Converter::ConvertLeagues(UInt gameId) {
 
                         if (lg->mTotalTeamsPromotionPlayoff > 0) {
                             if (league->mCompetitionLevel == 0) {
-                                if (mErrors) {
-                                    Error(L"League promotion play-off is not possible at first league level (%s (%d))", lg->mName.c_str(), lg->mID);
-                                }
+                                Alert(AL_ERROR, L"League promotion play-off is not possible at first league level (%s (%d))", lg->mName.c_str(), lg->mID);
                             }
                             else {
                                 if ((lg->mPromoted + lg->mRelegated + lg->mTotalTeamsPromotionPlayoff + lg->mTotalTeamsRelegationPlayoff) > league->mNumTeams) {
-                                    if (mErrors) {
-                                        Error(L"Not enough teams in league for promotion/relegation play-off (%s (%d))", lg->mName.c_str(), lg->mID);
-                                    }
+                                    Alert(AL_ERROR, L"Not enough teams in league for promotion/relegation play-off (%s (%d))", lg->mName.c_str(), lg->mID);
                                 }
                                 else {
                                     auto it = playOffs.find(lg->mPromotionID);
                                     if (it == playOffs.end()) {
-                                        if (mErrors) {
-                                            Error(L"Incorrect league promotion play-off ID (%s (%d)) - %d", lg->mName.c_str(), lg->mID, lg->mPromotionID);
-                                        }
+                                        Alert(AL_ERROR, L"Incorrect league promotion play-off ID (%s (%d)) - %d", lg->mName.c_str(), lg->mID, lg->mPromotionID);
                                     }
                                     else {
                                         auto &po = (*it).second;
                                         Bool promotionError = false;
                                         if (po->mIsLeague) {
                                             if (lg->mPromotionPlayoff.size() != 1) {
-                                                if (mErrors) {
-                                                    Error(L"League promotion play-off should have only 1 play-off group (%s (%d))", lg->mName.c_str(), lg->mID);
-                                                }
+                                                Alert(AL_ERROR, L"League promotion play-off should have only 1 play-off group (%s (%d))", lg->mName.c_str(), lg->mID);
                                                 promotionError = true;
                                             }
                                             else {
@@ -1130,9 +1114,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                         }
                                         else {
                                             if (po->mRounds.size() < lg->mPromotionPlayoff.size()) {
-                                                if (mErrors) {
-                                                    Error(L"Too many teams in promotion play-off (%s (%d))", lg->mName.c_str(), lg->mID);
-                                                }
+                                                Alert(AL_ERROR, L"Too many teams in promotion play-off (%s (%d))", lg->mName.c_str(), lg->mID);
                                                 promotionError = true;
                                             }
                                             else {
@@ -1159,9 +1141,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                             if (po->mPromotionLevel == -1)
                                                 po->mPromotionLevel = league->mCompetitionLevel;
                                             else if (po->mPromotionLevel != league->mCompetitionLevel) {
-                                                if (mErrors) {
-                                                    Error(L"League promotion play-off is present more than one level (%s (%d))", lg->mName.c_str(), lg->mID);
-                                                }
+                                                Alert(AL_ERROR, L"League promotion play-off is present more than one level (%s (%d))", lg->mName.c_str(), lg->mID);
                                             }
                                         }
                                     }
@@ -1173,26 +1153,20 @@ void Converter::ConvertLeagues(UInt gameId) {
                             FifamCompLeague *targetLeague = (league->mCompetitionLevel == 0 && relLeague[1]) ? relLeague[1] : league;
                             UInt totalTeamsInPromotionRelegation = lg->mPromoted + lg->mRelegated + lg->mTotalTeamsPromotionPlayoff + lg->mTotalTeamsRelegationPlayoff;
                             if (totalTeamsInPromotionRelegation > targetLeague->mNumTeams) {
-                                if (mErrors) {
-                                    Error(L"Not enough teams in league for promotion/relegation play-off - %d/%d (in %s (%d))",
-                                        totalTeamsInPromotionRelegation, targetLeague->mNumTeams, lg->mName.c_str(), lg->mID);
-                                }
+                                Alert(AL_ERROR, L"Not enough teams in league for promotion/relegation play-off - %d/%d (in %s (%d))",
+                                    totalTeamsInPromotionRelegation, targetLeague->mNumTeams, lg->mName.c_str(), lg->mID);
                             }
                             else {
                                 auto it = playOffs.find(lg->mRelegationID);
                                 if (it == playOffs.end()) {
-                                    if (mErrors) {
-                                        Error(L"Incorrect league relegation play-off ID (%s (%d)) - %d", lg->mName.c_str(), lg->mID, lg->mRelegationID);
-                                    }
+                                    Alert(AL_ERROR, L"Incorrect league relegation play-off ID (%s (%d)) - %d", lg->mName.c_str(), lg->mID, lg->mRelegationID);
                                 }
                                 else {
                                     auto &po = (*it).second;
                                     Bool relegationError = false;
                                     if (po->mIsLeague) {
                                         if (lg->mRelegationPlayoff.size() != 1) {
-                                            if (mErrors) {
-                                                Error(L"League relegation play-off should have only 1 play-off group (%s (%d))", lg->mName.c_str(), lg->mID);
-                                            }
+                                            Alert(AL_ERROR, L"League relegation play-off should have only 1 play-off group (%s (%d))", lg->mName.c_str(), lg->mID);
                                             relegationError = true;
                                         }
                                         else {
@@ -1211,9 +1185,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                     }
                                     else {
                                         if (po->mRounds.size() < lg->mRelegationPlayoff.size()) {
-                                            if (mErrors) {
-                                                Error(L"Too many teams in relegation play-off (%s (%d))", lg->mName.c_str(), lg->mID);
-                                            }
+                                            Alert(AL_ERROR, L"Too many teams in relegation play-off (%s (%d))", lg->mName.c_str(), lg->mID);
                                             relegationError = true;
                                         }
                                         else {
@@ -1240,9 +1212,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                         if (po->mRelegationLevel == -1)
                                             po->mRelegationLevel = league->mCompetitionLevel;
                                         else if (po->mRelegationLevel != league->mCompetitionLevel) {
-                                            if (mErrors) {
-                                                Error(L"League relegation play-off is present more than on one level (%s (%d))", lg->mName.c_str(), lg->mID);
-                                            }
+                                            Alert(AL_ERROR, L"League relegation play-off is present more than on one level (%s (%d))", lg->mName.c_str(), lg->mID);
                                         }
                                     }
                                 }
@@ -1258,10 +1228,8 @@ void Converter::ConvertLeagues(UInt gameId) {
                         UInt numLeagueRelegatedTeams = 0;
 
                         if (comp->mVecTeams.size() != lg->mTeams && !leagueWriter) {
-                            if (mErrors) {
-                                Error(L"Different number of teams in league: %d / %d\nCompetitionName: %s\nCompetitionID: %d",
-                                    comp->mVecTeams.size(), lg->mTeams, lg->mName.c_str(), lg->mID);
-                            }
+                            Alert(AL_ERROR, L"Different number of teams in league: %d / %d\nCompetitionName: %s\nCompetitionID: %d",
+                                comp->mVecTeams.size(), lg->mTeams, lg->mName.c_str(), lg->mID);
                             continue;
                         }
 
@@ -1337,9 +1305,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                         for (auto entry : comp->mVecTeams) {
                             foom::club *team = (foom::club *)entry;
                             if (!team) {
-                                if (mErrors) {
-                                    Error(L"Invalid club pointer in league\nLeague: %s", lg->mName.c_str());
-                                }
+                                Alert(AL_ERROR, L"Invalid club pointer in league\nLeague: %s", lg->mName.c_str());
                                 continue;
                             }
                             FifamClub *club = nullptr;
@@ -1352,16 +1318,12 @@ void Converter::ConvertLeagues(UInt gameId) {
                                 hasReserveTeams = true;
                             }
                             if (isExtinct) {
-                                if (mErrors) {
-                                    Error(L"Extinct club in the league\nClub: '%s'\nLeague: '%s'",
-                                        team->mName.c_str(), lg->mName.c_str());
-                                }
+                                Alert(AL_ERROR, L"Extinct club in the league\nClub: '%s'\nLeague: '%s'",
+                                    team->mName.c_str(), lg->mName.c_str());
                             }
                             else if (team->mConverterData.mFifamClub) {
-                                if (mErrors) {
-                                    Message(Utils::Format(L"Team already present in other league\nClub: '%s'\nLeague: '%s'",
-                                        team->mName.c_str(), lg->mName.c_str()));
-                                }
+                                Alert(AL_WARNING, L"Team already present in other league\nClub: '%s'\nLeague: '%s'",
+                                    team->mName.c_str(), lg->mName.c_str());
                                 club = (FifamClub *)team->mConverterData.mFifamClub;
                                 if (team->mConverterData.mParentClub)
                                     teamType = FifamClubTeamType::Reserve;
@@ -1369,10 +1331,8 @@ void Converter::ConvertLeagues(UInt gameId) {
                             else if (team->mConverterData.mParentClub) {
                                 FifamClub *parentFifamClub = (FifamClub *)team->mConverterData.mParentClub->mConverterData.mFifamClub;
                                 if (!parentFifamClub) {
-                                    if (mErrors) {
-                                        Error(L"Reserve club appears before the first team in the league\nMainClub: '%s'\nReserveClub: '%s'\nLeague: '%s'",
-                                            team->mConverterData.mParentClub->mName.c_str(), team->mName.c_str(), lg->mName.c_str());
-                                    }
+                                    Alert(AL_ERROR, L"Reserve club appears before the first team in the league\nMainClub: '%s'\nReserveClub: '%s'\nLeague: '%s'",
+                                        team->mConverterData.mParentClub->mName.c_str(), team->mName.c_str(), lg->mName.c_str());
                                 }
                                 else {
                                     if (!team->mConverterData.mParentClub->mConverterData.mMainChildClubInDB
@@ -1399,15 +1359,11 @@ void Converter::ConvertLeagues(UInt gameId) {
                                             createNewClub = true;
                                         }
                                         else {
-                                            if (mErrors) {
-                                                Error(L"Reserve club can't be created because it's a dummy club\nMainClub: '%s'\nReserveTeamID: %d\nLeague: '%s'",
-                                                    team->mConverterData.mParentClub->mName.c_str(), team->mID, lg->mName.c_str());
-                                            }
+                                            Alert(AL_ERROR, L"Reserve club can't be created because it's a dummy club\nMainClub: '%s'\nReserveTeamID: %d\nLeague: '%s'",
+                                                team->mConverterData.mParentClub->mName.c_str(), team->mID, lg->mName.c_str());
                                         }
-                                        if (mErrors) {
-                                            //Error(L"Reserve club already present for team in the league\nMainClub: '%s'\nReserveClub: '%s'\nLeague: '%s'",
-                                            //    parentClub->mName.c_str(), team->mName.c_str(), lg->mName.c_str());
-                                        }
+                                        //Alert(AL_ERROR, L"Reserve club already present for team in the league\nMainClub: '%s'\nReserveClub: '%s'\nLeague: '%s'",
+                                        //    parentClub->mName.c_str(), team->mName.c_str(), lg->mName.c_str());
                                     }
                                 }
                             }
@@ -1486,25 +1442,19 @@ void Converter::ConvertLeagues(UInt gameId) {
                                         league->mFixtures[matchdayId].resize(leagueMatchesInMatchday);
                                         for (UInt d = 0; d < leagueMatchesInMatchday; d++) {
                                             if (fixtures.size() <= matchId) {
-                                                if (mErrors) {
-                                                    Error(L"Incorrect fixtures list size\nLeague: %s", comp->mName.c_str());
-                                                }
+                                                Alert(AL_ERROR, L"Incorrect fixtures list size\nLeague: %s", comp->mName.c_str());
                                                 gotFixtures = false;
                                                 break;
                                             }
                                             UInt team1id = 0, team2id = 0;
                                             if (!fixtures[matchId].mTeam1 || leagueTeamsMap.count(GetTeamClubLink(fixtures[matchId].mTeam1)) == 0) {
-                                                if (mErrors) {
-                                                    //Error(L"Incorrect fixtures team (match %d)\nLeague: %s\nTeam: %s", matchId + 1, comp->mName.c_str(), fixtures[matchId].mTeam1 ? GetTeamClubLink(fixtures[matchId].mTeam1).GetTeamName().c_str() : L"none");
-                                                }
+                                                //Alert(AL_ERROR, L"Incorrect fixtures team (match %d)\nLeague: %s\nTeam: %s", matchId + 1, comp->mName.c_str(), fixtures[matchId].mTeam1 ? GetTeamClubLink(fixtures[matchId].mTeam1).GetTeamName().c_str() : L"none");
                                                 gotFixtures = false;
                                                 break;
                                             }
                                             team1id = leagueTeamsMap[GetTeamClubLink(fixtures[matchId].mTeam1)];
                                             if (!fixtures[matchId].mTeam2 || leagueTeamsMap.count(GetTeamClubLink(fixtures[matchId].mTeam2)) == 0) {
-                                                if (mErrors) {
-                                                    //Error(L"Incorrect fixtures team (match %d)\nLeague: %s\nTeam: %s", matchId + 1, comp->mName.c_str(), fixtures[matchId].mTeam2 ? GetTeamClubLink(fixtures[matchId].mTeam2).GetTeamName().c_str() : L"none");
-                                                }
+                                                //Alert(AL_ERROR, L"Incorrect fixtures team (match %d)\nLeague: %s\nTeam: %s", matchId + 1, comp->mName.c_str(), fixtures[matchId].mTeam2 ? GetTeamClubLink(fixtures[matchId].mTeam2).GetTeamName().c_str() : L"none");
                                                 gotFixtures = false;
                                                 break;
                                             }
@@ -1516,9 +1466,9 @@ void Converter::ConvertLeagues(UInt gameId) {
                                     }
                                 }
                             }
-                            //else {
-                            //    Error(L"Error fixtures list size\nLeague: %s\n%d/%d", comp->mName.c_str(), fixtures.size(), leagueTotalMatches);
-                            //}
+                            else {
+                                //Alert(AL_ERROR, L"Error fixtures list size\nLeague: %s\n%d/%d", comp->mName.c_str(), fixtures.size(), leagueTotalMatches);
+                            }
                         }
 
                         if (!gotFixtures)
@@ -1538,19 +1488,19 @@ void Converter::ConvertLeagues(UInt gameId) {
                 // create relegation rounds
                 for (auto &po : vecPlayOffs) {
                     if (!po->mIsLeague && po->mRounds.empty())
-                        Error(L"Play-Off without rounds (%d in %s)", po->mID, FifamTr(country->mName).c_str());
+                        Alert(AL_ERROR, L"Play-Off without rounds (%d in %s)", po->mID, FifamTr(country->mName).c_str());
                     else if ((po->mPromotionLevel == -1 && po->mRelegationLevel == -1) || po->mMinLeagueLevel == -1 || po->mMaxLeagueLevel == -1)
-                        Error(L"Play-Off is not prepared for generation (%d in %s)", po->mID, FifamTr(country->mName).c_str());
+                        Alert(AL_ERROR, L"Play-Off is not prepared for generation (%d in %s)", po->mID, FifamTr(country->mName).c_str());
                     else if ((!po->mIsLeague && po->mRounds[0].mNewTeams == 0) || (po->mIsLeague && po->mLeague.mTotalTeams == 0))
-                        Error(L"Play-Off without teams (%d in %s)", po->mID, FifamTr(country->mName).c_str());
+                        Alert(AL_ERROR, L"Play-Off without teams (%d in %s)", po->mID, FifamTr(country->mName).c_str());
                     else if (po->mMaxLeagueLevel - po->mMinLeagueLevel > 1)
-                        Error(L"Play-Off is shared between more than 2 levels (%d in %s)", po->mID, FifamTr(country->mName).c_str());
+                        Alert(AL_ERROR, L"Play-Off is shared between more than 2 levels (%d in %s)", po->mID, FifamTr(country->mName).c_str());
                     else if (po->mPromotionLevel == po->mRelegationLevel)
-                        Error(L"Play-Off is a promotion and a relegation on the same level (%d in %s)", po->mID, FifamTr(country->mName).c_str());
+                        Alert(AL_ERROR, L"Play-Off is a promotion and a relegation on the same level (%d in %s)", po->mID, FifamTr(country->mName).c_str());
                     else {
                         if (po->mIsLeague) {
                             if (po->mLeague.mTotalTeams != po->mLeague.mTeamEntries.size())
-                                Error(L"Number of teams in Play-Off is not the same with number added teams - %d/%d (Play-Off %d in %s)", po->mLeague.mTotalTeams, po->mLeague.mTeamEntries.size(), po->mID, FifamTr(country->mName).c_str());
+                                Alert(AL_ERROR, L"Number of teams in Play-Off is not the same with number added teams - %d/%d (Play-Off %d in %s)", po->mLeague.mTotalTeams, po->mLeague.mTeamEntries.size(), po->mID, FifamTr(country->mName).c_str());
                             else {
                                 FifamCompID compRelID = FifamCompID(country->mId, FifamCompType::Relegation, relIndex++);
                                 FifamCompLeague *rel = mFifamDatabase->CreateCompetition(FifamCompDbType::League, compRelID)->AsLeague();
@@ -1602,11 +1552,11 @@ void Converter::ConvertLeagues(UInt gameId) {
                                     roundTeams += pr.mNewTeams;
                                 }
                                 if (roundTeams % 2 != 0) {
-                                    Error(L"Play-Off with incorrect teams count - %d (in %s)", roundTeams, FifamTr(country->mName).c_str());
+                                    Alert(AL_ERROR, L"Play-Off with incorrect teams count - %d (in %s)", roundTeams, FifamTr(country->mName).c_str());
                                     continue;
                                 }
                                 if (pr.mNewTeams != pr.mTeamEntries.size()) {
-                                    Error(L"Number of teams in Play-Off is not the same with number added teams - %d/%d (Play-Off %d in %s)", roundTeams, pr.mTeamEntries.size(), po->mID, FifamTr(country->mName).c_str());
+                                    Alert(AL_ERROR, L"Number of teams in Play-Off is not the same with number added teams - %d/%d (Play-Off %d in %s)", roundTeams, pr.mTeamEntries.size(), po->mID, FifamTr(country->mName).c_str());
                                     continue;
                                 }
 
@@ -1749,7 +1699,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                 levelRep = divLeagues[i][0]->mRep;
                         }
                         else
-                            Error(L"No league levels or leagues at level %d in country %s", i, FifamTr(country->mName).c_str());
+                            Alert(AL_ERROR, L"No league levels or leagues at level %d in country %s", i, FifamTr(country->mName).c_str());
                     }
                     // setup level information
                     auto &levelNames = country->mLeagueLevelNames.emplace_back();
@@ -1809,7 +1759,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                             pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(po->mLeague.mFifamLeague->mID, po->mLeague.mNumWinners + 1, po->mLeague.mNumLosers));
                                     }
                                     else
-                                        Error(L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                        Alert(AL_ERROR, L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
                                 }
                                 else {
                                     if (!po->mRounds.empty()) {
@@ -1820,11 +1770,11 @@ void Converter::ConvertLeagues(UInt gameId) {
                                                     pool->mInstructions.PushBack(new FifamInstruction::GET_LOSER(round->mID));
                                             }
                                             else
-                                                Error(L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                                Alert(AL_ERROR, L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
                                         }
                                     }
                                     else
-                                        Error(L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
+                                        Alert(AL_ERROR, L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
                                 }
                             }
                         }
@@ -1837,7 +1787,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                             pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(po->mLeague.mFifamLeague->mID, po->mLeague.mNumWinners + 1, po->mLeague.mNumLosers));
                                     }
                                     else
-                                        Error(L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                        Alert(AL_ERROR, L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
                                 }
                                 else {
                                     if (!po->mRounds.empty()) {
@@ -1848,11 +1798,11 @@ void Converter::ConvertLeagues(UInt gameId) {
                                                     pool->mInstructions.PushBack(new FifamInstruction::GET_LOSER(round->mID));
                                             }
                                             else
-                                                Error(L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                                Alert(AL_ERROR, L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
                                         }
                                     }
                                     else
-                                        Error(L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
+                                        Alert(AL_ERROR, L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
                                 }
                             }
                         }
@@ -1873,7 +1823,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                             }
                         }
                         else
-                            Error(L"No leagues at level %d\nCountry: %s", higherLevel, FifamTr(country->mName).c_str());
+                            Alert(AL_ERROR, L"No leagues at level %d\nCountry: %s", higherLevel, FifamTr(country->mName).c_str());
                         // promotion losers from this level
                         for (auto &po : vecPlayOffs) {
                             if (po->mRelegationLevel == -1 && po->mPromotionLevel == i) {
@@ -1883,7 +1833,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                             pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(po->mLeague.mFifamLeague->mID, po->mLeague.mNumWinners + 1, po->mLeague.mNumLosers));
                                     }
                                     else
-                                        Error(L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                        Alert(AL_ERROR, L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
                                 }
                                 else {
                                     if (!po->mRounds.empty()) {
@@ -1894,11 +1844,11 @@ void Converter::ConvertLeagues(UInt gameId) {
                                                     pool->mInstructions.PushBack(new FifamInstruction::GET_LOSER(round->mID));
                                             }
                                             else
-                                                Error(L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                                Alert(AL_ERROR, L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
                                         }
                                     }
                                     else
-                                        Error(L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
+                                        Alert(AL_ERROR, L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
                                 }
                             }
                         }
@@ -1931,7 +1881,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                         }
                     }
                     else
-                        Error(L"No leagues at level %d\nCountry: %s", i, FifamTr(country->mName).c_str());
+                        Alert(AL_ERROR, L"No leagues at level %d\nCountry: %s", i, FifamTr(country->mName).c_str());
 
                     // relegation winners from this level
                     for (auto &po : vecPlayOffs) {
@@ -1942,7 +1892,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                         pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(po->mLeague.mFifamLeague->mID, 1, po->mLeague.mNumWinners));
                                 }
                                 else
-                                    Error(L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                    Alert(AL_ERROR, L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
                             }
                             else {
                                 if (!po->mRounds.empty()) {
@@ -1950,10 +1900,10 @@ void Converter::ConvertLeagues(UInt gameId) {
                                     if (round)
                                         pool->mInstructions.PushBack(new FifamInstruction::GET_WINNER(round->mID));
                                     else
-                                        Error(L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                        Alert(AL_ERROR, L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
                                 }
                                 else
-                                    Error(L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
+                                    Alert(AL_ERROR, L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
                             }
                         }
                     }
@@ -1968,7 +1918,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                             }
                         }
                         else
-                            Error(L"No leagues at level %d\nCountry: %s", lowerLevel, FifamTr(country->mName).c_str());
+                            Alert(AL_ERROR, L"No leagues at level %d\nCountry: %s", lowerLevel, FifamTr(country->mName).c_str());
                         // relegation winners from mixed levels play-off
                         for (auto &po : vecPlayOffs) {
                             if (po->mRelegationLevel == i && po->mPromotionLevel == lowerLevel) {
@@ -1978,7 +1928,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                             pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(po->mLeague.mFifamLeague->mID, 1, po->mLeague.mNumWinners));
                                     }
                                     else
-                                        Error(L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                        Alert(AL_ERROR, L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
                                 }
                                 else {
                                     if (!po->mRounds.empty()) {
@@ -1989,11 +1939,11 @@ void Converter::ConvertLeagues(UInt gameId) {
                                                     pool->mInstructions.PushBack(new FifamInstruction::GET_WINNER(round->mID));
                                             }
                                             else
-                                                Error(L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                                Alert(AL_ERROR, L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
                                         }
                                     }
                                     else
-                                        Error(L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
+                                        Alert(AL_ERROR, L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
                                 }
                             }
                         }
@@ -2006,7 +1956,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                             pool->mInstructions.PushBack(new FifamInstruction::GET_TAB_X_TO_Y(po->mLeague.mFifamLeague->mID, 1, po->mLeague.mNumWinners));
                                     }
                                     else
-                                        Error(L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                        Alert(AL_ERROR, L"Play-off league has no FifamCompLeague instance\nCountry: %s", FifamTr(country->mName).c_str());
                                 }
                                 else {
                                     if (!po->mRounds.empty()) {
@@ -2014,10 +1964,10 @@ void Converter::ConvertLeagues(UInt gameId) {
                                         if (round)
                                             pool->mInstructions.PushBack(new FifamInstruction::GET_WINNER(round->mID));
                                         else
-                                            Error(L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
+                                            Alert(AL_ERROR, L"Play-off round has no FifamCompRound instance\nCountry: %s", FifamTr(country->mName).c_str());
                                     }
                                     else
-                                        Error(L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
+                                        Alert(AL_ERROR, L"Play-off has no rounds\nCountry: %s", FifamTr(country->mName).c_str());
                                 }
                             }
                         }
@@ -2132,12 +2082,12 @@ void Converter::ConvertLeagues(UInt gameId) {
                         }
                         if (nextAvailableCompIndex != -1) {
                             if (cupInfo.mTemplateType == FifamCupSystemType::None) {
-                                Error(L"Unknown cup template type\nCup: %s", cupInfo.mName.c_str());
+                                Alert(AL_ERROR, L"Unknown cup template type\nCup: %s", cupInfo.mName.c_str());
                                 continue;
                             }
                             FifamCupAlloc *cupTemplate = mFifamDatabase->GetCupTemplate(cupInfo.mTemplateType);
                             if (!cupTemplate) {
-                                Error(L"Cup template not found\nCup: %s\nTemplate: %s", cupInfo.mName.c_str(), cupInfo.mTemplateType.ToCStr());
+                                Alert(AL_ERROR, L"Cup template not found\nCup: %s\nTemplate: %s", cupInfo.mName.c_str(), cupInfo.mTemplateType.ToCStr());
                                 continue;
                             }
                             FifamCompID cupID = { (UChar)country->mId, cupCompType, (UShort)nextAvailableCompIndex };
@@ -2173,7 +2123,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                 Int r = 0;
                                 for (Int i = startRoundIndex; i <= 7; i++) {
                                     if (cupInfo.mRoundDesc[i].empty()) {
-                                        Error(L"Empty cup description\nCountry: %s\nCup: %s", FifamTr(country->mName).c_str(), cupInfo.mName.c_str());
+                                        Alert(AL_ERROR, L"Empty cup description\nCountry: %s\nCup: %s", FifamTr(country->mName).c_str(), cupInfo.mName.c_str());
                                         failed = true;
                                         break;
                                     }
@@ -2187,7 +2137,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                             else if (cupInfo.mRoundDesc[i][c] == 'R')
                                                 cup->mRounds[r].mFlags.Set(FifamBeg::WithReplay, true);
                                             else {
-                                                Error(L"Wrong round description in cup\nCup: %s\nRound: %d\nDescription: %s", cupInfo.mName.c_str(), i, cupInfo.mRoundDesc[i].c_str());
+                                                Alert(AL_ERROR, L"Wrong round description in cup\nCup: %s\nRound: %d\nDescription: %s", cupInfo.mName.c_str(), i, cupInfo.mRoundDesc[i].c_str());
                                                 failed = true;
                                                 break;
                                             }
@@ -2362,17 +2312,17 @@ void Converter::ConvertLeagues(UInt gameId) {
                                 }
                             }
                             if (cup->mRounds.empty()) {
-                                Error(L"Cup has no rounds\nCountry: %s\nCup: %s",
+                                Alert(AL_ERROR, L"Cup has no rounds\nCountry: %s\nCup: %s",
                                     FifamTr(country->mName).c_str(), FifamTr(cup->mName).c_str());
                             }
                             else if (cup->mNumTeams > 128) {
-                                Error(L"Cup has more than 128 teams: %d\nCountry: %s\nCup: %s",
+                                Alert(AL_ERROR, L"Cup has more than 128 teams: %d\nCountry: %s\nCup: %s",
                                     cup->mNumTeams, FifamTr(country->mName).c_str(), FifamTr(cup->mName).c_str());
                             }
                             else {
                                 for (unsigned int ir = 0; ir < cup->mRounds.size(); ir++) {
                                     if (cup->mRounds[ir].mTeamsRound == 0 || (cup->mRounds[ir].mTeamsRound % 2)) {
-                                        Error(L"Wrong teams count in cup round: %d\nCountry: %s\nCup: %s\nRound: %d",
+                                        Alert(AL_ERROR, L"Wrong teams count in cup round: %d\nCountry: %s\nCup: %s\nRound: %d",
                                             cup->mRounds[ir].mTeamsRound, FifamTr(country->mName).c_str(), FifamTr(cup->mName).c_str(), ir);
                                     }
                                 }
@@ -2416,7 +2366,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                         comp->SetProperty<Bool>(L"custom_calendar", true);
                                     }
                                     else
-                                        Error(L"Unable to assign calendar to league %08X - different matchdays count (%u/%u)", compId.ToInt(), calendar.size(), comp->AsLeague()->GetNumMatchdays());
+                                        Alert(AL_ERROR, L"Unable to assign calendar to league %08X - different matchdays count (%u/%u)", compId.ToInt(), calendar.size(), comp->AsLeague()->GetNumMatchdays());
                                     break;
                                 case FifamCompDbType::Cup:
                                     for (i = 0; i < comp->AsCup()->mRounds.size(); i++)
@@ -2428,7 +2378,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                         comp->SetProperty<Bool>(L"custom_calendar", true);
                                     }
                                     else
-                                        Error(L"Unable to assign calendar to cup %08X - different matchdays count (%u/%u)", compId.ToInt(), calendar.size(), numMatches);
+                                        Alert(AL_ERROR, L"Unable to assign calendar to cup %08X - different matchdays count (%u/%u)", compId.ToInt(), calendar.size(), numMatches);
                                     break;
                                 case FifamCompDbType::Round:
                                     numMatches = comp->AsRound()->m1stLegFlags.Check(FifamBeg::_2ndLeg) ? 2 : 1;
@@ -2449,7 +2399,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                                         comp->SetProperty<Bool>(L"custom_calendar", true);
                                     }
                                     else
-                                        Error(L"Unable to assign calendar to league %08X - different matchdays count (%u/%u)", compId.ToInt(), calendar.size(), numMatches);
+                                        Alert(AL_ERROR, L"Unable to assign calendar to league %08X - different matchdays count (%u/%u)", compId.ToInt(), calendar.size(), numMatches);
                                     break;
                                 }
                             }
@@ -2474,11 +2424,11 @@ void Converter::ConvertLeagues(UInt gameId) {
     // verify calendars
         for (auto const &[id, data] : mCalendarsFirstSeason) {
             if (!mFifamDatabase->GetCompetition(id))
-                Error(L"Unable to assign calendar to competition %08X - competition was not found", id);
+                Alert(AL_ERROR, L"Unable to assign calendar to competition %08X - competition was not found", id);
         }
         for (auto const &[id, data] : mCalendarsSecondSeason) {
             if (!mFifamDatabase->GetCompetition(id))
-                Error(L"Unable to assign calendar to competition %08X - competition was not found", id);
+                Alert(AL_ERROR, L"Unable to assign calendar to competition %08X - competition was not found", id);
         }
     }
 
@@ -2487,20 +2437,20 @@ void Converter::ConvertLeagues(UInt gameId) {
         switch (comp->GetDbType().ToInt()) {
         case FifamCompDbType::League:
             if (comp->AsLeague()->mFirstSeasonMatchdays.size() != comp->AsLeague()->GetNumMatchdays() || comp->AsLeague()->mSecondSeasonMatchdays.size() != comp->AsLeague()->GetNumMatchdays())
-                Error(L"Incorrect calendar in league %08X", compId.ToInt());
+                Alert(AL_ERROR, L"Incorrect calendar in league %08X", compId.ToInt());
             break;
         case FifamCompDbType::Cup:
             for (i = 0; i < comp->AsCup()->mRounds.size(); i++)
                 numMatches += (comp->AsCup()->mRounds[i].mFlags.Check(FifamBeg::_2ndLeg) || comp->AsCup()->mRounds[i].mFlags.Check(FifamBeg::WithReplay)) ? 2 : 1;
             if (comp->AsCup()->mFirstSeasonMatchdays.size() != numMatches || comp->AsCup()->mSecondSeasonMatchdays.size() != numMatches)
-                Error(L"Incorrect calendar in cup %08X", compId.ToInt());
+                Alert(AL_ERROR, L"Incorrect calendar in cup %08X", compId.ToInt());
             break;
         case FifamCompDbType::Round:
             numMatches = comp->AsRound()->m1stLegFlags.Check(FifamBeg::_2ndLeg) ? 2 : 1;
             if (comp->AsRound()->mFirstSeasonMatchdays[0] == 0 || comp->AsRound()->mSecondSeasonMatchdays[0] == 0)
-                Error(L"Incorrect calendar in round %08X", compId.ToInt());
+                Alert(AL_ERROR, L"Incorrect calendar in round %08X", compId.ToInt());
             else if (numMatches == 2 && (comp->AsRound()->mFirstSeasonMatchdays[1] == 0 || comp->AsRound()->mSecondSeasonMatchdays[1] == 0))
-                Error(L"Incorrect calendar in round %08X", compId.ToInt());
+                Alert(AL_ERROR, L"Incorrect calendar in round %08X", compId.ToInt());
             break;
         }
     }

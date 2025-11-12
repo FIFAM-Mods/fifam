@@ -1384,17 +1384,13 @@ FifamClub *Converter::CreateAndConvertClub(UInt gameId, foom::club *team, foom::
         UChar countryId = FifamUtils::GetCountryIDFromClubID(club->mUniqueID);
         if (countryId >= 1 && countryId <= FifamDatabase::NUM_COUNTRIES) {
             if (countryId != country->mId) {
-                if (mErrors) {
-                    Error(L"Incorrect Club Country in UniqueID\nClub: '%s'\nUniqueID: %08X\nCountryId: %d\nIncorrectCountryId: %d",
-                        team->mName.c_str(), club->mUniqueID, country->mId, countryId);
-                }
+                Alert(AL_ERROR, L"Incorrect Club Country in UniqueID\nClub: '%s'\nUniqueID: %08X\nCountryId: %d\nIncorrectCountryId: %d",
+                    team->mName.c_str(), club->mUniqueID, country->mId, countryId);
             }
         }
         else {
-            if (mErrors) {
-                Error(L"Incorrect Club UniqueID\nClub: '%s'\nUniqueID: %08X\nIncorrectCountryId: %d",
-                    team->mName.c_str(), club->mUniqueID, countryId);
-            }
+            Alert(AL_ERROR, L"Incorrect Club UniqueID\nClub: '%s'\nUniqueID: %08X\nIncorrectCountryId: %d",
+                team->mName.c_str(), club->mUniqueID, countryId);
         }
     }
     if (club->mUniqueID == 0)

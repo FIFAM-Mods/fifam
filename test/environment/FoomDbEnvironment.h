@@ -7,7 +7,7 @@ class FoomDbEnvironment {
 
 public:
     FoomDbEnvironment() {
-        mDatabase = new foom::db(L"D:\\Projects\\fifam\\db\\foom");
+        mDatabase = new foom::db(L"D:\\Projects\\fifam\\db\\foom", foom::db::db_gender::Men);
     }
 
     ~FoomDbEnvironment() {

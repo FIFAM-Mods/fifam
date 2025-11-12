@@ -34,7 +34,6 @@ void Converter::Convert() {
     Bool writeToGameFolder = GetIniInt(L"WRITE_TO_OUTPUT_FOLDER", 1);
     Bool fromFifaDatabase = GetIniInt(L"FROM_FIFA_DB", 0);
     mQuickTest = GetIniInt(L"QUICK_TEST", 1);
-    Bool GENERATE_IDS = GetIniInt(L"GENERATE_IDS", 0);
     mGenerateLeaguesFiles = GetIniInt(L"GENERATE_LEAGUES_FILES", 0);
     mGenerateLeagueConfigFiles = GetIniInt(L"GENERATE_LEAGUE_CONFIG_FILES", 1);
     mGenerateSpecialScripts = GetIniInt(L"GENERATE_SPECIAL_SCRIPTS", 1);
@@ -84,10 +83,15 @@ void Converter::Convert() {
 
     mWarnings = GetIniInt(L"HIDE_WARNINGS", 1) == 0;
     mErrors = GetIniInt(L"HIDE_ERRORS", 0) == 0;
+    mLogErrors = GetIniInt(L"LOG_ERRORS", 0) != 0;
 
     mToFifa07Database = GetIniInt(L"TO_FIFA_07_DATABASE", 0);
 
     mWomen = GetIniInt(L"WOMEN", 0);
+
+    std::error_code ec;
+    if (exists(mLogPath, ec))
+        remove(mLogPath, ec);
     
     Bool READ_FOOM_PERSONS = !mQuickTest;
     Bool MAKE_CORRECTIONS_FOR_UPDATE = !mQuickTest;
@@ -201,11 +205,6 @@ void Converter::Convert() {
     ReadAdditionalInfo(infoPath, gameId);
     appearanceGenerator.Read(infoPath / L"AppearanceDefs.sav");
 
-    if (GENERATE_IDS) {
-        GenerateNewTeamIDsFile(infoPath / L"fifam-uids.csv", infoPath / L"fifam-uids_old.csv");
-        return;
-    }
-
     if (!mFromFifaDatabase) {
         Path foomBadgesPath = graphicsPath / L"dvx-logos" / L"clubs" / L"primary" / L"@2x";
         if (exists(foomBadgesPath)) {
@@ -263,7 +262,7 @@ void Converter::Convert() {
         // 24 - Extinct B or C Club
         for (auto &a : c.mVecAffiliations) {
             if (a.mAffiliatedClub && a.mIsMainClub) {
-                if (a.mStartDate <= GetCurrentDate()) {
+                if (a.mStartDate <= GetCurrentDate() && (a.mEndDate == FmEmptyDate() || a.mEndDate > GetCurrentDate())) {
                     foom::club *child = nullptr;
                     foom::club::converter_data::child_type childType;
                     if (a.mAffiliationType == 4 || a.mAffiliationType == 6 || a.mAffiliationType == 8) {
@@ -289,7 +288,7 @@ void Converter::Convert() {
                     if (child) {
                         if (child->mConverterData.mParentClub) {
                         #ifdef SHOW_RESERVE_CLUBS_WARNINGS
-                            Error(L"Affiliated B/C club has more than 1 parent club\nClub: '%s'\nClubParent1: '%s'\nClubParent2: '%s'",
+                            Alert(AL_ERROR, L"Affiliated B/C club has more than 1 parent club\nClub: '%s'\nClubParent1: '%s'\nClubParent2: '%s'",
                                 child->mName.c_str(), child->mConverterData.mParentClub->mName.c_str(), c.mName.c_str());
                         #endif
                         }
@@ -354,7 +353,7 @@ void Converter::Convert() {
                 if (child) {
                     if (child->mConverterData.mParentClub) {
                     #ifdef SHOW_RESERVE_CLUBS_WARNINGS
-                        Error(L"Reserve club has more than 1 parent club\nClub: '%s'\nClubParent1: '%s'\nClubParent2: '%s'",
+                        Alert(AL_ERROR, L"Reserve club has more than 1 parent club\nClub: '%s'\nClubParent1: '%s'\nClubParent2: '%s'",
                             child->mName.c_str(), child->mConverterData.mParentClub->mName.c_str(), c.mName.c_str());
                     #endif
                     }
@@ -393,7 +392,7 @@ void Converter::Convert() {
         // child club has child clubs
         if (c.mConverterData.mParentClub && !c.mConverterData.mChildClubs.empty()) {
         #ifdef SHOW_RESERVE_CLUBS_WARNINGS
-            Error(L"Reserve club has reserve teams\nClub: '%s'", c.mName.c_str());
+            Alert(AL_ERROR, L"Reserve club has reserve teams\nClub: '%s'", c.mName.c_str());
         #endif
         }
     }
@@ -633,9 +632,7 @@ void Converter::Convert() {
             && player.mFutureTransfer.mClub != player.mContract.mClub)
         {
             if (player.mFutureTransfer.mTransferDate <= loanEndDate) {
-                if (mErrors) {
-                    //Error(L"Player is loaned and transferred at same time\nPlayer: %s\nPlayerID: %d", player.mFullName.c_str(), player.mID);
-                }
+                //Alert(AL_ERROR, L"Player is loaned and transferred at same time\nPlayer: %s\nPlayerID: %d", player.mFullName.c_str(), player.mID);
             }
             else {
                 if (player.mFutureTransfer.mClub->mConverterData.mFifamClub) {
@@ -2607,9 +2604,7 @@ Int Converter::ConvertFormationIdToCustom(Int id) {
 
 void Converter::GenerateNewTeamIDsFile(Path const &outputFilePath, Path const &oldTeamIDsFilePath) {
     if (!mFoomDatabase) {
-        if (mErrors) {
-            Error(L"FoomDatabase is not available");
-        }
+        Alert(AL_ERROR, L"FoomDatabase is not available");
         return;
     }
     struct TeamDesc {
@@ -2644,9 +2639,7 @@ void Converter::GenerateNewTeamIDsFile(Path const &outputFilePath, Path const &o
                 if (info.mFifaManagerID > 0) {
                     auto it = uniqueUIDsMap.find(info.mFifaManagerID);
                     if (it != uniqueUIDsMap.end()) {
-                        if (mErrors) {
-                            Error(L"Duplicated Unique ID in old team IDs file: %08X\nClub1: %d\nClub2: %d", info.mFifaManagerID, (*it).second, FootballManagerID);
-                        }
+                        Alert(AL_ERROR, L"Duplicated Unique ID in old team IDs file: %08X\nClub1: %d\nClub2: %d", info.mFifaManagerID, (*it).second, FootballManagerID);
                     }
                     else {
                         info.mValid = false;
