@@ -463,29 +463,36 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, Fi
     }
 
     bool hairSet = false;
-    if (p->mHairLength == 4) { // Bald
+    if (p->mHairLength == 0) { // Bald, TODO: handle other hair types
         player->mAppearance.mHairStyle = hairIdFromEditorId[1 - 1];
-        hairSet = true;
-    }
-    else if (p->mHairLength == 0) { // Fuzz
-        player->mAppearance.mHairStyle = hairIdFromEditorId[6 - 1];
         hairSet = true;
     }
 
     bool hairColorSet = false;
-    if (p->mHairColour >= 1 && p->mHairColour <= 6) {
-        if (p->mHairColour == 1 || p->mHairColour == 7 || p->mHairColour == 8)
-            player->mAppearance.mHairColor = FifamHairColor::Blonde;
-        else if (p->mHairColour == 2 || p->mHairColour == 9 || p->mHairColour == 10)
-            player->mAppearance.mHairColor = FifamHairColor::Lightbrown;
-        else if (p->mHairColour == 3 || p->mHairColour == 11 || p->mHairColour == 12)
-            player->mAppearance.mHairColor = FifamHairColor::Darkbrown;
-        else if (p->mHairColour == 4 || p->mHairColour == 13 || p->mHairColour == 14)
-            player->mAppearance.mHairColor = FifamHairColor::Red;
-        else if (p->mHairColour == 5 || p->mHairColour == 15 || p->mHairColour == 16)
+    if (p->mHairColour >= 0 && p->mHairColour <= 6) {
+        switch (p->mHairColour) {
+        case 0: // Black
             player->mAppearance.mHairColor = FifamHairColor::Black;
-        else if (p->mHairColour == 6 || p->mHairColour == 17 || p->mHairColour == 18)
+            break;
+        case 1: // Blonde
+            player->mAppearance.mHairColor = FifamHairColor::Blonde;
+            break;
+        case 2: // Brown
+            player->mAppearance.mHairColor = FifamHairColor::Darkbrown;
+            break;
+        case 3: // Grey
             player->mAppearance.mHairColor = 8;
+            break;
+        case 4: // Light Blonde
+            player->mAppearance.mHairColor = FifamHairColor::Platinumblonde;
+            break;
+        case 5: // Light Brown
+            player->mAppearance.mHairColor = FifamHairColor::Lightbrown;
+            break;
+        case 6: // Red
+            player->mAppearance.mHairColor = FifamHairColor::Red;
+            break;
+        }
         hairColorSet = true;
     }
 

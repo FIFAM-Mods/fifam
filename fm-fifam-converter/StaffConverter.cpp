@@ -427,7 +427,7 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
     }
 
     // coaching style 
-    // mCoachingStyle : 0 - not set, 1 - general (Simeone, Luis Enrique, Conte), 2 - goalkeeping, 3 - fitness, 4 - attacking, 5 - defending, 6 - technical, 7 - technical, 8 - mental, 9 - set pieces
+    // mCoachingStyle : 0 - not set, 1 - general (Simeone, Luis Enrique, Conte), 2 - goalkeeping, 3 - fitness, 4 - attacking, 5 - defending, 6 - technical, 7 - technical, 8 - possession (old mental), 9 - set pieces
     if (p->mCoachingStyle == 3) // fitness
         staff->mManagerFocus = FifamManagerFocus::Fitness;
     else if (p->mCoachingStyle == 4) // attacking (Fergusson, Klopp, Inzaghi)
@@ -436,7 +436,7 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
         staff->mManagerFocus = FifamManagerFocus::Defensive;
     else if (p->mCoachingStyle == 6 || p->mCoachingStyle == 7) // technical (Mourinho, Xavi, Sarri) / technical (Guardiola, Zidane, Arteta)
         staff->mManagerFocus = FifamManagerFocus::TacticalEducation;
-    else if (p->mCoachingStyle == 8) // mental (Ancelotti)
+    else if (p->mCoachingStyle == 8) // possession/mental (Ancelotti)
         staff->mManagerFocus = FifamManagerFocus::PlayerCharacter;
     else {
         Int bestAttacking = p->mAttacking * 5;
