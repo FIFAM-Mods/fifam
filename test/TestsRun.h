@@ -98,5 +98,5 @@
 #include "tests\MergeUIDs.h"
 
 void RunTests() {
-    RunTest<MergeUIDs>();
+    RunTest<SortShoes>();
 }

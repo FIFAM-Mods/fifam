@@ -82,7 +82,7 @@ public:
     }
 
     void Sort(bool onlyDefinition) {
-        Path shoesPath = L"C:\\Users\\Dmitri\\Desktop\\shoe_boots";
+        Path shoesPath = L"C:\\Users\\User\\Desktop\\fc26_shoes";
         Path sortedPath = shoesPath / "sorted";
         Map<Int, string> shoeFolders = {
             { 1 , "1 - white"            },
