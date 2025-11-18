@@ -373,14 +373,13 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
             case FMF_FORMATION_4_3_3_WIDE:
                 staff->mCoachPlayingOrientation = FifamCoachPlayingOrientation::Offensive;
                 break;
-
             case FMF_FORMATION_3_4_1_2:
             case FMF_FORMATION_3_4_2_1:
             case FMF_FORMATION_3_4_3:
-            case FMF_FORMATION_3_4_3_DM_WIDE:
+            case FMF_FORMATION_5_2_3_DM_WIDE:
             case FMF_FORMATION_3_5_2:
             case FMF_FORMATION_3_5_2_CF:
-            case FMF_FORMATION_5_1_2_2_DM_WB:
+            case FMF_FORMATION_5_3_2_DM_WB:
             case FMF_FORMATION_5_1_2_2_DM_WB_CF:
             case FMF_FORMATION_5_1_2_2_DM_WB_NARROW:
             case FMF_FORMATION_5_1_3_1_DM_WB:
@@ -392,6 +391,12 @@ FifamStaff *Converter::CreateAndConvertStaff(foom::non_player * p, FifamClub * c
             case FMF_FORMATION_5_4_1:
             case FMF_FORMATION_5_4_1_DIAMOND_WB:
             case FMF_FORMATION_5_4_1_WB_WIDE:
+            case FMF_FORMATION_5_2_2_1_DM_AM:
+            case FMF_FORMATION_5_2_1_2_DM_AM:
+            case FMF_FORMATION_3_2_5_DM_2AM_WIDE:
+            case FMF_FORMATION_5_2_1_2_DM_AM_NARROW:
+            case FMF_FORMATION_5_2_2_1_DM_AM_NARROW:
+            case FMF_FORMATION_5_3_2_DM_NARROW:
                 staff->mCoachPlayingOrientation = FifamCoachPlayingOrientation::Defensive;
                 break;
             case FMF_FORMATION_5_2_2_1_DM:

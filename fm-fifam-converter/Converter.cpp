@@ -2461,6 +2461,7 @@ FifamFormation Converter::ConvertFormationId(Int id) {
     case 7:
     case 20:
     case 52:
+    case 62:
         return FifamFormation::_4_4_2_Diamond;
     case 8:
         return FifamFormation::_4_5_1_Normal;
@@ -2496,22 +2497,30 @@ FifamFormation Converter::ConvertFormationId(Int id) {
     case 28:
         return FifamFormation::_4_2_2_1_1_V2;
     case 30:
+    case 63:
         return FifamFormation::_5_2_2_1;
     case 31:
     case 35:
+    case 68:
         return FifamFormation::_3_4_3_Defensive;
     case 36:
     case 40:
         return FifamFormation::_4_3_3_Defensive;
     case 41:
     case 56:
+    case 64:
+    case 66:
         return FifamFormation::_5_2_1_2;
     case 42:
     case 59:
     case 61:
+    case 67:
         return FifamFormation::_5_2_2_1;
     case 47:
+    case 69:
         return FifamFormation::_5_3_2;
+    case 65:
+        return FifamFormation::_3_4_3_Wings;
     }
     return FifamFormation::None;
 }
@@ -2523,7 +2532,7 @@ Int Converter::ConvertFormationIdToCustom(Int id) {
     case 3:
         return FMF_FORMATION_4_4_2; // 4-4-2 > 4-4-2
     case 4:
-        return FMF_FORMATION_4_1_4_1_DM_WIDE; // 4-1-4-1 DM Wide > 4-3-3 Wing
+        return FMF_FORMATION_4_3_3_DM_WIDE; // 4-1-4-1 DM Wide > 4-3-3 Wing
     case 7:
         return FMF_FORMATION_4_4_2_DIAMOND_NARROW; // 4-4-2 Diamond Narrow > 4-4-2 ROff
     case 8:
@@ -2555,13 +2564,13 @@ Int Converter::ConvertFormationIdToCustom(Int id) {
     case 26:
         return FMF_FORMATION_4_1_2_3_DM_NARROW; // 4-1-2-3 DM Narrow > 4-3-3 Def
     case 27:
-        return FMF_FORMATION_4_1_2_3_DM_AM_NARROW; // 4-1-2-3 DM AM Narrow > 4-3-3 T2
+        return FMF_FORMATION_4_3_2_1_DM_AM_NARROW; // 4-1-2-3 DM AM Narrow > 4-3-3 T2
     case 28:
         return FMF_FORMATION_4_2_4_DM_WIDE; // 4-2-4 DM Wide > 4-4-2 Double6
     case 29:
-        return FMF_FORMATION_4_2_3_1_DM_WIDE; // 4-2-3-1 DM Wide > 4-3-3 Of V2
+        return FMF_FORMATION_4_2_3_1_DM_AM_WIDE; // 4-2-3-1 DM Wide > 4-3-3 Of V2
     case 30:
-        return FMF_FORMATION_5_1_2_2_DM_WB; // 5-1-2-2 DM WB > 5-3-2
+        return FMF_FORMATION_5_3_2_DM_WB; // 5-1-2-2 DM WB > 5-3-2
     case 31:
         return FMF_FORMATION_3_4_2_1_DM; // 3-4-2-1 DM > 5-4-1
     case 32:
@@ -2571,7 +2580,8 @@ Int Converter::ConvertFormationIdToCustom(Int id) {
     case 34:
         return FMF_FORMATION_3_2_3_2_DM; // 3-2-3-2 DM > 3-5-2
     case 35:
-        return FMF_FORMATION_3_4_3_DM_WIDE; // 3-4-3 DM Wide > 5-4-1 F
+    case 68:
+        return FMF_FORMATION_5_2_3_DM_WIDE; // 3-4-3 DM Wide > 5-4-1 F
     case 36:
         return FMF_FORMATION_4_3_3_NARROW; // 4-3-3 Narrow > 4-3-3 T1
     case 40:
@@ -2598,6 +2608,20 @@ Int Converter::ConvertFormationIdToCustom(Int id) {
         return FMF_FORMATION_3_1_4_2_DM; // 3-1-4-2 DM > 3-5-2 F
     case 61:
         return FMF_FORMATION_5_4_1_WB_WIDE; // 5-4-1 WB Wide > 5-4-1 F
+    case 62:
+        return FMF_FORMATION_4_2_2_2_DM_AM_NARROW;
+    case 63:
+        return FMF_FORMATION_5_2_2_1_DM_AM;
+    case 64:
+        return FMF_FORMATION_5_2_1_2_DM_AM;
+    case 65:
+        return FMF_FORMATION_3_2_5_DM_2AM_WIDE;
+    case 66:
+        return FMF_FORMATION_5_2_1_2_DM_AM_NARROW;
+    case 67:
+        return FMF_FORMATION_5_2_2_1_DM_AM_NARROW;
+    case 69:
+        return FMF_FORMATION_5_3_2_DM_NARROW;
     }
     return 0;
 }
