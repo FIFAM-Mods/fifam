@@ -96,7 +96,8 @@
 #include "tests\CopyHistoric.h"
 #include "tests\FindLargestUIDIndex.h"
 #include "tests\MergeUIDs.h"
+#include "tests\GenericFaceTextures.h"
 
 void RunTests() {
-    RunTest<SortShoes>();
+    RunTest<GenericFaceTextures>();
 }

@@ -486,28 +486,52 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
         player->mAppearance.mSkinColor = 9;
         break;
     }
-    switch (fifaPlayer->internal.skintypecode) {
-    case 0:
-    case 5:
-    case 6:
-    case 7:
-    case 50:
-    case 100:
-    case 102:
-    case 103:
-    case 150:
-        player->mAppearance.mFaceVariation = 0;
-        break;
-    case 1:
-    case 104:
-        player->mAppearance.mFaceVariation = 1;
-        break;
-    case 2:
-    case 51:
-    case 101:
-    case 151:
-        player->mAppearance.mFaceVariation = 2;
-        break;
+    // FC 25 skintypecode: 0 - normal, 1-5 - freckles, 6 - five o'clock shadow, 7 - aging spots
+    // FC 25 skinsurfacepack
+    // FC 25 skinmakeup: = 0 - none, 1-3 - makeup types
+    // FM 26 mFaceVariation: 0 - normal, 1 - freckles, 2 - wrinkles, 3 - female normal, 4 - female freckles, 5 - female wrinkles,
+    //                       6 - female makeup 1, 7 - female makeup 2
+    if (fifaPlayer->IsMale()) {
+        player->mAppearance.mFaceVariation = 0; // normal
+        if (fifaPlayer->internal.skintypecode >= 1 && fifaPlayer->internal.skintypecode <= 5)
+            player->mAppearance.mFaceVariation = 1; // freckles
+        else {
+            switch (fifaPlayer->internal.skinsurfacepack) {
+            case 232201: // Male 30s Caucasian Heavy 01
+            case 240201: // Male 40s African Heavy 01
+            case 240202: // Male 40s African Heavy 02
+            case 242201: // Male 40s Caucasian Heavy 01
+            case 250201: // Male 50s African Heavy 01
+            case 250202: // Male 50s African Heavy 02
+            case 252001: // Male 50s Caucasian Thin 01
+                player->mAppearance.mFaceVariation = 2; // wrinkles
+                break;
+            }
+        }
+    }
+    else {
+        player->mAppearance.mFaceVariation = 3; // female normal
+        if (fifaPlayer->internal.skintypecode >= 1 && fifaPlayer->internal.skintypecode <= 5)
+            player->mAppearance.mFaceVariation = 4; // female freckles
+        else {
+            if (fifaPlayer->internal.skinmakeup != 0) {
+                if (fifaPlayer->internal.skinmakeup == 1)
+                    player->mAppearance.mFaceVariation = 6; // female makeup 1
+                else
+                    player->mAppearance.mFaceVariation = 7; // female makeup 2
+            }
+            else {
+                switch (fifaPlayer->internal.skinsurfacepack) {
+                case 122201: // Female 20s Caucasian Heavy 01
+                case 131201: // Female 30s Asian Heavy 01
+                case 132201: // Female 30s Caucasian Heavy 01
+                case 132202: // Female 30s Caucasian Heavy 02
+                case 141001: // Female 40s Asian Thin 01
+                    player->mAppearance.mFaceVariation = 5; // female wrinkles
+                    break;
+                }
+            }
+        }
     }
     // 0 - light blue 1 - brown 2 - grey-green 3 - green 4 - green-blue 5 -grey 6 - blue
     switch (fifaPlayer->internal.eyecolorcode) {

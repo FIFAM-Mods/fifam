@@ -114,6 +114,7 @@
     <ClInclude Include="tests\GenerateKitColors.h" />
     <ClInclude Include="tests\GenerateKitConfig.h" />
     <ClInclude Include="tests\GeneratePlayerFacesList.h" />
+    <ClInclude Include="tests\GenericFaceTextures.h" />
     <ClInclude Include="tests\GetUnlinkedFaces.h" />
     <ClInclude Include="tests\MergeFaceIDs.h" />
     <ClInclude Include="tests\MergeUIDs.h" />
