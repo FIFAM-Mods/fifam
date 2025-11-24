@@ -79,23 +79,23 @@ const UChar g14HairEditorIdToReal[98] = {
 class FifamPlayerAppearance {
 public:
     // @since FM07
-    UChar mGenericFace = 0; // generic face ID
+    UShort mGenericFace = 0; // generic face ID
     // @since FM11
-    UChar mSkinColor;
+    UChar mSkinColor = 0;
     // @since FM11
-    UChar mFaceVariation;
+    UChar mFaceVariation = 0;
     // @since FM11
-    UChar mEyeColour;
+    UChar mEyeColour = 0;
     // @since FM07
-    UChar mHairColor;
+    UChar mHairColor = 0;
     // @since FM07
-    UChar mHairStyle = 0;
+    UShort mHairStyle = 0; // changed from UChar to UShort in FM26
     // @since FM11
-    Bool mSideburns = false;
+    Bool mSideburns = false; // not used in FM26
     // @since FM07
-    UChar mBeardType;
+    UChar mBeardType = 0;
     // @since FM11
-    UChar mBeardColor;
+    UChar mBeardColor = 0;
 
     struct AppearanceInfo07 {
         UChar faceId = 0;

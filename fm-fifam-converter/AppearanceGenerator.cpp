@@ -486,50 +486,93 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
         player->mAppearance.mSkinColor = 9;
         break;
     }
-    // FC 25 skintypecode: 0 - normal, 1-5 - freckles, 6 - five o'clock shadow, 7 - aging spots
-    // FC 25 skinsurfacepack
-    // FC 25 skinmakeup: = 0 - none, 1-3 - makeup types
     // FM 26 mFaceVariation: 0 - normal, 1 - freckles, 2 - wrinkles, 3 - female normal, 4 - female freckles, 5 - female wrinkles,
     //                       6 - female makeup 1, 7 - female makeup 2
-    if (fifaPlayer->IsMale()) {
-        player->mAppearance.mFaceVariation = 0; // normal
-        if (fifaPlayer->internal.skintypecode >= 1 && fifaPlayer->internal.skintypecode <= 5)
-            player->mAppearance.mFaceVariation = 1; // freckles
+    if (fifaPlayer->m_gameId >= 25) {
+        // FC 25 skintypecode: 0 - normal, 1-5 - freckles, 6 - five o'clock shadow, 7 - aging spots
+        // FC 25 skinsurfacepack
+        // FC 25 skinmakeup: = 0 - none, 1-3 - makeup types
+        if (fifaPlayer->IsMale()) {
+            player->mAppearance.mFaceVariation = 0; // normal
+            if (fifaPlayer->internal.skintypecode >= 1 && fifaPlayer->internal.skintypecode <= 5)
+                player->mAppearance.mFaceVariation = 1; // freckles
+            else {
+                switch (fifaPlayer->internal.skinsurfacepack) {
+                case 232201: // Male 30s Caucasian Heavy 01
+                case 240201: // Male 40s African Heavy 01
+                case 240202: // Male 40s African Heavy 02
+                case 242201: // Male 40s Caucasian Heavy 01
+                case 250201: // Male 50s African Heavy 01
+                case 250202: // Male 50s African Heavy 02
+                case 252001: // Male 50s Caucasian Thin 01
+                    player->mAppearance.mFaceVariation = 2; // wrinkles
+                    break;
+                }
+            }
+        }
         else {
-            switch (fifaPlayer->internal.skinsurfacepack) {
-            case 232201: // Male 30s Caucasian Heavy 01
-            case 240201: // Male 40s African Heavy 01
-            case 240202: // Male 40s African Heavy 02
-            case 242201: // Male 40s Caucasian Heavy 01
-            case 250201: // Male 50s African Heavy 01
-            case 250202: // Male 50s African Heavy 02
-            case 252001: // Male 50s Caucasian Thin 01
-                player->mAppearance.mFaceVariation = 2; // wrinkles
-                break;
+            player->mAppearance.mFaceVariation = 3; // female normal
+            if (fifaPlayer->internal.skintypecode >= 1 && fifaPlayer->internal.skintypecode <= 5)
+                player->mAppearance.mFaceVariation = 4; // female freckles
+            else {
+                if (fifaPlayer->internal.skinmakeup != 0) {
+                    if (fifaPlayer->internal.skinmakeup == 1)
+                        player->mAppearance.mFaceVariation = 6; // female makeup 1
+                    else
+                        player->mAppearance.mFaceVariation = 7; // female makeup 2
+                }
+                else {
+                    switch (fifaPlayer->internal.skinsurfacepack) {
+                    case 122201: // Female 20s Caucasian Heavy 01
+                    case 131201: // Female 30s Asian Heavy 01
+                    case 132201: // Female 30s Caucasian Heavy 01
+                    case 132202: // Female 30s Caucasian Heavy 02
+                    case 141001: // Female 40s Asian Thin 01
+                        player->mAppearance.mFaceVariation = 5; // female wrinkles
+                        break;
+                    }
+                }
             }
         }
     }
     else {
-        player->mAppearance.mFaceVariation = 3; // female normal
-        if (fifaPlayer->internal.skintypecode >= 1 && fifaPlayer->internal.skintypecode <= 5)
-            player->mAppearance.mFaceVariation = 4; // female freckles
-        else {
-            if (fifaPlayer->internal.skinmakeup != 0) {
-                if (fifaPlayer->internal.skinmakeup == 1)
-                    player->mAppearance.mFaceVariation = 6; // female makeup 1
-                else
-                    player->mAppearance.mFaceVariation = 7; // female makeup 2
+        // skintypecode: 0 - normal, 1 - freckles, 2 - wrinkles, 5-7 - ?, 50 - young, 51 - old,
+        //              100 - female normal, 101 - female wrinkles, 102 - female makeup 1, 103 - female makeup 2,
+        //              104 - female freckles, 150 - female young, 151 - female old
+        if (fifaPlayer->IsMale()) {
+            player->mAppearance.mFaceVariation = 0; // normal
+            switch (fifaPlayer->internal.skintypecode) {
+            case 1:
+            case 104:
+                player->mAppearance.mFaceVariation = 1; // freckles
+                break;
+            case 2:
+            case 51:
+            case 101:
+            case 151:
+                player->mAppearance.mFaceVariation = 2; // wrinkles
+                break;
             }
-            else {
-                switch (fifaPlayer->internal.skinsurfacepack) {
-                case 122201: // Female 20s Caucasian Heavy 01
-                case 131201: // Female 30s Asian Heavy 01
-                case 132201: // Female 30s Caucasian Heavy 01
-                case 132202: // Female 30s Caucasian Heavy 02
-                case 141001: // Female 40s Asian Thin 01
-                    player->mAppearance.mFaceVariation = 5; // female wrinkles
-                    break;
-                }
+        }
+        else {
+            player->mAppearance.mFaceVariation = 3; // female normal
+            switch (fifaPlayer->internal.skintypecode) {
+            case 1:
+            case 104:
+                player->mAppearance.mFaceVariation = 4; // female freckles
+                break;
+            case 2:
+            case 51:
+            case 101:
+            case 151:
+                player->mAppearance.mFaceVariation = 5; // female wrinkles
+                break;
+            case 102:
+                player->mAppearance.mFaceVariation = 6; // female makeup 1
+                break;
+            case 103:
+                player->mAppearance.mFaceVariation = 7; // female makeup 2
+                break;
             }
         }
     }
@@ -570,136 +613,139 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
         player->mAppearance.mSideburns = 1;
     else
         player->mAppearance.mSideburns = 0;
-
-    switch (fifaPlayer->internal.facialhairtypecode) {
-    case 0:
-    case 246:
-        player->mAppearance.mBeardType = 0; // Clean Shaved
-        break;
-    case 1:
-    case 254:
-    case 259:
-    case 288:
-        player->mAppearance.mBeardType = 1; // Chin Stubble Light  _
-        break;
-    case 2:
-    case 285:
-        player->mAppearance.mBeardType = 2; // Chin Strap \_/
-        break;
-    case 3:
-    case 251:
-        player->mAppearance.mBeardType = 3; // Goatee |_|
-        break;
-    case 4:
-    case 28:
-    case 38:
-    case 45:
-    case 50:
-    case 53:
-    case 64:
-    case 243:
-    case 255:
-        player->mAppearance.mBeardType = 4; // Casual Beard \|_|/
-        break;
-    case 5:
-    case 27:
-    case 31:
-    case 32:
-        player->mAppearance.mBeardType = 5; // PartialGoatee |_|
-        break;
-    case 6:
-    case 57:
-        player->mAppearance.mBeardType = 6; // Stubble \|_|/
-        break;
-    case 7:
-        player->mAppearance.mBeardType = 7; // Tuft \/
-        break;
-    case 8:
-    case 18:
-    case 20:
-    case 21:
-    case 25:
-    case 30:
-    case 34:
-    case 35:
-    case 39:
-    case 41:
-    case 54:
-    case 61:
-    case 62:
-    case 63:
-    case 65:
-    case 66:
-    case 67:
-    case 238:
-    case 245:
-    case 249:
-    case 252:
-    case 266:
-    case 270:
-    case 289:
-        player->mAppearance.mBeardType = 8; // Full Beard \|_|/
-        break;
-    case 9:
-    case 16:
-    case 17:
-    case 29:
-    case 46:
-    case 47:
-    case 48:
-    case 49:
-    case 257:
-    case 286:
-        player->mAppearance.mBeardType = 9; // Light Goatee |_|
-        break;
-    case 10:
-    case 33:
-    case 36:
-    case 42:
-    case 43:
-        player->mAppearance.mBeardType = 10; // Moustache --
-        break;
-    case 11:
-    case 236:
-        player->mAppearance.mBeardType = 11; // Light Chin Curtain \\//
-        break;
-    case 12:
-    case 19:
-    case 60:
-    case 248:
-    case 253:
-    case 258:
-        player->mAppearance.mBeardType = 12; // FullGoatee |_|
-        break;
-    case 13:
-    case 22:
-    case 237:
-    case 247:
-    case 260:
-    case 272:
-        player->mAppearance.mBeardType = 13; // Chin Curtain \\//
-        break;
-    case 14:
-    case 23:
-    case 26:
-    case 44:
-    case 51:
-    case 55:
-    case 56:
-    case 58:
-    case 244:
-        player->mAppearance.mBeardType = 14; // Beard \|_|/
-        break;
-    case 15:
-    case 24:
-    case 37:
-    case 40:
-    case 52:
-    case 59:
-    case 287:
-        player->mAppearance.mBeardType = 15; // Patchy Beard \|_|/
-        break;
+    if (fifaPlayer->IsMale()) {
+        switch (fifaPlayer->internal.facialhairtypecode) {
+        case 0:
+        case 246:
+            player->mAppearance.mBeardType = 0; // Clean Shaved
+            break;
+        case 1:
+        case 254:
+        case 259:
+        case 288:
+            player->mAppearance.mBeardType = 1; // Chin Stubble Light  _
+            break;
+        case 2:
+        case 285:
+            player->mAppearance.mBeardType = 2; // Chin Strap \_/
+            break;
+        case 3:
+        case 251:
+            player->mAppearance.mBeardType = 3; // Goatee |_|
+            break;
+        case 4:
+        case 28:
+        case 38:
+        case 45:
+        case 50:
+        case 53:
+        case 64:
+        case 243:
+        case 255:
+            player->mAppearance.mBeardType = 4; // Casual Beard \|_|/
+            break;
+        case 5:
+        case 27:
+        case 31:
+        case 32:
+            player->mAppearance.mBeardType = 5; // PartialGoatee |_|
+            break;
+        case 6:
+        case 57:
+            player->mAppearance.mBeardType = 6; // Stubble \|_|/
+            break;
+        case 7:
+            player->mAppearance.mBeardType = 7; // Tuft \/
+            break;
+        case 8:
+        case 18:
+        case 20:
+        case 21:
+        case 25:
+        case 30:
+        case 34:
+        case 35:
+        case 39:
+        case 41:
+        case 54:
+        case 61:
+        case 62:
+        case 63:
+        case 65:
+        case 66:
+        case 67:
+        case 238:
+        case 245:
+        case 249:
+        case 252:
+        case 266:
+        case 270:
+        case 289:
+            player->mAppearance.mBeardType = 8; // Full Beard \|_|/
+            break;
+        case 9:
+        case 16:
+        case 17:
+        case 29:
+        case 46:
+        case 47:
+        case 48:
+        case 49:
+        case 257:
+        case 286:
+            player->mAppearance.mBeardType = 9; // Light Goatee |_|
+            break;
+        case 10:
+        case 33:
+        case 36:
+        case 42:
+        case 43:
+            player->mAppearance.mBeardType = 10; // Moustache --
+            break;
+        case 11:
+        case 236:
+            player->mAppearance.mBeardType = 11; // Light Chin Curtain \\//
+            break;
+        case 12:
+        case 19:
+        case 60:
+        case 248:
+        case 253:
+        case 258:
+            player->mAppearance.mBeardType = 12; // FullGoatee |_|
+            break;
+        case 13:
+        case 22:
+        case 237:
+        case 247:
+        case 260:
+        case 272:
+            player->mAppearance.mBeardType = 13; // Chin Curtain \\//
+            break;
+        case 14:
+        case 23:
+        case 26:
+        case 44:
+        case 51:
+        case 55:
+        case 56:
+        case 58:
+        case 244:
+            player->mAppearance.mBeardType = 14; // Beard \|_|/
+            break;
+        case 15:
+        case 24:
+        case 37:
+        case 40:
+        case 52:
+        case 59:
+        case 287:
+            player->mAppearance.mBeardType = 15; // Patchy Beard \|_|/
+            break;
+        }
     }
+    else
+        player->mAppearance.mBeardType = 0; // Clean Shaved
     // 0 - black, 1 - blonde, 2 - brown, 3 - medium blonde, 4 - red
     if (fifaPlayer->m_gameId >= 23) {
         switch (fifaPlayer->internal.facialhaircolorcode) {
