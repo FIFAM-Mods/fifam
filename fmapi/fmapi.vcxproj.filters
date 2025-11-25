@@ -111,6 +111,7 @@
     <ClInclude Include="..\shared\CompetitionsShared.h">
       <Filter>shared</Filter>
     </ClInclude>
+    <ClInclude Include="FifamAppearanceDefs.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FifamDate.cpp" />
@@ -162,6 +163,7 @@
     <ClCompile Include="..\shared\CompetitionsShared.cpp">
       <Filter>shared</Filter>
     </ClCompile>
+    <ClCompile Include="FifamAppearanceDefs.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="shared">

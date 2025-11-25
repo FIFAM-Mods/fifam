@@ -68,11 +68,11 @@ struct person {
         Int mFifaPlayerId = 0;
         Bool mAvailableForAdultTeams = false; // ?
         Bool mFitsIntoDbLimit = true;
-        Short mEditorFace = -1;
-        Char mEditorHair = -1;
-        Char mEditorSkin = -1;
-        Char mEditorEye = -1;
-        Char mEditorBeard = -1;
+        StringA mEditorFace;
+        Int mEditorHair = -1;
+        UChar mEditorSkin = 0;
+        StringA mEditorEye;
+        StringA mEditorBeard;
         Vector<String> mCharacterFlags;
         UChar mWeight = 0;
     } mConverterData;

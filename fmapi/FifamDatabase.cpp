@@ -246,8 +246,14 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
     if (rulesReader.Available())
         mRules.Read(rulesReader);
 
-    if (!historicPath.empty())
-        mHistoric.Read(historicPath, gameId);
+    if (mReadingOptions.mReadAppearanceDefs) {
+        Path appearanceDefsPath = dbPath / L"AppearanceDefs.sav";
+        if (exists(appearanceDefsPath))
+            mAppearanceDefs.Read(appearanceDefsPath);
+
+        if (!historicPath.empty())
+            mHistoric.Read(historicPath, gameId);
+    }
 
     // Resolve competition, club, player links
 
@@ -556,6 +562,9 @@ void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &
         mRules.Write(rulesWriter);
         rulesWriter.Close();
     }
+
+    if (mWritingOptions.mWriteAppearanceDefs)
+        mAppearanceDefs.Write(dbPath / L"AppearanceDefs.sav");
 
     //if (!historicPath.empty())
     //    mHistoric.Write(historicPath, gameId, vYear, vNumber, this);

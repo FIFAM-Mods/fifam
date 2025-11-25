@@ -6,6 +6,7 @@
 #include "FifamRules.h"
 #include "FifamHistoric.h"
 #include "FifamCompetition.h"
+#include "FifamAppearanceDefs.h"
 
 /*
     Minimum supported version: FM07 0x2007.0x0C
@@ -28,6 +29,7 @@ public:
     Vector<FifamCupAlloc *> mCupTemplates;
     Set<FifamCACPlayer *> mCACPlayers;
     FifamRules mRules;
+    FifamAppearanceDefs mAppearanceDefs;
     FifamHistoric mHistoric;
 
     using NamesMap = Map<FifamLanguage, Set<String>>;
@@ -43,6 +45,7 @@ public:
         Bool mReadInternationalCompetitions = true;
         Bool mReadClubs = true;
         Bool mReadPersons = true;
+        Bool mReadAppearanceDefs = true;
         UInt mGameVersionForScripts = 0;
         Bool mUseCustomFormations = false;
     } mReadingOptions;
@@ -53,6 +56,7 @@ public:
         Bool mWriteAssessment = true;
         Bool mWriteFixtures = true;
         Bool mWriteExternalScripts = true;
+        Bool mWriteAppearanceDefs = true;
         UInt mMaxClubsInCountry[8] = { 512, 512, 512, 1024, 1024, 1024, 1024, 1024 };
         UInt mMaxPersonsInClub[8] = { 60, 96, 99, 99, 99, 99, 256, 256 };
         Map<FifamNation, Pair<FifamNation, FifamNation>> mCountryTranslationMap;

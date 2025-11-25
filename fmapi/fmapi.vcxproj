@@ -98,6 +98,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\shared\CompetitionsShared.h" />
+    <ClInclude Include="FifamAppearanceDefs.h" />
     <ClInclude Include="FifamChairmanStability.h" />
     <ClInclude Include="FifamClubAiStrategy.h" />
     <ClInclude Include="FifamClubBadge.h" />
@@ -208,6 +209,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\shared\CompetitionsShared.cpp" />
+    <ClCompile Include="FifamAppearanceDefs.cpp" />
     <ClCompile Include="FifamClub.cpp" />
     <ClCompile Include="FifamClubBadge.cpp" />
     <ClCompile Include="FifamClubHistory.cpp" />

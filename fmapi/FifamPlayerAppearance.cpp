@@ -422,18 +422,7 @@ void FifamPlayerAppearance::SetFrom07AppearanceInfo(AppearanceInfo07 const &data
     }
 
     // Select beard colour
-    if (mBeardType != FifamBeardType::None) {
-        if (mHairColor == FifamHairColor::Blonde)
-            mBeardColor = FifamBeardColor::Blonde;
-        else if (mHairColor == FifamHairColor::Brown)
-            mBeardColor = FifamBeardColor::Brown;
-        else if (mHairColor == FifamHairColor::MediumBlond)
-            mBeardColor = FifamBeardColor::MediumBlonde;
-        else if (mHairColor == FifamHairColor::Red)
-            mBeardColor = FifamBeardColor::Red;
-        else
-            mBeardColor = FifamBeardColor::Black;
-    }
+    SetBeardColorFromHairColor();
 }
 
 FifamPlayerAppearance::AppearanceInfo07 FifamPlayerAppearance::Get07AppearanceInfo() {
@@ -478,4 +467,17 @@ FifamPlayerAppearance::AppearanceInfo07 FifamPlayerAppearance::Get07AppearanceIn
         result.beardType = Utils::ToInt(BeardType07::Goatee);
 
     return result;
+}
+
+void FifamPlayerAppearance::SetBeardColorFromHairColor() {
+    if (mHairColor == FifamHairColor::Blonde)
+        mBeardColor = FifamBeardColor::Blonde;
+    else if (mHairColor == FifamHairColor::Brown)
+        mBeardColor = FifamBeardColor::Brown;
+    else if (mHairColor == FifamHairColor::MediumBlond)
+        mBeardColor = FifamBeardColor::MediumBlonde;
+    else if (mHairColor == FifamHairColor::Red)
+        mBeardColor = FifamBeardColor::Red;
+    else
+        mBeardColor = FifamBeardColor::Black;
 }

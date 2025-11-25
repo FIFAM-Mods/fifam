@@ -869,19 +869,19 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                         if (playerId != -1) {
                             foom::player *foomPlayer = mFoomDatabase->get<foom::player>(playerId);
                             if (foomPlayer) {
-                                auto SetPlayerParameter = [](auto & param, String const &str) {
+                                auto SetPlayerParameterInt = [](auto & param, String const &str) {
                                     if (!str.empty()) {
                                         Int paramId = Utils::SafeConvertInt<Int>(str);
                                         if (paramId != -1)
                                             param = paramId;
                                     }
                                 };
-                                SetPlayerParameter(foomPlayer->mConverterData.mFifaPlayerId, fifaId);
-                                SetPlayerParameter(foomPlayer->mConverterData.mEditorFace, editorFace);
-                                SetPlayerParameter(foomPlayer->mConverterData.mEditorHair, editorHair);
-                                SetPlayerParameter(foomPlayer->mConverterData.mEditorBeard, editorBeard);
-                                SetPlayerParameter(foomPlayer->mConverterData.mEditorSkin, editorSkin);
-                                SetPlayerParameter(foomPlayer->mConverterData.mEditorEye, editorEye);
+                                SetPlayerParameterInt(foomPlayer->mConverterData.mFifaPlayerId, fifaId);
+                                foomPlayer->mConverterData.mEditorFace = Utils::WtoA(editorFace);
+                                SetPlayerParameterInt(foomPlayer->mConverterData.mEditorHair, editorHair);
+                                foomPlayer->mConverterData.mEditorBeard = Utils::WtoA(editorBeard);
+                                SetPlayerParameterInt(foomPlayer->mConverterData.mEditorSkin, editorSkin);
+                                foomPlayer->mConverterData.mEditorEye = Utils::WtoA(editorEye);
                             }
                         }
                     }
