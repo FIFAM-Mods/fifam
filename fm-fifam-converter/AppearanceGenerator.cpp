@@ -15,24 +15,42 @@ void AppearanceGenerator::Read(Path const &filename) {
     static Set<Int> LongHairIDs = {
         4,5,6,7,9,11,12,15,32,33,34,48,49,54,55,71,75,78,79,220,244,245,257,259,261,262,295,301,303,304,305,306,307,308,309,310,314,317,323,324,325,330,331,332,336,342,343,347,348,349,352,355,357,358,364,381,384,388,389,390,391,392,393,394,395,402,403,408,409,410,411,412,413,414,415,416,417,418,419,420,421,422,423,424,425,428,429,430,431,433,434,435,436,437,438,439,440,441,442,443,444,445,446,447,448,449,451,452,453,507,522,523,524,525,526,527,528,529,530,531,532,534,535,536,537,538,541,542,543,544,545,546,547,548,549,550,551,555,560,562,563,564,567,568,569,570,571,572,573,574,575,576,577,578,579,580,581,582,583,586,595,857
     };
+    static Set<Int> BaldingHairstyles = {
+        26,29,41,46,47,92,290,297,665
+    };
+    static Set<Int> BaldHairstyles = {
+        0,25
+    };
     FifamAppearanceDefs defs;
     defs.Read(filename);
-    for (auto const &[id, def] : defs.mAppearanceDefs) {
+    for (auto const &[id, def] : defs.mDefs) {
         mAppearanceDefs[id] = def;
         auto hairsDef = mAppearanceDefsHairstyles[id];
         auto const &hairIDs = def.mParameters[FifamAppearanceDefs::ParamHair];
         for (auto const &i : hairIDs) {
-            if (Utils::Contains(ShortHairIDs, i.first)) {
-                hairsDef.mHairstylesByLength[HairShort].push_back(i);
-                hairsDef.mHairstylesSum[HairShort] += i.second;
+            Bool bald = Utils::Contains(BaldHairstyles, i.first);
+            Bool balding = Utils::Contains(BaldingHairstyles, i.first);
+            if (!bald && !balding) {
+                if (Utils::Contains(ShortHairIDs, i.first)) {
+                    hairsDef.mHairstylesByLength[HairShort].push_back(i);
+                    hairsDef.mHairstylesByLengthSum[HairShort] += i.second;
+                }
+                else if (Utils::Contains(MediumHairIDs, i.first)) {
+                    hairsDef.mHairstylesByLength[HairMedium].push_back(i);
+                    hairsDef.mHairstylesByLengthSum[HairMedium] += i.second;
+                }
+                else if (Utils::Contains(LongHairIDs, i.first)) {
+                    hairsDef.mHairstylesByLength[HairLong].push_back(i);
+                    hairsDef.mHairstylesByLengthSum[HairLong] += i.second;
+                }
             }
-            else if (Utils::Contains(MediumHairIDs, i.first)) {
-                hairsDef.mHairstylesByLength[HairMedium].push_back(i);
-                hairsDef.mHairstylesSum[HairMedium] += i.second;
+            if (!balding) {
+                hairsDef.mHairstylesByRule[HairWithoutBaldingWithBald].push_back(i);
+                hairsDef.mHairstylesByRuleSum[HairWithoutBaldingWithBald] += i.second;
             }
-            else if (Utils::Contains(LongHairIDs, i.first)) {
-                hairsDef.mHairstylesByLength[HairLong].push_back(i);
-                hairsDef.mHairstylesSum[HairLong] += i.second;
+            if (!bald && !balding) {
+                hairsDef.mHairstylesByRule[HairWithoutBaldingAndBald].push_back(i);
+                hairsDef.mHairstylesByRuleSum[HairWithoutBaldingAndBald] += i.second;
             }
         }
     }
@@ -52,10 +70,10 @@ Int AppearanceGenerator::GetRandomAppearanceParam(FifamAppearanceDefs::Type type
     return defaultValue;
 }
 
-Int AppearanceGenerator::GetRandomAppearanceHairstyle(FifamAppearanceDefs::Type type, AppearanceGenerator::HairLength hairLength, Int defaultValue) {
+Int AppearanceGenerator::GetRandomAppearanceHairstyleByLength(FifamAppearanceDefs::Type type, AppearanceGenerator::HairLength hairLength, Int defaultValue) {
     auto &hairsDef = mAppearanceDefsHairstyles[type];
-    if (hairsDef.mHairstylesSum[hairLength] > 0) {
-        UInt rnd = Random::Get(0, hairsDef.mHairstylesSum[hairLength] - 1);
+    if (hairsDef.mHairstylesByLengthSum[hairLength] > 0) {
+        UInt rnd = Random::Get(0, hairsDef.mHairstylesByLengthSum[hairLength] - 1);
         UInt acc = 0;
         for (UInt i = 0; i < hairsDef.mHairstylesByLength[hairLength].size(); i++) {
             acc += hairsDef.mHairstylesByLength[hairLength][i].second;
@@ -66,10 +84,30 @@ Int AppearanceGenerator::GetRandomAppearanceHairstyle(FifamAppearanceDefs::Type 
     return defaultValue;
 }
 
-void AppearanceGenerator::Generate(FifamPlayer *player, FifamAppearanceDefs::Type type) {
+Int AppearanceGenerator::GetRandomAppearanceHairstyleByRule(FifamAppearanceDefs::Type type, AppearanceGenerator::HairRule hairRule, Int defaultValue) {
+    auto &hairsDef = mAppearanceDefsHairstyles[type];
+    if (hairsDef.mHairstylesByRuleSum[hairRule] > 0) {
+        UInt rnd = Random::Get(0, hairsDef.mHairstylesByRuleSum[hairRule] - 1);
+        UInt acc = 0;
+        for (UInt i = 0; i < hairsDef.mHairstylesByRule[hairRule].size(); i++) {
+            acc += hairsDef.mHairstylesByRule[hairRule][i].second;
+            if (rnd < acc)
+                return hairsDef.mHairstylesByRule[hairRule][i].first;
+        }
+    }
+    return defaultValue;
+}
+
+void AppearanceGenerator::Generate(FifamPlayer *player, FifamAppearanceDefs::Type type, UInt age) {
+    UInt baldMinAge = 0;
+    if (type == FifamAppearanceDefs::African1)
+        baldMinAge = 28;
+    else if (type == FifamAppearanceDefs::African2)
+        baldMinAge = 33;
+    HairRule rule = age < baldMinAge ? HairWithoutBaldingAndBald : HairWithoutBaldingWithBald;
     player->mAppearance.mSkinColor = GetRandomAppearanceParam(type, FifamAppearanceDefs::ParamSkinColor, player->mAppearance.mSkinColor);
     player->mAppearance.mGenericFace = GetRandomAppearanceParam(type, FifamAppearanceDefs::ParamFace, player->mAppearance.mGenericFace);
-    player->mAppearance.mHairStyle = GetRandomAppearanceParam(type, FifamAppearanceDefs::ParamHair, player->mAppearance.mHairStyle);
+    player->mAppearance.mHairStyle = GetRandomAppearanceHairstyleByRule(type, rule, player->mAppearance.mHairStyle);
     player->mAppearance.mFaceVariation = GetRandomAppearanceParam(type, FifamAppearanceDefs::ParamVariation, player->mAppearance.mFaceVariation);
     player->mAppearance.mBeardColor = GetRandomAppearanceParam(type, FifamAppearanceDefs::ParamBeardColor, player->mAppearance.mBeardColor);
     player->mAppearance.mEyeColour = GetRandomAppearanceParam(type, FifamAppearanceDefs::ParamEyeColor, player->mAppearance.mEyeColour);

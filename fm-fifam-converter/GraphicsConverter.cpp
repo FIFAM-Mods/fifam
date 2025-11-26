@@ -2,6 +2,7 @@
 #include "FifamNames.h"
 #include "Magick++.h"
 #include "Error.h"
+#include "Random.h"
 #include "ProgressBar.h"
 
 using namespace Magick;

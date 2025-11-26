@@ -97,7 +97,8 @@
 #include "tests\FindLargestUIDIndex.h"
 #include "tests\MergeUIDs.h"
 #include "tests\GenericFaceTextures.h"
+#include "tests\DumpCountryAppearance.h"
 
 void RunTests() {
-    RunTest<GenericFaceTextures>();
+    RunTest<DumpCountryAppearance>();
 }

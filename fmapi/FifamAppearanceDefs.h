@@ -40,7 +40,7 @@ public:
         Array<UInt, 9> mParametersSum;
     };
 
-    Map<UInt, AppearanceDef> mAppearanceDefs;
+    Map<UInt, AppearanceDef> mDefs;
 
     void Read(Path const &filepath);
     void Write(Path const &filepath);

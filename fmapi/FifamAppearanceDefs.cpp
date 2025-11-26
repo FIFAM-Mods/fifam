@@ -10,7 +10,7 @@ void FifamAppearanceDefs::Read(Path const &filepath) {
         UInt numAppDefs = reader.ReadLine<UInt>();
         for (UInt i = 0; i < numAppDefs; i++) {
             UInt id = reader.ReadLine<UInt>();
-            AppearanceDef &def = mAppearanceDefs[id];
+            AppearanceDef &def = mDefs[id];
             UInt numTranslationNames = reader.ReadLine<UInt>();
             for (UInt n = 0; n < numTranslationNames; n++) {
                 id = reader.ReadLine<UInt>();
@@ -51,10 +51,10 @@ void FifamAppearanceDefs::Read(Path const &filepath) {
 void FifamAppearanceDefs::Write(Path const &filepath) {
     FifamWriter writer(filepath);
     if (writer.Available()) {
-        UInt count = mAppearanceDefs.size();
+        UInt count = mDefs.size();
         writer.WriteLine(count + 1);
         writer.WriteLine(count);
-        for (auto const &[id, def] : mAppearanceDefs) {
+        for (auto const &[id, def] : mDefs) {
             writer.WriteLine(id);
             writer.WriteLine<UInt>(def.mNames.size());
             for (auto const &[translationId, name] : def.mNames) {
@@ -93,7 +93,7 @@ Int FifamAppearanceDefs::GetRandomAppearanceParam(FifamAppearanceDefs::Appearanc
 }
 
 void FifamAppearanceDefs::Generate(FifamPlayer *player, FifamAppearanceDefs::Type type) {
-    AppearanceDef &def = mAppearanceDefs[type];
+    AppearanceDef &def = mDefs[type];
     player->mAppearance.mSkinColor = GetRandomAppearanceParam(def, ParamSkinColor, player->mAppearance.mSkinColor);
     player->mAppearance.mGenericFace = GetRandomAppearanceParam(def, ParamFace, player->mAppearance.mGenericFace);
     player->mAppearance.mHairStyle = GetRandomAppearanceParam(def, ParamHair, player->mAppearance.mHairStyle);

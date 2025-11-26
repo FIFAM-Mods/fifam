@@ -2,6 +2,7 @@
 #include "FifamNames.h"
 #include "FifamUtils.h"
 #include "ConverterUtil.h"
+#include "Random.h"
 #include <fstream>
 
 void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div) {

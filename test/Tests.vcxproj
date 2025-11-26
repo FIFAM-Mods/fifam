@@ -86,6 +86,7 @@
     <ClInclude Include="tests\DbCommands.h" />
     <ClInclude Include="tests\DbConvert.h" />
     <ClInclude Include="tests\DbGraphicsStats.h" />
+    <ClInclude Include="tests\DumpCountryAppearance.h" />
     <ClInclude Include="tests\ExportClubIDs.h" />
     <ClInclude Include="tests\CompetitionsTest.h" />
     <ClInclude Include="tests\CompIDTest.h" />
