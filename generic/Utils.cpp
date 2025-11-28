@@ -369,6 +369,8 @@ int Utils::Clamp(int value, int min, int max) {
 }
 
 int Utils::MapTo(int value, int input_start, int input_end, int output_start, int output_end) {
+    if (input_start == input_end || output_start == output_end)
+        return output_start;
     value = Clamp(value, input_start, input_end);
     double slope = 1.0 * (output_end - output_start) / (input_end - input_start);
     return static_cast<int>(round(output_start + slope * (value - input_start)));

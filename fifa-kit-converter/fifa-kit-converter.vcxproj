@@ -43,7 +43,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\Projects\DXSDK\9.0c\Include;$(SolutionDir)generic;$(SolutionDir)fmapi;$(SolutionDir)fifaapi;D:\Projects\ImageMagick-Windows\ImageMagick;D:\Projects\ImageMagick-Windows\ImageMagick\Magick++\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\Projects\DXSDK\9.0c\Include;$(SolutionDir)generic;$(SolutionDir)fmapi;$(SolutionDir)fifaapi;$(SolutionDir)shared;D:\Projects\ImageMagick-Windows\ImageMagick;D:\Projects\ImageMagick-Windows\ImageMagick\Magick++\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
@@ -57,16 +57,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\shared\Renderer.cpp" />
     <ClCompile Include="commandline.cpp" />
     <ClCompile Include="ModelReader.cpp" />
-    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="KitConverter.cpp" />
     <ClCompile Include="Main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\shared\Renderer.h" />
     <ClInclude Include="commandline.h" />
     <ClInclude Include="ModelReader.h" />
-    <ClInclude Include="Renderer.h" />
     <ClInclude Include="KitConverter.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

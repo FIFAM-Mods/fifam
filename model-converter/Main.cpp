@@ -1,7 +1,9 @@
 #include "GenericHairsFCPC.h"
+#include "Renderer.h"
 
 int main(int argc, char *argv[]) {
-    ConvertGenericHairsFCPC("D:\\Games\\fc26_files\\content\\character\\generichair");
+    Renderer renderer(1024, 1024);
+    ConvertGenericHairsFCPC("D:\\Games\\fc26_files\\content\\character\\generichair", &renderer);
     system("pause");
     return 0;
 }

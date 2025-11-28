@@ -48,7 +48,7 @@ vector<HairColor> colors = {
     //{ 11,   70, 145, 255,   0.0f,   0.0f, false }, // blue
 };
 
-void ConvertGenericHairsFCPC(path const &folder) {
+void ConvertGenericHairsFCPC(path const &folder, Renderer *renderer) {
     path outputDirBase = folder / "converted_hairs_fcpc";
     path outputDirHair = outputDirBase / "hair";
     path outputDirHairlod = outputDirBase / "hairlod";
@@ -72,7 +72,7 @@ void ConvertGenericHairsFCPC(path const &folder) {
                 //
                 // Notes:
                 //
-                // hair_mat can be used in haircap file instead of haircap_mat
+                // hair_mat can be used in haircap file instead of haircap_mat // TODO: verify this
                 //
                 std::cout << folderName;
                 path hairMeshPath = p / ("hair_" + to_string(hairId) + "_1_0_mesh.fbx");

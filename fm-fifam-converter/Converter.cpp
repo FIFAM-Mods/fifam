@@ -100,12 +100,19 @@ void Converter::Convert() {
     
     mCurrentGameId = gameId;
     mFromFifaDatabase = fromFifaDatabase;
+    Path infoPath = dbPath;
 
     GraphicsConverter graphicsConverter;
     //mFifaDatabase = new FifaDatabase(dbPath / L"fifa");
     //graphicsConverter.DownloadPlayerPortraitsFIFA21(mFifaDatabase, "D:\\FC24_portraits");
     //delete mFifaDatabase;
     //return;
+
+    Bool GENERATE_APPEARANCE_DEFS = GetIniInt(L"GENERATE_APPEARANCE_DEFS", 0) != 0;
+    if (GENERATE_APPEARANCE_DEFS) {
+        appearanceGenerator.GenerateAppearanceDefs(dbPath, infoPath, mWomen);
+        return;
+    }
 
     FifamDatabase::mReadingOptions.mReadClubs = false;
     FifamDatabase::mReadingOptions.mReadCountryCompetitions = false;
@@ -153,8 +160,6 @@ void Converter::Convert() {
         mFifaDatabase = new FifaDatabase(dbPath / L"fifa");
     mFoomDatabase = new foom::db(dbPath / L"foom", mWomen ? foom::db::db_gender::Women : foom::db::db_gender::Men,
         fromFifaDatabase? false : READ_FOOM_PERSONS, foom::db::db_size::DB_SIZE);
-
-    Path infoPath = dbPath;
 
     if (mFromFifaDatabase)
         FifaConverter::ReadHistoryRatings(infoPath);

@@ -675,6 +675,8 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, Fi
 
     if (p->mGender == 1)
         player->mAppearance.mBeardType = FifamBeardType::None;
+    if (p->mWearsHijab)
+        player->mAppearance.mHairStyle = HairIdFromEditorId[1059];
 
     // potential
     player->mPotential = GetPlayerLevelFromCA(p->mPotentialAbility);
@@ -1925,10 +1927,14 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, Fi
     // starting conditions
 
     // retirement
-    for (auto &i : p->mVecRetirements) {
-        if (i.mType == 1 && i.mDate > GetCurrentDate() && i.mDate.year <= (CURRENT_YEAR + 1)) {
-            player->mStartingConditions.mRetirement.Setup();
-            break;
+    if (p->mSlowRetirement)
+        player->mStartingConditions.mRetirement.Setup();
+    else {
+        for (auto &i : p->mVecRetirements) {
+            if (i.mType == 1 && i.mDate > GetCurrentDate() && i.mDate.year <= (CURRENT_YEAR + 1)) {
+                player->mStartingConditions.mRetirement.Setup();
+                break;
+            }
         }
     }
     // bans

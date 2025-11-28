@@ -1,4 +1,5 @@
 #include "AppearanceGenerator.h"
+#include "FifamDatabase.h"
 #include "FifamPlayer.h"
 #include "FifaPlayer.h"
 #include "FifamPlayerAppearance.h"
@@ -968,4 +969,341 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
         player->mAppearance.mGenericFace = fifaHeadMapping[fifaPlayer->internal.headtypecode];
     
     player->mShoeType.SetFromInt(GetPlayerShoesIdFromFifaId(isLastVersion ? fifaPlayer->internal.shoetypecode : 0));
+}
+
+void AppearanceGenerator::GenerateAppearanceDefs(Path const &dbPath, Path const &infoPath, Bool women) {
+    enum FoomAppearanceParamType {
+        FoomHairColor, FoomBeardColor, FoomSkinTone
+    };
+    using AppearanceParamCounter = Map<UInt, UInt>;
+    Map<UInt, Map<UInt, AppearanceParamCounter>> appearanceFifam;
+    Map<UInt, Map<UInt, AppearanceParamCounter>> appearanceFoom;
+    Map<Int, Int> foomCountryIdToFifam;
+    StringA gender = women ? "_women" : "";
+    FifamDatabase::mReadingOptions.mReadPersons = false;
+    FifamDatabase::mReadingOptions.mReadClubs = false;
+    FifamDatabase::mReadingOptions.mReadCountryCompetitions = false;
+    FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
+    FifamDatabase db(13, "database_appearance" + gender);
+    FifaDatabase::m_firstSupportedGameVersion = FifaDatabase::m_currentGameVersion;
+    FifaDatabase fifaDb(dbPath / L"fifa");
+    FifamReader countriesReader(infoPath / ("fifam_countries" + gender + ".txt"));
+    if (countriesReader.Available()) {
+        countriesReader.SkipLine();
+        while (!countriesReader.IsEof()) {
+            if (!countriesReader.EmptyLine()) {
+                String d;
+                Int FootballManagerID = -1, FIFAManagerReplacementID = -1;
+                countriesReader.ReadLineWithSeparator(L'\t', d, d, d, d, FootballManagerID, d, d, d, FIFAManagerReplacementID);
+                if (FootballManagerID != -1 && FIFAManagerReplacementID != -1)
+                    foomCountryIdToFifam[FootballManagerID] = FIFAManagerReplacementID;
+            }
+            else
+                countriesReader.SkipLine();
+        }
+    }
+    FifamReader reader("fm_players_fifa_appearance.txt", 0);
+    if (reader.Available()) {
+        reader.SkipLine();
+        while (!reader.IsEof()) {
+            if (!reader.EmptyLine()) {
+                String d;
+                int	foomEthnicity = -1, foomHairColor = -1, foomSkinTone = -1, foomNation = -1, foomNationOfBirth = -1,
+                    foomWearsHijab = -1, age = -1, fifaId = -1;
+                reader.ReadLineWithSeparator(L'\t', d, d, d, d, foomEthnicity, foomHairColor, d, foomSkinTone,
+                    d, foomNation, foomNationOfBirth, foomWearsHijab, d, d, d, d, d, d, age, fifaId);
+                if (foomEthnicity != -1 && fifaId > 0) {
+                    FifaPlayer *fifaPlayer = fifaDb.GetPlayer(fifaId);
+                    if (!fifaPlayer)
+                        continue;
+                    FifamCountry *appearanceCountry = nullptr;
+                    if (foomNationOfBirth != -1 && Utils::Contains(foomCountryIdToFifam, foomNationOfBirth))
+                        appearanceCountry = db.GetCountry(foomCountryIdToFifam[foomNationOfBirth]);
+                    if (foomNation != -1 && !appearanceCountry && Utils::Contains(foomCountryIdToFifam, foomNation))
+                        appearanceCountry = db.GetCountry(foomCountryIdToFifam[foomNation]);
+                    if (!appearanceCountry)
+                        continue;
+
+                    static Map<UInt, FifamAppearanceDefs::Type> CountryMainAppearanceType;
+                    if (CountryMainAppearanceType.empty()) {
+                        // TODO: verify this
+                        for (UInt countryId = 1; countryId <= FifamDatabase::NUM_COUNTRIES; countryId++) {
+                            FifamCountry *country = db.GetCountry(countryId);
+                            if (country && !country->mAppearanceData.empty()) {
+                                UInt maxValue = 0;
+                                FifamAppearanceDefs::Type type;
+                                UInt prevValue = 0;
+                                for (UInt i = 0; i < country->mAppearanceData.size(); i++) {
+                                    UInt thisValue = country->mAppearanceData[i].mDistributionProbability - prevValue;
+                                    if (thisValue > maxValue) {
+                                        type = (FifamAppearanceDefs::Type)appearanceCountry->mAppearanceData[i].mAppearanceType;
+                                        maxValue = thisValue;
+                                    }
+                                    prevValue = country->mAppearanceData[i].mDistributionProbability;
+                                }
+                                if (maxValue > 0)
+                                    CountryMainAppearanceType[countryId] = type;
+                            }
+                        }
+                    }
+
+                    auto GetCountryMainAppearanceType = [](FifamCountry *country) {
+                        if (Utils::Contains(CountryMainAppearanceType, country->mId))
+                            return CountryMainAppearanceType[country->mId];
+                        return (FifamAppearanceDefs::Type)0;
+                    };
+
+                    FifamAppearanceDefs::Type countryEthnicity = GetCountryMainAppearanceType(appearanceCountry);
+
+                    FifamAppearanceDefs::Type ethnicity = (FifamAppearanceDefs::Type)0;
+                    if (!appearanceCountry->mAppearanceData.empty()) {
+                        UInt totalProbability = appearanceCountry->mAppearanceData[appearanceCountry->mAppearanceData.size() - 1].mDistributionProbability;
+                        if (totalProbability > 0) {
+                            UInt rnd = Random::Get(0, totalProbability - 1);
+                            for (UInt i = 0; i < appearanceCountry->mAppearanceData.size(); i++) {
+                                if (rnd < appearanceCountry->mAppearanceData[i].mDistributionProbability) {
+                                    ethnicity = (FifamAppearanceDefs::Type)appearanceCountry->mAppearanceData[i].mAppearanceType;
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    if (foomEthnicity == 0) { // Northern European
+                        Bool isEasternEurope = countryEthnicity == FifamAppearanceDefs::EasternEuropeLight || countryEthnicity == FifamAppearanceDefs::EasternEuropeDark;
+                        if (foomSkinTone <= 7)
+                            ethnicity = isEasternEurope ? FifamAppearanceDefs::EasternEuropeLight : FifamAppearanceDefs::WesternEuropeLight;
+                        else
+                            ethnicity = isEasternEurope ? FifamAppearanceDefs::EasternEuropeDark : FifamAppearanceDefs::WesternEuropeDark;
+                    }
+                    else if (foomEthnicity == 1) { // Mediterranean/Hispanic
+                        if (countryEthnicity == FifamAppearanceDefs::Latin)
+                            ethnicity = FifamAppearanceDefs::Latin;
+                        else if (foomSkinTone <= 5)
+                            ethnicity = FifamAppearanceDefs::WesternEuropeLight;
+                        else if (foomSkinTone <= 11)
+                            ethnicity = FifamAppearanceDefs::WesternEuropeDark;
+                        else
+                            ethnicity = FifamAppearanceDefs::Latin;
+                    }
+                    else if (foomEthnicity == 2) { // North African/Middle Eastern
+                        if (foomSkinTone <= 7)
+                            ethnicity = FifamAppearanceDefs::Arabic2;
+                        else
+                            ethnicity = FifamAppearanceDefs::Arabic1;
+                    }
+                    else if (foomEthnicity == 3) { // African/Caribbean
+                        if (foomSkinTone < 0 || foomSkinTone >= 16)
+                            ethnicity = FifamAppearanceDefs::African1;
+                        else
+                            ethnicity = FifamAppearanceDefs::African2;
+                    }
+                    else if (foomEthnicity == 4) { // Asian
+                        ethnicity = FifamAppearanceDefs::Indian;
+                    }
+                    else if (foomEthnicity == 5 || foomEthnicity == 10) { // South East Asian or East Asian
+                        ethnicity = FifamAppearanceDefs::Asian;
+                    }
+                    else if (foomEthnicity == 6 || foomEthnicity == 8) { // Pacific Islander or Native Australian
+                        if (foomSkinTone <= 5)
+                            ethnicity = FifamAppearanceDefs::WesternEuropeLight;
+                        else if (foomSkinTone <= 11)
+                            ethnicity = FifamAppearanceDefs::WesternEuropeDark;
+                    }
+                    else if (foomEthnicity == 7) {  // Native American
+                        ethnicity = FifamAppearanceDefs::Latin;
+                    }
+                    else if (foomEthnicity == 9) {  // Mixed Race
+                        // -
+                    }
+
+                    auto &dataFoom = appearanceFoom[ethnicity];
+                    auto &dataFifam = appearanceFifam[ethnicity];
+
+                    if (foomSkinTone >= 0 && foomSkinTone <= 19) {
+                        switch (foomSkinTone) {
+                        case 0:
+                        case 1:
+                            dataFoom[FoomSkinTone][0]++;
+                            break;
+                        case 2:
+                        case 3:
+                            dataFoom[FoomSkinTone][1]++;
+                            break;
+                        case 4:
+                        case 5:
+                            dataFoom[FoomSkinTone][2]++;
+                            break;
+                        case 6:
+                        case 7:
+                            dataFoom[FoomSkinTone][3]++;
+                            break;
+                        case 8:
+                        case 9:
+                            dataFoom[FoomSkinTone][4]++;
+                            break;
+                        case 10:
+                        case 11:
+                            dataFoom[FoomSkinTone][5]++;
+                            break;
+                        case 12:
+                        case 13:
+                            dataFoom[FoomSkinTone][6]++;
+                            break;
+                        case 14:
+                        case 15:
+                            dataFoom[FoomSkinTone][7]++;
+                            break;
+                        case 16:
+                        case 17:
+                            dataFoom[FoomSkinTone][8]++;
+                            break;
+                        case 18:
+                        case 19:
+                            dataFoom[FoomSkinTone][9]++;
+                            break;
+                        }
+                    }
+
+                    if (!foomWearsHijab) {
+                        if (foomHairColor >= 0 && foomHairColor <= 6) {
+                            UInt hairColor = 0;
+                            switch (foomHairColor) {
+                            case 0: // Black
+                                hairColor = FifamHairColor::Black;
+                                break;
+                            case 1: // Blonde
+                                hairColor = FifamHairColor::Blonde;
+                                break;
+                            case 2: // Brown
+                                hairColor = FifamHairColor::Darkbrown;
+                                break;
+                            case 3: // Grey
+                                hairColor = 8;
+                                break;
+                            case 4: // Light Blonde
+                                hairColor = FifamHairColor::Platinumblonde;
+                                break;
+                            case 5: // Light Brown
+                                hairColor = FifamHairColor::Lightbrown;
+                                break;
+                            case 6: // Red
+                                hairColor = FifamHairColor::Red;
+                                break;
+                            }
+                            dataFoom[FoomHairColor][hairColor]++;
+                            FifamPlayerAppearance playerAppearance;
+                            playerAppearance.mHairColor = hairColor;
+                            playerAppearance.SetBeardColorFromHairColor();
+                            if (!women)
+                                dataFoom[FoomBeardColor][playerAppearance.mBeardColor]++;
+                        }
+                    }
+
+                    FifamPlayer player;
+                    SetFromFifaPlayer(&player, fifaPlayer);
+
+                    if (foomWearsHijab)
+                        dataFifam[FifamAppearanceDefs::ParamHair][596]++;
+                    else {
+                        dataFifam[FifamAppearanceDefs::ParamHair][player.mAppearance.mHairStyle]++;
+                        dataFifam[FifamAppearanceDefs::ParamHairColor][player.mAppearance.mHairColor]++;
+                    }
+                    if (!women) {
+                        dataFifam[FifamAppearanceDefs::ParamBeard][player.mAppearance.mBeardType]++;
+                        dataFifam[FifamAppearanceDefs::ParamBeardColor][player.mAppearance.mBeardColor]++;
+                    }
+                    dataFifam[FifamAppearanceDefs::ParamFace][player.mAppearance.mGenericFace]++;
+                    dataFifam[FifamAppearanceDefs::ParamEyeColor][player.mAppearance.mEyeColour]++;
+                    dataFifam[FifamAppearanceDefs::ParamSkinColor][player.mAppearance.mSkinColor]++;
+                    dataFifam[FifamAppearanceDefs::ParamVariation][player.mAppearance.mFaceVariation]++;
+                }
+            }
+            else
+                reader.SkipLine();
+        }
+    }
+    if (women) {
+        for (auto &[type, d] : appearanceFifam) {
+            d[FifamAppearanceDefs::ParamBeard][FifamBeardType::None] = 1;
+            d[FifamAppearanceDefs::ParamBeardColor][FifamBeardColor::Black] = 1;
+        }
+        for (auto &[type, d] : appearanceFoom)
+            d[FoomBeardColor][FifamBeardColor::Black] = 1;
+    }
+
+    auto TransateCountToWeight = [](Map<UInt, Map<UInt, AppearanceParamCounter>> &data) {
+        for (auto &[def, d] : data) {
+            for (auto &[param, p] : d) {
+                UInt minValue = UINT32_MAX;
+                UInt maxValue = 0;
+                for (auto &[id, count] : p) {
+                    minValue = Utils::Min(minValue, count);
+                    maxValue = Utils::Max(maxValue, count);
+                }
+                for (auto &[id, count] : p)
+                    count = (UChar)Utils::MapTo(count, minValue, maxValue, 1, 255);
+            }
+        }
+    };
+
+    TransateCountToWeight(appearanceFifam);
+    TransateCountToWeight(appearanceFoom);
+
+    StringA baseName = "AppearanceDefs" + gender;
+
+    FifamAppearanceDefs defs;
+    defs.Read(baseName + ".sav");
+    // first - replace only heads and hairs
+    Vector<FifamAppearanceDefs::Param> paramsFirst = { FifamAppearanceDefs::ParamFace, FifamAppearanceDefs::ParamHair };
+    for (auto &e : defs.mDefs) {
+        auto &def = e.second;
+        for (auto p : paramsFirst) {
+            def.mParameters[p].clear();
+            def.mParametersSum[p] = 0;
+            auto &data = appearanceFifam[e.first][p];
+            for (auto [id, count] : data) {
+                def.mParameters[p].emplace_back(id, count);
+                def.mParametersSum[p] += count;
+            }
+        }
+    }
+    defs.Write(baseName + "_generated.sav");
+    // second - replace everything else
+    for (auto &e : defs.mDefs) {
+        auto &def = e.second;
+        for (UInt p = 0; p < 9; p++) {
+            def.mParameters[p].clear();
+            def.mParametersSum[p] = 0;
+            auto &data = appearanceFifam[e.first][p];
+            for (auto [id, count] : data) {
+                def.mParameters[p].emplace_back(id, count);
+                def.mParametersSum[p] += count;
+            }
+        }
+    }
+    defs.Write(baseName + "_generated_all.sav");
+    // third - foom parameters
+    for (auto &e : defs.mDefs) {
+        auto &def = e.second;
+        for (UInt p = 0; p < 9; p++) {
+            UInt foomParam = -1;
+            if (p == FifamAppearanceDefs::ParamSkinColor)
+                foomParam = FoomAppearanceParamType::FoomSkinTone;
+            else if (p == FifamAppearanceDefs::ParamHairColor)
+                foomParam = FoomAppearanceParamType::FoomHairColor;
+            else if (p == FifamAppearanceDefs::ParamBeardColor)
+                foomParam = FoomAppearanceParamType::FoomBeardColor;
+            if (foomParam != -1) {
+                def.mParameters[p].clear();
+                def.mParametersSum[p] = 0;
+                auto &data = appearanceFoom[e.first][foomParam];
+                for (auto [id, count] : data) {
+                    def.mParameters[p].emplace_back(id, count);
+                    def.mParametersSum[p] += count;
+                }
+            }
+        }
+    }
+    defs.Write(baseName + "_generated_all_foom.sav");
 }

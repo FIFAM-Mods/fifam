@@ -4,9 +4,11 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="GenericHairsFCPC.cpp" />
+    <ClCompile Include="..\shared\Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Model.h" />
     <ClInclude Include="GenericHairsFCPC.h" />
+    <ClInclude Include="..\shared\Renderer.h" />
   </ItemGroup>
 </Project>

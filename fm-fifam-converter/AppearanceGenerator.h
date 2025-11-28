@@ -32,4 +32,5 @@ public:
     Int GetRandomAppearanceHairstyleByRule(FifamAppearanceDefs::Type type, HairRule hairRule, Int defaultValue = 0);
     void Generate(FifamPlayer *player, FifamAppearanceDefs::Type type, UInt age);
     void SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fifaPlayer);
+    void GenerateAppearanceDefs(Path const &dbPath, Path const &infoPath, Bool women);
 };

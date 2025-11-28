@@ -3,14 +3,14 @@
   <ItemGroup>
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="KitConverter.cpp" />
-    <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="ModelReader.cpp" />
     <ClCompile Include="commandline.cpp" />
+    <ClCompile Include="..\shared\Renderer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="KitConverter.h" />
-    <ClInclude Include="Renderer.h" />
     <ClInclude Include="ModelReader.h" />
     <ClInclude Include="commandline.h" />
+    <ClInclude Include="..\shared\Renderer.h" />
   </ItemGroup>
 </Project>
