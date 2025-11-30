@@ -31,6 +31,7 @@ public:
     Bool mQuickTest = false;
     Bool mWomen = false;
     Bool mToFifa07Database = false;
+    Bool mLogAppearance = false;
 
     FifamDatabase *mPreviousDb = nullptr;
     Map<UInt, FifamPlayer *> mPreviousPlayers;

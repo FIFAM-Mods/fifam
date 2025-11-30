@@ -1334,9 +1334,8 @@ void Converter::ConvertKitsAndColors(FifamClub * dst, Int foomId, Vector<foom::k
         }
 
         // (if club has no FIFA kit)
-        if (!exists(mOutputGameFolder / (L"data\\kits\\" + Utils::Format(L"%08X", dst->mUniqueID) + L"_h.tga"))
-            && !exists(mContentArtsFolder / (L"art_04\\data\\kits\\" + Utils::Format(L"%08X", dst->mUniqueID) + L"_h.tga")))
-        {
+        Bool hasFifaKit = mFifaDatabase->GetTeam(dst->mFifaID) && mFifaDatabase->GetTeam(dst->mFifaID)->m_gameId == FifaDatabase::m_currentGameVersion;
+        if (!hasFifaKit) {
             Color shirtBackColor = FifamKit::GetShirtBackColor(kit.mShirt, kit.mShirtColors[0], kit.mShirtColors[1], kit.mShirtColors[2]);
             if (Color::Distance(kit.mShirtNumberColor, shirtBackColor) < 100) {
                 if (Color::Distance(kit.mShirtNumberColor, foregroundClr) < 100)

@@ -26,6 +26,14 @@ public:
     Map<UInt, FifamAppearanceDefs::AppearanceDef> mAppearanceDefs;
     Map<UInt, AppearanceDefHairStyles> mAppearanceDefsHairstyles;
 
+    static Map<StringA, UInt> HeadIdFromEditorName;
+    static Map<UInt, UInt> HairIdFromEditorId;
+    static Map<StringA, UInt> BeardIdFromEditorName;
+    static Map<StringA, UInt> EyeIdFromEditorName;
+    static Vector<String> FaceNames;
+    static Vector<String> HairNames;
+    static Vector<String> HairColorNames;
+
     void Read(Path const &filename);
     Int GetRandomAppearanceParam(FifamAppearanceDefs::Type type, FifamAppearanceDefs::Param param, Int defaultValue = 0);
     Int GetRandomAppearanceHairstyleByLength(FifamAppearanceDefs::Type type, HairLength hairLength, Int defaultValue = 0);

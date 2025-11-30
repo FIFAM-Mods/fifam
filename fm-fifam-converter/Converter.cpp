@@ -84,9 +84,8 @@ void Converter::Convert() {
     mWarnings = GetIniInt(L"HIDE_WARNINGS", 1) == 0;
     mErrors = GetIniInt(L"HIDE_ERRORS", 0) == 0;
     mLogErrors = GetIniInt(L"LOG_ERRORS", 0) != 0;
-
+    mLogAppearance = GetIniInt(L"LOG_APPEARANCE", 0) != 0;
     mToFifa07Database = GetIniInt(L"TO_FIFA_07_DATABASE", 0);
-
     mWomen = GetIniInt(L"WOMEN", 0);
 
     std::error_code ec;
