@@ -774,7 +774,8 @@ void Converter::ConvertLeagues(UInt gameId) {
     FifamWriter *leagueConfigTables = nullptr;
 
     if (mGenerateLeagueConfigFiles) {
-        Path ucpFolder = mOutputGameFolder / L"plugins" / L"ucp";
+        Path outputPath = mWriteToGameFolder ? mOutputGameFolder : mTestsOutputFolder;
+        Path ucpFolder = outputPath / L"plugins" / L"ucp";
         create_directories(ucpFolder);
         leagueConfigSplit = new FifamWriter(ucpFolder / L"league_split.csv", 14, FifamVersion());
         leagueConfigTables = new FifamWriter(ucpFolder / L"league_tables.csv", 14, FifamVersion());

@@ -31,7 +31,7 @@ void Converter::Convert() {
     Path referenceDb = GetIniPath(L"REFERENCE_DB_FOLDER", L"reference\\dbs\\fm14\\database");
     UInt gameId = GetIniInt(L"OUTPUT_GAME_VERSION", 13);
     mOutputGameFolder = GetIniPath(L"OUTPUT_GAME_FOLDER", L"E:\\Games\\FIFA Manager 13");
-    Bool writeToGameFolder = GetIniInt(L"WRITE_TO_OUTPUT_FOLDER", 1);
+    mWriteToGameFolder = GetIniInt(L"WRITE_TO_OUTPUT_FOLDER", 1);
     Bool fromFifaDatabase = GetIniInt(L"FROM_FIFA_DB", 0);
     mQuickTest = GetIniInt(L"QUICK_TEST", 1);
     mGenerateLeaguesFiles = GetIniInt(L"GENERATE_LEAGUES_FILES", 0);
@@ -40,7 +40,7 @@ void Converter::Convert() {
     Bool EXPORT_FM_FIFA_PLAYERS = GetIniInt(L"EXPORT_FM_FIFA_PLAYERS", 0);
     Bool WRITE_DERBIES = GetIniInt(L"WRITE_DERBIES", 1);
     Bool INCREASE_CONTRACTS = GetIniInt(L"INCREASE_CONTRACTS", 0);
-    Path testsOutputFolder = GetIniPath(L"TESTS_OUTPUT_FOLDER", L"tests");
+    mTestsOutputFolder = GetIniPath(L"TESTS_OUTPUT_FOLDER", L"tests");
     Path dbPath = GetIniPath(L"DB_FOLDER", L"db");
     Path graphicsPath = GetIniPath(L"FM_GRAPHICS_FOLDER", L"E:\\Documents\\Sports Interactive\\Football Manager 2020\\graphics");
     mContentFolder = GetIniPath(L"CONTENT_FOLDER", L"content");
@@ -163,16 +163,28 @@ void Converter::Convert() {
     if (mFromFifaDatabase)
         FifaConverter::ReadHistoryRatings(infoPath);
 
-    if (!mQuickTest && exists(mOutputGameFolder) && exists(mOutputGameFolder / L"fmdata" / L"eng" / L"FaceIDs.txt")) {
-        FifamReader faceIdsReader(mOutputGameFolder / L"fmdata" / L"eng" / L"FaceIDs.txt");
-        if (faceIdsReader.Available()) {
-            UInt faceIdsCount = faceIdsReader.ReadLine<UInt>();
-            for (UInt i = 0; i < faceIdsCount; i++) {
-                faceIdsReader.SkipLine();
-                mFaceIDs.insert(faceIdsReader.ReadLine<UInt>());
+    Path faceIDsFilePath;
+    if (!mQuickTest) {
+        faceIDsFilePath = dbPath / L"FaceIDs.txt";
+        if (!exists(faceIDsFilePath)) {
+            faceIDsFilePath.clear();
+            if (exists(mOutputGameFolder)) {
+                faceIDsFilePath = mOutputGameFolder / L"fmdata" / L"eng" / L"FaceIDs.txt";
+                if (!exists(faceIDsFilePath))
+                    faceIDsFilePath.clear();
             }
         }
-        faceIdsReader.Close();
+        if (!faceIDsFilePath.empty()) {
+            FifamReader faceIdsReader(faceIDsFilePath);
+            if (faceIdsReader.Available()) {
+                UInt faceIdsCount = faceIdsReader.ReadLine<UInt>();
+                for (UInt i = 0; i < faceIdsCount; i++) {
+                    faceIdsReader.SkipLine();
+                    mFaceIDs.insert(faceIdsReader.ReadLine<UInt>());
+                }
+            }
+            faceIdsReader.Close();
+        }
     }
 
     // fix club names
@@ -2155,14 +2167,14 @@ void Converter::Convert() {
     mFifamDatabase->mWritingOptions.mWriteAssessment = false;
     mFifamDatabase->mWritingOptions.mWriteFixtures = false;
 
-    Path outputPath = writeToGameFolder ? mOutputGameFolder : testsOutputFolder;
+    Path outputPath = mWriteToGameFolder ? mOutputGameFolder : mTestsOutputFolder;
     Path outputDbPath = outputPath / L"database";
 
     std::wcout << L"Writing database..." << std::endl;
     mFifamDatabase->Write(gameId, FifamDatabase::GetGameDbVersion(gameId), outputDbPath);
 
     if (!mFromFifaDatabase) {
-        if (WRITE_DERBIES && gameId >= 11 && writeToGameFolder) {
+        if (WRITE_DERBIES && gameId >= 11) {
             std::wcout << L"Writing derbies..." << std::endl;
             struct derby_info {
                 String nameId;
@@ -2204,8 +2216,7 @@ void Converter::Convert() {
             });
             if (derbies.size() > 999)
                 derbies.resize(999);
-            FifamWriter derbiesWriter(Utils::Format(outputPath / L"fmdata\\ParameterFiles\\Derbies.txt", gameId),
-                gameId, FifamVersion(), false);
+            FifamWriter derbiesWriter(outputPath / L"fmdata\\ParameterFiles\\Derbies.txt", gameId, FifamVersion(), false);
             if (derbiesWriter.Available()) {
                 derbiesWriter.WriteLine(L"BEGIN( DERBIES )");
                 derbiesWriter.WriteNewLine();
@@ -2341,19 +2352,19 @@ void Converter::Convert() {
             }
         }
 
-        FifamWriter femaleNamesWriter(Utils::Format(mOutputGameFolder / L"fmdata" / L"UCP_FemaleNames.txt", gameId), gameId, FifamVersion(), true);
+        FifamWriter femaleNamesWriter(Utils::Format(outputPath / L"fmdata" / L"UCP_FemaleNames.txt", gameId), gameId, FifamVersion(), true);
         for (auto const &[name, write] : femaleNamesMap) {
             if (write)
                 femaleNamesWriter.WriteLine(name);
         }
         femaleNamesWriter.Close();
-        FifamWriter femaleSurnamesWriter(Utils::Format(mOutputGameFolder / L"fmdata" / L"UCP_FemaleSurnames.txt", gameId), gameId, FifamVersion(), true);
+        FifamWriter femaleSurnamesWriter(Utils::Format(outputPath / L"fmdata" / L"UCP_FemaleSurnames.txt", gameId), gameId, FifamVersion(), true);
         for (auto const &[name, write] : femaleSurnamesMap) {
             if (write)
                 femaleSurnamesWriter.WriteLine(name);
         }
         femaleSurnamesWriter.Close();
-        FifamWriter femaleCommonNamesWriter(Utils::Format(mOutputGameFolder / L"fmdata" / L"UCP_FemaleCommonNames.txt", gameId), gameId, FifamVersion(), true);
+        FifamWriter femaleCommonNamesWriter(Utils::Format(outputPath / L"fmdata" / L"UCP_FemaleCommonNames.txt", gameId), gameId, FifamVersion(), true);
         for (auto const &[name, write] : femaleCommonNamesMap) {
             if (write)
                 femaleCommonNamesWriter.WriteLine(name);

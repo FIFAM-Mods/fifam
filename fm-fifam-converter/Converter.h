@@ -22,6 +22,8 @@ public:
     Bool mLogErrors = false;
     Path mLogPath = "errorlog.txt";
     Path mOutputGameFolder;
+    Bool mWriteToGameFolder;
+    Path mTestsOutputFolder;
     Path mContentFolder;
     Path mContentArtsFolder;
     Path mFifaAssetsPath;
