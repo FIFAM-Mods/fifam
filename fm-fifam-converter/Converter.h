@@ -22,7 +22,7 @@ public:
     Bool mLogErrors = false;
     Path mLogPath = "errorlog.txt";
     Path mOutputGameFolder;
-    Bool mWriteToGameFolder;
+    Bool mWriteToGameFolder = false;
     Path mTestsOutputFolder;
     Path mContentFolder;
     Path mContentArtsFolder;
@@ -34,6 +34,7 @@ public:
     Bool mWomen = false;
     Bool mToFifa07Database = false;
     Bool mLogAppearance = false;
+    Bool mLogWeights = false;
 
     FifamDatabase *mPreviousDb = nullptr;
     Map<UInt, FifamPlayer *> mPreviousPlayers;
@@ -268,9 +269,9 @@ public:
         if ((type == AL_ERROR && mErrors) || (type == AL_WARNING && mWarnings)) {
             static WideChar text[4096];
             swprintf(text, 4096, format.c_str(), Utils::FormatterUtilsUnicode::Arg(args)...);
-            if (mLogErrors == 0)
+            if (!mLogErrors)
                 MessageBoxW(NULL, text, (type == AL_ERROR) ? L"Error" : L"Warning", (type == AL_ERROR) ? MB_ICONERROR : MB_ICONWARNING);
-            else if (mLogErrors == 1) {
+            else {
                 Bool fileExists = exists(mLogPath);
                 FILE *file = nullptr;
                 if (!fileExists) {

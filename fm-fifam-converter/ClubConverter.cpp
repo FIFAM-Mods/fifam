@@ -262,6 +262,7 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     }
 
     // League history
+    Array<Int, 3> leagueTotalPoints = {};
     for (auto &h : team->mVecTeamLeagueHistory) {
         if (h.mDivision && h.mDivision->mCompetitionLevel >= 1 && h.mDivision->mCompetitionLevel <= 3) {
             UInt level = h.mDivision->mCompetitionLevel - 1;
@@ -597,15 +598,8 @@ void Converter::ConvertReserveClub(UInt gameId, FifamClub * dst, foom::club * te
             dst->mSettlement = FifamClubSettlement::Town;
         else
             dst->mSettlement = FifamClubSettlement::Village;
-    } else {
-        if (dst->mStadiumSeatsCapacity <= 50000) {
-            if (dst->mStadiumSeatsCapacity > 20000)
-                dst->mSettlement = FifamClubSettlement::Town;
-            else
-                dst->mSettlement = FifamClubSettlement::Village;
-        } else
-            dst->mSettlement = FifamClubSettlement::City;
-    }
+    } else
+        dst->mSettlement = FifamClubSettlement::City;
 
     // Youth players come from
     if (team->mBasedNation)

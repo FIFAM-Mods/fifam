@@ -51,7 +51,7 @@ void AppearanceGenerator::Read(Path const &filename) {
     defs.Read(filename);
     for (auto const &[id, def] : defs.mDefs) {
         mAppearanceDefs[id] = def;
-        auto hairsDef = mAppearanceDefsHairstyles[id];
+        auto &hairsDef = mAppearanceDefsHairstyles[id];
         auto const &hairIDs = def.mParameters[FifamAppearanceDefs::ParamHair];
         for (auto const &i : hairIDs) {
             Bool bald = Utils::Contains(BaldHairstyles, i.first);
@@ -61,11 +61,11 @@ void AppearanceGenerator::Read(Path const &filename) {
                     hairsDef.mHairstylesByLength[HairShort].push_back(i);
                     hairsDef.mHairstylesByLengthSum[HairShort] += i.second;
                 }
-                else if (Utils::Contains(MediumHairIDs, i.first)) {
+                if (Utils::Contains(MediumHairIDs, i.first)) {
                     hairsDef.mHairstylesByLength[HairMedium].push_back(i);
                     hairsDef.mHairstylesByLengthSum[HairMedium] += i.second;
                 }
-                else if (Utils::Contains(LongHairIDs, i.first)) {
+                if (Utils::Contains(LongHairIDs, i.first)) {
                     hairsDef.mHairstylesByLength[HairLong].push_back(i);
                     hairsDef.mHairstylesByLengthSum[HairLong] += i.second;
                 }

@@ -408,7 +408,7 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, Fi
                 for (UInt i = 0; i < country->mAppearanceData.size(); i++) {
                     UInt thisValue = country->mAppearanceData[i].mDistributionProbability - prevValue;
                     if (thisValue > maxValue) {
-                        type = (FifamAppearanceDefs::Type)appearanceCountry->mAppearanceData[i].mAppearanceType;
+                        type = (FifamAppearanceDefs::Type)country->mAppearanceData[i].mAppearanceType;
                         maxValue = thisValue;
                     }
                     prevValue = country->mAppearanceData[i].mDistributionProbability;
@@ -761,8 +761,8 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, Fi
             headerWritten = true;
         }
         String playerName = player->GetName();
-        String countryName = playerCountry ? FifamTr(playerCountry->mName) : L"n/a";
-        String appearanceCountryName = appearanceCountry ? FifamTr(appearanceCountry->mName) : L"n/a";
+        String countryName = FifamTr(playerCountry->mName);
+        String appearanceCountryName = FifamTr(appearanceCountry->mName);
         appearanceLog.WriteLineWithSeparator(L'\t', p->mID, player->mFifaID, Quoted(p->mFullName),
             Quoted(countryName), Quoted(appearanceCountryName),
             NameFromMap(p->mEthnicity, FoomEthnicityName),
@@ -1348,7 +1348,7 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, Fi
             player->mPositionBias[FifamPlayerPosition::CF] = 100;
         else if (cfPosSecond == 18)
             player->mPositionBias[FifamPlayerPosition::CF] = (Float)Random::Get(98, 99);
-        else if (cfPosSecond == 18)
+        else if (cfPosSecond == 17) // was 18
             player->mPositionBias[FifamPlayerPosition::CF] = (Float)Random::Get(96, 97);
     }
     if (player->mPositionBias[FifamPlayerPosition::CF] == 100) {
@@ -1452,27 +1452,64 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, Fi
     }
 
     // weight
+    
+    enum WeightSource { WeightNone, WeightFromFIFA, WeightFromPrevious, WeightFromBodyType, WeightGenerated };
+    Map<Int, String> WeightSourceName = {
+        { WeightNone, L"None" },
+        { WeightFromFIFA, L"FIFA" },
+        { WeightFromPrevious, L"Previous" },
+        { WeightFromBodyType, L"FromBodyType" },
+        { WeightGenerated, L"Generated" },
+    };
+    Map<Int, String> FoomBodyTypeName = {
+        { 1, L"Ectomorph" },
+        { 2, L"EctoMesomorph" },
+        { 3, L"Mesomorph" },
+        { 4, L"MesoEndomorph" },
+        { 5, L"Endomorph" }
+    };
+    WeightSource weightSource = WeightNone;
     UChar weight = 0;
     // 1) get weight from FIFA
     if (p->mConverterData.mFifaPlayerId > 0) {
         FifaPlayer *fifaPlayer = mFifaDatabase->GetPlayer(p->mConverterData.mFifaPlayerId);
-        if (fifaPlayer)
+        if (fifaPlayer) {
             weight = fifaPlayer->internal.weight;
+            weightSource = WeightFromFIFA;
+        }
     }
     // 2) get weight from previous version
-    if (weight == 0 && p->mConverterData.mWeight != 0)
+    if (weight == 0 && p->mConverterData.mWeight != 0) {
         weight = p->mConverterData.mWeight;
+        weightSource = WeightFromPrevious;
+    }
     // 3) try to convert body type to weight
-    if (weight == 0)
+    if (weight == 0) {
         weight = weight_calculator::GuessWeightFromAttributes(p->mBodyType, age, p->mEthnicity, player->mHeight, p->mGender, player->mMainPosition);
+        weightSource = WeightFromBodyType;
+    }
     // 4) generate random weight
     if (weight == 0) {
         if (playerCountry->mAverageWeight > 10)
             weight = playerCountry->mAverageWeight - 10 + Random::Get(0, 20);
         else
             weight = 70 + Random::Get(0, 10);
+        weightSource = WeightGenerated;
     }
     player->mWeight = Utils::Clamp(weight, 45, 150);
+
+    if (mLogWeights) {
+        static FifamWriter weightsLog("weights_log.txt");
+        static bool headerWritten = false;
+        if (!headerWritten) {
+            weightsLog.WriteLine(L"ID", L"FifaID", L"Name", L"Weight", L"Height", L"Source", L"BodyType", L"Age",
+                L"Ethnicity", L"Position");
+            headerWritten = true;
+        }
+        weightsLog.WriteLine(p->mID, player->mFifaID, Quoted(p->mFullName), player->mWeight, player->mHeight,
+            NameFromMap(weightSource, WeightSourceName), NameFromMap(p->mBodyType, FoomBodyTypeName), age,
+            NameFromMap(p->mEthnicity, FoomEthnicityName), player->mMainPosition.ToStr());
+    }
 
     // player history
     player->mNationalTeamMatches = p->mInternationalApps;
@@ -1529,13 +1566,14 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, Fi
                 last = &history.back();
             FifamPlayerHistoryEntry *curr = nullptr;
             FifamClubLink historyClub;
-            if (h->mClub)
+            if (h->mClub) {
                 historyClub = GetTeamClubLink(h->mClub);
-            if (!historyClub.IsValid()) {
-                if (h->mClub->mConverterData.mAdditionalHistoryParentTeam && h->mClub->mConverterData.mAdditionalHistoryReserveTeamType == 0) {
-                    if (h->mClub->mConverterData.mAdditionalHistoryParentTeam->mConverterData.mFifamClub) {
-                        historyClub = FifamClubLink(
-                            (FifamClub *)(h->mClub->mConverterData.mAdditionalHistoryParentTeam->mConverterData.mFifamClub), FifamClubTeamType::Reserve);
+                if (!historyClub.IsValid()) {
+                    if (h->mClub->mConverterData.mAdditionalHistoryParentTeam && h->mClub->mConverterData.mAdditionalHistoryReserveTeamType == 0) {
+                        if (h->mClub->mConverterData.mAdditionalHistoryParentTeam->mConverterData.mFifamClub) {
+                            historyClub = FifamClubLink(
+                                (FifamClub *)(h->mClub->mConverterData.mAdditionalHistoryParentTeam->mConverterData.mFifamClub), FifamClubTeamType::Reserve);
+                        }
                     }
                 }
             }

@@ -85,6 +85,7 @@ void Converter::Convert() {
     mErrors = GetIniInt(L"HIDE_ERRORS", 0) == 0;
     mLogErrors = GetIniInt(L"LOG_ERRORS", 0) != 0;
     mLogAppearance = GetIniInt(L"LOG_APPEARANCE", 0) != 0;
+    mLogWeights = GetIniInt(L"LOG_WEIGHTS", 0) != 0;
     mToFifa07Database = GetIniInt(L"TO_FIFA_07_DATABASE", 0);
     mWomen = GetIniInt(L"WOMEN", 0);
 
@@ -1740,7 +1741,7 @@ void Converter::Convert() {
         for (unsigned int c = 1; c <= FifamDatabase::NUM_COUNTRIES; c++) {
             if (c != FifamNation::Anguilla && c != FifamNation::Greenland) {
                 FifamCountry *country = mFifamDatabase->GetCountry(c);
-                if (c) {
+                if (country) {
                     FifamCountry *refCountry = mReferenceDatabase->GetCountry(c);
                     if (refCountry) {
                         if (REF_DB_WC_EC_STATISTICS) {
@@ -2166,6 +2167,8 @@ void Converter::Convert() {
 
     mFifamDatabase->mWritingOptions.mWriteAssessment = false;
     mFifamDatabase->mWritingOptions.mWriteFixtures = false;
+    mFifamDatabase->mWritingOptions.mWriteExternalScripts = false;
+    mFifamDatabase->mWritingOptions.mWriteAppearanceDefs = false;
 
     Path outputPath = mWriteToGameFolder ? mOutputGameFolder : mTestsOutputFolder;
     Path outputDbPath = outputPath / L"database";

@@ -682,7 +682,7 @@ void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGrap
                     WideChar c = fifamPerson->mWriteableStringID[0];
                     if ((c >= L'A' && c <= L'B') || (c >= L'a' && c <= L'b'))
                         dstFolder = L"art_02";
-                    if ((c >= L'C' && c <= L'G') || (c >= L'c' && c <= L'G'))
+                    if ((c >= L'C' && c <= L'G') || (c >= L'c' && c <= L'g'))
                         dstFolder = L"art_03";
                     else if ((c >= L'H' && c <= L'K') || (c >= L'h' && c <= L'k'))
                         dstFolder = L"art_06";
@@ -715,7 +715,7 @@ void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGrap
             }
         }
     }
-    catch (std::exception e) {
+    catch (std::exception &e) {
         ::Error("Failed to convert portrait %d\n%s", person->mID, e.what());
     }
 }
@@ -749,7 +749,7 @@ void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path con
             }
         }
     }
-    catch (std::exception e) {
+    catch (std::exception &e) {
         ::Error("Failed to convert referee portrait %d\n%s", referee->mID, e.what());
     }
 }
