@@ -5,8 +5,9 @@ class GraphicsConverter {
 public:
     Bool mOnlyUpdates = false;
     Bool mOutputToGameFolder = true;
+    Converter *mConverter = nullptr;
 
-    GraphicsConverter();
+    GraphicsConverter(Converter *converter);
     void ConvertClubBadges(foom::db *db, Map<Int, Path> const &availableBadges, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minRep = 0);
     void ConvertCompBadges(FifamDatabase *db, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minRep = 0);
     void ConvertTrophies(FifamDatabase *db, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minRep = 0);

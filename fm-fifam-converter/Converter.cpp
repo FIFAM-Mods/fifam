@@ -102,7 +102,7 @@ void Converter::Convert() {
     mFromFifaDatabase = fromFifaDatabase;
     Path infoPath = dbPath;
 
-    GraphicsConverter graphicsConverter;
+    GraphicsConverter graphicsConverter(this);
     //mFifaDatabase = new FifaDatabase(dbPath / L"fifa");
     //graphicsConverter.DownloadPlayerPortraitsFIFA21(mFifaDatabase, "D:\\FC24_portraits");
     //delete mFifaDatabase;

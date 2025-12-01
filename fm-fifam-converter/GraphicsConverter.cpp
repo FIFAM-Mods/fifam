@@ -9,8 +9,9 @@ using namespace Magick;
 
 const wchar_t *countryLeagueNames[208] = { L"Germany",L"Albanien",L"Andorra",L"Armenien",L"Austria",L"Aserbaidschan",L"Belarus",L"Belgium",L"Bosnienherzegowina",L"Bulgarien",L"Kroatien",L"Zypern",L"Tschechien",L"Denmark",L"England",L"Estland",L"Faroeislands",L"Finnland",L"France",L"Mazedonien",L"Georgien",L"Germany",L"Griechenland",L"Ungarn",L"Island",L"Ireland",L"Israel",L"Italy",L"Latvia",L"Liechtenstein",L"Lithuania",L"Luxemburg",L"Malta",L"Moldawien",L"Netherland",L"Nordirland",L"Norway",L"Polen",L"Portugal",L"Rumaenien",L"Russland",L"Sanmarino",L"Scotland",L"Slowakei",L"Slowenien",L"Spain",L"Sweden",L"Switzerland",L"Tuerkei",L"Ukraine",L"Wales",L"Serbia",L"Argentinien",L"Bolivien",L"Brazil",L"Chile",L"Kolumbien",L"Ecuador",L"Paraguay",L"Peru",L"Uruguay",L"Venezuela",L"Anguilla",L"Antigua",L"Aruba",L"Bahamas",L"Barbados",L"Belize",L"Bermuda",L"Britishvirginisles",L"Kanada",L"Caymanisles-Blue",L"Costarica",L"Kuba",L"Dominica",L"Dominikanischerep",L"Elsalvador",L"Grenada",L"Guatemala",L"Guyana",L"Haiti",L"Honduras",L"Jamaika",L"Mexiko",L"Montseratsm",L"Netherlands",L"Nicaragua",L"Panama",L"Puertorico",L"Stkittsnevi",L"SaIntlucia",L"SaIntvincent",L"Surinam",L"Trinidad",L"Turks",L"Usa",L"Us-Virginis",L"Algerien",L"Angola",L"Benin",L"Botswana",L"Burkinafaso",L"Burundi",L"Kamerun",L"Kapverde",L"Centafrepublic",L"Chad",L"Kongobr",L"Cotedivoire",L"Dschibuti",L"Congo",L"Aegypten",L"Equatorialguinea",L"Eritrea",L"Ethiopia",L"Gabun",L"Gambia",L"Ghana",L"Guinea",L"Guinbissau",L"Kenia",L"Lesotho",L"Liberia",L"Libyen",L"Madagaskar",L"Malawi",L"Mali",L"Mauretanien",L"Mauritius",L"Marokko",L"Mosambik",L"Namibia",L"Niger",L"Nigeria",L"Rwanda",L"Saotome",L"Senegal",L"Seychellen",L"Sierraleone",L"Somalia",L"Suedafrika",L"Sudan",L"Swasiland",L"Tansania",L"Togo",L"Tunesien",L"Uganda",L"Sambia",L"Simbabwe",L"Afghanistan",L"Bahrain",L"Bangladesch",L"Bhutan",L"Brunei",L"Cambodia",L"China",L"Taiwan",L"Guam",L"Hongkong",L"Indien",L"Indonesien",L"Iran",L"Irak",L"Japan",L"Jordan",L"Kasachstan",L"Korea",L"Korea",L"Kuwait",L"Kyrgystan",L"Laos",L"Libanon",L"Macau",L"Malaysia",L"Maldives",L"Mongolei",L"Myanmar",L"Nepal",L"Oman",L"Pakistan",L"Palestines",L"Philippinen",L"Qatar",L"Saudiarabien",L"Singapur",L"Srilanka",L"Syrien",L"Tadschikistan",L"Thailand",L"Turkmenistan",L"Vereinigtearabischeemirate",L"Usbekistan",L"Vietnam",L"Yemen",L"Americasamoa",L"Australien",L"Cookislands",L"Fiji",L"Neuseeland",L"Papuanewguinea",L"Samoa",L"Solomon",L"Tahiti",L"Tonga",L"Vanuatu",L"Gibralter",L"Montenegro",L"Greenlands" };
 
-GraphicsConverter::GraphicsConverter() {
-    InitializeMagick(NULL);
+GraphicsConverter::GraphicsConverter(Converter *converter) {
+    Magick::InitializeMagick(NULL);
+    mConverter = converter;
 }
 
 Pair<Int, Int> ResizeWithAspectRatio(Int x, Int y, Int dest_x, Int dest_y, Float minRatioPercentage = 0.75f) {
@@ -344,7 +345,7 @@ void GraphicsConverter::ConvertCompBadges(FifamDatabase *db, Path const &fmGraph
 
 void GraphicsConverter::ConvertCountryFlags(FifamDatabase *db, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
     Map<Int, Path> availableAssociationLogos;
-    for (auto const &i : directory_iterator(fmGraphicsPath / L"dvx-logos" / L"associations" / L"primary" / L"@2x")) {
+    for (auto const &i : directory_iterator(fmGraphicsPath / L"dvx-logos" / L"associations" / L"primary")) {
         Int id = Utils::SafeConvertInt<Int>(i.path().filename().c_str());
         if (id > 0 && i.path().extension() == ".png" && !Utils::Contains(availableAssociationLogos, id))
             availableAssociationLogos[id] = i.path();
@@ -677,28 +678,11 @@ void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGrap
                 if (gameId <= 9)
                     portraitsDir = Path(L"art") / L"picture";
                 FifamPerson *fifamPerson = (FifamPerson *)person->mConverterData.mFifamPerson;
-                String dstFolder = L"art_09";
-                if (gameId >= 13 && !fifamPerson->mWriteableStringID.empty()) {
-                    WideChar c = fifamPerson->mWriteableStringID[0];
-                    if ((c >= L'A' && c <= L'B') || (c >= L'a' && c <= L'b'))
-                        dstFolder = L"art_02";
-                    if ((c >= L'C' && c <= L'G') || (c >= L'c' && c <= L'g'))
-                        dstFolder = L"art_03";
-                    else if ((c >= L'H' && c <= L'K') || (c >= L'h' && c <= L'k'))
-                        dstFolder = L"art_06";
-                    else if ((c >= L'L' && c <= L'O') || (c >= L'l' && c <= L'o'))
-                        dstFolder = L"art_07";
-                    else if ((c >= L'P' && c <= L'S') || (c >= L'p' && c <= L's'))
-                        dstFolder = L"art_08";
-                }
+                String dstFolder = L"art_02";
                 Path outputPath = contentPath / gameFolder / dstFolder / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat);
                 if (!mOnlyUpdates || (!exists(outputPath) &&
-                    !exists(contentPath / gameFolder / L"art_02" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
-                    !exists(contentPath / gameFolder / L"art_03" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
-                    !exists(contentPath / gameFolder / L"art_06" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
-                    !exists(contentPath / gameFolder / L"art_07" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
-                    !exists(contentPath / gameFolder / L"art_08" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)) &&
-                    !exists(contentPath / gameFolder / L"art_09" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat)))) {
+                    !exists(contentPath / gameFolder / L"art_02" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat))))
+                {
                     if (mOnlyUpdates || mOutputToGameFolder)
                         outputPath = Path(gameOutputPath / L"portraits\\club\\160x160") / (fifamPerson->mWriteableStringID + targetFormat);
                     Image portraitImg(portraitPath.string());
@@ -716,7 +700,7 @@ void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGrap
         }
     }
     catch (std::exception &e) {
-        ::Error("Failed to convert portrait %d\n%s", person->mID, e.what());
+        mConverter->Alert(Converter::AL_ERROR, L"Failed to convert portrait %d\n%s", person->mID, std::string(e.what()));
     }
 }
 
@@ -750,7 +734,7 @@ void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path con
         }
     }
     catch (std::exception &e) {
-        ::Error("Failed to convert referee portrait %d\n%s", referee->mID, e.what());
+        mConverter->Alert(Converter::AL_ERROR, L"Failed to convert referee portrait %d\n%s", referee->mID, std::string(e.what()));
     }
 }
 
@@ -758,11 +742,6 @@ void GraphicsConverter::ConvertPortraits(foom::db *db, Path const &fmGraphicsPat
     String gameFolder = Utils::Format(L"fm%02d", gameId);
     create_directories(contentPath / gameFolder / L"art_02\\portraits\\club\\160x160");
     create_directories(contentPath / gameFolder / L"art_02\\portraits\\Referees\\160x160");
-    create_directories(contentPath / gameFolder / L"art_03\\portraits\\club\\160x160");
-    create_directories(contentPath / gameFolder / L"art_06\\portraits\\club\\160x160");
-    create_directories(contentPath / gameFolder / L"art_07\\portraits\\club\\160x160");
-    create_directories(contentPath / gameFolder / L"art_08\\portraits\\club\\160x160");
-    create_directories(contentPath / gameFolder / L"art_09\\portraits\\club\\160x160");
     {
         std::wcout << L"Converting player portraits..." << std::endl;
         ProgressBar pb(db->mPlayers.size());
