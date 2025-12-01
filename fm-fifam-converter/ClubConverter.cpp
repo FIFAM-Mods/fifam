@@ -266,7 +266,7 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     for (auto &h : team->mVecTeamLeagueHistory) {
         if (h.mDivision && h.mDivision->mCompetitionLevel >= 1 && h.mDivision->mCompetitionLevel <= 3) {
             UInt level = h.mDivision->mCompetitionLevel - 1;
-            dst->mLeagueTotalPoints[level] += h.mPoints;
+            leagueTotalPoints[level] += h.mPoints;
             dst->mLeagueTotalWins[level] += h.mGamesWon;
             dst->mLeagueTotalDraws[level] += h.mGamesDrawn;
             dst->mLeagueTotalLoses[level] += h.mGamesLost;
@@ -275,8 +275,9 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
         }
     }
     for (UInt i = 0; i < 3; i++) {
-        if (dst->mLeagueTotalPoints[i] < 0)
-            dst->mLeagueTotalPoints[i] = 0;
+        if (leagueTotalPoints[i] < 0)
+            leagueTotalPoints[i] = 0;
+        dst->mLeagueTotalPoints[i] = leagueTotalPoints[i];
     }
     // Records
     if (team->mRecordAttendance > 0 && team->mRecordAttendanceOpposition && team->mRecordAttendanceYear > 0) {
