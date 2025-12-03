@@ -105,7 +105,7 @@ Bool GraphicsConverter::ConvertOneCompBadge(Path const &badgePath, Path const &o
 }
 
 void GraphicsConverter::ConvertClubBadges(foom::db *db, Map<Int, Path> const &availableBadges, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minRep) {
-    String gameFolder = Utils::Format(L"fm%02d", gameId);
+    String gameFolder = Utils::Format(mConverter->mWomen ? L"fm%02d_women" : L"fm%02d", gameId);
     Path badgesPath = contentPath / gameFolder / L"badges" / L"badges" / L"clubs";
     Path outputPath;
     if (mOnlyUpdates || mOutputToGameFolder)
@@ -163,7 +163,7 @@ void GraphicsConverter::ConvertCompBadges(FifamDatabase *db, Path const &fmGraph
         if (id > 0 && i.path().extension() == ".png")
             availableFlags[id] = i.path();
     }
-    String gameFolder = Utils::Format(L"fm%02d", gameId);
+    String gameFolder = Utils::Format(mConverter->mWomen ? L"fm%02d_women" : L"fm%02d", gameId);
     Path badgesPath = contentPath / gameFolder / L"badges" / L"badges" / L"Leagues";
     Path outputPath;
     if (mOnlyUpdates || mOutputToGameFolder)
@@ -356,7 +356,7 @@ void GraphicsConverter::ConvertCountryFlags(FifamDatabase *db, Path const &fmGra
         if (id > 0 && i.path().extension() == ".png")
             availableFlags[id] = i.path();
     }
-    String gameFolder = Utils::Format(L"fm%02d", gameId);
+    String gameFolder = Utils::Format(mConverter->mWomen ? L"fm%02d_women" : L"fm%02d", gameId);
     Path badgesPath = contentPath / gameFolder / L"art_05" / L"art" / L"Lib" / L"CountryFlags";
     Path outputPath;
     if (mOutputToGameFolder)
@@ -588,7 +588,7 @@ Bool GraphicsConverter::ConvertOneTrophy(Path const &trophyPath, Path const &out
 }
 
 void GraphicsConverter::ConvertTrophies(FifamDatabase *db, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minRep) {
-    String gameFolder = Utils::Format(L"fm%02d", gameId);
+    String gameFolder = Utils::Format(mConverter->mWomen ? L"fm%02d_women" : L"fm%02d", gameId);
     String trophyRoomFolder = L"534x423";
     Path artArchiveForLeagues = L"art_05";
     if (gameId <= 12) {
@@ -670,7 +670,7 @@ void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGrap
         if (person->mConverterData.mFifamPerson) {
             Path portraitPath = fmGraphicsPath / L"sortitoutsi" / L"faces" / (std::to_wstring(person->mID) + L".png");
             if (exists(portraitPath)) {
-                String gameFolder = Utils::Format(L"fm%02d", gameId);
+                String gameFolder = Utils::Format(mConverter->mWomen ? L"fm%02d_women" : L"fm%02d", gameId);
                 String targetFormat = L".png";
                 Path portraitsDir = Path(L"portraits") / L"club" / L"160x160";
                 if (gameId <= 12)
@@ -680,9 +680,7 @@ void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGrap
                 FifamPerson *fifamPerson = (FifamPerson *)person->mConverterData.mFifamPerson;
                 String dstFolder = L"art_02";
                 Path outputPath = contentPath / gameFolder / dstFolder / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat);
-                if (!mOnlyUpdates || (!exists(outputPath) &&
-                    !exists(contentPath / gameFolder / L"art_02" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat))))
-                {
+                if (!mOnlyUpdates || !exists(outputPath)) {
                     if (mOnlyUpdates || mOutputToGameFolder)
                         outputPath = Path(gameOutputPath / L"portraits\\club\\160x160") / (fifamPerson->mWriteableStringID + targetFormat);
                     Image portraitImg(portraitPath.string());
@@ -715,7 +713,7 @@ void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path con
                 if (mOnlyUpdates || mOutputToGameFolder)
                     basePath = gameOutputPath;
                 else
-                    basePath = contentPath / Utils::Format(L"fm%02d", gameId) / L"art_02";
+                    basePath = contentPath / Utils::Format(mConverter->mWomen ? L"fm%02d_women" : L"fm%02d", gameId) / L"art_02";
                 Path outputPath = basePath / L"portraits" / L"Referees" / L"160x160" /
                     (FifamNames::GetPersonStringId(gameId, fifamReferee->mFirstName, fifamReferee->mLastName, String(), Date(), 0) + targetFormat);
                 if (!mOnlyUpdates || !exists(outputPath)) {
@@ -739,9 +737,11 @@ void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path con
 }
 
 void GraphicsConverter::ConvertPortraits(foom::db *db, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minCA) {
-    String gameFolder = Utils::Format(L"fm%02d", gameId);
+    String gameFolder = Utils::Format(mConverter->mWomen ? L"fm%02d_women" : L"fm%02d", gameId);
     create_directories(contentPath / gameFolder / L"art_02\\portraits\\club\\160x160");
     create_directories(contentPath / gameFolder / L"art_02\\portraits\\Referees\\160x160");
+    if (mOnlyUpdates || mOutputToGameFolder)
+        create_directories(gameOutputPath / L"portraits\\club\\160x160");
     {
         std::wcout << L"Converting player portraits..." << std::endl;
         ProgressBar pb(db->mPlayers.size());
@@ -933,7 +933,7 @@ void WriteTextModeBadge(Image &img, Image &mask, Path const &outputPath, String 
 }
 
 void GraphicsConverter::ConvertClubBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
-    String gameFolder = Utils::Format(L"fm%02d", gameId);
+    String gameFolder = Utils::Format(mConverter->mWomen ? L"fm%02d_women" : L"fm%02d", gameId);
     Path outputPath = contentPath / gameFolder / L"badges" / L"badges" / L"clubs";
     create_directories(outputPath / L"256x256");
     create_directories(outputPath / L"128x128");
@@ -972,7 +972,7 @@ void GraphicsConverter::ConvertClubBadgesFIFA(FifamDatabase *db, Path const &fif
 }
 
 void GraphicsConverter::DownloadClubBadgesFIFA(FifamDatabase *db, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
-    String gameFolder = Utils::Format(L"fm%02d", gameId);
+    String gameFolder = Utils::Format(mConverter->mWomen ? L"fm%02d_women" : L"fm%02d", gameId);
     Path outputPath = contentPath / gameFolder / L"badges" / L"badges" / L"clubs";
     create_directories(outputPath / L"256x256");
     create_directories(outputPath / L"128x128");
@@ -1181,7 +1181,7 @@ void GraphicsConverter::ConvertPlayerPortraitsFIFA(FifamDatabase *db, Path const
     Path picPath;
     if (gameId >= 9) {
         Path assetsDir = fifaAssetsPath / L"minifaces";
-        Path outputPath = contentPath / Utils::Format(L"fm%02d", gameId) / L"portraits" / L"club" / L"160x160";
+        Path outputPath = contentPath / Utils::Format(mConverter->mWomen ? L"fm%02d_women" : L"fm%02d", gameId) / L"portraits" / L"club" / L"160x160";
         create_directories(outputPath);
         for (auto c : db->mCountries) {
             if (c) {
@@ -1229,7 +1229,7 @@ void GraphicsConverter::ConvertPlayerPortraitsFIFA(FifamDatabase *db, Path const
 }
 
 void GraphicsConverter::ConvertCompBadgesFIFA(FifamDatabase *db, Path const &fifaAssetsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
-    String gameFolder = Utils::Format(L"fm%02d", gameId);
+    String gameFolder = Utils::Format(mConverter->mWomen ? L"fm%02d_women" : L"fm%02d", gameId);
     Path outputPath = contentPath / gameFolder / L"badges" / L"badges" / L"Leagues";
     create_directories(outputPath / L"256x256");
     create_directories(outputPath / L"128x128");
@@ -1437,7 +1437,7 @@ void GraphicsConverter::ConvertCompBadgesFIFA(FifamDatabase *db, Path const &fif
 }
 
 void GraphicsConverter::CopyLeagueSplitAndRelegationBadges(FifamDatabase *db, Path const &contentPath, UInt gameId, Path const &gameOutputPath) {
-    String gameFolder = Utils::Format(L"fm%02d", gameId);
+    String gameFolder = Utils::Format(mConverter->mWomen ? L"fm%02d_women" : L"fm%02d", gameId);
     Path badgesPath = contentPath / gameFolder / L"badges" / L"badges" / L"Leagues";
     Path badgesOutputPath = badgesPath;
     for (auto const &[compId, comp] : db->mCompMap) {

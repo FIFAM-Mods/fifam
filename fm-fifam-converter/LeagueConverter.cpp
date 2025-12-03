@@ -772,13 +772,14 @@ void Converter::ConvertLeagues(UInt gameId) {
 
     FifamWriter *leagueConfigSplit = nullptr;
     FifamWriter *leagueConfigTables = nullptr;
+    String gender = mWomen ? L"_women" : L"";
 
     if (mGenerateLeagueConfigFiles) {
         Path outputPath = mWriteToGameFolder ? mOutputGameFolder : mTestsOutputFolder;
         Path ucpFolder = outputPath / L"plugins" / L"ucp";
         create_directories(ucpFolder);
-        leagueConfigSplit = new FifamWriter(ucpFolder / L"league_split.csv", 14, FifamVersion());
-        leagueConfigTables = new FifamWriter(ucpFolder / L"league_tables.csv", 14, FifamVersion());
+        leagueConfigSplit = new FifamWriter(ucpFolder / (L"league_split" + gender + L".csv"), 14, FifamVersion());
+        leagueConfigTables = new FifamWriter(ucpFolder / (L"league_tables" + gender + L".csv"), 14, FifamVersion());
         if (leagueConfigSplit->Available())
             leagueConfigSplit->WriteLine(L"CountryId,CountryName");
         if (leagueConfigTables->Available())
@@ -842,8 +843,8 @@ void Converter::ConvertLeagues(UInt gameId) {
             if (maxLevel >= 0) {
 
                 if (mGenerateLeaguesFiles) {
-                    create_directories(L"leagues");
-                    leagueWriter = new FifamWriter(L"leagues\\" + FifamTr(country->mName) + L".txt", 14, FifamVersion());
+                    create_directories(L"leagues" + gender);
+                    leagueWriter = new FifamWriter(L"leagues" + gender + L"\\" + FifamTr(country->mName) + L".txt", 14, FifamVersion());
                 }
 
                 // sort leagues
@@ -2348,7 +2349,7 @@ void Converter::ConvertLeagues(UInt gameId) {
             Pair<FifamCompLeague *, FifamCompLeague *> splitLeagues = { relLeague[0], relLeague[1] };
 
             if (!mFromFifaDatabase) {
-                if (mGenerateSpecialScripts)
+                if (mGenerateSpecialScripts && !mWomen)
                     ProcessScriptWithSpecialFormat(country, createdLeagues, createdCups, splitLeagues, vecPlayOffs);
 
                 auto ProcessCustomCalendars = [&](Map<UInt, Vector<UShort>> const &calendars, UChar season) {

@@ -25,10 +25,11 @@ Path GetIniPath(wchar_t const *key, Path const &defaultValue = Path()) {
 }
 
 void Converter::Convert() {
-    UInt originalGameId = GetIniInt(L"ORIGINAL_DB_VERSION", 13);
-    Path originalDb = GetIniPath(L"ORIGINAL_DB_FOLDER", L"reference\\dbs\\fm13\\database");
-    UInt referenceGameId = GetIniInt(L"REFERENCE_DB_VERSION", 14);
-    Path referenceDb = GetIniPath(L"REFERENCE_DB_FOLDER", L"reference\\dbs\\fm14\\database");
+    mWomen = GetIniInt(L"WOMEN", 0);
+    UInt originalGameId = GetIniInt(mWomen ? L"ORIGINAL_DB_VERSION_WOMEN" : L"ORIGINAL_DB_VERSION", 13);
+    Path originalDb = GetIniPath(mWomen ? L"ORIGINAL_DB_FOLDER_WOMEN" : L"ORIGINAL_DB_FOLDER", L"reference\\dbs\\fm13\\database");
+    UInt referenceGameId = GetIniInt(mWomen ? L"REFERENCE_DB_VERSION_WOMEN" : L"REFERENCE_DB_VERSION", 14);
+    Path referenceDb = GetIniPath(mWomen ? L"REFERENCE_DB_FOLDER_WOMEN" : L"REFERENCE_DB_FOLDER", L"reference\\dbs\\fm14\\database");
     UInt gameId = GetIniInt(L"OUTPUT_GAME_VERSION", 13);
     mOutputGameFolder = GetIniPath(L"OUTPUT_GAME_FOLDER", L"E:\\Games\\FIFA Manager 13");
     mWriteToGameFolder = GetIniInt(L"WRITE_TO_OUTPUT_FOLDER", 1);
@@ -87,7 +88,6 @@ void Converter::Convert() {
     mLogAppearance = GetIniInt(L"LOG_APPEARANCE", 0) != 0;
     mLogWeights = GetIniInt(L"LOG_WEIGHTS", 0) != 0;
     mToFifa07Database = GetIniInt(L"TO_FIFA_07_DATABASE", 0);
-    mWomen = GetIniInt(L"WOMEN", 0);
 
     std::error_code ec;
     if (exists(mLogPath, ec))
@@ -95,12 +95,13 @@ void Converter::Convert() {
     
     Bool READ_FOOM_PERSONS = !mQuickTest;
     Bool MAKE_CORRECTIONS_FOR_UPDATE = !mQuickTest;
-    Bool READ_REFERENCE_DB = true;
+    Bool READ_REFERENCE_DB = !referenceDb.empty() && exists(referenceDb) && is_directory(referenceDb);
     Bool DB_REF_COLORS = false;
     
     mCurrentGameId = gameId;
     mFromFifaDatabase = fromFifaDatabase;
     Path infoPath = dbPath;
+    String gender = mWomen ? L"_women" : L"";
 
     GraphicsConverter graphicsConverter(this);
     //mFifaDatabase = new FifaDatabase(dbPath / L"fifa");
@@ -158,7 +159,8 @@ void Converter::Convert() {
 
     if (!mQuickTest || mFromFifaDatabase || mToFifa07Database)
         mFifaDatabase = new FifaDatabase(dbPath / L"fifa");
-    mFoomDatabase = new foom::db(dbPath / L"foom", mWomen ? foom::db::db_gender::Women : foom::db::db_gender::Men,
+    mFoomDatabase = new foom::db(dbPath / (mWomen ? L"foom_women" : L"foom"),
+        mWomen ? foom::db::db_gender::Women : foom::db::db_gender::Men,
         fromFifaDatabase? false : READ_FOOM_PERSONS, foom::db::db_size::DB_SIZE);
 
     if (mFromFifaDatabase)
@@ -220,7 +222,7 @@ void Converter::Convert() {
     }
 
     ReadAdditionalInfo(infoPath, gameId);
-    appearanceGenerator.Read(infoPath / L"AppearanceDefs.sav");
+    appearanceGenerator.Read(infoPath / (L"AppearanceDefs" + gender + L".sav"));
 
     if (!mFromFifaDatabase) {
         Path foomBadgesPath = graphicsPath / L"dvx-logos" / L"clubs" / L"primary" / L"@2x";
@@ -2037,7 +2039,7 @@ void Converter::Convert() {
             mFifamDatabase->mRules.mContinentalCupChampions[FifamContinent::Europe].mSuperCup = GetTeamClubLink(scWinner);
     }
     if (EXPORT_FM_FIFA_PLAYERS) {
-        FifamWriter fifaPlayersWriter(L"fm-fifa-players.csv", 14, FifamVersion());
+        FifamWriter fifaPlayersWriter(L"fm-fifa-players" + gender + L".csv", 14, FifamVersion());
         if (fifaPlayersWriter.Available()) {
             fifaPlayersWriter.WriteLine(L"Country,Level,Club,Name,Birthdate,Nationality,Rating,FoomID,FifaID");
             auto WriteOnePlayer = [&](foom::player *_player, foom::club *_club, Int level, FifaTeam *fifaClub) {
@@ -2171,7 +2173,7 @@ void Converter::Convert() {
     mFifamDatabase->mWritingOptions.mWriteAppearanceDefs = false;
 
     Path outputPath = mWriteToGameFolder ? mOutputGameFolder : mTestsOutputFolder;
-    Path outputDbPath = outputPath / L"database";
+    Path outputDbPath = outputPath / (L"database" + gender);
 
     std::wcout << L"Writing database..." << std::endl;
     mFifamDatabase->Write(gameId, FifamDatabase::GetGameDbVersion(gameId), outputDbPath);
@@ -2219,7 +2221,7 @@ void Converter::Convert() {
             });
             if (derbies.size() > 999)
                 derbies.resize(999);
-            FifamWriter derbiesWriter(outputPath / L"fmdata\\ParameterFiles\\Derbies.txt", gameId, FifamVersion(), false);
+            FifamWriter derbiesWriter(outputPath / (L"fmdata\\ParameterFiles\\Derbies" + gender + L".txt"), gameId, FifamVersion(), false);
             if (derbiesWriter.Available()) {
                 derbiesWriter.WriteLine(L"BEGIN( DERBIES )");
                 derbiesWriter.WriteNewLine();
@@ -2242,7 +2244,7 @@ void Converter::Convert() {
                 derbiesWriter.Write(L"END");
                 derbiesWriter.Close();
             }
-            FifamWriter derbyNamesWriter(Utils::Format(outputPath / L"plugins\\ucp\\derbies.tr", gameId),
+            FifamWriter derbyNamesWriter(Utils::Format(outputPath / (L"plugins\\ucp\\derbies" + gender + L".tr"), gameId),
                 gameId, FifamVersion(), true);
             Set<String> writtenDerbyNames;
             if (derbyNamesWriter.Available()) {
@@ -2256,119 +2258,108 @@ void Converter::Convert() {
                 }
                 derbyNamesWriter.Close();
             }
-            FifamWriter derbyNamesWriterRu(Utils::Format(outputPath / L"plugins\\ucp\\derbies_ru.tr", gameId),
-                gameId, FifamVersion(), true);
-            Set<String> writtenDerbyNamesRu;
-            if (derbyNamesWriterRu.Available()) {
-                for (UInt i = 0; i < derbies.size(); i++) {
-                    if (!Utils::Contains(writtenDerbyNamesRu, derbies[i].nameId)) {
-                        if (!derbies[i].translatedNames[5].empty())
-                            derbyNamesWriterRu.WriteLineWithSeparator(L"|", derbies[i].nameId, derbies[i].translatedNames[5]);
-                        writtenDerbyNamesRu.insert(derbies[i].nameId);
-                    }
-                }
-                derbyNamesWriterRu.Close();
-            }
         }
 
-        std::wcout << L"Writing female names..." << std::endl;
+        std::wcout << L"Writing excdluded names..." << std::endl;
 
-        Map<String, Bool> femaleNamesMap;
-        Map<String, Bool> femaleSurnamesMap;
-        Map<String, Bool> femaleCommonNamesMap;
+        Map<String, Bool> excluedNamesMap;
+        Map<String, Bool> excluedSurnamesMap;
+        Map<String, Bool> excluedCommonNamesMap;
 
-        // find female names
+        // find exclued names
         for (FifamStaff *staff : mFifamDatabase->mStaffs) {
             auto fmstaff = staff->GetProperty<foom::non_player *>(L"foom::non_player");
-            if (fmstaff && fmstaff->mGender) {
+            if (fmstaff && fmstaff->mGender != mWomen) {
                 if (!staff->mFirstName.empty())
-                    femaleNamesMap[staff->mFirstName] = true;
+                    excluedNamesMap[staff->mFirstName] = true;
                 if (!staff->mLastName.empty())
-                    femaleSurnamesMap[staff->mLastName] = true;
+                    excluedSurnamesMap[staff->mLastName] = true;
                 if (!staff->mPseudonym.empty())
-                    femaleCommonNamesMap[staff->mPseudonym] = true;
+                    excluedCommonNamesMap[staff->mPseudonym] = true;
             }
         }
         for (FifamReferee *ref : mFifamDatabase->mReferees) {
             auto fmofficial = ref->GetProperty<foom::official *>(L"foom::official");
-            if (fmofficial && fmofficial->mGender) {
+            if (fmofficial && fmofficial->mGender != mWomen) {
                 if (!ref->mFirstName.empty())
-                    femaleNamesMap[ref->mFirstName] = true;
+                    excluedNamesMap[ref->mFirstName] = true;
                 if (!ref->mLastName.empty())
-                    femaleSurnamesMap[ref->mLastName] = true;
+                    excluedSurnamesMap[ref->mLastName] = true;
             }
         }
         // find male names
         for (FifamPlayer *player : mFifamDatabase->mPlayers) {
             auto fmplayer = player->GetProperty<foom::player *>(L"foom::player");
-            if (fmplayer && !fmplayer->mGender) {
+            if (fmplayer && fmplayer->mGender != mWomen) {
                 if (!player->mFirstName.empty()) {
-                    auto it = femaleNamesMap.find(player->mFirstName);
-                    if (it != femaleNamesMap.end())
+                    auto it = excluedNamesMap.find(player->mFirstName);
+                    if (it != excluedNamesMap.end())
                         (*it).second = false;
                 }
                 if (!player->mLastName.empty()) {
-                    auto it = femaleSurnamesMap.find(player->mLastName);
-                    if (it != femaleSurnamesMap.end())
+                    auto it = excluedSurnamesMap.find(player->mLastName);
+                    if (it != excluedSurnamesMap.end())
                         (*it).second = false;
                 }
                 if (!player->mPseudonym.empty()) {
-                    auto it = femaleCommonNamesMap.find(player->mPseudonym);
-                    if (it != femaleCommonNamesMap.end())
+                    auto it = excluedCommonNamesMap.find(player->mPseudonym);
+                    if (it != excluedCommonNamesMap.end())
                         (*it).second = false;
                 }
             }
         }
         for (FifamStaff *staff : mFifamDatabase->mStaffs) {
             auto fmstaff = staff->GetProperty<foom::non_player *>(L"foom::non_player");
-            if (fmstaff && !fmstaff->mGender) {
+            if (fmstaff && fmstaff->mGender != mWomen) {
                 if (!staff->mFirstName.empty()) {
-                    auto it = femaleNamesMap.find(staff->mFirstName);
-                    if (it != femaleNamesMap.end())
+                    auto it = excluedNamesMap.find(staff->mFirstName);
+                    if (it != excluedNamesMap.end())
                         (*it).second = false;
                 }
                 if (!staff->mLastName.empty()) {
-                    auto it = femaleSurnamesMap.find(staff->mLastName);
-                    if (it != femaleSurnamesMap.end())
+                    auto it = excluedSurnamesMap.find(staff->mLastName);
+                    if (it != excluedSurnamesMap.end())
                         (*it).second = false;
                 }
                 if (!staff->mPseudonym.empty()) {
-                    auto it = femaleCommonNamesMap.find(staff->mPseudonym);
-                    if (it != femaleCommonNamesMap.end())
+                    auto it = excluedCommonNamesMap.find(staff->mPseudonym);
+                    if (it != excluedCommonNamesMap.end())
                         (*it).second = false;
                 }
             }
         }
         for (FifamReferee *ref : mFifamDatabase->mReferees) {
             auto fmofficial = ref->GetProperty<foom::official *>(L"foom::official");
-            if (fmofficial && !fmofficial->mGender) {
+            if (fmofficial && fmofficial->mGender != mWomen) {
                 if (!ref->mFirstName.empty()) {
-                    auto it = femaleNamesMap.find(ref->mFirstName);
-                    if (it != femaleNamesMap.end())
+                    auto it = excluedNamesMap.find(ref->mFirstName);
+                    if (it != excluedNamesMap.end())
                         (*it).second = false;
                 }
                 if (!ref->mLastName.empty()) {
-                    auto it = femaleSurnamesMap.find(ref->mLastName);
-                    if (it != femaleSurnamesMap.end())
+                    auto it = excluedSurnamesMap.find(ref->mLastName);
+                    if (it != excluedSurnamesMap.end())
                         (*it).second = false;
                 }
             }
         }
 
-        FifamWriter femaleNamesWriter(Utils::Format(outputPath / L"fmdata" / L"UCP_FemaleNames.txt", gameId), gameId, FifamVersion(), true);
-        for (auto const &[name, write] : femaleNamesMap) {
+        String excludedGender = mWomen ? L"Male" : L"Female";
+
+        FifamWriter femaleNamesWriter(Utils::Format(outputPath / L"fmdata" / (L"UCP_" + excludedGender + L"Names.txt"), gameId), gameId, FifamVersion(), true);
+        for (auto const &[name, write] : excluedNamesMap) {
             if (write)
                 femaleNamesWriter.WriteLine(name);
         }
         femaleNamesWriter.Close();
-        FifamWriter femaleSurnamesWriter(Utils::Format(outputPath / L"fmdata" / L"UCP_FemaleSurnames.txt", gameId), gameId, FifamVersion(), true);
-        for (auto const &[name, write] : femaleSurnamesMap) {
+        FifamWriter femaleSurnamesWriter(Utils::Format(outputPath / L"fmdata" / (L"UCP_" + excludedGender + L"Surnames.txt"), gameId), gameId, FifamVersion(), true);
+        for (auto const &[name, write] : excluedSurnamesMap) {
             if (write)
                 femaleSurnamesWriter.WriteLine(name);
         }
         femaleSurnamesWriter.Close();
-        FifamWriter femaleCommonNamesWriter(Utils::Format(outputPath / L"fmdata" / L"UCP_FemaleCommonNames.txt", gameId), gameId, FifamVersion(), true);
-        for (auto const &[name, write] : femaleCommonNamesMap) {
+        FifamWriter femaleCommonNamesWriter(Utils::Format(outputPath / L"fmdata" / (L"UCP_" + excludedGender + L"CommonNames.txt"), gameId), gameId, FifamVersion(), true);
+        for (auto const &[name, write] : excluedCommonNamesMap) {
             if (write)
                 femaleCommonNamesWriter.WriteLine(name);
         }
@@ -2382,7 +2373,7 @@ void Converter::Convert() {
             if (pp != String::npos && Utils::IsNumber(player->mWriteableStringID.substr(pp + 1)))
                 dupIds[player->mWriteableStringID.substr(0, pp)].insert(player->mWriteableStringID);
         }
-        FifamWriter duplicateIdsWriter(L"duplicate_player_ids.txt");
+        FifamWriter duplicateIdsWriter(L"duplicate_player_ids" + gender + L".txt");
         duplicateIdsWriter.WriteLineWithSeparator(L'\t', L"BaseID", L"PlayerID");
         for (auto const& [baseId, empicsIds] : dupIds) {
             for (auto const &empicsId : empicsIds)
@@ -2391,7 +2382,7 @@ void Converter::Convert() {
         duplicateIdsWriter.Close();
     }
     {
-        FifamWriter reserveLeaguesWriter(outputPath / L"plugins\\ucp\\reserve_leagues.csv");
+        FifamWriter reserveLeaguesWriter(outputPath / (L"plugins\\ucp\\reserve_leagues" + gender + L".csv"));
         reserveLeaguesWriter.WriteLine(L"CountryId", L"ReserveLevelId", L"CountryName");
         for (UInt countryId = 1; countryId <= FifamDatabase::NUM_COUNTRIES; countryId++) {
             FifamCountry *country = mFifamDatabase->GetCountry(countryId);

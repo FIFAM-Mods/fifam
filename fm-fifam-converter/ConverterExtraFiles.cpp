@@ -484,326 +484,374 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
         }
     }
     if (!mGenerateLeaguesFiles) {
-        std::wcout << L"Reading league tables..." << std::endl;
-        for (auto const &p : recursive_directory_iterator(infoPath / (L"leagues" + gender))) {
-            if (is_regular_file(p.path()) && p.path().extension() == ".txt") {
-                FifamReader reader(p.path(), 0);
-                if (reader.Available()) {
-                    //Message(p.path().string());
-                    String filename = p.path().stem().c_str();
-                    //mErrors = false;
-                    foom::comp *league = nullptr;
-                    DivisionInfo *div = nullptr;
-                    foom::club *cupWinner = nullptr;
-                    foom::club *cupRunnerUp = nullptr;
-                    foom::team *leagueWinner = nullptr;
-                    Set<UInt> usedTeamIDs;
-                    foom::nation *nation = nullptr;
-                    Vector<foom::club *> previousClubs;
-                    Bool spare = false;
-                    Bool hasSpare = false;
+        auto leaguesFolder = infoPath / (L"leagues" + gender);
+        if (exists(leaguesFolder)) {
+            std::wcout << L"Reading league tables..." << std::endl;
+            for (auto const &p : recursive_directory_iterator(leaguesFolder)) {
+                if (is_regular_file(p.path()) && p.path().extension() == ".txt") {
+                    FifamReader reader(p.path(), 0);
+                    if (reader.Available()) {
+                        //Message(p.path().string());
+                        String filename = p.path().stem().c_str();
+                        //mErrors = false;
+                        foom::comp *league = nullptr;
+                        DivisionInfo *div = nullptr;
+                        foom::club *cupWinner = nullptr;
+                        foom::club *cupRunnerUp = nullptr;
+                        foom::team *leagueWinner = nullptr;
+                        Set<UInt> usedTeamIDs;
+                        foom::nation *nation = nullptr;
+                        Vector<foom::club *> previousClubs;
+                        Bool spare = false;
+                        Bool hasSpare = false;
 
-                    auto finishLeague = [&] {
-                        if (league && div) {
-                            if (league->mVecTeams.size() != div->mTeams) {
-                                Alert(AL_ERROR, L"League tables:\nincorrect league teams count\nin %s\n%d - %d\nFile %s", div->mName.c_str(), league->mVecTeams.size(), div->mTeams, filename.c_str());
-                                return false;
+                        auto finishLeague = [&] {
+                            if (league && div) {
+                                if (league->mVecTeams.size() != div->mTeams) {
+                                    Alert(AL_ERROR, L"League tables:\nincorrect league teams count\nin %s\n%d - %d\nFile %s", div->mName.c_str(), league->mVecTeams.size(), div->mTeams, filename.c_str());
+                                    return false;
+                                }
+                                if (!leagueWinner && !league->mVecTeams.empty())
+                                    leagueWinner = league->mVecTeams[0];
+                                league->mConverterData.mUsesTableData = true;
                             }
-                            if (!leagueWinner && !league->mVecTeams.empty())
-                                leagueWinner = league->mVecTeams[0];
-                            league->mConverterData.mUsesTableData = true;
-                        }
-                        league = nullptr;
-                        div = nullptr;
-                        return true;
-                    };
+                            league = nullptr;
+                            div = nullptr;
+                            return true;
+                        };
 
-                    while (!reader.IsEof()) {
-                        if (!reader.EmptyLine()) {
-                            String line = reader.ReadFullLine();
-                            if (Utils::StartsWith(line, L";"))
-                                continue;
-                            if (Utils::StartsWith(line, L"LEAGUE") || Utils::StartsWith(line, L"league")) {
-                                if (hasSpare) {
-                                    Alert(AL_ERROR, L"League tables:\nspare clubs appear before league(s)\nFile %s", filename.c_str());
-                                    break;
-                                }
-                                finishLeague();
-                                spare = false;
-                                Int leagueId = -1;
-                                if (swscanf(line.c_str(), L"%*s %d", &leagueId) != 1) {
-                                    if (div)
-                                        Alert(AL_ERROR, L"League tables:\nincorrect league line format\nin %s\n%s\nFile %s", div->mName.c_str(), line.c_str(), filename.c_str());
-                                    else
-                                        Alert(AL_ERROR, L"League tables:\nincorrect league line format\n%s\nFile %s", line.c_str(), filename.c_str());
-                                    break;
-                                }
-                                league = mFoomDatabase->get<foom::comp>(leagueId);
-                                if (!league) {
-                                    Alert(AL_ERROR, L"League tables:\nunable to find league by id\nid %u\nFile %s", leagueId, filename.c_str());
-                                    break;
-                                }
-                                for (auto &d : mDivisions) {
-                                    if (d.mID == leagueId) {
-                                        div = &d;
+                        while (!reader.IsEof()) {
+                            if (!reader.EmptyLine()) {
+                                String line = reader.ReadFullLine();
+                                if (Utils::StartsWith(line, L";"))
+                                    continue;
+                                if (Utils::StartsWith(line, L"LEAGUE") || Utils::StartsWith(line, L"league")) {
+                                    if (hasSpare) {
+                                        Alert(AL_ERROR, L"League tables:\nspare clubs appear before league(s)\nFile %s", filename.c_str());
                                         break;
                                     }
-                                }
-                                if (!div) {
-                                    Alert(AL_ERROR, L"League tables:\nunable to find division by id\nid %u\nFile %s", leagueId, filename.c_str());
-                                    break;
-                                }
-                                if (!nation)
-                                    nation = league->mNation;
-                                else if (league->mNation != nation) {
-                                    Alert(AL_ERROR, L"League tables:\nleague from different nation\nin %s\nid %u\nFile %s", div->mName.c_str(), leagueId, filename.c_str());
-                                    break;
-                                }
-                                league->mVecTeams.clear();
-                            }
-                            else if (Utils::StartsWith(line, L"SPARE") || Utils::StartsWith(line, L"spare")) {
-                                if (hasSpare) {
-                                    Alert(AL_ERROR, L"League tables:\nduplicated spare clubs section\nFile %s", filename.c_str());
-                                    break;
-                                }
-                                finishLeague();
-                                Int nationId = -1;
-                                if (swscanf(line.c_str(), L"%*s %d", &nationId) == 1) {
-                                    auto spareNation = mFoomDatabase->get<foom::nation>(nationId);
-                                    if (spareNation && nation && spareNation != nation) {
-                                        Alert(AL_ERROR, L"League tables:\nspare from different nation\nleagues nation: %s\nspare nation: %s\nFile %s", nation->mName.c_str(), spareNation->mName.c_str(), filename.c_str());
+                                    finishLeague();
+                                    spare = false;
+                                    Int leagueId = -1;
+                                    if (swscanf(line.c_str(), L"%*s %d", &leagueId) != 1) {
+                                        if (div)
+                                            Alert(AL_ERROR, L"League tables:\nincorrect league line format\nin %s\n%s\nFile %s", div->mName.c_str(), line.c_str(), filename.c_str());
+                                        else
+                                            Alert(AL_ERROR, L"League tables:\nincorrect league line format\n%s\nFile %s", line.c_str(), filename.c_str());
                                         break;
                                     }
-                                    nation = spareNation;
+                                    league = mFoomDatabase->get<foom::comp>(leagueId);
+                                    if (!league) {
+                                        Alert(AL_ERROR, L"League tables:\nunable to find league by id\nid %u\nFile %s", leagueId, filename.c_str());
+                                        break;
+                                    }
+                                    for (auto &d : mDivisions) {
+                                        if (d.mID == leagueId) {
+                                            div = &d;
+                                            break;
+                                        }
+                                    }
+                                    if (!div) {
+                                        Alert(AL_ERROR, L"League tables:\nunable to find division by id\nid %u\nFile %s", leagueId, filename.c_str());
+                                        break;
+                                    }
+                                    if (!nation)
+                                        nation = league->mNation;
+                                    else if (league->mNation != nation) {
+                                        Alert(AL_ERROR, L"League tables:\nleague from different nation\nin %s\nid %u\nFile %s", div->mName.c_str(), leagueId, filename.c_str());
+                                        break;
+                                    }
+                                    league->mVecTeams.clear();
+                                }
+                                else if (Utils::StartsWith(line, L"SPARE") || Utils::StartsWith(line, L"spare")) {
+                                    if (hasSpare) {
+                                        Alert(AL_ERROR, L"League tables:\nduplicated spare clubs section\nFile %s", filename.c_str());
+                                        break;
+                                    }
+                                    finishLeague();
+                                    Int nationId = -1;
+                                    if (swscanf(line.c_str(), L"%*s %d", &nationId) == 1) {
+                                        auto spareNation = mFoomDatabase->get<foom::nation>(nationId);
+                                        if (spareNation && nation && spareNation != nation) {
+                                            Alert(AL_ERROR, L"League tables:\nspare from different nation\nleagues nation: %s\nspare nation: %s\nFile %s", nation->mName.c_str(), spareNation->mName.c_str(), filename.c_str());
+                                            break;
+                                        }
+                                        nation = spareNation;
 
+                                    }
+                                    if (!nation) {
+                                        Alert(AL_ERROR, L"League tables:\nnation for spare clubs is not defined\nFile %s", filename.c_str());
+                                        break;
+                                    }
+                                    nation->mConverterData.mSpareClubs.clear();
+                                    spare = true;
+                                    hasSpare = true;
                                 }
-                                if (!nation) {
-                                    Alert(AL_ERROR, L"League tables:\nnation for spare clubs is not defined\nFile %s", filename.c_str());
+                                else if (Utils::StartsWith(line, L"NON") || Utils::StartsWith(line, L"non"))
                                     break;
-                                }
-                                nation->mConverterData.mSpareClubs.clear();
-                                spare = true;
-                                hasSpare = true;
-                            }
-                            else if (Utils::StartsWith(line, L"NON") || Utils::StartsWith(line, L"non"))
-                                break;
-                            else {
-                                Int teamId = -1;
-                                WideChar status[64];
-                                if ((league && div) || spare) {
-                                    if (swscanf(line.c_str(), L"%d %s", &teamId, status) == 2) {
-                                        foom::club *team = mFoomDatabase->get<foom::club>(teamId);
-                                        // TODO: remove this later
-                                        if (!team && !spare) {
-                                            if (line.size() > 19 && Utils::EndsWith(line, L" (RES)")) {
-                                                String clubName = line.substr(13, line.size() - 19);
-                                                //Error(clubName);
-                                                for (foom::club *prev : previousClubs) {
-                                                    if (prev->mName == clubName) {
-                                                        if (!prev->mVecReserveTeams.empty()) {
-                                                            team = prev->mVecReserveTeams[0].mReserveClub;
-                                                            teamId = team->mID;
-                                                            break;
+                                else {
+                                    Int teamId = -1;
+                                    WideChar status[64];
+                                    if ((league && div) || spare) {
+                                        if (swscanf(line.c_str(), L"%d %s", &teamId, status) == 2) {
+                                            foom::club *team = mFoomDatabase->get<foom::club>(teamId);
+                                            // TODO: remove this later
+                                            if (!team && !spare) {
+                                                if (line.size() > 19 && Utils::EndsWith(line, L" (RES)")) {
+                                                    String clubName = line.substr(13, line.size() - 19);
+                                                    //Error(clubName);
+                                                    for (foom::club *prev : previousClubs) {
+                                                        if (prev->mName == clubName) {
+                                                            if (!prev->mVecReserveTeams.empty()) {
+                                                                team = prev->mVecReserveTeams[0].mReserveClub;
+                                                                teamId = team->mID;
+                                                                break;
+                                                            }
                                                         }
                                                     }
                                                 }
                                             }
-                                        }
-                                        if (!team) {
-                                            if (spare)
-                                                Alert(AL_ERROR, L"League tables:\nunable to find team by id\nin spare (%s)\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
-                                            else
-                                                Alert(AL_ERROR, L"League tables:\nunable to find team by id\nin %s\nid %u\n%s\nFile %s", div ? div->mName.c_str() : L"", teamId, line.c_str(), filename.c_str());
-                                        }
-                                        else {
-                                            if (team->mExtinct && (Utils::EndsWith(line, L" (RES)") || Utils::EndsWith(line, L"(REMOVE-EXTINCT)"))) {
-                                                team->mExtinct = false;
-                                                if (nation) {
-                                                    team->mNation = nation;
-                                                    team->mBasedNation = team->mNation;
-                                                    team->mContinentalCupNation = team->mNation;
-                                                }
-                                            }
-                                            if (team->mExtinct) {
+                                            if (!team) {
                                                 if (spare)
-                                                    Alert(AL_ERROR, L"League tables:\nextinct team in the spare\nin %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                                    Alert(AL_ERROR, L"League tables:\nunable to find team by id\nin spare (%s)\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                 else
-                                                    Alert(AL_ERROR, L"League tables:\nextinct team in the league\nin %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                                    Alert(AL_ERROR, L"League tables:\nunable to find team by id\nin %s\nid %u\n%s\nFile %s", div ? div->mName.c_str() : L"", teamId, line.c_str(), filename.c_str());
                                             }
                                             else {
-                                                if (team->mNation != nation) {
+                                                if (team->mExtinct && (Utils::EndsWith(line, L" (RES)") || Utils::EndsWith(line, L"(REMOVE-EXTINCT)"))) {
+                                                    team->mExtinct = false;
+                                                    if (nation) {
+                                                        team->mNation = nation;
+                                                        team->mBasedNation = team->mNation;
+                                                        team->mContinentalCupNation = team->mNation;
+                                                    }
+                                                }
+                                                if (team->mExtinct) {
                                                     if (spare)
-                                                        Alert(AL_ERROR, L"League tables:\nteam from incorrect country in the spare\nin %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                                        Alert(AL_ERROR, L"League tables:\nextinct team in the spare\nin %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                     else
-                                                        Alert(AL_ERROR, L"League tables:\nteam from incorrect country in the league\nin %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                                        Alert(AL_ERROR, L"League tables:\nextinct team in the league\nin %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                 }
                                                 else {
-                                                    if (Utils::Contains(usedTeamIDs, teamId)) {
+                                                    if (team->mNation != nation) {
                                                         if (spare)
-                                                            Alert(AL_ERROR, L"League tables:\nteam id was already registered in the spare\nin %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                                            Alert(AL_ERROR, L"League tables:\nteam from incorrect country in the spare\nin %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                         else
-                                                            Alert(AL_ERROR, L"League tables:\nteam id was already registered in the league\nin %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                                            Alert(AL_ERROR, L"League tables:\nteam from incorrect country in the league\nin %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                     }
                                                     else {
-                                                        if (spare) {
-                                                            if (nation)
-                                                                nation->mConverterData.mSpareClubs.push_back(team);
-                                                        }
-                                                        else if (league)
-                                                            league->mVecTeams.push_back(team);
-                                                        previousClubs.push_back(team);
-                                                        usedTeamIDs.insert(teamId);
-                                                        String strStatus = status;
-                                                        foom::club *possibleCupWinner = nullptr;
-                                                        foom::club *possibleCupRunnerUp = nullptr;
-                                                        if (strStatus == L"P") {
-                                                            team->mConverterData.mTablePromoted = true;
-                                                        }
-                                                        else if (strStatus == L"R") {
-                                                            team->mConverterData.mTableRelegated = true;
-                                                        }
-                                                        else if (strStatus == L"W") {
-                                                            possibleCupWinner = team;
-                                                        }
-                                                        else if (strStatus == L"F") {
-                                                            possibleCupRunnerUp = team;
-                                                        }
-                                                        else if (strStatus == L"PW" || strStatus == L"WP") {
-                                                            team->mConverterData.mTablePromoted = true;
-                                                            possibleCupWinner = team;
-                                                        }
-                                                        else if (strStatus == L"PF" || strStatus == L"FP") {
-                                                            team->mConverterData.mTablePromoted = true;
-                                                            possibleCupRunnerUp = team;
-                                                        }
-                                                        else if (strStatus == L"RW" || strStatus == L"WR") {
-                                                            team->mConverterData.mTableRelegated = true;
-                                                            possibleCupWinner = team;
-                                                        }
-                                                        else if (strStatus == L"RF" || strStatus == L"FR") {
-                                                            team->mConverterData.mTableRelegated = true;
-                                                            possibleCupRunnerUp = team;
-                                                        }
-                                                        else if (strStatus == L"-") {
-
+                                                        if (Utils::Contains(usedTeamIDs, teamId)) {
+                                                            if (spare)
+                                                                Alert(AL_ERROR, L"League tables:\nteam id was already registered in the spare\nin %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                                            else
+                                                                Alert(AL_ERROR, L"League tables:\nteam id was already registered in the league\nin %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                         }
                                                         else {
-                                                            if (spare)
-                                                                Alert(AL_ERROR, L"League tables:\nunknown status\nin spare %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
-                                                            else
-                                                                Alert(AL_ERROR, L"League tables:\nunknown status\nin league %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
-                                                        }
-                                                        if (possibleCupWinner) {
-                                                            if (cupWinner) {
-                                                                if (spare)
-                                                                    Alert(AL_ERROR, L"League tables:\ncup winner was already set\nin spare %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
-                                                                else
-                                                                    Alert(AL_ERROR, L"League tables:\ncup winner was already set\nin league %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                                            if (spare) {
+                                                                if (nation)
+                                                                    nation->mConverterData.mSpareClubs.push_back(team);
+                                                            }
+                                                            else if (league)
+                                                                league->mVecTeams.push_back(team);
+                                                            previousClubs.push_back(team);
+                                                            usedTeamIDs.insert(teamId);
+                                                            String strStatus = status;
+                                                            foom::club *possibleCupWinner = nullptr;
+                                                            foom::club *possibleCupRunnerUp = nullptr;
+                                                            if (strStatus == L"P") {
+                                                                team->mConverterData.mTablePromoted = true;
+                                                            }
+                                                            else if (strStatus == L"R") {
+                                                                team->mConverterData.mTableRelegated = true;
+                                                            }
+                                                            else if (strStatus == L"W") {
+                                                                possibleCupWinner = team;
+                                                            }
+                                                            else if (strStatus == L"F") {
+                                                                possibleCupRunnerUp = team;
+                                                            }
+                                                            else if (strStatus == L"PW" || strStatus == L"WP") {
+                                                                team->mConverterData.mTablePromoted = true;
+                                                                possibleCupWinner = team;
+                                                            }
+                                                            else if (strStatus == L"PF" || strStatus == L"FP") {
+                                                                team->mConverterData.mTablePromoted = true;
+                                                                possibleCupRunnerUp = team;
+                                                            }
+                                                            else if (strStatus == L"RW" || strStatus == L"WR") {
+                                                                team->mConverterData.mTableRelegated = true;
+                                                                possibleCupWinner = team;
+                                                            }
+                                                            else if (strStatus == L"RF" || strStatus == L"FR") {
+                                                                team->mConverterData.mTableRelegated = true;
+                                                                possibleCupRunnerUp = team;
+                                                            }
+                                                            else if (strStatus == L"-") {
+
                                                             }
                                                             else {
-                                                                cupWinner = possibleCupWinner;
-                                                            }
-                                                        }
-                                                        if (possibleCupRunnerUp) {
-                                                            if (cupRunnerUp) {
                                                                 if (spare)
-                                                                    Alert(AL_ERROR, L"League tables:\ncup runner-up was already set\nin spare %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                                                    Alert(AL_ERROR, L"League tables:\nunknown status\nin spare %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                                 else
-                                                                    Alert(AL_ERROR, L"League tables:\ncup runner-up was already set\nin league %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                                                    Alert(AL_ERROR, L"League tables:\nunknown status\nin league %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
                                                             }
-                                                            else {
-                                                                cupRunnerUp = possibleCupRunnerUp;
+                                                            if (possibleCupWinner) {
+                                                                if (cupWinner) {
+                                                                    if (spare)
+                                                                        Alert(AL_ERROR, L"League tables:\ncup winner was already set\nin spare %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                                                    else
+                                                                        Alert(AL_ERROR, L"League tables:\ncup winner was already set\nin league %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                                                }
+                                                                else {
+                                                                    cupWinner = possibleCupWinner;
+                                                                }
+                                                            }
+                                                            if (possibleCupRunnerUp) {
+                                                                if (cupRunnerUp) {
+                                                                    if (spare)
+                                                                        Alert(AL_ERROR, L"League tables:\ncup runner-up was already set\nin spare %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                                                    else
+                                                                        Alert(AL_ERROR, L"League tables:\ncup runner-up was already set\nin league %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                                                }
+                                                                else {
+                                                                    cupRunnerUp = possibleCupRunnerUp;
+                                                                }
                                                             }
                                                         }
                                                     }
                                                 }
                                             }
                                         }
-                                    }
-                                    else {
-                                        if (spare)
-                                            Alert(AL_ERROR, L"League tables:\nunable to parse team id line\nin spare %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
-                                        else
-                                            Alert(AL_ERROR, L"League tables:\nunable to parse team id line\nin league %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                        else {
+                                            if (spare)
+                                                Alert(AL_ERROR, L"League tables:\nunable to parse team id line\nin spare %s\nid %u\n%s\nFile %s", nation->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                            else
+                                                Alert(AL_ERROR, L"League tables:\nunable to parse team id line\nin league %s\nid %u\n%s\nFile %s", div->mName.c_str(), teamId, line.c_str(), filename.c_str());
+                                        }
                                     }
                                 }
                             }
+                            else
+                                reader.SkipLine();
                         }
-                        else
-                            reader.SkipLine();
+                        finishLeague();
+                        if (cupWinner)
+                            cupWinner->mConverterData.mTableCupWinner = true;
+                        if (cupRunnerUp)
+                            cupRunnerUp->mConverterData.mTableCupRunnerUp = true;
+                        if (nation) {
+                            nation->mConverterData.mDomesticComps.cupWinner = cupWinner;
+                            nation->mConverterData.mDomesticComps.cupRunnerUp = cupRunnerUp;
+                            if (leagueWinner)
+                                nation->mConverterData.mDomesticComps.leagueWinner = leagueWinner;
+                        }
+                        //if (nation && (cupWinner || cupRunnerUp)) {
+                        //    for (auto &entry : mFoomDatabase->mComps) {
+                        //        auto &c = entry.second;
+                        //        if (c.mNation) {
+                        //            if (c.mType == 0) { // domestic main league
+                        //                c.mVecHistory.erase(std::remove_if(c.mVecHistory.begin(), c.mVecHistory.end(), [](const foom::comp::history &h) {
+                        //                    return h.mYear >= CURRENT_YEAR;
+                        //                    }), c.mVecHistory.end());
+                        //                if (!c.mIsExtinct) {
+                        //                    foom::comp::history newEntry;
+                        //                    newEntry.mYear = CURRENT_YEAR;
+                        //                    newEntry.mFirstPlaced = cupWinner;
+                        //                    newEntry.mSecondPlaced = cupRunnerUp;
+                        //                    c.mVecHistory.push_back(newEntry);
+                        //                }
+                        //            }
+                        //            else if (c.mType == 2) { // domestic main cup
+                        //                c.mVecHistory.erase(std::remove_if(c.mVecHistory.begin(), c.mVecHistory.end(), [](const foom::comp::history & h) {
+                        //                    return h.mYear >= CURRENT_YEAR;
+                        //                    }), c.mVecHistory.end());
+                        //                if (!c.mIsExtinct) {
+                        //                    foom::comp::history newEntry;
+                        //                    newEntry.mYear = CURRENT_YEAR;
+                        //                    newEntry.mFirstPlaced = cupWinner;
+                        //                    newEntry.mSecondPlaced = cupRunnerUp;
+                        //                    c.mVecHistory.push_back(newEntry);
+                        //                }
+                        //            }
+                        //        }
+                        //    }
+                        //}
                     }
-                    finishLeague();
-                    if (cupWinner)
-                        cupWinner->mConverterData.mTableCupWinner = true;
-                    if (cupRunnerUp)
-                        cupRunnerUp->mConverterData.mTableCupRunnerUp = true;
-                    if (nation) {
-                        nation->mConverterData.mDomesticComps.cupWinner = cupWinner;
-                        nation->mConverterData.mDomesticComps.cupRunnerUp = cupRunnerUp;
-                        if (leagueWinner)
-                            nation->mConverterData.mDomesticComps.leagueWinner = leagueWinner;
-                    }
-                    //if (nation && (cupWinner || cupRunnerUp)) {
-                    //    for (auto &entry : mFoomDatabase->mComps) {
-                    //        auto &c = entry.second;
-                    //        if (c.mNation) {
-                    //            if (c.mType == 0) { // domestic main league
-                    //                c.mVecHistory.erase(std::remove_if(c.mVecHistory.begin(), c.mVecHistory.end(), [](const foom::comp::history &h) {
-                    //                    return h.mYear >= CURRENT_YEAR;
-                    //                    }), c.mVecHistory.end());
-                    //                if (!c.mIsExtinct) {
-                    //                    foom::comp::history newEntry;
-                    //                    newEntry.mYear = CURRENT_YEAR;
-                    //                    newEntry.mFirstPlaced = cupWinner;
-                    //                    newEntry.mSecondPlaced = cupRunnerUp;
-                    //                    c.mVecHistory.push_back(newEntry);
-                    //                }
-                    //            }
-                    //            else if (c.mType == 2) { // domestic main cup
-                    //                c.mVecHistory.erase(std::remove_if(c.mVecHistory.begin(), c.mVecHistory.end(), [](const foom::comp::history & h) {
-                    //                    return h.mYear >= CURRENT_YEAR;
-                    //                    }), c.mVecHistory.end());
-                    //                if (!c.mIsExtinct) {
-                    //                    foom::comp::history newEntry;
-                    //                    newEntry.mYear = CURRENT_YEAR;
-                    //                    newEntry.mFirstPlaced = cupWinner;
-                    //                    newEntry.mSecondPlaced = cupRunnerUp;
-                    //                    c.mVecHistory.push_back(newEntry);
-                    //                }
-                    //            }
-                    //        }
-                    //    }
-                    //}
                 }
             }
         }
     }
     {
-        std::wcout << L"Reading fixtures..." << std::endl;
-        for (auto const &p : recursive_directory_iterator(infoPath / (L"fixtures" + gender))) {
-            if (is_regular_file(p.path()) && p.path().extension() == ".txt") {
-                UInt leagueId = Utils::SafeConvertInt<UInt>(p.path().filename().c_str());
-                if (leagueId > 0) {
-                    Vector<FixtureInfo> &fixtures = mFixturesPerLeague[leagueId];
-                    fixtures.clear();
+        auto fixturesFolder = infoPath / (L"fixtures" + gender);
+        if (exists(fixturesFolder)) {
+            std::wcout << L"Reading fixtures..." << std::endl;
+            for (auto const &p : recursive_directory_iterator(fixturesFolder)) {
+                if (is_regular_file(p.path()) && p.path().extension() == ".txt") {
+                    UInt leagueId = Utils::SafeConvertInt<UInt>(p.path().filename().c_str());
+                    if (leagueId > 0) {
+                        Vector<FixtureInfo> &fixtures = mFixturesPerLeague[leagueId];
+                        fixtures.clear();
+                        FifamReader reader(p.path(), 0);
+                        if (reader.Available()) {
+                            while (!reader.IsEof()) {
+                                if (!reader.EmptyLine()) {
+                                    FixtureInfo f;
+                                    String dateStr, dummy;
+                                    reader.ReadLineWithSeparator(L' ', dateStr, dummy, IntPtr(f.mTeam1), IntPtr(f.mTeam2));
+                                    mFoomDatabase->resolve(f.mTeam1);
+                                    mFoomDatabase->resolve(f.mTeam2);
+                                    auto dateParts = Utils::Split(dateStr, L'/', true, false);
+                                    if (dateParts.size() >= 3) {
+                                        f.mDate.Set(Utils::SafeConvertInt<UInt>(dateParts[0]), Utils::SafeConvertInt<UInt>(dateParts[1]),
+                                            Utils::SafeConvertInt<UInt>(dateParts[2]));
+                                    }
+                                    else {
+                                        Alert(AL_ERROR, L"Wrong fixture date in fixture file\nFixture file: %s", p.path().filename().c_str());
+                                    }
+                                    fixtures.push_back(f);
+                                }
+                                else
+                                    reader.SkipLine();
+                            }
+                        }
+                        reader.Close();
+                    }
+                }
+            }
+        }
+    }
+    {
+        auto calendarsFolder = infoPath / (L"calendars" + gender);
+        if (exists(calendarsFolder)) {
+            std::wcout << L"Reading calendars..." << std::endl;
+            for (auto const &p : recursive_directory_iterator(calendarsFolder)) {
+                if (is_regular_file(p.path()) && p.path().extension() == ".csv") {
                     FifamReader reader(p.path(), 0);
                     if (reader.Available()) {
                         while (!reader.IsEof()) {
                             if (!reader.EmptyLine()) {
-                                FixtureInfo f;
-                                String dateStr, dummy;
-                                reader.ReadLineWithSeparator(L' ', dateStr, dummy, IntPtr(f.mTeam1), IntPtr(f.mTeam2));
-                                mFoomDatabase->resolve(f.mTeam1);
-                                mFoomDatabase->resolve(f.mTeam2);
-                                auto dateParts = Utils::Split(dateStr, L'/', true, false);
-                                if (dateParts.size() >= 3) {
-                                    f.mDate.Set(Utils::SafeConvertInt<UInt>(dateParts[0]), Utils::SafeConvertInt<UInt>(dateParts[1]),
-                                        Utils::SafeConvertInt<UInt>(dateParts[2]));
+                                UInt compId = 0, season = 0;
+                                String daysStr;
+                                reader.ReadLine(Hexadecimal(compId), season, daysStr);
+                                if (compId != 0) {
+                                    if (season == 0 || season == 1) {
+                                        auto days = Utils::Split(daysStr, L',', true, false);
+                                        Vector<UShort> daysInts;
+                                        daysInts.resize(days.size());
+                                        for (UInt d = 0; d < days.size(); d++)
+                                            daysInts[d] = Utils::SafeConvertInt<UShort>(days[d]);
+                                        if (season == 0)
+                                            mCalendarsFirstSeason[compId] = daysInts;
+                                        else
+                                            mCalendarsSecondSeason[compId] = daysInts;
+                                    }
+                                    else {
+                                        Alert(AL_ERROR, L"Wrong season ID in calendar file %s", p.path().filename().c_str());
+                                    }
                                 }
                                 else {
-                                    Alert(AL_ERROR, L"Wrong fixture date in fixture file\nFixture file: %s", p.path().filename().c_str());
+                                    Alert(AL_ERROR, L"Wrong competition ID in calendar file %s", p.path().filename().c_str());
                                 }
-                                fixtures.push_back(f);
                             }
                             else
                                 reader.SkipLine();
@@ -814,48 +862,9 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
             }
         }
     }
-    {
-        std::wcout << L"Reading calendars..." << std::endl;
-        for (auto const &p : recursive_directory_iterator(infoPath / (L"calendars" + gender))) {
-            if (is_regular_file(p.path()) && p.path().extension() == ".csv") {
-                FifamReader reader(p.path(), 0);
-                if (reader.Available()) {
-                    while (!reader.IsEof()) {
-                        if (!reader.EmptyLine()) {
-                            UInt compId = 0, season = 0;
-                            String daysStr;
-                            reader.ReadLine(Hexadecimal(compId), season, daysStr);
-                            if (compId != 0) {
-                                if (season == 0 || season == 1) {
-                                    auto days = Utils::Split(daysStr, L',', true, false);
-                                    Vector<UShort> daysInts;
-                                    daysInts.resize(days.size());
-                                    for (UInt d = 0; d < days.size(); d++)
-                                        daysInts[d] = Utils::SafeConvertInt<UShort>(days[d]);
-                                    if (season == 0)
-                                        mCalendarsFirstSeason[compId] = daysInts;
-                                    else
-                                        mCalendarsSecondSeason[compId] = daysInts;
-                                }
-                                else {
-                                    Alert(AL_ERROR, L"Wrong season ID in calendar file %s", p.path().filename().c_str());
-                                }
-                            }
-                            else {
-                                Alert(AL_ERROR, L"Wrong competition ID in calendar file %s", p.path().filename().c_str());
-                            }
-                        }
-                        else
-                            reader.SkipLine();
-                    }
-                }
-                reader.Close();
-            }
-        }
-    }
     if (!mQuickTest && gameId > 7) {
         std::wcout << L"Reading fm-fifa-players..." << std::endl;
-        FifamReader reader(infoPath / L"fm-fifa-players.csv", 0);
+        FifamReader reader(infoPath / (L"fm-fifa-players" + gender + L".csv"), 0);
         if (reader.Available()) {
             reader.SkipLine();
             while (!reader.IsEof()) {
@@ -1097,22 +1106,24 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
         }
     }
     {
-        std::wcout << L"Reading fm_player_weight.txt..." << std::endl;
-        FifamReader reader(infoPath / L"fm_player_weight.txt", 0);
-        if (reader.Available()) {
-            while (!reader.IsEof()) {
-                if (!reader.EmptyLine()) {
-                    Int playerId = -1;
-                    UChar weight = 0;
-                    reader.ReadLineWithSeparator(L'\t', playerId, weight);
-                    if (playerId != -1 && weight >= 45 && weight <= 150) {
-                        foom::player *p = mFoomDatabase->get<foom::player>(playerId);
-                        if (p)
-                            p->mConverterData.mWeight = weight;
+        if (!mWomen) {
+            std::wcout << L"Reading fm_player_weight.txt..." << std::endl;
+            FifamReader reader(infoPath / L"fm_player_weight.txt", 0);
+            if (reader.Available()) {
+                while (!reader.IsEof()) {
+                    if (!reader.EmptyLine()) {
+                        Int playerId = -1;
+                        UChar weight = 0;
+                        reader.ReadLineWithSeparator(L'\t', playerId, weight);
+                        if (playerId != -1 && weight >= 45 && weight <= 150) {
+                            foom::player *p = mFoomDatabase->get<foom::player>(playerId);
+                            if (p)
+                                p->mConverterData.mWeight = weight;
+                        }
                     }
+                    else
+                        reader.SkipLine();
                 }
-                else
-                    reader.SkipLine();
             }
         }
     }
