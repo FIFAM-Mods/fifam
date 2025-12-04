@@ -199,15 +199,18 @@ bool TextFileTable::Read(std::filesystem::path const &filename, wchar_t separato
 
         std::vector<std::wstring> mLines;
         std::wstring currentLine;
+        auto AddLine = [&]() {
+            if (!currentLine.empty())
+                mLines.push_back(currentLine);
+            currentLine.clear();
+        };
         unsigned int numQuotes = 0;
         for (long i = 0; i < numWideChars; i++) {
             if (data[i] == L'\n') {
                 if (numQuotes % 2)
                     currentLine += data[i];
-                else {
-                    mLines.push_back(currentLine);
-                    currentLine.clear();
-                }
+                else
+                    AddLine();
             }
             else if (data[i] == L'\r') {
                 if (numQuotes % 2)
@@ -217,10 +220,8 @@ bool TextFileTable::Read(std::filesystem::path const &filename, wchar_t separato
                     if (numQuotes % 2)
                         currentLine += data[i];
                 }
-                if ((numQuotes % 2) == 0) {
-                    mLines.push_back(currentLine);
-                    currentLine.clear();
-                }
+                if ((numQuotes % 2) == 0)
+                    AddLine();
             }
             else {
                 if (data[i] == L'"')
@@ -228,8 +229,7 @@ bool TextFileTable::Read(std::filesystem::path const &filename, wchar_t separato
                 currentLine += data[i];
             }
         }
-        if (!currentLine.empty() || !mLines.empty())
-            mLines.push_back(currentLine);
+        AddLine();
         delete[] data;
 
         mCells.resize(mLines.size());
