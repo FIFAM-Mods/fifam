@@ -1,0 +1,1 @@
+sx -sndstream *.wav -=*.asf
