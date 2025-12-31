@@ -1603,7 +1603,7 @@ void Converter::Convert() {
     for (auto official : refsSorted) {
         if (IsConvertable(official, gameId) && official->mNation) {
             auto country = mFifamDatabase->GetCountry(official->mNation->mConverterData.mFIFAManagerReplacementID);
-            if (country && country->mReferees.size() < 256) {
+            if (country && country->mReferees.size() < 256 && official->mGender == mWomen) {
                 FifamReferee *referee = country->AddReferee();
                 ConvertReferee(referee, official, gameId);
             }
