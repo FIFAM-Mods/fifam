@@ -199,14 +199,14 @@ void ConvertGenericHairsFCPC(path const &folder, Renderer *renderer) {
                 if (hairLod) {
                     auto &obj = outputModelHairlod.objects.emplace_back(*hairLod);
                     obj.name = "sortgroup0";
-                    obj.mesh.material = outputModelHair.materials.emplace_back("hairlod").name;
+                    obj.mesh.material = outputModelHairlod.materials.emplace_back("hairlod").name;
                     if (combineTex)
                         MoveUVs(obj, false);
                 }
                 if (accessoryLod) {
                     auto &obj = outputModelHairlod.objects.emplace_back(*accessoryLod);
                     obj.name = "sortgroup1";
-                    obj.mesh.material = outputModelHair.materials.emplace_back("accessory").name;
+                    obj.mesh.material = outputModelHairlod.materials.emplace_back("accessory").name;
                     if (combineTex)
                         MoveUVs(obj, true);
                 }
