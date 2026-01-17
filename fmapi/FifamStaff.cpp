@@ -46,6 +46,8 @@ void FifamStaff::Read(FifamReader &reader) {
         }
         else
             ReadManager(reader);
+        //if (reader.IsVersionGreaterOrEqual(0x2013, 0x11))
+        //    reader.ReadLine(mIsFemale);
         if (reader.IsVersionGreaterOrEqual(0x2013, 0x0E))
             reader.ReadLine(mCreator);
         if (reader.IsVersionGreaterOrEqual(0x2013, 0x0C))
@@ -273,6 +275,7 @@ void FifamStaff::SetFromPlayer(FifamPlayer const &player) {
     mClub = player.mClub;
     mFootballManagerID = player.mFootballManagerID;
     mCreator = player.mCreator;
+    mIsFemale = player.mIsFemale;
 }
 
 void FifamStaff::ReadFromPlayer(FifamReader &reader) {
@@ -295,6 +298,8 @@ void FifamStaff::Write(FifamWriter &writer) {
     }
     else
         WriteManager(writer);
+    //if (writer.IsVersionGreaterOrEqual(0x2013, 0x11))
+    //    writer.WriteLine(mIsFemale);
     if (writer.IsVersionGreaterOrEqual(0x2013, 0x0E))
         writer.WriteLine(mCreator);
     if (writer.IsVersionGreaterOrEqual(0x2013, 0x0C))
@@ -553,6 +558,7 @@ void FifamStaff::WriteToPlayer(FifamWriter &writer) {
     player.mWeight = 75;
     player.mFootballManagerID = mFootballManagerID;
     player.mCreator = mCreator;
+    player.mIsFemale = mIsFemale;
     player.Write(writer);
 }
 
