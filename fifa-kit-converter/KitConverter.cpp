@@ -1018,12 +1018,12 @@ Image ConvertNewGenBannerToOldGen(Image const &inImg) {
 void KitConverter::ConvertBanners(int fifaId, int fifaManagerId, Magick::Color const &primCol, Magick::Color const &secCol) {
     const path assetsDir = "D:\\FIFA_ASSETS";
     const path gameDir = "D:\\Games\\FIFA Manager 25";
-    auto bannersFilename = assetsDir / "banners" / "25" / ("banner_" + std::to_string(fifaId) + "_color.png");
-    auto crestFilename = assetsDir / "crest" / "25" / ("l" + std::to_string(fifaId) + ".png");
-    auto flag1Filename = assetsDir / "flags" / "25" / ("flag_" + std::to_string(fifaId) + "_0_color.png");
-    auto flag2Filename = assetsDir / "flags" / "25" / ("flag_" + std::to_string(fifaId) + "_1_color.png");
-    auto flag3Filename = assetsDir / "flags" / "25" / ("flag_" + std::to_string(fifaId) + "_2_color.png");
-    auto flag4Filename = assetsDir / "flags" / "25" / ("flag_" + std::to_string(fifaId) + "_3_color.png");
+    auto bannersFilename = assetsDir / "banners" / ("banner_" + std::to_string(fifaId) + "_color.png");
+    auto crestFilename = assetsDir / "crest" / ("l" + std::to_string(fifaId) + ".png");
+    auto flag1Filename = assetsDir / "flags" / ("flag_" + std::to_string(fifaId) + "_0_color.png");
+    auto flag2Filename = assetsDir / "flags" / ("flag_" + std::to_string(fifaId) + "_1_color.png");
+    auto flag3Filename = assetsDir / "flags" / ("flag_" + std::to_string(fifaId) + "_2_color.png");
+    auto flag4Filename = assetsDir / "flags" / ("flag_" + std::to_string(fifaId) + "_3_color.png");
     if (exists(bannersFilename) && exists(crestFilename) && exists(flag1Filename) && exists(flag2Filename) && exists(flag3Filename) && exists(flag4Filename)) {
         path outputDir = gameDir / "data" / "banners" / Utils::Format("%08X", fifaManagerId);
         create_directories(outputDir);
@@ -1237,8 +1237,8 @@ void KitConverter::ConvertAdboards(Map<UInt, UInt> const &fifaClubToFifam, Map<U
 }
 
 void KitConverter::ConvertSponsors512x64(Map<UInt, UInt>& fifaClubToFifam, Map<UInt, Vector<UInt>>& compsMap) {
-    const Path inPath = "D:\\FIFA_ASSETS\\fc25\\imgAssets\\adSponsors512x64";
-    const Path outPath = "D:\\Projects\\fifam\\content\\fm13\\art_01\\sponsors\\512x64";
+    const Path inPath = "D:\\Games\\fc26_files\\other\\adSponsors512x64";
+    const Path outPath = "D:\\Projects\\fifam\\content\\fm13\\art_01_sponsors\\sponsors\\512x64";
     create_directories(outPath);
     struct DynamicImage {
         UInt color;
@@ -1246,7 +1246,7 @@ void KitConverter::ConvertSponsors512x64(Map<UInt, UInt>& fifaClubToFifam, Map<U
     };
     Map<Int, DynamicImage> dynamicImages;
     FifaDataFile file;
-    Path fifaDbFolderPath = "D:\\Projects\\fifam\\db\\fifa\\25\\2024.10.01";
+    Path fifaDbFolderPath = "D:\\Projects\\fifam\\db\\fifa\\26\\2025.10.07";
     if (file.Open(fifaDbFolderPath / L"dynamicimages.txt")) {
         String basecolour, name;
         Int dynamicimageid;
@@ -1274,7 +1274,7 @@ void KitConverter::ConvertSponsors512x64(Map<UInt, UInt>& fifaClubToFifam, Map<U
             line >> artificialkey >> adsponserid >> teamid >> isapproved >> dynamicimageid;
             if (teamid != 0 && Utils::Contains(dynamicImages, dynamicimageid) && Utils::Contains(fifaClubToFifam, (UInt)teamid)) {
                 auto const& dynamicImage = dynamicImages[dynamicimageid];
-                Path imagePath = inPath / (L"adSponsors512x64" + dynamicImage.name + L".dds");
+                Path imagePath = inPath / (L"adSponsors512x64" + dynamicImage.name + L".png");
                 //::Message(imagePath.string());
                 if (exists(imagePath.string())) {
                     Image img = RecolorImage(imagePath, dynamicImage.color);
@@ -1296,7 +1296,7 @@ void KitConverter::ConvertSponsors512x64(Map<UInt, UInt>& fifaClubToFifam, Map<U
             line >> competitionid >> artificialkey >> adsponserid >> isapproved >> dynamicimageid;
             if (competitionid != 0 && Utils::Contains(dynamicImages, dynamicimageid) && Utils::Contains(compsMap, (UInt)competitionid)) {
                 auto const& dynamicImage = dynamicImages[dynamicimageid];
-                Path imagePath = inPath / (L"adSponsors512x64" + dynamicImage.name + L".dds");
+                Path imagePath = inPath / (L"adSponsors512x64" + dynamicImage.name + L".png");
                 if (exists(imagePath.string())) {
                     Image img = RecolorImage(imagePath, dynamicImage.color);
                     for (auto fifamCompId : compsMap[competitionid]) {
@@ -1542,7 +1542,7 @@ void KitConverter::GenerateBallsDat(Map<UInt, Vector<UInt>>& compsMap) {
     };
     Map<UInt, BallEntry> entries;
     FifaDataFile file;
-    Path fifaDbFolderPath = "D:\\Projects\\fifam\\db\\fifa\\25\\2024.10.01";
+    Path fifaDbFolderPath = "D:\\Projects\\fifam\\db\\fifa\\26\\2025.10.07";
     if (file.Open(fifaDbFolderPath / L"competitionballs.txt")) {
         Int competitionid, stage, weather, ballid;
         for (FifaDataFile::Line line; file.NextLine(line); ) {
@@ -1558,7 +1558,7 @@ void KitConverter::GenerateBallsDat(Map<UInt, Vector<UInt>>& compsMap) {
         }
         file.Close();
     }
-    FifamWriter w(L"D:\\Games\\FIFA Manager 25\\plugins\\ucp\\balls.dat", 13, FifamVersion(), false);
+    FifamWriter w(L"D:\\Games\\FIFA Manager 13\\plugins\\ucp\\balls_new.dat", 13, FifamVersion(), false);
     w.WriteLine(L";CompetitionId, BallId, BallIdWinter");
     auto PadString = [](String& s, UInt size, Bool right) {
         if (s.size() < size) {

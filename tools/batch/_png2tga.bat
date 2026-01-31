@@ -1,0 +1,1 @@
+magick mogrify -format tga -type TrueColorAlpha -compress none *.png

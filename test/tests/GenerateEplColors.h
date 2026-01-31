@@ -42,7 +42,7 @@ public:
         FifaDatabase::m_firstSupportedGameVersion = FifaDatabase::m_lastSupportedGameVersion;
         FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
         auto const &ids = GetEnvironment<FifaFifamIDsEnvironment>();
-        FifamWriter w("D:\\Games\\FIFA Manager 25\\fmdata\\popups\\teamcolors\\0E010000.csv");
+        FifamWriter w("D:\\Games\\FIFA Manager 13\\fmdata\\popups\\teamcolors\\0E010000.csv");
         w.WriteLine(L"TeamID,Type,Color1,Color2,Color3,Color4,Color5,Color6,Color7,Color8,Color9,Color10,Comment");
         w.WriteLine(L"0x00000000,All,KIT_BACKGROUND,KIT_FOREGROUND,EPL_COLOR_1,EPL_COLOR_2,EPL_PRESENTATION_COLOR,EPL_PRESENTATION_COLOR_TEXT,0,0,0,0,Default");
         auto WHITE = GenColor(255, 255, 255);
