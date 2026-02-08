@@ -100,5 +100,5 @@
 #include "tests\DumpCountryAppearance.h"
 
 void RunTests() {
-    RunTest<GenerateEplColors>();
+    RunTest<CompareDB>();
 }
