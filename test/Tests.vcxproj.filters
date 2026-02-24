@@ -331,6 +331,9 @@
     <ClInclude Include="tests\DumpCountryAppearance.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="tests\ReApplyBasqueStatus.h">
+      <Filter>tests</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Tests.cpp">

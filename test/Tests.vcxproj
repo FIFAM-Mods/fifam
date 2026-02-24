@@ -135,6 +135,7 @@
     <ClInclude Include="tests\PngFix.h" />
     <ClInclude Include="tests\PopupColorsFromKits.h" />
     <ClInclude Include="tests\ReadWriteTest.h" />
+    <ClInclude Include="tests\ReApplyBasqueStatus.h" />
     <ClInclude Include="tests\RenameCityPictures.h" />
     <ClInclude Include="tests\RenameHeadFiles.h" />
     <ClInclude Include="tests\RulesTest.h" />

@@ -98,7 +98,8 @@
 #include "tests\MergeUIDs.h"
 #include "tests\GenericFaceTextures.h"
 #include "tests\DumpCountryAppearance.h"
+#include "tests\ReApplyBasqueStatus.h"
 
 void RunTests() {
-    RunTest<DbGraphicsStats>();
+    RunTest<ReApplyBasqueStatus>();
 }
