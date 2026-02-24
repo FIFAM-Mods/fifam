@@ -1,0 +1,1 @@
+magick mogrify -format png -filter Lanczos -resize 160x160 -define png:color-type=6 *.png
