@@ -264,11 +264,11 @@ struct player : public person {
     }
 
     Bool IsBasque() {
-        return mRegionOfBirth &&
-            (mRegionOfBirth->mID == 67249095 ||
-                mRegionOfBirth->mID == 67023591 ||
-                mRegionOfBirth->mID == 34015446 ||
-                mRegionOfBirth->mID == 67023592);
+        for (auto const &sn : mVecSecondNations) {
+            if (sn.mNation && sn.mNation->mID == 114502)
+                return true;
+        }
+        return false;
     }
 };
 
