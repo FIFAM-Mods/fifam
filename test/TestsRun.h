@@ -99,7 +99,8 @@
 #include "tests\GenericFaceTextures.h"
 #include "tests\DumpCountryAppearance.h"
 #include "tests\ReApplyBasqueStatus.h"
+#include "tests\ReApplyGeoCoords.h"
 
 void RunTests() {
-    RunTest<ReApplyBasqueStatus>();
+    RunTest<ReApplyGeoCoords>();
 }
