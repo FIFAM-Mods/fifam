@@ -2,11 +2,6 @@
 #include "FifamTypes.h"
 #include "Utils.h"
 
-/*
-    higher bit | middle 15 bits | lower 16 bits
-    direction    degrees          minutes
-*/
-
 struct FifamGeoCoord {
     UShort mMinutes = 0;
     UShort mDegrees = 0;
@@ -15,16 +10,15 @@ struct FifamGeoCoord {
     void SetFromInt(Int value);
     void SetFromFloat(Float value);
     Int ToInt();
-    void Set(UChar direction, UShort degrees, UShort minutes);
-    FifamGeoCoord();
-    FifamGeoCoord(Int value);
-    FifamGeoCoord(UChar direction, UShort degrees, UShort minutes);
+    Float ToFloat();
+    virtual void Set(UChar direction, UShort degrees, UShort minutes) = 0;
 };
 
 struct FifamLatitude : public FifamGeoCoord {
     enum { North, South };
 
     String ToStr();
+    void Set(UChar direction, UShort degrees, UShort minutes);
     FifamLatitude();
     FifamLatitude(Int value);
     FifamLatitude(UChar direction, UShort degrees, UShort minutes);
@@ -34,6 +28,7 @@ struct FifamLongitude : public FifamGeoCoord {
     enum { East, West };
 
     String ToStr();
+    void Set(UChar direction, UShort degrees, UShort minutes);
     FifamLongitude();
     FifamLongitude(Int value);
     FifamLongitude(UChar direction, UShort degrees, UShort minutes);

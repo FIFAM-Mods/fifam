@@ -19,7 +19,14 @@ void FifamGeoCoord::SetFromFloat(Float value) {
         mDirection = 0;
     Float i = 0;
     Float f = modf(value, &i);
-    Set(mDirection, (UShort)i, (UShort)(f * 59));
+    Set(mDirection, (UShort)i, (UShort)(f * 60.0f + 0.5f));
+}
+
+Float FifamGeoCoord::ToFloat() {
+    Float value = (Float)mDegrees + (Float)mMinutes / 60.0f;
+    if (mDirection)
+        value = -value;
+    return value;
 }
 
 Int FifamGeoCoord::ToInt() {
@@ -29,10 +36,20 @@ Int FifamGeoCoord::ToInt() {
     return value;
 }
 
-void FifamGeoCoord::Set(UChar direction, UShort degrees, UShort minutes) {
+void FifamLatitude::Set(UChar direction, UShort degrees, UShort minutes) {
     mDirection = Utils::Clamp(direction, 0, 1);
     mMinutes = Utils::Clamp(minutes, 0, 59);
-    mDegrees = Utils::Clamp(degrees, 0, 359);
+    mDegrees = Utils::Clamp(degrees, 0, 90);
+    if (mDegrees == 90)
+        mDegrees = 0;
+}
+
+void FifamLongitude::Set(UChar direction, UShort degrees, UShort minutes) {
+    mDirection = Utils::Clamp(direction, 0, 1);
+    mMinutes = Utils::Clamp(minutes, 0, 59);
+    mDegrees = Utils::Clamp(degrees, 0, 180);
+    if (mDegrees == 180)
+        mDegrees = 0;
 }
 
 String FifamLatitude::ToStr() {
@@ -45,16 +62,6 @@ String FifamLongitude::ToStr() {
 
 String FifamGeoCoords::ToStr() {
     return mLatitude.ToStr() + L"," + mLongitude.ToStr();
-}
-
-FifamGeoCoord::FifamGeoCoord() {}
-
-FifamGeoCoord::FifamGeoCoord(Int value) {
-    SetFromInt(value);
-}
-
-FifamGeoCoord::FifamGeoCoord(UChar direction, UShort degrees, UShort minutes) {
-    Set(direction, degrees, minutes);
 }
 
 FifamLatitude::FifamLatitude() {}
