@@ -109,6 +109,14 @@ public:
     // @since FM07
     // @range 0-31
     UChar mMinU24PlayerCount = 0;
+    // @since FM26 (Update 1)
+    UChar mLeagueOrder = 0;
+    struct LeagueRegion {
+        Int mRegionID = -1;
+        UChar mRegionPriority = 0;
+        UChar mRegionDirection = 0;
+    };
+    Vector<LeagueRegion> mLeagueRegions;
 
     FifamCompDbType GetDbType() const override;
     void Read(FifamReader &reader, FifamDatabase *database, FifamNation nationId) override;

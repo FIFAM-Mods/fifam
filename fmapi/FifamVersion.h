@@ -14,9 +14,9 @@ public:
     FifamVersion(UShort year, UShort number);
     void Set(UShort year, UShort number);
     void Set(UInt intValue);
-    UShort GetYear();
-    UShort GetNumber();
-    UInt GetIntValue();
-    Bool IsGreaterOrEqual(UShort year, UShort number);
-    String GetString();
+    UShort GetYear() const;
+    UShort GetNumber() const;
+    UInt GetIntValue() const;
+    Bool IsGreaterOrEqual(UShort year, UShort number) const;
+    String GetString() const;
 };

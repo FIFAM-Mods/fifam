@@ -104,6 +104,15 @@ void FifamCompLeague::Read(FifamReader &reader, FifamDatabase *database, FifamNa
     mMinDomesticPlayerCount = (otherFlags >> 16) & 0x1F;
     mMinU21PlayerCount = (otherFlags >> 21) & 0x1F;
     mMinU24PlayerCount = (otherFlags >> 26) & 0x1F;
+    if (reader.IsVersionGreaterOrEqual(0x2013, 0x12)) {
+        reader.ReadLine(mLeagueOrder);
+        UChar numRegions = reader.ReadLine<UChar>();
+        mLeagueRegions.resize(numRegions);
+        for (UInt i = 0; i < numRegions; i++) {
+            auto &region = mLeagueRegions[i];
+            reader.ReadLine(region.mRegionID, region.mRegionPriority, region.mRegionDirection);
+        }
+    }
     FifamCompetition::Read(reader, database, nationId);
 }
 
@@ -206,6 +215,14 @@ void FifamCompLeague::Write(FifamWriter &writer, FifamDatabase *database, FifamN
         (Utils::Clamp(mMinU21PlayerCount, 0, 0x1F) << 21) |
         (Utils::Clamp(mMinU24PlayerCount, 0, 0x1F) << 26);
     writer.WriteLine(otherFlags);
+    if (writer.IsVersionGreaterOrEqual(0x2013, 0x12)) {
+        writer.WriteLine(mLeagueOrder);
+        writer.WriteLine((UChar)mLeagueRegions.size());
+        for (UInt i = 0; i < mLeagueRegions.size(); i++) {
+            auto &region = mLeagueRegions[i];
+            writer.WriteLine(region.mRegionID, region.mRegionPriority, region.mRegionDirection);
+        }
+    }
     FifamCompetition::Write(writer, database, nationId);
 }
 

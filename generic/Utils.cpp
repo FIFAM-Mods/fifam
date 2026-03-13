@@ -403,15 +403,48 @@ std::wstring Utils::GetStringWithoutUnicodeChars(std::wstring const &src) {
 }
 
 bool Utils::IsVowel(wchar_t wideChar) {
-    return wideChar == L'A' || wideChar == L'a' ||
-        wideChar == L'E' || wideChar == L'e' ||
-        wideChar == L'I' || wideChar == L'i' ||
-        wideChar == L'O' || wideChar == L'o' ||
-        wideChar == L'U' || wideChar == L'u' ||
-        wideChar == L'Ä' || wideChar == L'ä' ||
-        wideChar == L'Ö' || wideChar == L'ö' ||
-        wideChar == L'Ü' || wideChar == L'ü' ||
-        wideChar == L'Y' || wideChar == L'y';
+    switch (wideChar) {
+    case L'A': case L'a': // plain
+    case L'E': case L'e':
+    case L'I': case L'i':
+    case L'O': case L'o':
+    case L'U': case L'u':
+    case L'Y': case L'y':
+    case L'À': case L'à': // grave
+    case L'È': case L'è':
+    case L'Ì': case L'ì':
+    case L'Ò': case L'ò':
+    case L'Ù': case L'ù':
+    case L'Á': case L'á': // acute
+    case L'É': case L'é':
+    case L'Í': case L'í':
+    case L'Ó': case L'ó':
+    case L'Ú': case L'ú':
+    case L'Ý': case L'ý':
+    case L'Â': case L'â': // circumflex
+    case L'Ê': case L'ê':
+    case L'Î': case L'î':
+    case L'Ô': case L'ô':
+    case L'Û': case L'û':
+    case L'Ã': case L'ã': // tilde
+    case L'Õ': case L'õ':
+    case L'Ä': case L'ä': // umlaut/diaeresis
+    case L'Ë': case L'ë':
+    case L'Ï': case L'ï':
+    case L'Ö': case L'ö':
+    case L'Ü': case L'ü':
+    case L'Ÿ': case L'ÿ':
+    case L'Å': case L'å': // ring (Scandinavian)
+    case L'Ø': case L'ø': // Scandinavian
+    case L'Ǎ': case L'ǎ': // caron
+    case L'Ě': case L'ě':
+    case L'Ǐ': case L'ǐ':
+    case L'Ǒ': case L'ǒ':
+    case L'Ǔ': case L'ǔ':
+        return true;
+    default:
+        return false;
+    }
 }
 
 bool Utils::IsPunctuationMark(wchar_t wideChar) {
@@ -425,7 +458,6 @@ bool Utils::IsPunctuationMark(wchar_t wideChar) {
         wideChar == L'\'' ||
         wideChar == L'\\' ||
         wideChar == L'/';
-
 }
 
 std::wstring Utils::Join(std::vector<std::wstring> const &strList, wchar_t delim) {

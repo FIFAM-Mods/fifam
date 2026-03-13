@@ -56,14 +56,36 @@ String Converter::FixPersonName(String const &name, UInt gameId) {
 
 void Converter::ConvertPersonAttributes(FifamPerson * person, foom::person * p, UInt gameId) {
     p->mConverterData.mFifamPerson = person;
+    person->mIsFemale = p->mGender == 1;
     person->mCreator = 2;
     person->mFootballManagerID = p->mID;
     FifamCountry *personCountry = mFifamDatabase->GetCountry(p->mNation->mConverterData.mFIFAManagerReplacementID);
     // names
-    person->mFirstName = FifamNames::LimitPersonName(FixPersonName(p->mFirstName, gameId), 15);
-    person->mLastName = FifamNames::LimitPersonName(FixPersonName(p->mSecondName, gameId), 19);
-    if (!p->mCommonName.empty())
-        person->mPseudonym = FifamNames::LimitPersonName(FixPersonName(p->mCommonName, gameId), (mCurrentGameId > 7) ? 29 : 19);
+    if (!p->mCommonName.empty()) {
+        UInt maxLen = (mCurrentGameId > 7) ? 29 : 19;
+        if (p->mCommonName.size() <= maxLen)
+            person->mPseudonym = p->mCommonName;
+    }
+    if (!person->mPseudonym.empty()) {
+        auto CountDots = [](String const &str) {
+            UInt counter = 0;
+            for (auto c : str) {
+                if (c == '.')
+                    counter++;
+            }
+            return counter;
+        };
+        person->mFirstName = FifamNames::LimitPersonNameWithTruncation(FixPersonName(p->mFirstName, gameId), 15);
+        if (CountDots(person->mFirstName) > 1)
+            person->mFirstName = FifamNames::LimitPersonName(FixPersonName(p->mFirstName, gameId), 15);
+        person->mLastName = FifamNames::LimitPersonNameWithTruncation(FixPersonName(p->mSecondName, gameId), 19);
+        if (CountDots(person->mLastName) > 2)
+            person->mLastName = FifamNames::LimitPersonName(FixPersonName(p->mSecondName, gameId), 19);
+    }
+    else {
+        person->mFirstName = FifamNames::LimitPersonName(FixPersonName(p->mFirstName, gameId), 15);
+        person->mLastName = FifamNames::LimitPersonName(FixPersonName(p->mSecondName, gameId), 19);
+    }
     // nationality
     static Map<Int, Int> nationInfoToPriority = {
         { 83, 2010  },

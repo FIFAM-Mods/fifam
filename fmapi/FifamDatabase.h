@@ -39,6 +39,27 @@ public:
 
     Map<FifamCompID, FifamCompetition *> mCompMap;
 
+    struct City {
+        Int id = -1;
+        UChar countryId = 0;
+        UChar population = 0;
+        Float latitude = 0.0f;
+        Float longitude = 0.0f;
+        Int regionId = -1;
+        String names[CustomLanguages::NUM_TRANSLATION_LANGUAGES];
+    };
+
+    struct Region {
+        Int id = -1;
+        UChar countryId = 0;
+        Float latitude = 0.0f;
+        Float longitude = 0.0f;
+        String names[CustomLanguages::NUM_TRANSLATION_LANGUAGES];
+    };
+
+    Map<Int, City> mCities;
+    Map<Int, Region> mRegions;
+
     static struct ReadingOptions {
         Bool mReadCountriesData = true;
         Bool mReadCountryCompetitions = true;
@@ -57,6 +78,7 @@ public:
         Bool mWriteFixtures = true;
         Bool mWriteExternalScripts = true;
         Bool mWriteAppearanceDefs = true;
+        Bool mWriteCitiesAndRegions = false;
         UInt mMaxClubsInCountry[8] = { 512, 512, 512, 1024, 1024, 1024, 1024, 1024 };
         UInt mMaxPersonsInClub[8] = { 60, 96, 99, 99, 99, 99, 256, 256 };
         Map<FifamNation, Pair<FifamNation, FifamNation>> mCountryTranslationMap;
@@ -119,4 +141,10 @@ public:
     void ReadPlayerRelations(Path const &filepath, UInt gameId, Map<String, Vector<FifamPlayer *>> const &playerStrIDsMap);
     void WritePlayerRelations(Path const &filepath, UInt gameId);
     void RecalculatePersonIDs();
+    void ReadCities(Path const &dbFolder);
+    void ReadRegions(Path const &dbFolder);
+    void WriteCities(Path const &dbFolder);
+    void WriteRegions(Path const &dbFolder);
+    City *GetCity(Int id);
+    Region *GetRegion(Int id);
 };

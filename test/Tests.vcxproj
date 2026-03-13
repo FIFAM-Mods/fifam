@@ -53,7 +53,7 @@
       <AdditionalDependencies>CORE_RL_bzlib_.lib;CORE_RL_cairo_.lib;CORE_RL_coders_.lib;CORE_RL_croco_.lib;CORE_RL_exr_.lib;CORE_RL_ffi_.lib;CORE_RL_filters_.lib;CORE_RL_flif_.lib;CORE_RL_freetype_.lib;CORE_RL_glib_.lib;CORE_RL_jp2_.lib;CORE_RL_jpeg_.lib;CORE_RL_lcms_.lib;CORE_RL_libde265_.lib;CORE_RL_libheif_.lib;CORE_RL_liblzma_.lib;CORE_RL_libraw_.lib;CORE_RL_librsvg_.lib;CORE_RL_libxml_.lib;CORE_RL_lqr_.lib;CORE_RL_Magick++_.lib;CORE_RL_MagickCore_.lib;CORE_RL_MagickWand_.lib;CORE_RL_openjpeg_.lib;CORE_RL_pango_.lib;CORE_RL_pixman_.lib;CORE_RL_png_.lib;CORE_RL_tiff_.lib;CORE_RL_webp_.lib;CORE_RL_zlib_.lib;ImageMagickObject.lib;generic.lib;fifaapi.lib;fmapi.lib;foom_db.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <AdditionalLibraryDirectories>$(SolutionDir)output\libs;D:\Projects\ImageMagick-Windows\VisualMagick\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
   </ItemDefinitionGroup>
@@ -66,6 +66,8 @@
     <ClInclude Include="Tests.h" />
     <ClInclude Include="TestsRun.h" />
     <ClInclude Include="tests\AdboardsFIFA07.h" />
+    <ClInclude Include="tests\NamesTest.h" />
+    <ClInclude Include="tests\UpdateToFM26Update1.h" />
     <ClInclude Include="tests\AssignPlayerFaces.h" />
     <ClInclude Include="tests\BadgesFM07toFIFA07.h" />
     <ClInclude Include="tests\BadgeTest.h" />
@@ -135,7 +137,6 @@
     <ClInclude Include="tests\PngFix.h" />
     <ClInclude Include="tests\PopupColorsFromKits.h" />
     <ClInclude Include="tests\ReadWriteTest.h" />
-    <ClInclude Include="tests\ReApplyBasqueStatus.h" />
     <ClInclude Include="tests\ReApplyGeoCoords.h" />
     <ClInclude Include="tests\RenameCityPictures.h" />
     <ClInclude Include="tests\RenameHeadFiles.h" />

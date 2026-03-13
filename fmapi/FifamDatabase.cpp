@@ -6,6 +6,8 @@
 #include "FifamCompRound.h"
 #include "FifamCompCup.h"
 #include "FifamCompRoot.h"
+#include "FifamNames.h"
+#include "TextFileTable.h"
 #include <iostream>
 
 FifamDatabase::ReadingOptions FifamDatabase::mReadingOptions;
@@ -130,6 +132,9 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
         }
     }
 
+    ReadCities(dbPath);
+    ReadRegions(dbPath);
+
     FifamReader countriesReader(dbPath / L"Countries.sav", gameId, GetGameDbVersion(gameId));
     if (countriesReader.Available()) {
         auto &reader = countriesReader;
@@ -253,6 +258,23 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
 
         if (!historicPath.empty())
             mHistoric.Read(historicPath, gameId);
+    }
+
+    // Build city list
+    if (!mCities.empty()) {
+        for (auto c : mClubs) {
+            if (c->mCityID != -1 && Utils::Contains(mCities, c->mCityID)) {
+                auto &city = mCities[c->mCityID];
+                for (UInt editorLanguageId = 0; editorLanguageId < c->mCityName.size(); editorLanguageId++) {
+                    c->mCityName[editorLanguageId] =
+                        FifamNames::LimitName(city.names[CustomLanguages::EditorLanguageToTranslationLanguage[editorLanguageId]],
+                            29);
+                }
+            }
+        }
+    }
+    else {
+        // TODO
     }
 
     // Resolve competition, club, player links
@@ -442,6 +464,11 @@ void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &
             WriteExternalScriptFile(scriptPath / L"QualiEC.txt", L"QUALI_EC", gameId, compsQualiEC, 1);
             WriteExternalScriptFile(scriptPath / L"EC.txt", L"EURO_CUP", gameId, compsEC, 1);
         }
+    }
+
+    if (version.IsGreaterOrEqual(0x2013, 0x12) && mWritingOptions.mWriteCitiesAndRegions) {
+        WriteCities(dbPath);
+        WriteRegions(dbPath);
     }
 
     FifamWriter countriesWriter(dbPath / L"Countries.sav", gameId, FifamVersion(FifamDatabase::GetGameDbVersion(gameId)), unicode);
@@ -753,6 +780,9 @@ void FifamDatabase::Clear() {
     for (auto comp : mCompMap)
         delete comp.second;
     mCompMap.clear();
+
+    mCities.clear();
+    mRegions.clear();
 }
 
 FifamDatabase::~FifamDatabase() {
@@ -1313,9 +1343,9 @@ FifamVersion FifamDatabase::GetGameDbVersion(UInt gameId) {
     else if (gameId == 12)
         version.Set(0x2012, 0x04);
     else if (gameId == 13)
-        version.Set(0x2013, 0x0F); // original 0xA
+        version.Set(0x2013, 0x12); // original 0xA
     else if (gameId == 14)
-        version.Set(0x2013, 0x0F); // original 0xA
+        version.Set(0x2013, 0x12); // original 0xA
     return version;
 }
 
@@ -1331,4 +1361,179 @@ void FifamDatabase::RecalculatePersonIDs() {
         p->mID = newId;
         mPersonsMap[newId++] = p;
     }
+}
+
+void FifamDatabase::ReadCities(Path const &dbFolder) {
+    TextFileTable file;
+    Path fileName = dbFolder / "Cities.txt";
+    if (!file.ReadUnicodeText(fileName))
+        return; // failed to read file
+    if (file.Rows().size() > 1) {
+        for (size_t i = 1; i < file.Rows().size(); i++) {
+            if (file.Rows()[i - 1].size() != file.Rows()[i].size()) {
+                ::Error(L"Error in Cities file: " + fileName.wstring() + Utils::Format(L"at row %u (%u/%u)", i,
+                    file.Rows()[i - 1].size(), file.Rows()[i].size()));
+                return;
+            }
+        }
+    }
+    if (!file.IsConsistent() || file.NumRows() < 1 || file.NumColumns(0) < 2)
+        return; // wrong file format
+    if (file.NumRows() < 2)
+        return; // empty file
+    auto header = file.Row(0);
+    Int languageColumnIndexes[CustomLanguages::NUM_TRANSLATION_LANGUAGES] = {};
+    Int defaultColumnIndex = -1;
+    for (UInt i = 0; i < CustomLanguages::NUM_TRANSLATION_LANGUAGES; i++)
+        languageColumnIndexes[i] = -1;
+    for (UInt columnIndex = 8; columnIndex < header.size(); columnIndex++) {
+        auto columnName = Utils::ToLower(header[columnIndex]);
+        Bool isDefaultColumn = false;
+        if (defaultColumnIndex == -1) {
+            if (columnName == L"default" || columnName == L"def") {
+                defaultColumnIndex = columnIndex;
+                isDefaultColumn = true;
+            }
+        }
+        if (!isDefaultColumn) {
+            Int languageId = CustomLanguages::GetTranslationLanguageID(columnName);
+            if (languageId != -1)
+                languageColumnIndexes[languageId] = columnIndex;
+        }
+    }
+    for (UInt row = 1; row < file.NumRows(); row++) {
+        City city;
+        city.id = Utils::SafeConvertInt<Int>(file.Cell(0, row));
+        Int countryId = Utils::SafeConvertInt<Int>(file.Cell(1, row));
+        city.countryId = (countryId == -1) ? 0 : (UChar)countryId;
+        city.population = Utils::SafeConvertInt<UChar>(file.Cell(3, row));
+        city.latitude = Utils::SafeConvertFloat(file.Cell(4, row));
+        city.longitude = Utils::SafeConvertFloat(file.Cell(5, row));
+        city.regionId = Utils::SafeConvertInt<Int>(file.Cell(6, row));
+        for (UInt lang = 0; lang < CustomLanguages::NUM_TRANSLATION_LANGUAGES; lang++) {
+            if (languageColumnIndexes[lang] != -1)
+                city.names[lang] = file.Cell(languageColumnIndexes[lang], row);
+            else if (defaultColumnIndex != -1)
+                city.names[lang] = file.Cell(defaultColumnIndex, row);
+        }
+        mCities[city.id] = city;
+    }
+}
+
+void FifamDatabase::ReadRegions(Path const &dbFolder) {
+    TextFileTable file;
+    Path fileName = dbFolder / "Regions.txt";
+    if (!file.ReadUnicodeText(fileName))
+        return; // failed to read file
+    if (file.Rows().size() > 1) {
+        for (size_t i = 1; i < file.Rows().size(); i++) {
+            if (file.Rows()[i - 1].size() != file.Rows()[i].size()) {
+                ::Error(L"Error in Cities file: " + fileName.wstring() + Utils::Format(L"at row %u (%u/%u)", i,
+                    file.Rows()[i - 1].size(), file.Rows()[i].size()));
+                return;
+            }
+        }
+    }
+    if (!file.IsConsistent() || file.NumRows() < 1 || file.NumColumns(0) < 2)
+        return; // wrong file format
+    if (file.NumRows() < 2)
+        return; // empty file
+    auto header = file.Row(0);
+    Int languageColumnIndexes[CustomLanguages::NUM_TRANSLATION_LANGUAGES] = {};
+    Int defaultColumnIndex = -1;
+    for (UInt i = 0; i < CustomLanguages::NUM_TRANSLATION_LANGUAGES; i++)
+        languageColumnIndexes[i] = -1;
+    for (UInt columnIndex = 8; columnIndex < header.size(); columnIndex++) {
+        auto columnName = Utils::ToLower(header[columnIndex]);
+        Bool isDefaultColumn = false;
+        if (defaultColumnIndex == -1) {
+            if (columnName == L"default" || columnName == L"def") {
+                defaultColumnIndex = columnIndex;
+                isDefaultColumn = true;
+            }
+        }
+        if (!isDefaultColumn) {
+            Int languageId = CustomLanguages::GetTranslationLanguageID(columnName);
+            if (languageId != -1)
+                languageColumnIndexes[languageId] = columnIndex;
+        }
+    }
+    for (UInt row = 1; row < file.NumRows(); row++) {
+        Region region;
+        region.id = Utils::SafeConvertInt<Int>(file.Cell(0, row));
+        region.countryId = Utils::SafeConvertInt<UChar>(file.Cell(1, row));
+        region.latitude = Utils::SafeConvertFloat(file.Cell(3, row));
+        region.longitude = Utils::SafeConvertFloat(file.Cell(4, row));
+        for (UInt lang = 0; lang < CustomLanguages::NUM_TRANSLATION_LANGUAGES; lang++) {
+            if (languageColumnIndexes[lang] != -1)
+                region.names[lang] = file.Cell(languageColumnIndexes[lang], row);
+            else if (defaultColumnIndex != -1)
+                region.names[lang] = file.Cell(defaultColumnIndex, row);
+        }
+        mRegions[region.id] = region;
+    }
+}
+
+void FifamDatabase::WriteCities(Path const &dbFolder) {
+    TextFileTable file;
+    Vector<String> header = {
+        L"ID", L"CountryID", L"CountryName", L"Population", L"Latitude", L"Longitude", L"Region", L"RegionName", L"default"
+    };
+    for (UInt i = 0; i < CustomLanguages::NUM_TRANSLATION_LANGUAGES; i++) {
+        if (i != CustomLanguages::TRANSLATIONLANGUAGE_ENG)
+            header.push_back(CustomLanguages::TranslationLanguagesW[i]);
+    }
+    file.AddRow(header);
+    for (auto const &[id, city] : mCities) {
+        String regionName;
+        if (city.regionId != -1 && Utils::Contains(mRegions, city.regionId))
+            regionName = mRegions[city.regionId].names[CustomLanguages::TRANSLATIONLANGUAGE_ENG];
+        Vector<String> row = {
+            std::to_wstring(city.id), std::to_wstring(city.countryId), FifamTr(GetCountry(city.countryId)->mName),
+            std::to_wstring(city.population), std::to_wstring(city.latitude), std::to_wstring(city.longitude),
+            std::to_wstring(city.regionId), regionName, city.names[CustomLanguages::TRANSLATIONLANGUAGE_ENG]
+        };
+        for (UInt i = 0; i < CustomLanguages::NUM_TRANSLATION_LANGUAGES; i++) {
+            if (i != CustomLanguages::TRANSLATIONLANGUAGE_ENG)
+                header.push_back(city.names[i]);
+        }
+        file.AddRow(row);
+    }
+    file.WriteUnicodeText(dbFolder / "Cities.txt");
+}
+
+void FifamDatabase::WriteRegions(Path const &dbFolder) {
+    TextFileTable file;
+    Vector<String> header = {
+        L"ID", L"CountryID", L"CountryName", L"Latitude", L"Longitude", L"default"
+    };
+    for (UInt i = 0; i < CustomLanguages::NUM_TRANSLATION_LANGUAGES; i++) {
+        if (i != CustomLanguages::TRANSLATIONLANGUAGE_ENG)
+            header.push_back(CustomLanguages::TranslationLanguagesW[i]);
+    }
+    file.AddRow(header);
+    for (auto const &[id, city] : mRegions) {
+        Vector<String> row = {
+            std::to_wstring(city.id), std::to_wstring(city.countryId), FifamTr(GetCountry(city.countryId)->mName),
+            std::to_wstring(city.latitude), std::to_wstring(city.longitude), city.names[CustomLanguages::TRANSLATIONLANGUAGE_ENG]
+        };
+        for (UInt i = 0; i < CustomLanguages::NUM_TRANSLATION_LANGUAGES; i++) {
+            if (i != CustomLanguages::TRANSLATIONLANGUAGE_ENG)
+                header.push_back(city.names[i]);
+        }
+        file.AddRow(row);
+    }
+    file.WriteUnicodeText(dbFolder / "Regions.txt");
+}
+
+FifamDatabase::City *FifamDatabase::GetCity(Int id) {
+    if (Utils::Contains(mCities, id))
+        return &mCities[id];
+    return nullptr;
+}
+
+FifamDatabase::Region *FifamDatabase::GetRegion(Int id) {
+    if (Utils::Contains(mRegions, id))
+        return &mRegions[id];
+    return nullptr;
 }

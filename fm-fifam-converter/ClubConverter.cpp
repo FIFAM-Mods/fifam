@@ -6,11 +6,20 @@
 #include <fstream>
 
 void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div) {
+    // city and settlement
+    if (team->mCity) {
+        SetNameAndTranslation(dst->mCityName, team->mCity->mName, team->mCity->mTranslatedNames, 29);
+        dst->mCityID = team->mCity->mID;
+    }
+    else {
+        dst->mCityName = country->mNationalTeam.mCityName;
+        dst->mCityID = country->mNationalTeam.mCityID;
+    }
     // name
-    SetNameAndTranslation(dst->mName, team->mName, team->mTranslatedNames, 29, team->mShortName, team->mTranslatedShortNames);
+    SetNameAndTranslation(dst->mName, team->mName, team->mTranslatedNames, 29, team->mShortName, team->mTranslatedShortNames, dst->mCityName);
     dst->mName2 = dst->mName;
     // short name
-    SetNameAndTranslation(dst->mShortName, team->mShortName, team->mTranslatedShortNames, 10);
+    SetNameAndTranslation(dst->mShortName, team->mShortName, team->mTranslatedShortNames, 10, String(), Array<String, 6>(), dst->mCityName);
     dst->mShortName2 = dst->mShortName;
     // abbr
     String threeLetterName;
@@ -25,8 +34,15 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     }
     if (!threeLetterName.empty())
         SetNameAndTranslation(dst->mAbbreviation, threeLetterName, threeLetterTranslationNames, 4);
-    else
-        FifamTrSetAll(dst->mAbbreviation, FifamNames::GetClubAbbr(team->mShortName));
+    else {
+        String teamNameForAbbr = team->mSixLetterName;
+        if (teamNameForAbbr.empty())
+            teamNameForAbbr = team->mNickname;
+        if (teamNameForAbbr.empty())
+            teamNameForAbbr = team->mShortName;
+        FifamTrSetAll(dst->mAbbreviation, FifamNames::GetClubAbbr(teamNameForAbbr));
+
+    }
     // year of foundation & traditional club
     if (team->mYearFounded <= 0)
         dst->mYearOfFoundation = 2000;
@@ -35,11 +51,6 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
         if ((CURRENT_YEAR - 90) > dst->mYearOfFoundation)
             dst->mTraditionalClub = true;
     }
-    // city and settlement
-    if (team->mCity)
-        SetNameAndTranslation(dst->mCityName, team->mCity->mName, team->mCity->mTranslatedNames, 29);
-    else
-        dst->mCityName = country->mNationalTeam.mCityName;
     // latitude/longitude
     if (team->mCity) {
         if (team->mCity->mLatitude != 0 && team->mCity->mLongitude != 0)
@@ -433,9 +444,22 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
 }
 
 void Converter::ConvertReserveClub(UInt gameId, FifamClub * dst, foom::club * team, foom::club * mainTeam, FifamCountry * country, DivisionInfo * div) {
+    // city and settlement
+    if (team->mCity) {
+        SetNameAndTranslation(dst->mCityName, team->mCity->mName, team->mCity->mTranslatedNames, 29);
+        dst->mCityID = team->mCity->mID;
+    }
+    else if (country) {
+        dst->mCityName = country->mNationalTeam.mCityName;
+        dst->mCityID = country->mNationalTeam.mCityID;
+    }
+    else {
+        FifamTrSetAll<String>(dst->mCityName, L"City");
+        dst->mCityID = -1;
+    }
     // name
-    SetNameAndTranslation(dst->mName, team->mName, team->mTranslatedNames, 29, team->mShortName, team->mTranslatedShortNames);
-    SetNameAndTranslation(dst->mShortName, team->mShortName, team->mTranslatedShortNames, 10);
+    SetNameAndTranslation(dst->mName, team->mName, team->mTranslatedNames, 29, team->mShortName, team->mTranslatedShortNames, dst->mCityName);
+    SetNameAndTranslation(dst->mShortName, team->mShortName, team->mTranslatedShortNames, 10, String(), Array<String, 6>(), dst->mCityName);
     if (team->mName == mainTeam->mName) {
         String secondTypeName, thirdTypeName, youthTypeName;
         if (country && country->mId == FifamNation::Germany) {
@@ -499,15 +523,6 @@ void Converter::ConvertReserveClub(UInt gameId, FifamClub * dst, foom::club * te
         dst->mYearOfFoundation = 2000;
     else
         dst->mYearOfFoundation = team->mYearFounded;
-
-    // city and settlement
-    if (team->mCity)
-        SetNameAndTranslation(dst->mCityName, team->mCity->mName, team->mCity->mTranslatedNames, 29);
-    else if (country)
-        dst->mCityName = country->mNationalTeam.mCityName;
-    else
-        FifamTrSetAll<String>(dst->mCityName, L"City");
-
     // latitude/longitude
     if (team->mLatitude != 0 || team->mLongitude != 0)
         dst->mGeoCoords.SetFromFloat(team->mLatitude, team->mLongitude);
@@ -1373,6 +1388,7 @@ FifamClub *Converter::CreateAndConvertClub(UInt gameId, foom::club *team, foom::
     FifamClub *club = mFifamDatabase->CreateClub(country);
     team->mConverterData.mHasFifamSquad = convertSquad;
     club->SetProperty(L"foom::club", team);
+    club->mFootballManagerID = team->mID;
     // uid
     club->mUniqueID = team->mConverterData.mFIFAManagerID;
     if (club->mUniqueID != 0) {

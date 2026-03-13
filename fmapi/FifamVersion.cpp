@@ -18,24 +18,24 @@ void FifamVersion::Set(UInt intValue) {
     mIntValue = intValue;
 }
 
-UShort FifamVersion::GetYear() {
+UShort FifamVersion::GetYear() const {
     return mYear;
 }
 
-UShort FifamVersion::GetNumber() {
+UShort FifamVersion::GetNumber() const {
     return mNumber;
 }
 
-UInt FifamVersion::GetIntValue() {
+UInt FifamVersion::GetIntValue() const {
     return mIntValue;
 }
 
-Bool FifamVersion::IsGreaterOrEqual(UShort year, UShort number) {
+Bool FifamVersion::IsGreaterOrEqual(UShort year, UShort number) const {
     if (mYear > year)
         return true;
     return mYear == year && mNumber >= number;
 }
 
-String FifamVersion::GetString() {
+String FifamVersion::GetString() const {
     return Utils::Format(L"%04X.%02X", mYear, mNumber);
 }

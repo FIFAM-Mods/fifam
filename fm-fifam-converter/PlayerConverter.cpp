@@ -290,6 +290,8 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, Fi
     player->SetProperty(L"foom::player", p);
     player->mIsRealPlayer = true;
     player->mIsBasque = p->IsBasque();
+    if (p->mCityOfBirth)
+        player->mBirthCityID = p->mCityOfBirth->mID;
 
     UInt age = player->GetAge(GetCurrentDate());
 

@@ -1,0 +1,77 @@
+0.9478673
+
+1.0549999984175
+0.572
+=
+0.60346
+
+= head =
+
+-head -hd -startsWith m228 -writeFsh -boneRemap "data\remap\remap_head_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -scale 0.58 -translate 0,0.92,0.4
+-head -hd -startsWith m228 -writeFsh -boneRemap "data\remap\remap_head_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -scale 0.612 -translate 0,-4.53,1.95
+
+= hair =
+
+-head -startsWith m432 -pad 524288 -boneRemap "data\remap\remap_head_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -scale 0.58 -translate 0,0.92,0.4
+
+= hairlod =
+
+-head -startsWith m728 -boneRemap "data\remap\remap_head_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -scale 0.58 -translate 0,0.92,0.4
+-head -startsWith m728 -boneRemap "data\remap\remap_head_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -scale 0.612 -translate 0,-4.53,1.95
+
+-head -pad 524288 -boneRemap "data\remap\remap_head_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -scale 0.58 -translate 0,0.92,0.4
+
+= headlod =
+
+-head -hd -startsWith m46 -boneRemap "data\remap\remap_head_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -scale 0.58 -translate 0,0.92,0.4
+-head -hd -startsWith m47 -boneRemap "data\remap\remap_head_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -scale 0.58 -translate 0,0.92,0.4
+
+1048576
+524288
+131072
+
+-head -instances 25 -boneRemap "data\remap\remap_head_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -scale 0.57 -translate 0,2.50604,0.434294
+
+FIFA21PC/FIFA14:
+-head -hd -startsWith m228 -writeFsh -boneRemap "data\remap\remap_head_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -scale 0.58 -translate 0,0.978417,1.84739 -useCompressonator
+-head -hd -startsWith m728 -boneRemap "data\remap\remap_head_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -scale 0.58 -translate 0,0.978417,1.84739
+
+Switch to FIFA 07
+=head
+-head -hd -startsWith m228 -writeFsh -fshForceAlphaCheck -sortHairFaces -boneRemap "data\remap\remap_head_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -hairSpec 0.7 -scale 0.58 -translate 0,0.92,0.5
+=lod1
+-head -hd -startsWith m46 -boneRemap "data\remap\remap_headlod_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -hairSpec 0.7 -scale 0.58 -translate 0,0.92,0.5
+=lod2
+-head -hd -startsWith m47 -boneRemap "data\remap\remap_headlod_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -hairSpec 0.7 -scale 0.58 -translate 0,0.92,0.5
+
+FIFA21PC/FIFA14 to FIFA 07
+=head
+-head -hd -startsWith m228 -writeFsh -fshForceAlphaCheck -sortHairFaces -boneRemap "data\remap\remap_head_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -hairSpec 0.7 -scale 0.58 -translate 0,0.978417,1.94739
+=lod1
+-head -hd -startsWith m46 -boneRemap "data\remap\remap_headlod_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -hairSpec 0.7 -scale 0.58 -translate 0,0.978417,1.94739
+=lod2
+-head -hd -startsWith m47 -boneRemap "data\remap\remap_headlod_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -hairSpec 0.7 -scale 0.58 -translate 0,0.978417,1.94739
+
+FO4 FIFA 14 to FIFA 07
+=head
+-head -hd -startsWith m228 -writeFsh -fshForceAlphaCheck -sortHairFaces -boneRemap "data\remap\remap_head_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -hairSpec 0.7 -scale 0.58 -translate 0,0.92,1.8
+=lod1
+-head -hd -startsWith m46 -boneRemap "data\remap\remap_headlod_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -hairSpec 0.7 -scale 0.58 -translate 0,0.92,1.8
+=lod2
+-head -hd -startsWith m47 -boneRemap "data\remap\remap_headlod_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -hairSpec 0.7 -scale 0.58 -translate 0,0.92,1.8
+
+FO4 FIFA 14 to FIFAM
+-head -hd -startsWith m228 -writeFsh -boneRemap "data\remap\remap_head_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -scale 0.58 -translate 0,0.92,1.8
+0,-2.42,0.0
+-head -startsWith m728 -boneRemap "data\remap\remap_head_fifa20s_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -scale 0.58 -translate 0,0.92,1.8
+
+FIFA21PC to FIFA 07
+-head -startsWith m228 -writeFsh -boneRemap "data\remap\remap_headlod_fifa20pc_fm13.txt" -skeletonData "data\remap\skel_fm13.bin" -bonesFile "data\remap\bones_fm13.txt" -hairSpec 0.7 -scale 59.4 -translate 0,-1.05,0.4
+-conformant -tristrip
+
+Blender to otools offset:
+X = Blender.X
+Y = Blender.Z
+z = -Blender.Y
+
+LOD: Blender.Y +2.5 = z -2.5

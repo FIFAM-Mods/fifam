@@ -164,6 +164,7 @@
       <Filter>shared</Filter>
     </ClCompile>
     <ClCompile Include="FifamAppearanceDefs.cpp" />
+    <ClCompile Include="FifamTranslation.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="shared">

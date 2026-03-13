@@ -103,12 +103,24 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
         if (reader.IsVersionGreaterOrEqual(0x2012, 0x01)) {
             reader.ReadLine(mUniqueID);
             reader.ReadLine(mFifaID);
+            if (reader.IsVersionGreaterOrEqual(0x2013, 0x12)) {
+                reader.ReadLine(mFootballManagerID);
+                auto ReadTmDeIDs = [&reader](Set<UInt> &ids) {
+                    auto tmDeIds = Utils::Split(reader.ReadFullLine(), L',', true, true, false);
+                    for (UInt i = 0; i < Utils::Min(10u, tmDeIds.size()); i++)
+                        ids.insert(Utils::SafeConvertInt<UInt>(tmDeIds[i]));
+                };
+                ReadTmDeIDs(mTmDeIDs);
+                ReadTmDeIDs(mTmDeReserveIDs);
+                ReadTmDeIDs(mTmDeOtherIDs);
+            }
             reader.ReadLineTranslationArray(mName);
             reader.ReadLineTranslationArray(mName2);
             reader.ReadLineTranslationArray(mShortName);
             reader.ReadLineTranslationArray(mShortName2);
             reader.ReadLineTranslationArray(mAbbreviation);
-            reader.ReadLineTranslationArray(mCityName);
+            if (!reader.IsVersionGreaterOrEqual(0x2013, 0x12))
+                reader.ReadLineTranslationArray(mCityName);
             reader.ReadLineTranslationArray(mPlayerInText);
             reader.ReadLineTranslationArray(mTermForTeam1);
             reader.ReadLineTranslationArray(mTermForTeam2);
@@ -123,6 +135,8 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
             reader.ReadLineTranslationArray(mFanName2Article);
             reader.ReadLineTranslationArray(mClubNameUsageInPhrase);
             reader.ReadLineTranslationArray(mClubNameUsageInPhrase2);
+            if (reader.IsVersionGreaterOrEqual(0x2013, 0x12))
+                reader.ReadLine(mCityID);
             reader.ReadFullLine(mAddress);
             reader.ReadFullLine(mTelephone);
             reader.ReadFullLine(mWebsiteAndMail);
@@ -506,7 +520,7 @@ void FifamClub::Read(FifamReader &reader, UInt id) {
         if (!reader.IsVersionGreaterOrEqual(0x2005, 0x0) || reader.IsVersionGreaterOrEqual(0x2006, 0x0)) {
             for (UInt i = 1; i < FifamTranslation::NUM_TRANSLATIONS; i++) {
                 if (!mShortName[i].empty())
-                    mAbbreviation5Letters[i] = FifamNames::LimitName(mShortName[i], 5);
+                    mAbbreviation5Letters[i] = FifamNames::LimitClubName(mShortName[i], 5);
             }
         }
         if (reader.IsVersionGreaterOrEqual(0x2005, 0x0)) {
@@ -606,12 +620,27 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
     if (writer.IsVersionGreaterOrEqual(0x2012, 0x01)) {
         writer.WriteLine(FifamUtils::GetWriteableUniqueID(this));
         writer.WriteLine(mFifaID);
+        if (writer.IsVersionGreaterOrEqual(0x2013, 0x12)) {
+            writer.WriteLine(mFootballManagerID);
+            auto WriteTmDeIDs = [&writer](Set<UInt> &ids) {
+                Vector<String> tmDeIds;
+                for (auto id : ids)
+                    tmDeIds.push_back(std::to_wstring(id));
+                if (tmDeIds.size() > 10)
+                    tmDeIds.resize(10);
+                writer.WriteLine(Utils::Join(tmDeIds, L','));
+            };
+            WriteTmDeIDs(mTmDeIDs);
+            WriteTmDeIDs(mTmDeReserveIDs);
+            WriteTmDeIDs(mTmDeOtherIDs);
+        }
         writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mName, FifamNames::LimitName, 29));
         writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mName2, FifamNames::LimitName, 29));
         writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mShortName, FifamNames::LimitName, 10));
         writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mShortName2, FifamNames::LimitName, 10));
         writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mAbbreviation, FifamNames::LimitName, 4));
-        writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mCityName, FifamNames::LimitName, 29));
+        if (!writer.IsVersionGreaterOrEqual(0x2013, 0x12))
+            writer.WriteLineTranslationArray(FifamNames::TransformTrArray(mCityName, FifamNames::LimitName, 29));
         writer.WriteLineTranslationArray(mPlayerInText);
         writer.WriteLineTranslationArray(mTermForTeam1);
         writer.WriteLineTranslationArray(mTermForTeam2);
@@ -626,6 +655,8 @@ void FifamClub::Write(FifamWriter &writer, UInt id) {
         writer.WriteLineTranslationArray(mFanName2Article);
         writer.WriteLineTranslationArray(mClubNameUsageInPhrase);
         writer.WriteLineTranslationArray(mClubNameUsageInPhrase2);
+        if (writer.IsVersionGreaterOrEqual(0x2013, 0x12))
+            writer.WriteLine(mCityID);
         writer.WriteLine(mAddress);
         writer.WriteLine(mTelephone);
         writer.WriteLine(mWebsiteAndMail);

@@ -98,9 +98,10 @@
 #include "tests\MergeUIDs.h"
 #include "tests\GenericFaceTextures.h"
 #include "tests\DumpCountryAppearance.h"
-#include "tests\ReApplyBasqueStatus.h"
 #include "tests\ReApplyGeoCoords.h"
+#include "tests\NamesTest.h"
+#include "tests\UpdateToFM26Update1.h"
 
 void RunTests() {
-    RunTest<ReApplyGeoCoords>();
+    RunTest<UpdateToFM26Update1>();
 }

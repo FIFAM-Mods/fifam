@@ -98,13 +98,16 @@ Int TranslationArrayIDToTranslationLanguageFm(Int index) {
     return -1;
 }
 
-void ApplyTranslation(FifamTrArray<String> &dst, Array<String, 6> const &translations, UInt nameLimit, Array<String, 6> const &shortNames) {
+void ApplyTranslation(FifamTrArray<String> &dst, Array<String, 6> const &translations, UInt nameLimit,
+    Array<String, 6> const &shortNames, Array<String, 6> const &cityNames)
+{
     for (UInt i = 0; i < FifamTranslation::NUM_TRANSLATIONS; i++) {
         Int index = TranslationLanguageFmToTranslationArrayID(i);
         if (index != -1 && !translations[index].empty()) {
             String &d = dst[i];
             String const &t = translations[index];
             String const &s = shortNames[i];
+            String const &c = cityNames[i];
             if (nameLimit == 0 || t.length() <= nameLimit)
                 d = t;
             else {
@@ -112,16 +115,18 @@ void ApplyTranslation(FifamTrArray<String> &dst, Array<String, 6> const &transla
                     if (s.length() <= nameLimit)
                         d = s;
                     else
-                        d = FifamNames::LimitName(s, nameLimit);
+                        d = FifamNames::LimitClubName(s, nameLimit, c);
                 }
                 else
-                    d = FifamNames::LimitName(t, nameLimit);
+                    d = FifamNames::LimitClubName(t, nameLimit, c);
             }
         }
     }
 }
 
-void SetNameAndTranslation(FifamTrArray<String> &dst, String const &name, Array<String, 6> const &translations, UInt nameLimit, String const &shortName, Array<String, 6> const &shortNames) {
+void SetNameAndTranslation(FifamTrArray<String> &dst, String const &name, Array<String, 6> const &translations, UInt nameLimit,
+    String const &shortName, Array<String, 6> const &shortNames, Array<String, 6> const &cityNames)
+{
     if (nameLimit == 0 || name.length() <= nameLimit)
         FifamTrSetAll(dst, name);
     else {
@@ -129,10 +134,10 @@ void SetNameAndTranslation(FifamTrArray<String> &dst, String const &name, Array<
             if (shortName.length() <= nameLimit)
                 FifamTrSetAll(dst, shortName);
             else
-                FifamTrSetAll(dst, FifamNames::LimitName(shortName, nameLimit));
+                FifamTrSetAll(dst, FifamNames::LimitClubName(shortName, nameLimit, cityNames[1]));
         }
         else
-            FifamTrSetAll(dst, FifamNames::LimitName(name, nameLimit));
+            FifamTrSetAll(dst, FifamNames::LimitClubName(name, nameLimit, cityNames[1]));
     }
     ApplyTranslation(dst, translations, nameLimit, shortNames);
 }

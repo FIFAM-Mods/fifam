@@ -20,10 +20,14 @@ void FifamReferee::Read(FifamReader &reader) {
         reader.ReadFullLine(mFirstName);
         reader.ReadFullLine(mLastName);
         reader.ReadLine(mType);
+        if (reader.IsVersionGreaterOrEqual(0x2013, 0x12))
+            reader.ReadLine(mIsFemale);
         if (reader.IsVersionGreaterOrEqual(0x2013, 0x0E))
             reader.ReadLine(mCreator);
         if (reader.IsVersionGreaterOrEqual(0x2013, 0x0C))
             reader.ReadLine(mFootballManagerID);
+        if (reader.IsVersionGreaterOrEqual(0x2013, 0x12))
+            reader.ReadLine(mTmDeID);
         reader.ReadEndIndex(L"REFEREE");
     }
 }
@@ -33,9 +37,13 @@ void FifamReferee::Write(FifamWriter &writer) {
     writer.WriteLine(mFirstName);
     writer.WriteLine(mLastName);
     writer.WriteLine(mType);
+    if (writer.IsVersionGreaterOrEqual(0x2013, 0x12))
+        writer.WriteLine(mIsFemale);
     if (writer.IsVersionGreaterOrEqual(0x2013, 0x0E))
         writer.WriteLine(mCreator);
     if (writer.IsVersionGreaterOrEqual(0x2013, 0x0C))
         writer.WriteLine(mFootballManagerID);
+    if (writer.IsVersionGreaterOrEqual(0x2013, 0x12))
+        writer.WriteLine(mTmDeID);
     writer.WriteEndIndex(L"REFEREE");
 }

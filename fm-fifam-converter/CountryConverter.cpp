@@ -25,6 +25,7 @@ Int StadNationalTeamUsagePriority(foom::stadium *stad) {
 void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt gameId) {
 
     nation->mConverterData.mFifamCountry = dst;
+    dst->mFootballManagerID = nation->mID;
 
     if (CONVERT_ASSESSMENT) {
         dst->mAssessmentData[0] = nation->mEuroCoeff6;
@@ -97,6 +98,7 @@ void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt 
         SetNameAndTranslation(dst->mNationalTeam.mCityName, nation->mCapitalCity->mName, nation->mCapitalCity->mTranslatedNames, 29);
         if (nation->mCapitalCity->mLatitude != 0 || nation->mCapitalCity->mLongitude != 0)
             dst->mNationalTeam.mGeoCoords.SetFromFloat(nation->mCapitalCity->mLatitude, nation->mCapitalCity->mLongitude);
+        dst->mNationalTeam.mCityID = nation->mCapitalCity->mID;
     }
 
     // wins

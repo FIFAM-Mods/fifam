@@ -21,6 +21,10 @@ public:
     Int mFootballManagerID = -1;
     // @since FM24
     UInt mCreator = 0;
+    // @since FM26 (Update 1)
+    Bool mIsFemale = false;
+    // @since FM26 (Update 1)
+    UInt mTmDeID = 0;
 
     FifamCountry *mCountry = nullptr;
 

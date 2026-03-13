@@ -256,6 +256,7 @@ public:
     FifamPlayer *CreateAndConvertFifaPlayer(UInt gameId, FifaPlayer *p, FifamClub *club);
 
     void ConvertLeagues(UInt gameId);
+    void ConvertCitiesAndRegions();
     Bool ProcessScriptWithSpecialFormat(FifamCountry *country, Vector<FifamCompLeague *> &leagues, Vector<FifamCompCup *> &cups, Pair<FifamCompLeague *, FifamCompLeague *> &split, Vector<PlayOffInfo *> &playOffs);
 
     void GenerateNewTeamIDsFile(Path const &outputFilePath, Path const &oldTeamIDsFilePath);

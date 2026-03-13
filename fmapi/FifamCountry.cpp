@@ -169,10 +169,16 @@ Bool FifamCountry::Read(FifamReader &reader) {
                     for (UInt i = 0; i < numStaffs; i++) {
                         FifamStaff *staff = mDatabase->CreateStaff(nullptr, mDatabase->GetNextFreePersonID());
                         staff->ReadWorker(reader);
+                        if (reader.IsVersionGreaterOrEqual(0x2013, 0x12)) {
+                            reader.ReadLine(staff->mIsFemale);
+                            reader.ReadLine(staff->mBirthCityID);
+                        }
                         if (reader.IsVersionGreaterOrEqual(0x2013, 0x0E))
                             reader.ReadLine(staff->mCreator);
                         if (reader.IsVersionGreaterOrEqual(0x2013, 0x0C))
                             reader.ReadLine(staff->mFootballManagerID);
+                        if (reader.IsVersionGreaterOrEqual(0x2013, 0x12))
+                            reader.ReadLine(staff->mTmDeID);
                         staff->mLinkedCountry.SetFromInt(mId);
                     }
                     reader.ReadEndIndex(L"STAFFS");
@@ -380,6 +386,8 @@ Bool FifamCountry::Read(FifamReader &reader) {
                 if (reader.IsVersionGreaterOrEqual(0x2004, 8))
                     reader.ReadFullLine(mNotes);
             }
+            if (reader.IsVersionGreaterOrEqual(0x2013, 0x12))
+                reader.ReadLine(mFootballManagerID);
             reader.ReadEndIndex(countryMiscSectionName);
 
             if (!reader.IsVersionGreaterOrEqual(0x2007, 0)) {
@@ -552,10 +560,16 @@ Bool FifamCountry::Write(FifamWriter &writer) {
         writer.WriteLine(staffWorkers.size());
         for (FifamStaff *staff : staffWorkers) {
             staff->WriteWorker(writer);
+            if (writer.IsVersionGreaterOrEqual(0x2013, 0x12)) {
+                writer.WriteLine(staff->mIsFemale);
+                writer.WriteLine(staff->mBirthCityID);
+            }
             if (writer.IsVersionGreaterOrEqual(0x2013, 0x0E))
                 writer.WriteLine(staff->mCreator);
             if (writer.IsVersionGreaterOrEqual(0x2013, 0x0C))
                 writer.WriteLine(staff->mFootballManagerID);
+            if (writer.IsVersionGreaterOrEqual(0x2013, 0x12))
+                writer.WriteLine(staff->mTmDeID);
         }
         writer.WriteEndIndex(L"STAFFS");
     }
@@ -757,6 +771,7 @@ Bool FifamCountry::Write(FifamWriter &writer) {
     writer.WriteLine(mNumContinentalRunnersUp);
     writer.WriteLine(mNumWorldCupRunnersUp);
     writer.WriteLine(mNotes);
+    writer.WriteLine(mFootballManagerID);
     writer.WriteEndIndex(countryMiscSectionName);
     writer.WriteEndIndex(L"COUNTRY");
     return true;

@@ -254,6 +254,7 @@
     <ClCompile Include="FifamSponsor.cpp" />
     <ClCompile Include="FifamStadium.cpp" />
     <ClCompile Include="FifamStaff.cpp" />
+    <ClCompile Include="FifamTranslation.cpp" />
     <ClCompile Include="FifamUtils.cpp" />
     <ClCompile Include="FifamVersion.cpp" />
   </ItemGroup>

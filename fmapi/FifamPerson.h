@@ -66,8 +66,12 @@ public:
     Int mFootballManagerID = -1;
     // @since FM24
     UInt mCreator = 0;
-    // @since FM26
+    // @since FM26 (Update 1) - only staff
     Bool mIsFemale = false;
+    // @since FM26 (Update 1)
+    Int mBirthCityID = -1;
+    // @since FM26 (Update 1)
+    UInt mTmDeID = 0;
 
     FifamClub *mClub = nullptr;
 

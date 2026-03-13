@@ -331,10 +331,13 @@
     <ClInclude Include="tests\DumpCountryAppearance.h">
       <Filter>tests</Filter>
     </ClInclude>
-    <ClInclude Include="tests\ReApplyBasqueStatus.h">
+    <ClInclude Include="tests\ReApplyGeoCoords.h">
       <Filter>tests</Filter>
     </ClInclude>
-    <ClInclude Include="tests\ReApplyGeoCoords.h">
+    <ClInclude Include="tests\UpdateToFM26Update1.h">
+      <Filter>tests</Filter>
+    </ClInclude>
+    <ClInclude Include="tests\NamesTest.h">
       <Filter>tests</Filter>
     </ClInclude>
   </ItemGroup>

@@ -46,12 +46,16 @@ void FifamStaff::Read(FifamReader &reader) {
         }
         else
             ReadManager(reader);
-        //if (reader.IsVersionGreaterOrEqual(0x2013, 0x11))
-        //    reader.ReadLine(mIsFemale);
+        if (reader.IsVersionGreaterOrEqual(0x2013, 0x12)) {
+            reader.ReadLine(mIsFemale);
+            reader.ReadLine(mBirthCityID);
+        }
         if (reader.IsVersionGreaterOrEqual(0x2013, 0x0E))
             reader.ReadLine(mCreator);
         if (reader.IsVersionGreaterOrEqual(0x2013, 0x0C))
             reader.ReadLine(mFootballManagerID);
+        if (reader.IsVersionGreaterOrEqual(0x2013, 0x12))
+            reader.ReadLine(mTmDeID);
         reader.ReadEndIndex(L"STAFF");
     }
 }
@@ -276,6 +280,8 @@ void FifamStaff::SetFromPlayer(FifamPlayer const &player) {
     mFootballManagerID = player.mFootballManagerID;
     mCreator = player.mCreator;
     mIsFemale = player.mIsFemale;
+    mBirthCityID = player.mBirthCityID;
+    mTmDeID = player.mTmDeID;
 }
 
 void FifamStaff::ReadFromPlayer(FifamReader &reader) {
@@ -298,12 +304,16 @@ void FifamStaff::Write(FifamWriter &writer) {
     }
     else
         WriteManager(writer);
-    //if (writer.IsVersionGreaterOrEqual(0x2013, 0x11))
-    //    writer.WriteLine(mIsFemale);
+    if (writer.IsVersionGreaterOrEqual(0x2013, 0x12)) {
+        writer.WriteLine(mIsFemale);
+        writer.WriteLine(mBirthCityID);
+    }
     if (writer.IsVersionGreaterOrEqual(0x2013, 0x0E))
         writer.WriteLine(mCreator);
     if (writer.IsVersionGreaterOrEqual(0x2013, 0x0C))
         writer.WriteLine(mFootballManagerID);
+    if (writer.IsVersionGreaterOrEqual(0x2013, 0x12))
+        writer.WriteLine(mTmDeID);
     writer.WriteEndIndex(L"STAFF");
 }
 
@@ -559,6 +569,8 @@ void FifamStaff::WriteToPlayer(FifamWriter &writer) {
     player.mFootballManagerID = mFootballManagerID;
     player.mCreator = mCreator;
     player.mIsFemale = mIsFemale;
+    player.mBirthCityID = mBirthCityID;
+    player.mTmDeID = mTmDeID;
     player.Write(writer);
 }
 

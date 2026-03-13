@@ -464,6 +464,10 @@ void Converter::Convert() {
 
     const UInt MAX_COMP_NAME_LENGTH = 29;
 
+    // convert cities and regions
+    std::wcout << L"Converting cities and regions..." << std::endl;
+    ConvertCitiesAndRegions();
+
     // convert nations, national teams, leagues
     std::wcout << L"Converting nations, national teams and leagues..." << std::endl;
     ConvertLeagues(gameId);
@@ -2822,4 +2826,8 @@ Bool Converter::ClubColorsFromBadgeFile(UInt clubId, FifamClubTeamColor &out) {
         return true;
     }
     return false;
+}
+
+void Converter::ConvertCitiesAndRegions() {
+
 }

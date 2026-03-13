@@ -67,6 +67,7 @@ public:
     // @maxsize 5
     FifamTrArray<String> mAbbreviation5Letters;
     // @since FM07
+    // @until FM26(Update 1)
     // @maxsize 29
     FifamTrArray<String> mCityName;
     // @since FM07
@@ -324,6 +325,17 @@ public:
             Bool _64 = false;
         } flags;
     } Unknown;
+
+    // @since FM26 (Update 1)
+    Int mFootballManagerID = -1;
+    // @since FM26 (Update 1)
+    Set<UInt> mTmDeIDs;
+    // @since FM26 (Update 1)
+    Set<UInt> mTmDeReserveIDs;
+    // @since FM26 (Update 1)
+    Set<UInt> mTmDeOtherIDs;
+    // @since FM26 (Update 1)
+    Int mCityID = -1;
 
     FifamCountry *mCountry = nullptr;
     FifamDatabase *mDatabase = nullptr;

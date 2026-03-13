@@ -113,8 +113,10 @@ template<typename T> T AlignMoneyValue(T input, T alignment) {
 
 Int OriginalAttrValue(Int attr);
 
-void ApplyTranslation(FifamTrArray<String> &dst, Array<String, 6> const &translations, UInt nameLimit = 0, Array<String, 6> const &shortNames = {});
+void ApplyTranslation(FifamTrArray<String> &dst, Array<String, 6> const &translations, UInt nameLimit = 0,
+    Array<String, 6> const &shortNames = {}, Array<String, 6> const &cityNames = {});
 
-void SetNameAndTranslation(FifamTrArray<String> &dst, String const &name, Array<String, 6> const &translations, UInt nameLimit = 0, String const &shortName = String(), Array<String, 6> const &shortNames = {});
+void SetNameAndTranslation(FifamTrArray<String> &dst, String const &name, Array<String, 6> const &translations, UInt nameLimit = 0,
+    String const &shortName = String(), Array<String, 6> const &shortNames = {}, Array<String, 6> const &cityNames = {});
 
 Array<String, 6> TranslationArrayFromTrArray(FifamTrArray<String> const &dst);

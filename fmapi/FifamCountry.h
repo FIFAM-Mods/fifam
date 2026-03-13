@@ -183,6 +183,8 @@ public:
     Vector<FifamTrArray<String>> mLeagueLevelNames;
     // @since FM07
     Array<Float, 6> mAssessmentData = {};
+    // @since FM26 (Update 1)
+    Int mFootballManagerID = -1;
 
     struct {
         // @since FM07

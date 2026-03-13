@@ -13,8 +13,6 @@ enum eEncoding {
 };
 
 class TextFileTable {
-    std::vector<std::vector<std::wstring>> mCells;
-
     static std::wstring Unquoted(std::wstring const &str);
     static std::wstring Quoted(std::wstring const &str, wchar_t separator);
     size_t NumRowsToWrite() const;
@@ -33,6 +31,7 @@ class TextFileTable {
         }
     }
 public:
+    std::vector<std::vector<std::wstring>> mCells;
     size_t NumRows() const;
     size_t NumColumns(size_t row) const;
     bool IsConsistent() const;
