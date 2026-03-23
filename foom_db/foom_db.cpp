@@ -440,7 +440,7 @@ foom::db::db(Path const &dbpath, db_gender gender, bool readPersons, db_size pla
     // read cities
     ReaderCallback(L"fm_cities", [&](FifamReader &reader) {
         city c;
-        reader.ReadLine(c.mID, c.mName, IntPtr(c.mNation), c.mInhabitants, c.mLatitude, c.mLongitude);
+        reader.ReadLine(c.mID, c.mName, IntPtr(c.mNation), c.mInhabitants, c.mLatitude, c.mAltitude, c.mLongitude, IntPtr(c.mRegion), IntPtr(c.mLanguage), c.mAttraction, c.mWeather);
         mCities[c.mID] = c;
     });
     // read stadiums
@@ -683,6 +683,8 @@ foom::db::db(Path const &dbpath, db_gender gender, bool readPersons, db_size pla
     for (auto &entry : mCities) {
         city &c = entry.second;
         resolve(c.mNation);
+        resolve(c.mRegion);
+        resolve(c.mLanguage);
     }
     for (auto &entry : mStadiums) {
         stadium &s = entry.second;

@@ -42,18 +42,27 @@ public:
     struct City {
         Int id = -1;
         UChar countryId = 0;
-        UChar population = 0;
+        UChar attraction = 0;
+        UShort weight = 1;
+        UInt population = 0;
         Float latitude = 0.0f;
         Float longitude = 0.0f;
+        UChar language = 0;
+        UChar climate = 0;
+        Short altitude = 0;
         Int regionId = -1;
+        UInt wikidataId = 0;
         String names[CustomLanguages::NUM_TRANSLATION_LANGUAGES];
     };
 
     struct Region {
         Int id = -1;
         UChar countryId = 0;
+        UChar climate = 0;
         Float latitude = 0.0f;
         Float longitude = 0.0f;
+        UInt population = 0;
+        UInt wikidataId = 0;
         String names[CustomLanguages::NUM_TRANSLATION_LANGUAGES];
     };
 
