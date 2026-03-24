@@ -221,6 +221,7 @@ void Converter::Convert() {
         }
     }
 
+    ConvertWeatherToClimate();
     ReadAdditionalInfo(infoPath, gameId);
     appearanceGenerator.Read(infoPath / (L"AppearanceDefs" + gender + L".sav"));
 
@@ -2830,4 +2831,74 @@ Bool Converter::ClubColorsFromBadgeFile(UInt clubId, FifamClubTeamColor &out) {
 
 void Converter::ConvertCitiesAndRegions() {
 
+}
+
+void Converter::ConvertWeatherToClimate() {
+    auto ConvertToClimate = [](foom::weather const &w) -> FifamClimate {
+        static const Double midpoints[10] = {
+            -20.0, -11.5, -3.5, 3.5, 10.0, 17.5, 25.0, 31.5, 38.5, 46.0
+        };
+        Double weights[40] = {
+            (Double)w.mSpringTemperatureExtremelyFreezing,
+            (Double)w.mSpringTemperatureVeryFreezing,
+            (Double)w.mSpringTemperatureFreezing,
+            (Double)w.mSpringTemperatureCold,
+            (Double)w.mSpringTemperatureMild,
+            (Double)w.mSpringTemperatureFine,
+            (Double)w.mSpringTemperatureWarm,
+            (Double)w.mSpringTemperatureHot,
+            (Double)w.mSpringTemperatureVeryHot,
+            (Double)w.mSpringTemperatureExtremelyHot,
+            (Double)w.mSummerTemperatureExtremelyFreezing,
+            (Double)w.mSummerTemperatureVeryFreezing,
+            (Double)w.mSummerTemperatureFreezing,
+            (Double)w.mSummerTemperatureCold,
+            (Double)w.mSummerTemperatureMild,
+            (Double)w.mSummerTemperatureFine,
+            (Double)w.mSummerTemperatureWarm,
+            (Double)w.mSummerTemperatureHot,
+            (Double)w.mSummerTemperatureVeryHot,
+            (Double)w.mSummerTemperatureExtremelyHot,
+            (Double)w.mAutumnTemperatureExtremelyFreezing,
+            (Double)w.mAutumnTemperatureVeryFreezing,
+            (Double)w.mAutumnTemperatureFreezing,
+            (Double)w.mAutumnTemperatureCold,
+            (Double)w.mAutumnTemperatureMild,
+            (Double)w.mAutumnTemperatureFine,
+            (Double)w.mAutumnTemperatureWarm,
+            (Double)w.mAutumnTemperatureHot,
+            (Double)w.mAutumnTemperatureVeryHot,
+            (Double)w.mAutumnTemperatureExtremelyHot,
+            (Double)w.mWinterTemperatureExtremelyFreezing,
+            (Double)w.mWinterTemperatureVeryFreezing,
+            (Double)w.mWinterTemperatureFreezing,
+            (Double)w.mWinterTemperatureCold,
+            (Double)w.mWinterTemperatureMild,
+            (Double)w.mWinterTemperatureFine,
+            (Double)w.mWinterTemperatureWarm,
+            (Double)w.mWinterTemperatureHot,
+            (Double)w.mWinterTemperatureVeryHot,
+            (Double)w.mWinterTemperatureExtremelyHot
+        };
+        Double totalTemp = 0.0;
+        Double totalWeight = 0.0;
+        for (Int i = 0; i < 40; i++) {
+            totalTemp += weights[i] * midpoints[i % 10];
+            totalWeight += weights[i];
+        }
+        if (totalWeight == 0.0)
+            return FifamClimate::Moderate;
+        Double avgTemp = totalTemp / totalWeight;
+        if (avgTemp <= 9.0)
+            return FifamClimate::Cold;
+        if (avgTemp <= 14.0)
+            return FifamClimate::Cool;
+        if (avgTemp <= 19.0)
+            return FifamClimate::Moderate;
+        if (avgTemp <= 24.0)
+            return FifamClimate::Warm;
+        return FifamClimate::Hot;
+    };
+    for (auto &[id, w] : mFoomDatabase->mWeather)
+        w.mConverterData.mFIFAManagerClimate = ConvertToClimate(w);
 }

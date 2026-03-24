@@ -1,13 +1,11 @@
 #pragma once
 #include "FifamDbEnvironment.h"
 
-template<typename Game, typename DbType>
 class WriteDbCountriesTest {
 public:
     WriteDbCountriesTest() {
-        FifamDatabase *db = GetEnvironment<FifamDbEnvironment<Game, DbType>>().GetDatabase();
-
-        FifamWriter writer(Utils::Format(L"country_misc_%02d.csv", Game::id()), Game::id(), FifamVersion(Game::year(), Game::vernum()), Game::unicode());
+        FifamDatabase db(13, "db");
+        FifamWriter writer(Utils::Format(L"country_misc.csv"));
         if (writer.Available()) {
             writer.Write(
                 L"Id",
@@ -124,10 +122,10 @@ public:
             );
 
             writer.WriteNewLine();
-            for (auto c : db->mCountries) {
+            for (auto c : db.mCountries) {
                 writer.Write(
                     c->mId,
-                    FifamFifamTr(c->mName),
+                    FifamTr(c->mName),
                     c->mOriginalLeagueSystem,
                     c->mFA_Name,
                     c->mLanguages[0].ToStr(),
@@ -249,8 +247,5 @@ public:
                 writer.WriteNewLine();
             }
         }
-
-
-        //db->Write(Game::id(), 0x2007, 0xC, L"fm_test\\test_db");
     }
 };

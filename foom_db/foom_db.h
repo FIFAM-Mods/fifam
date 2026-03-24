@@ -15,6 +15,7 @@
 #include "foom_stadium.h"
 #include "foom_stage_name.h"
 #include "foom_local_region.h"
+#include "foom_weather.h"
 
 namespace foom {
 
@@ -35,6 +36,7 @@ struct db {
     db_map<non_player> mNonPlayers;
     db_map<official> mOfficials;
     db_map<local_region> mLocalRegions;
+    db_map<weather> mWeather;
 
     template<typename T> T *get(Int id) { return nullptr; }
     template<> nation *get<nation>(Int id) { return map_find_ptr(mNations, id); }
@@ -51,6 +53,7 @@ struct db {
     template<> non_player *get<non_player>(Int id) { return map_find_ptr(mNonPlayers, id); }
     template<> official *get<official>(Int id) { return map_find_ptr(mOfficials, id); }
     template<> local_region *get<local_region>(Int id) { return map_find_ptr(mLocalRegions, id); }
+    template<> weather *get<weather>(Int id) { return map_find_ptr(mWeather, id); }
 
     static Int convert_money(Int value);
 

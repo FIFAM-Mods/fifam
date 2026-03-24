@@ -263,6 +263,8 @@ public:
 
     Bool ClubColorsFromBadgeFile(UInt clubId, FifamClubTeamColor &out);
 
+    void ConvertWeatherToClimate();
+
     enum eAlertType { AL_WARNING, AL_ERROR };
 
     template<typename ...ArgTypes>
