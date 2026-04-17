@@ -360,6 +360,20 @@ void Utils::Replace(std::string &str, const std::string &from, const std::string
     }
 }
 
+void Utils::SafeCopy(char *dst, char const *src, size_t dstSize) {
+    if (dstSize == 0)
+        return;
+    strncpy(dst, src, dstSize - 1);
+    dst[dstSize - 1] = L'\0';
+}
+
+void Utils::SafeCopy(wchar_t *dst, wchar_t const *src, size_t dstSize) {
+    if (dstSize == 0)
+        return;
+    wcsncpy(dst, src, dstSize - 1);
+    dst[dstSize - 1] = L'\0';
+}
+
 int Utils::Clamp(int value, int min, int max) {
     if (value < min)
         return min;

@@ -81,6 +81,22 @@ namespace Utils {
     std::string ToLower(std::string const &str);
     void Replace(std::string &str, const std::string &from, const std::string &to);
 
+    void SafeCopy(char *dst, char const *src, size_t dstSize);
+
+    template <size_t N>
+    inline void SafeCopy(char(&dst)[N], char const *src) {
+        static_assert(N > 0, "Destination array size must be greater than zero.");
+        SafeCopy(dst, src, N);
+    }
+
+    void SafeCopy(wchar_t *dst, wchar_t const *src, size_t dstSize);
+
+    template <size_t N>
+    inline void SafeCopy(wchar_t(&dst)[N], wchar_t const *src) {
+        static_assert(N > 0, "Destination array size must be greater than zero.");
+        SafeCopy(dst, src, N);
+    }
+
     template<typename T>
     unsigned int ToInt(T value) {
         return static_cast<unsigned int>(value);
