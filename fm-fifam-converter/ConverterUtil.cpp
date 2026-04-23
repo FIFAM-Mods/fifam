@@ -98,8 +98,8 @@ Int TranslationArrayIDToTranslationLanguageFm(Int index) {
     return -1;
 }
 
-void ApplyTranslation(FifamTrArray<String> &dst, Array<String, 6> const &translations, UInt nameLimit,
-    Array<String, 6> const &shortNames, Array<String, 6> const &cityNames)
+void ApplyTranslation(FifamTrArray<String> &dst, FoomTranslationArray const &translations, UInt nameLimit,
+    FoomTranslationArray const &shortNames, FifamTrArray<String> const &cityNames)
 {
     for (UInt i = 0; i < FifamTranslation::NUM_TRANSLATIONS; i++) {
         Int index = TranslationLanguageFmToTranslationArrayID(i);
@@ -124,8 +124,8 @@ void ApplyTranslation(FifamTrArray<String> &dst, Array<String, 6> const &transla
     }
 }
 
-void SetNameAndTranslation(FifamTrArray<String> &dst, String const &name, Array<String, 6> const &translations, UInt nameLimit,
-    String const &shortName, Array<String, 6> const &shortNames, Array<String, 6> const &cityNames)
+void SetNameAndTranslation(FifamTrArray<String> &dst, String const &name, FoomTranslationArray const &translations, UInt nameLimit,
+    String const &shortName, FoomTranslationArray const &shortNames, FifamTrArray<String> const &cityNames)
 {
     if (nameLimit == 0 || name.length() <= nameLimit)
         FifamTrSetAll(dst, name);
@@ -142,8 +142,8 @@ void SetNameAndTranslation(FifamTrArray<String> &dst, String const &name, Array<
     ApplyTranslation(dst, translations, nameLimit, shortNames);
 }
 
-Array<String, 6> TranslationArrayFromTrArray(FifamTrArray<String> const &dst) {
-    Array<String, 6> result;
+FoomTranslationArray TranslationArrayFromTrArray(FifamTrArray<String> const &dst) {
+    FoomTranslationArray result;
     for (UInt i = 0; i < result.size(); i++) {
         Int language = TranslationArrayIDToTranslationLanguageFm(i);
         if (language != -1 && language < Int(dst.size()))

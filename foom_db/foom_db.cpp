@@ -418,7 +418,7 @@ foom::db::db(Path const &dbpath, db_gender gender, bool readPersons, db_size pla
     // read local regions
     ReaderCallback(L"fm_local_regions", [&](FifamReader &reader) {
         local_region r;
-        reader.ReadLine(r.mID, r.mName, IntPtr(r.mNation), r.mPopulation, r.mWeather);
+        reader.ReadLine(r.mID, r.mName, IntPtr(r.mNation), r.mPopulation, IntPtr(r.mWeather));
         mLocalRegions[r.mID] = r;
     });
     ReaderCallback(L"fm_local_region_cities", [&](FifamReader &reader) {
@@ -440,7 +440,7 @@ foom::db::db(Path const &dbpath, db_gender gender, bool readPersons, db_size pla
     // read cities
     ReaderCallback(L"fm_cities", [&](FifamReader &reader) {
         city c;
-        reader.ReadLine(c.mID, c.mName, IntPtr(c.mNation), c.mInhabitants, c.mLatitude, c.mAltitude, c.mLongitude, IntPtr(c.mRegion), IntPtr(c.mLanguage), c.mAttraction, c.mWeather);
+        reader.ReadLine(c.mID, c.mName, IntPtr(c.mNation), c.mInhabitants, c.mLatitude, c.mAltitude, c.mLongitude, IntPtr(c.mRegion), IntPtr(c.mLanguage), c.mAttraction, IntPtr(c.mWeather));
         mCities[c.mID] = c;
     });
     // read stadiums
@@ -480,7 +480,7 @@ foom::db::db(Path const &dbpath, db_gender gender, bool readPersons, db_size pla
         mWeather[w.mID] = w;
     });
     // read names
-    Array<String, 6> translations = { L"fr", L"de", L"it", L"es", L"pl", L"ru" };
+    FoomTranslationArray translations = { L"fr", L"de", L"it", L"es", L"pl", L"ru", L"tr", L"pt", L"zh" };
     for (UInt tr = 0; tr < std::size(translations); tr++) {
         ReaderCallback(L"names_cities_" + translations[tr], [&](FifamReader &reader) {
             Int id = -1; String name;
@@ -691,6 +691,7 @@ foom::db::db(Path const &dbpath, db_gender gender, bool readPersons, db_size pla
         resolve(c.mNation);
         resolve(c.mRegion);
         resolve(c.mLanguage);
+        resolve(c.mWeather);
     }
     for (auto &entry : mStadiums) {
         stadium &s = entry.second;
@@ -710,6 +711,7 @@ foom::db::db(Path const &dbpath, db_gender gender, bool readPersons, db_size pla
     for (auto &entry : mLocalRegions) {
         local_region &r = entry.second;
         resolve(r.mNation);
+        resolve(r.mWeather);
         for (auto &c : r.mVecCities)
             resolve(c);
         for (auto &l : r.mVecLanguages)

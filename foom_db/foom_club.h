@@ -3,6 +3,7 @@
 #include "Date.h"
 #include "foom_team.h"
 #include "foom_kit.h"
+#include "foom_translation.h"
 
 namespace foom {
 
@@ -15,9 +16,9 @@ struct local_region;
 
 struct club : public team {
     String mSixLetterName;
-    Array<String, 6> mTranslatedSixLetterNames;
+    FoomTranslationArray mTranslatedSixLetterNames;
     String mAlternativeThreeLetterName;
-    Array<String, 6> mTranslatedAlternativeThreeLetterNames;
+    FoomTranslationArray mTranslatedAlternativeThreeLetterNames;
     Bool mExtinct = 0;
     nation *mNation = 0;
     nation *mBasedNation = 0;

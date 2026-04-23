@@ -2189,7 +2189,7 @@ void Converter::Convert() {
             struct derby_info {
                 String nameId;
                 String name;
-                Array<String, 6> translatedNames;
+                FoomTranslationArray translatedNames;
                 FifamClubLink club1;
                 FifamClubLink club2;
                 Int reputation = 0;
@@ -2830,7 +2830,80 @@ Bool Converter::ClubColorsFromBadgeFile(UInt clubId, FifamClubTeamColor &out) {
 }
 
 void Converter::ConvertCitiesAndRegions() {
-
+    FifamDatabase *db = mFifamDatabase;
+    foom::db *foomDb = mFoomDatabase;
+    auto ConvertTranslationNames = [](Array<String, CustomLanguages::NUM_TRANSLATION_LANGUAGES> &dst, FoomTranslationArray const &src) {
+        dst[CustomLanguages::TRANSLATIONLANGUAGE_FRE] = src[FOOM_TRANSLATION_FR];
+        dst[CustomLanguages::TRANSLATIONLANGUAGE_GER] = src[FOOM_TRANSLATION_DE];
+        dst[CustomLanguages::TRANSLATIONLANGUAGE_ITA] = src[FOOM_TRANSLATION_IT];
+        dst[CustomLanguages::TRANSLATIONLANGUAGE_SPA] = src[FOOM_TRANSLATION_ES];
+        dst[CustomLanguages::TRANSLATIONLANGUAGE_POL] = src[FOOM_TRANSLATION_PL];
+        dst[CustomLanguages::TRANSLATIONLANGUAGE_RUS] = src[FOOM_TRANSLATION_RU];
+        dst[CustomLanguages::TRANSLATIONLANGUAGE_POR] = src[FOOM_TRANSLATION_PT];
+        dst[CustomLanguages::TRANSLATIONLANGUAGE_TUR] = src[FOOM_TRANSLATION_TR];
+        dst[CustomLanguages::TRANSLATIONLANGUAGE_CHI] = src[FOOM_TRANSLATION_ZH];
+    };
+    auto NationToFifamCountry = [](foom::nation *n) -> UChar {
+        if (n) {
+            if (n->mID == 114502)
+                return FifamNation::Spain;
+            if (n->mID == 215446)
+                return FifamNation::Ukraine;
+            if (n->mID == 8162661)
+                return FifamNation::France;
+            return n->mConverterData.mFIFAManagerID;
+        }
+        return 0;
+    };
+    for (auto const &[id, p] : foomDb->mPlayers) {
+        if (p.mCityOfBirth)
+            p.mCityOfBirth->mConverterData.numPlayers++;
+    }
+    for (auto const &[id, c] : foomDb->mCities) {
+        FifamDatabase::City city;
+        city.id = id;
+        city.countryId = NationToFifamCountry(c.mNation);
+        if (city.countryId != 0) {
+            auto country = db->GetCountry(city.countryId);
+            if (country)
+                city.countryName = FifamTr(country->mName);
+        }
+        else if (c.mNation)
+            city.countryName = c.mNation->mName;
+        city.attraction = c.mAttraction;
+        city.climate = c.mWeather ? c.mWeather->mConverterData.mFIFAManagerClimate.ToInt() : 5;
+        city.weight = Utils::Max((UInt)c.mInhabitants, Utils::Min(c.mConverterData.numPlayers, (UInt)UINT16_MAX));
+        if (city.weight < 1)
+            city.weight = 1;
+        city.population = c.mInhabitants;
+        city.latitude = c.mLatitude;
+        city.longitude = c.mLongitude;
+        city.language = c.mLanguage ? c.mLanguage->mConverterData.mFIFAManagerReplacementID : 0;
+        FifamLanguage language = FifamLanguage::MakeFromInt(city.language);
+        city.languageName = language != FifamLanguage::None ? language.ToStr() : L"";
+        city.altitude = c.mAltitude;
+        city.regionId = c.mRegion ? c.mRegion->mID : -1;
+        city.names[CustomLanguages::TRANSLATIONLANGUAGE_ENG] = c.mName;
+        ConvertTranslationNames(city.names, c.mTranslatedNames);
+        db->mCities[id] = city;
+    }
+    for (auto const &[id, r] : foomDb->mLocalRegions) {
+        FifamDatabase::Region region;
+        region.id = id;
+        region.countryId = NationToFifamCountry(r.mNation);
+        if (region.countryId != 0) {
+            auto country = db->GetCountry(region.countryId);
+            if (country)
+                region.countryName = FifamTr(country->mName);
+        }
+        else if (r.mNation)
+            region.countryName = r.mNation->mName;
+        region.climate = r.mWeather ? r.mWeather->mConverterData.mFIFAManagerClimate.ToInt() : 5;
+        region.population = r.mPopulation;
+        region.names[CustomLanguages::TRANSLATIONLANGUAGE_ENG] = r.mName;
+        ConvertTranslationNames(region.names, r.mTranslatedNames);
+        db->mRegions[id] = region;
+    }
 }
 
 void Converter::ConvertWeatherToClimate() {

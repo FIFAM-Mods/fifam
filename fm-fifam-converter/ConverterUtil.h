@@ -2,6 +2,7 @@
 #include "FifamDate.h"
 #include "FifamTranslation.h"
 #include "FifamNames.h"
+#include "foom_translation.h"
 
 enum eFMFormation {
     FMF_FORMATION_4_3_2_1_DM_AM_NARROW = 1, // renamed from FMF_FORMATION_4_1_2_3_DM_AM_NARROW in 2026
@@ -113,10 +114,10 @@ template<typename T> T AlignMoneyValue(T input, T alignment) {
 
 Int OriginalAttrValue(Int attr);
 
-void ApplyTranslation(FifamTrArray<String> &dst, Array<String, 6> const &translations, UInt nameLimit = 0,
-    Array<String, 6> const &shortNames = {}, Array<String, 6> const &cityNames = {});
+void ApplyTranslation(FifamTrArray<String> &dst, FoomTranslationArray const &translations, UInt nameLimit = 0,
+    FoomTranslationArray const &shortNames = {}, FifamTrArray<String> const &cityNames = {});
 
-void SetNameAndTranslation(FifamTrArray<String> &dst, String const &name, Array<String, 6> const &translations, UInt nameLimit = 0,
-    String const &shortName = String(), Array<String, 6> const &shortNames = {}, Array<String, 6> const &cityNames = {});
+void SetNameAndTranslation(FifamTrArray<String> &dst, String const &name, FoomTranslationArray const &translations, UInt nameLimit = 0,
+    String const &shortName = String(), FoomTranslationArray const &shortNames = {}, FifamTrArray<String> const &cityNames = {});
 
-Array<String, 6> TranslationArrayFromTrArray(FifamTrArray<String> const &dst);
+FoomTranslationArray TranslationArrayFromTrArray(FifamTrArray<String> const &dst);

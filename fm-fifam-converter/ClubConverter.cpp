@@ -19,11 +19,11 @@ void Converter::ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom:
     SetNameAndTranslation(dst->mName, team->mName, team->mTranslatedNames, 29, team->mShortName, team->mTranslatedShortNames, dst->mCityName);
     dst->mName2 = dst->mName;
     // short name
-    SetNameAndTranslation(dst->mShortName, team->mShortName, team->mTranslatedShortNames, 10, String(), Array<String, 6>(), dst->mCityName);
+    SetNameAndTranslation(dst->mShortName, team->mShortName, team->mTranslatedShortNames, 10, String(), FoomTranslationArray(), dst->mCityName);
     dst->mShortName2 = dst->mShortName;
     // abbr
     String threeLetterName;
-    Array<String, 6> threeLetterTranslationNames;
+    FoomTranslationArray threeLetterTranslationNames;
     if (!team->mThreeLetterName.empty()) {
         threeLetterName = team->mThreeLetterName;
         threeLetterTranslationNames = team->mTranslatedThreeLetterNames;
@@ -459,7 +459,7 @@ void Converter::ConvertReserveClub(UInt gameId, FifamClub * dst, foom::club * te
     }
     // name
     SetNameAndTranslation(dst->mName, team->mName, team->mTranslatedNames, 29, team->mShortName, team->mTranslatedShortNames, dst->mCityName);
-    SetNameAndTranslation(dst->mShortName, team->mShortName, team->mTranslatedShortNames, 10, String(), Array<String, 6>(), dst->mCityName);
+    SetNameAndTranslation(dst->mShortName, team->mShortName, team->mTranslatedShortNames, 10, String(), FoomTranslationArray(), dst->mCityName);
     if (team->mName == mainTeam->mName) {
         String secondTypeName, thirdTypeName, youthTypeName;
         if (country && country->mId == FifamNation::Germany) {

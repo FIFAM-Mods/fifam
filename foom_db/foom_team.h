@@ -1,6 +1,7 @@
 #pragma once
 #include "FifamTypes.h"
 #include "foom_kit.h"
+#include "foom_translation.h"
 
 namespace foom {
 
@@ -11,13 +12,13 @@ struct team {
     Int mID = 0;
     Int mGender = 0;
     String mName;
-    Array<String, 6> mTranslatedNames;
+    FoomTranslationArray mTranslatedNames;
     String mShortName;
-    Array<String, 6> mTranslatedShortNames;
+    FoomTranslationArray mTranslatedShortNames;
     String mThreeLetterName;
-    Array<String, 6> mTranslatedThreeLetterNames;
+    FoomTranslationArray mTranslatedThreeLetterNames;
     String mNickname;
-    Array<String, 6> mTranslatedNicknames;
+    FoomTranslationArray mTranslatedNicknames;
     Int mReputation = 0;
     Int mAttendance = 0;
     Int mMinimumAttendance = 0;

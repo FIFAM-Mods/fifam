@@ -16,6 +16,7 @@
 #include "foom_stage_name.h"
 #include "foom_local_region.h"
 #include "foom_weather.h"
+#include "foom_translation.h"
 
 namespace foom {
 

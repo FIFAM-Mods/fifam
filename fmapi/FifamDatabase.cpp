@@ -1363,6 +1363,39 @@ void FifamDatabase::RecalculatePersonIDs() {
     }
 }
 
+UChar GetClimateID(String const &str) {
+    if (str.empty())
+        return 5;
+    auto l = Utils::ToLower(str);
+    if (l == L"cold")
+        return 0;
+    else if (l == L"cool")
+        return 1;
+    else if (l == L"moderate")
+        return 2;
+    else if (l == L"warm")
+        return 3;
+    else if (l == L"hot")
+        return 4;
+    return 5;
+}
+
+String GetClimateName(UChar id) {
+    switch (id) {
+    case 0: return L"Cold";
+    case 1: return L"Cool";
+    case 2: return L"Moderate";
+    case 3: return L"Warm";
+    case 4: return L"Hot";
+    }
+    return String();
+}
+
+UChar ReadCityRegionCountryId(String const &str) {
+    Int id = Utils::SafeConvertInt<Int>(str);
+    return (id >= 1 && id <= 207) ? (UChar)id : 0;
+}
+
 void FifamDatabase::ReadCities(Path const &dbFolder) {
     TextFileTable file;
     Path fileName = dbFolder / "Cities.txt";
@@ -1383,7 +1416,6 @@ void FifamDatabase::ReadCities(Path const &dbFolder) {
         return; // empty file
     auto header = file.Row(0);
     Int languageColumnIndexes[CustomLanguages::NUM_TRANSLATION_LANGUAGES] = {};
-    Int defaultColumnIndex = 1;
     for (UInt i = 0; i < CustomLanguages::NUM_TRANSLATION_LANGUAGES; i++)
         languageColumnIndexes[i] = -1;
     for (UInt columnIndex = 0; columnIndex < header.size(); columnIndex++) {
@@ -1395,7 +1427,9 @@ void FifamDatabase::ReadCities(Path const &dbFolder) {
     for (UInt row = 1; row < file.NumRows(); row++) {
         City city;
         city.id = Utils::SafeConvertInt<Int>(file.Cell(0, row));
-        city.countryId = Utils::SafeConvertInt<UChar>(file.Cell(2, row));
+        city.names[CustomLanguages::TRANSLATIONLANGUAGE_ENG] = file.Cell(1, row);
+        city.countryId = ReadCityRegionCountryId(file.Cell(2, row));
+        city.countryName = file.Cell(3, row);
         city.population = Utils::SafeConvertInt<UInt>(file.Cell(4, row));
         city.weight = Utils::SafeConvertInt<UShort>(file.Cell(5, row));
         city.latitude = Utils::SafeConvertFloat(file.Cell(6, row));
@@ -1403,14 +1437,13 @@ void FifamDatabase::ReadCities(Path const &dbFolder) {
         city.altitude = Utils::SafeConvertInt<Short>(file.Cell(8, row));
         city.attraction = Utils::SafeConvertInt<UChar>(file.Cell(9, row));
         city.language = Utils::SafeConvertInt<UChar>(file.Cell(10, row));
-        city.climate = Utils::SafeConvertInt<UChar>(file.Cell(11, row));
-        city.regionId = Utils::SafeConvertInt<Int>(file.Cell(12, row));
-        city.wikidataId = Utils::SafeConvertInt<UInt>(file.Cell(14, row));
+        city.languageName = file.Cell(11, row);
+        city.climate = GetClimateID(file.Cell(12, row));
+        city.regionId = Utils::SafeConvertInt<Int>(file.Cell(13, row));
+        city.wikidataId = Utils::SafeConvertInt<UInt>(file.Cell(15, row));
         for (UInt lang = 0; lang < CustomLanguages::NUM_TRANSLATION_LANGUAGES; lang++) {
             if (languageColumnIndexes[lang] != -1)
                 city.names[lang] = file.Cell(languageColumnIndexes[lang], row);
-            else if (defaultColumnIndex != -1)
-                city.names[lang] = file.Cell(defaultColumnIndex, row);
         }
         mCities[city.id] = city;
     }
@@ -1424,7 +1457,7 @@ void FifamDatabase::ReadRegions(Path const &dbFolder) {
     if (file.Rows().size() > 1) {
         for (size_t i = 1; i < file.Rows().size(); i++) {
             if (file.Rows()[i - 1].size() != file.Rows()[i].size()) {
-                ::Error(L"Error in Cities file: " + fileName.wstring() + Utils::Format(L"at row %u (%u/%u)", i,
+                ::Error(L"Error in Regions file: " + fileName.wstring() + Utils::Format(L"at row %u (%u/%u)", i,
                     file.Rows()[i - 1].size(), file.Rows()[i].size()));
                 return;
             }
@@ -1436,7 +1469,6 @@ void FifamDatabase::ReadRegions(Path const &dbFolder) {
         return; // empty file
     auto header = file.Row(0);
     Int languageColumnIndexes[CustomLanguages::NUM_TRANSLATION_LANGUAGES] = {};
-    Int defaultColumnIndex = 1;
     for (UInt i = 0; i < CustomLanguages::NUM_TRANSLATION_LANGUAGES; i++)
         languageColumnIndexes[i] = -1;
     for (UInt columnIndex = 0; columnIndex < header.size(); columnIndex++) {
@@ -1448,17 +1480,17 @@ void FifamDatabase::ReadRegions(Path const &dbFolder) {
     for (UInt row = 1; row < file.NumRows(); row++) {
         Region region;
         region.id = Utils::SafeConvertInt<Int>(file.Cell(0, row));
-        region.countryId = Utils::SafeConvertInt<UChar>(file.Cell(2, row));
+        region.names[CustomLanguages::TRANSLATIONLANGUAGE_ENG] = file.Cell(1, row);
+        region.countryId = ReadCityRegionCountryId(file.Cell(2, row));
+        region.countryName = file.Cell(3, row);
         region.population = Utils::SafeConvertInt<UInt>(file.Cell(4, row));
         region.latitude = Utils::SafeConvertFloat(file.Cell(5, row));
         region.longitude = Utils::SafeConvertFloat(file.Cell(6, row));
-        region.climate = Utils::SafeConvertInt<UChar>(file.Cell(7, row));
+        region.climate = GetClimateID(file.Cell(7, row));
         region.wikidataId = Utils::SafeConvertInt<UInt>(file.Cell(8, row));
         for (UInt lang = 0; lang < CustomLanguages::NUM_TRANSLATION_LANGUAGES; lang++) {
             if (languageColumnIndexes[lang] != -1)
                 region.names[lang] = file.Cell(languageColumnIndexes[lang], row);
-            else if (defaultColumnIndex != -1)
-                region.names[lang] = file.Cell(defaultColumnIndex, row);
         }
         mRegions[region.id] = region;
     }
@@ -1468,27 +1500,60 @@ void FifamDatabase::WriteCities(Path const &dbFolder) {
     TextFileTable file;
     Vector<String> header = {
         L"ID", L"Name", L"CountryID", L"CountryName", L"Population", L"Weight", L"Latitude", L"Longitude", L"Altitude",
-        L"Attraction", L"Language", L"Climate", L"Region", L"RegionName", L"WikidataID"
+        L"Attraction", L"Language", L"LanguageName", L"Climate", L"Region", L"RegionName", L"WikidataID"
     };
+    Array<Bool, CustomLanguages::NUM_TRANSLATION_LANGUAGES> LanguagePresent = {};
+    for (auto const &[id, city] : mCities) {
+        Bool allLanguages = true;
+        for (UInt i = 0; i < CustomLanguages::NUM_TRANSLATION_LANGUAGES; i++) {
+            if (!LanguagePresent[i] && !city.names[i].empty())
+                LanguagePresent[i] = true;
+            if (!LanguagePresent[i])
+                allLanguages = false;
+        }
+        if (allLanguages)
+            break;
+    }
     for (UInt i = 0; i < CustomLanguages::NUM_TRANSLATION_LANGUAGES; i++) {
-        if (i != CustomLanguages::TRANSLATIONLANGUAGE_ENG)
+        if (i != CustomLanguages::TRANSLATIONLANGUAGE_ENG && LanguagePresent[i])
             header.push_back(CustomLanguages::TranslationLanguagesW[i]);
     }
     file.AddRow(header);
-    for (auto const &[id, city] : mCities) {
+    Vector<City> cities;
+    cities.reserve(mCities.size());
+    for (auto const &[id, city] : mCities)
+        cities.push_back(city);
+    Utils::Sort(cities, [&](City const &a, City const &b) {
+        if (a.countryName < b.countryName)
+            return true;
+        if (a.countryName < b.countryName)
+            return false;
+        String regionNameA;
+        if (a.regionId != -1 && Utils::Contains(mRegions, a.regionId))
+            regionNameA = mRegions[a.regionId].names[CustomLanguages::TRANSLATIONLANGUAGE_ENG];
+        String regionNameB;
+        if (b.regionId != -1 && Utils::Contains(mRegions, b.regionId))
+            regionNameB = mRegions[b.regionId].names[CustomLanguages::TRANSLATIONLANGUAGE_ENG];
+        if (regionNameA < regionNameB)
+            return true;
+        if (regionNameB < regionNameA)
+            return false;
+        return a.names[CustomLanguages::TRANSLATIONLANGUAGE_ENG] < b.names[CustomLanguages::TRANSLATIONLANGUAGE_ENG];
+    });
+    for (auto const &c : cities) {
         String regionName;
-        if (city.regionId != -1 && Utils::Contains(mRegions, city.regionId))
-            regionName = mRegions[city.regionId].names[CustomLanguages::TRANSLATIONLANGUAGE_ENG];
+        if (c.regionId != -1 && Utils::Contains(mRegions, c.regionId))
+            regionName = mRegions[c.regionId].names[CustomLanguages::TRANSLATIONLANGUAGE_ENG];
         Vector<String> row = {
-            std::to_wstring(city.id), regionName, city.names[CustomLanguages::TRANSLATIONLANGUAGE_ENG], std::to_wstring(city.countryId),
-            FifamTr(GetCountry(city.countryId)->mName), std::to_wstring(city.population), std::to_wstring(city.weight),
-            std::to_wstring(city.latitude), std::to_wstring(city.longitude), std::to_wstring(city.altitude),
-            std::to_wstring(city.attraction), std::to_wstring(city.language), std::to_wstring(city.climate),
-            std::to_wstring(city.regionId), regionName, std::to_wstring(city.wikidataId)
+            std::to_wstring(c.id), c.names[CustomLanguages::TRANSLATIONLANGUAGE_ENG], std::to_wstring(c.countryId),
+            c.countryName, std::to_wstring(c.population), std::to_wstring(c.weight),
+            std::to_wstring(c.latitude), std::to_wstring(c.longitude), std::to_wstring(c.altitude),
+            std::to_wstring(c.attraction), std::to_wstring(c.language), c.languageName, GetClimateName(c.climate),
+            std::to_wstring(c.regionId), regionName, std::to_wstring(c.wikidataId)
         };
         for (UInt i = 0; i < CustomLanguages::NUM_TRANSLATION_LANGUAGES; i++) {
-            if (i != CustomLanguages::TRANSLATIONLANGUAGE_ENG)
-                row.push_back(city.names[i]);
+            if (i != CustomLanguages::TRANSLATIONLANGUAGE_ENG && LanguagePresent[i])
+                row.push_back(c.names[i]);
         }
         file.AddRow(row);
     }
@@ -1498,21 +1563,49 @@ void FifamDatabase::WriteCities(Path const &dbFolder) {
 void FifamDatabase::WriteRegions(Path const &dbFolder) {
     TextFileTable file;
     Vector<String> header = {
-        L"ID", L"CountryID", L"CountryName", L"Latitude", L"Longitude", L"default"
+        L"ID", L"Name", L"CountryID", L"CountryName", L"Population", L"Latitude", L"Longitude", L"Climate", L"WikidataID"
     };
+    Array<Bool, CustomLanguages::NUM_TRANSLATION_LANGUAGES> LanguagePresent = {};
+    for (auto const &[id, region] : mRegions) {
+        Bool allLanguages = true;
+        for (UInt i = 0; i < CustomLanguages::NUM_TRANSLATION_LANGUAGES; i++) {
+            if (!LanguagePresent[i] && !region.names[i].empty())
+                LanguagePresent[i] = true;
+            if (!LanguagePresent[i])
+                allLanguages = false;
+        }
+        if (allLanguages)
+            break;
+    }
     for (UInt i = 0; i < CustomLanguages::NUM_TRANSLATION_LANGUAGES; i++) {
-        if (i != CustomLanguages::TRANSLATIONLANGUAGE_ENG)
+        if (i != CustomLanguages::TRANSLATIONLANGUAGE_ENG && LanguagePresent[i])
             header.push_back(CustomLanguages::TranslationLanguagesW[i]);
     }
     file.AddRow(header);
-    for (auto const &[id, city] : mRegions) {
+    Vector<Region> regions;
+    regions.reserve(mRegions.size());
+    for (auto const &[id, region] : mRegions)
+        regions.push_back(region);
+    Utils::Sort(regions, [&](Region const &a, Region const &b) {
+        auto countryA = GetCountry(a.countryId);
+        auto countryB = GetCountry(b.countryId);
+        String countryNameA = countryA ? FifamTr(countryA->mName) : L"";
+        String countryNameB = countryB ? FifamTr(countryB->mName) : L"";
+        if (countryNameA < countryNameB)
+            return true;
+        if (countryNameB < countryNameA)
+            return false;
+        return a.names[CustomLanguages::TRANSLATIONLANGUAGE_ENG] < b.names[CustomLanguages::TRANSLATIONLANGUAGE_ENG];
+    });
+    for (auto const &r : regions) {
         Vector<String> row = {
-            std::to_wstring(city.id), std::to_wstring(city.countryId), FifamTr(GetCountry(city.countryId)->mName),
-            std::to_wstring(city.latitude), std::to_wstring(city.longitude), city.names[CustomLanguages::TRANSLATIONLANGUAGE_ENG]
+            std::to_wstring(r.id), r.names[CustomLanguages::TRANSLATIONLANGUAGE_ENG], std::to_wstring(r.countryId),
+            r.countryName, std::to_wstring(r.population), std::to_wstring(r.latitude),
+            std::to_wstring(r.longitude), GetClimateName(r.climate), std::to_wstring(r.wikidataId)
         };
         for (UInt i = 0; i < CustomLanguages::NUM_TRANSLATION_LANGUAGES; i++) {
-            if (i != CustomLanguages::TRANSLATIONLANGUAGE_ENG)
-                header.push_back(city.names[i]);
+            if (i != CustomLanguages::TRANSLATIONLANGUAGE_ENG && LanguagePresent[i])
+                row.push_back(r.names[i]);
         }
         file.AddRow(row);
     }

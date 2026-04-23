@@ -1,16 +1,18 @@
 #pragma once
 #include "FifamTypes.h"
+#include "foom_translation.h"
 
 namespace foom {
 
 struct nation;
 struct local_region;
 struct language;
+struct weather;
 
 struct city {
     Int mID = 0;
     String mName;
-    Array<String, 6> mTranslatedNames;
+    FoomTranslationArray mTranslatedNames;
     nation *mNation = nullptr;
     Int mInhabitants = 0;
     Float mLatitude = 0;
@@ -19,7 +21,11 @@ struct city {
     local_region *mRegion = nullptr;
     language *mLanguage = nullptr;
     Int mAttraction = 0;
-    Int mWeather = 0;
+    weather *mWeather = nullptr;
+
+    struct converter_data {
+        UInt numPlayers = 0;
+    } mConverterData;
 };
 
 }

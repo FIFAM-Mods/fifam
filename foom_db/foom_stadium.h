@@ -1,5 +1,6 @@
 #pragma once
 #include "FifamTypes.h"
+#include "foom_translation.h"
 
 namespace foom {
 
@@ -10,7 +11,7 @@ struct team;
 struct stadium {
     Int mID = 0;
     String mName;
-    Array<String, 6> mTranslatedNames;
+    FoomTranslationArray mTranslatedNames;
     nation *mNation = nullptr;
     city *mCity = nullptr;
     team *mOwner = nullptr;

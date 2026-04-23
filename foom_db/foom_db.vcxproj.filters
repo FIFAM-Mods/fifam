@@ -21,6 +21,7 @@
     <ClInclude Include="foom_team.h" />
     <ClInclude Include="foom_local_region.h" />
     <ClInclude Include="foom_weather.h" />
+    <ClInclude Include="foom_translation.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="foom_db.cpp" />

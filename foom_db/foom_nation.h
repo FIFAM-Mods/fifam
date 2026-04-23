@@ -2,6 +2,7 @@
 #include "FifamTypes.h"
 #include "foom_team.h"
 #include "foom_kit.h"
+#include "foom_translation.h"
 
 namespace foom {
 
@@ -14,7 +15,7 @@ struct club;
 
 struct nation : public team {
     String mNationalityName;
-    Array<String, 6> mTranslatedNationalityName;
+    FoomTranslationArray mTranslatedNationalityName;
     Int mContinent = -1;
     city *mCapitalCity = 0;
     stadium *mNationalStadium = 0;

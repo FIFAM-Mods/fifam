@@ -1,0 +1,17 @@
+#pragma once
+#include "FifamTypes.h"
+
+enum translation {
+    FOOM_TRANSLATION_FR = 0,
+    FOOM_TRANSLATION_DE = 1,
+    FOOM_TRANSLATION_IT = 2,
+    FOOM_TRANSLATION_ES = 3,
+    FOOM_TRANSLATION_PL = 4,
+    FOOM_TRANSLATION_RU = 5,
+    FOOM_TRANSLATION_TR = 6,
+    FOOM_TRANSLATION_PT = 7,
+    FOOM_TRANSLATION_ZH = 8,
+    FOOM_TRANSLATION_COUNT
+};
+
+using FoomTranslationArray = Array<String, FOOM_TRANSLATION_COUNT>;
