@@ -864,7 +864,7 @@ void Converter::ConvertLeagues(UInt gameId) {
                 Bool customLeagues = false;
                 Bool leagueSplit = false;
 
-                if (!customLeagues && !mFromFifaDatabase) {
+                if (!customLeagues && !mFromFifaDb) {
                     for (auto &leagues : divLeagues) {
                         for (DivisionInfo *lg : leagues.second) {
                             Bool leagueCustomFormat = lg->mSplit.first > 0 || lg->mTotalTeamsPromotionPlayoff > 0 || lg->mTotalTeamsRelegationPlayoff > 0;
@@ -2348,7 +2348,7 @@ void Converter::ConvertLeagues(UInt gameId) {
 
             Pair<FifamCompLeague *, FifamCompLeague *> splitLeagues = { relLeague[0], relLeague[1] };
 
-            if (!mFromFifaDatabase) {
+            if (!mFromFifaDb) {
                 if (mGenerateSpecialScripts && !mWomen)
                     ProcessScriptWithSpecialFormat(country, createdLeagues, createdCups, splitLeagues, vecPlayOffs);
 
@@ -2422,7 +2422,7 @@ void Converter::ConvertLeagues(UInt gameId) {
     delete leagueConfigSplit;
     delete leagueConfigTables;
 
-    if (!mFromFifaDatabase) {
+    if (!mFromFifaDb) {
     // verify calendars
         for (auto const &[id, data] : mCalendarsFirstSeason) {
             if (!mFifamDatabase->GetCompetition(id))

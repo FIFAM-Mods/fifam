@@ -5,7 +5,7 @@ from qgis.utils import iface
 # 1. CONFIGURATION
 # ==============================================================================
 
-COUNTRY_TO_SELECT = "ITA"  # Set your ADM0 value here
+COUNTRY_TO_SELECT = "PNG"  # Set your ADM0 value here
 
 LIGHT_GROUP_NAME = "Light Mode"
 DARK_GROUP_NAME  = "Dark Mode"

@@ -1,1 +1,1 @@
-magick mogrify -format png -filter Lanczos -resize 512x512 -define png:color-type=2 *.png
+magick mogrify -format tga -filter Lanczos -resize 512x512 -compress None -type TrueColor *.tga

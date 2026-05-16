@@ -399,7 +399,7 @@ FifamPlayer *Converter::CreateAndConvertPlayer(UInt gameId, foom::player * p, Fi
         appearanceCountry = playerCountry;
 
     static Map<UInt, FifamAppearanceDefs::Type> CountryMainAppearanceType;
-    if (CountryMainAppearanceType.empty()) {
+    if (false && CountryMainAppearanceType.empty()) {
         FifamWriter cw(L"CountryMainAppearanceType.txt");
         for (UInt countryId = 1; countryId <= FifamDatabase::NUM_COUNTRIES; countryId++) {
             FifamCountry *country = mFifamDatabase->GetCountry(countryId);

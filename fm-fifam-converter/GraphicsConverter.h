@@ -6,6 +6,8 @@ public:
     Bool mOnlyUpdates = false;
     Bool mOutputToGameFolder = true;
     Converter *mConverter = nullptr;
+    Set<String> mPortraitFilenames;
+    Set<String> mRefereePortraitFilenames;
 
     GraphicsConverter(Converter *converter);
     void ConvertClubBadges(foom::db *db, Map<Int, Path> const &availableBadges, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minRep = 0);
@@ -38,4 +40,7 @@ public:
     static Bool GetImageColor(Path const &filepath, ColorPair &clr);
     static FifamClubTeamColor GetBadgeColor(Path const &filepath);
     void ProcessFIFAXXLPortraits(foom::db* db, Path const& gameOutputPath);
+
+    Bool PortraitExists(String const &fileNameWithoutExt);
+    Bool RefereePortraitExists(String const &fileNameWithoutExt);
 };

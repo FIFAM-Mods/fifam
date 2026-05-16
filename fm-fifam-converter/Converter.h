@@ -15,7 +15,7 @@ public:
     FifamDatabase *mFifamDatabase = nullptr;
     FifaDatabase *mFifaDatabase = nullptr;
     UInt mCurrentGameId = FifamDatabase::LATEST_GAME_VERSION;
-    Bool mFromFifaDatabase = false;
+    Bool mFromFifaDb = false;
     foom::db *mFoomDatabase = nullptr;
     Bool mWarnings = false;
     Bool mErrors = true;
@@ -200,9 +200,6 @@ public:
     AppearanceGenerator appearanceGenerator;
     Map<Int, ClubColor> mClubColorsMap;
     Map<Int, Int> mPenaltyPointsMap;
-    Array<Map<Int, String>, FifamTranslation::NUM_TRANSLATIONS + 1> mAbbreviationMap;
-    Array<Map<Int, String>, FifamTranslation::NUM_TRANSLATIONS + 1> mShortNamesMap;
-    Array<Map<Int, String>, FifamTranslation::NUM_TRANSLATIONS + 1> mNamesMap;
     Map<UInt, Vector<UShort>> mCalendarsFirstSeason;
     Map<UInt, Vector<UShort>> mCalendarsSecondSeason;
     Map<UInt, Pair<FifamTrArray<String>, FifamTrArray<String>>> mSplitNames;
@@ -220,7 +217,6 @@ public:
     void ConvertClub(UInt gameId, FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);
     void ConvertReserveClub(UInt gameId, FifamClub *dst, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div);
     void ConvertClubStadium(FifamClub *dst, UInt gameId);
-    void ApplyClubCustomNames(UInt foomID, FifamClub *club);
     FifamClub *CreateAndConvertClub(UInt gameId, foom::club *team, foom::club *mainTeam, FifamCountry *country, DivisionInfo *div, bool convertSquad);
     void ConvertReferee(FifamReferee *dst, foom::official *official, UInt gameId);
     void ConvertKitsAndColors(FifamClub *dst, Int foomId, Vector<foom::kit> const &kits, Int badgeType, Color const &teamBackgroundColor,
@@ -267,6 +263,8 @@ public:
 
     enum eAlertType { AL_WARNING, AL_ERROR };
 
+    void InitLogFile();
+
     template<typename ...ArgTypes>
     Bool Alert(eAlertType type, const std::wstring &format, ArgTypes... args) {
         if ((type == AL_ERROR && mErrors) || (type == AL_WARNING && mWarnings)) {
@@ -276,16 +274,7 @@ public:
                 MessageBoxW(NULL, text, (type == AL_ERROR) ? L"Error" : L"Warning", (type == AL_ERROR) ? MB_ICONERROR : MB_ICONWARNING);
             else {
                 Bool fileExists = exists(mLogPath);
-                FILE *file = nullptr;
-                if (!fileExists) {
-                    file = _wfopen(mLogPath.c_str(), L"wb");
-                    if (!file)
-                        return false;
-                    const unsigned char bom[] = { 0xFF, 0xFE };
-                    fwrite(bom, sizeof(bom), 1, file);
-                    fclose(file);
-                }
-                file = _wfopen(mLogPath.c_str(), L"at, ccs=UNICODE");
+                FILE *file = _wfopen(mLogPath.c_str(), L"at, ccs=UNICODE");
                 if (!file)
                     return false;
                 fputws((type == AL_ERROR) ? L"Error\t" : L"Warning\t", file);

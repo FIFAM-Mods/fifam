@@ -28,6 +28,8 @@ public:
 
     FifamCountry *mCountry = nullptr;
 
+    String mWriteableStringID;
+
 public:
     FifamReferee();
     FifamReferee(FifamReferee const &rhs);

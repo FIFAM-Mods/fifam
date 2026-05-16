@@ -12,6 +12,27 @@ const wchar_t *countryLeagueNames[208] = { L"Germany",L"Albanien",L"Andorra",L"A
 GraphicsConverter::GraphicsConverter(Converter *converter) {
     Magick::InitializeMagick(NULL);
     mConverter = converter;
+    if (mOnlyUpdates) {
+        static const UInt NUM_PORTRAITS_FOLDERS = 6;
+        for (UInt portraitsNum = 1; portraitsNum <= NUM_PORTRAITS_FOLDERS; portraitsNum++) {
+            Path folderBase = mConverter->mContentArtsFolder / Utils::Format(L"art_portraits_%d", portraitsNum) / L"portraits";
+            for (UInt portraitsType = 0; portraitsType < 2; portraitsType++) {
+                Path folder = folderBase / ((portraitsType == 0) ? L"club" : L"Referees") / L"160x160";
+                if (exists(folder)) {
+                    for (auto i : directory_iterator(folder)) {
+                        auto p = i.path();
+                        if (is_regular_file(p)) {
+                            auto fileName = Utils::ToLower(p.stem().wstring());
+                            if (portraitsType == 0)
+                                mPortraitFilenames.insert(fileName);
+                            else
+                                mRefereePortraitFilenames.insert(fileName);
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 Pair<Int, Int> ResizeWithAspectRatio(Int x, Int y, Int dest_x, Int dest_y, Float minRatioPercentage = 0.75f) {
@@ -678,9 +699,8 @@ void GraphicsConverter::ConvertPortrait(foom::person *person, Path const &fmGrap
                 if (gameId <= 9)
                     portraitsDir = Path(L"art") / L"picture";
                 FifamPerson *fifamPerson = (FifamPerson *)person->mConverterData.mFifamPerson;
-                String dstFolder = L"art_02";
-                Path outputPath = contentPath / gameFolder / dstFolder / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat);
-                if (!mOnlyUpdates || !exists(outputPath)) {
+                if (!mOnlyUpdates || !PortraitExists(fifamPerson->mWriteableStringID)) {
+                    Path outputPath = contentPath / gameFolder / L"art_portraits" / portraitsDir / (fifamPerson->mWriteableStringID + targetFormat);
                     if (mOnlyUpdates || mOutputToGameFolder)
                         outputPath = Path(gameOutputPath / L"portraits\\club\\160x160") / (fifamPerson->mWriteableStringID + targetFormat);
                     Image portraitImg(portraitPath.string());
@@ -709,14 +729,14 @@ void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path con
             if (exists(portraitPath)) {
                 String targetFormat = L".png";
                 FifamReferee *fifamReferee = (FifamReferee *)referee->mConverterData.mFifamReferee;
-                Path basePath;
-                if (mOnlyUpdates || mOutputToGameFolder)
-                    basePath = gameOutputPath;
-                else
-                    basePath = contentPath / Utils::Format(mConverter->mWomen ? L"fm%02d_women" : L"fm%02d", gameId) / L"art_02";
-                Path outputPath = basePath / L"portraits" / L"Referees" / L"160x160" /
-                    (FifamNames::GetPersonStringId(gameId, fifamReferee->mFirstName, fifamReferee->mLastName, String(), Date(), 0) + targetFormat);
-                if (!mOnlyUpdates || !exists(outputPath)) {
+                String refStringID = FifamNames::GetPersonStringId(gameId, fifamReferee->mFirstName, fifamReferee->mLastName, String(), Date(), 0);
+                if (!mOnlyUpdates || !RefereePortraitExists(refStringID)) {
+                    Path basePath;
+                    if (mOnlyUpdates || mOutputToGameFolder)
+                        basePath = gameOutputPath;
+                    else
+                        basePath = contentPath / Utils::Format(mConverter->mWomen ? L"fm%02d_women" : L"fm%02d", gameId) / L"art_portraits";
+                    Path outputPath = basePath / L"portraits" / L"Referees" / L"160x160" / (refStringID + targetFormat);
                     Image portraitImg(portraitPath.string());
                     if (portraitImg.isValid() && portraitImg.baseRows() >= 150 && portraitImg.baseColumns() >= 150) {
                         if (portraitImg.baseColumns() != portraitImg.baseRows()) {
@@ -738,10 +758,12 @@ void GraphicsConverter::ConvertRefereePortrait(foom::official *referee, Path con
 
 void GraphicsConverter::ConvertPortraits(foom::db *db, Path const &fmGraphicsPath, Path const &contentPath, UInt gameId, Path const &gameOutputPath, Int minCA) {
     String gameFolder = Utils::Format(mConverter->mWomen ? L"fm%02d_women" : L"fm%02d", gameId);
-    create_directories(contentPath / gameFolder / L"art_02\\portraits\\club\\160x160");
-    create_directories(contentPath / gameFolder / L"art_02\\portraits\\Referees\\160x160");
-    if (mOnlyUpdates || mOutputToGameFolder)
+    create_directories(contentPath / gameFolder / L"art_portraits\\portraits\\club\\160x160");
+    create_directories(contentPath / gameFolder / L"art_portraits\\portraits\\Referees\\160x160");
+    if (mOnlyUpdates || mOutputToGameFolder) {
         create_directories(gameOutputPath / L"portraits\\club\\160x160");
+        create_directories(gameOutputPath / L"portraits\\Referees\\160x160");
+    }
     {
         std::wcout << L"Converting player portraits..." << std::endl;
         ProgressBar pb(db->mPlayers.size());
@@ -1459,4 +1481,12 @@ void GraphicsConverter::CopyLeagueSplitAndRelegationBadges(FifamDatabase *db, Pa
         else if (compId.mType == FifamCompType::Relegation)
             ConvertOneCompBadge(contentPath / L"playoff.tga", badgesOutputPath, compId.ToHexStr() + L".tga", gameId);
     }
+}
+
+Bool GraphicsConverter::PortraitExists(String const &fileNameWithoutExt) {
+    return Utils::Contains(mPortraitFilenames, Utils::ToLower(fileNameWithoutExt));
+}
+
+Bool GraphicsConverter::RefereePortraitExists(String const &fileNameWithoutExt) {
+    return Utils::Contains(mRefereePortraitFilenames, Utils::ToLower(fileNameWithoutExt));
 }

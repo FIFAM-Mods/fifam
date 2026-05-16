@@ -707,6 +707,11 @@ void FifamDatabase::SetupWriteableStatus(UInt gameId, Bool generateEmpicsIDs, Ve
             }
         }
     }
+
+    for (auto referee : mReferees) {
+        referee->mWriteableStringID =
+            FifamNames::GetPersonStringId(gameId, referee->mFirstName, referee->mLastName, String(), Date(), 0);
+    }
 }
 
 void FifamDatabase::SetupWriteableStatus(UInt gameId, Bool generateEmpicsIDs) {
@@ -1526,7 +1531,7 @@ void FifamDatabase::WriteCities(Path const &dbFolder) {
     Utils::Sort(cities, [&](City const &a, City const &b) {
         if (a.countryName < b.countryName)
             return true;
-        if (a.countryName < b.countryName)
+        if (b.countryName < a.countryName)
             return false;
         String regionNameA;
         if (a.regionId != -1 && Utils::Contains(mRegions, a.regionId))
@@ -1587,13 +1592,9 @@ void FifamDatabase::WriteRegions(Path const &dbFolder) {
     for (auto const &[id, region] : mRegions)
         regions.push_back(region);
     Utils::Sort(regions, [&](Region const &a, Region const &b) {
-        auto countryA = GetCountry(a.countryId);
-        auto countryB = GetCountry(b.countryId);
-        String countryNameA = countryA ? FifamTr(countryA->mName) : L"";
-        String countryNameB = countryB ? FifamTr(countryB->mName) : L"";
-        if (countryNameA < countryNameB)
+        if (a.countryName < b.countryName)
             return true;
-        if (countryNameB < countryNameA)
+        if (b.countryName < a.countryName)
             return false;
         return a.names[CustomLanguages::TRANSLATIONLANGUAGE_ENG] < b.names[CustomLanguages::TRANSLATIONLANGUAGE_ENG];
     });

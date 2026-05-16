@@ -103,5 +103,5 @@
 #include "tests\UpdateToFM26Update1.h"
 
 void RunTests() {
-    RunTest<WriteDbCountriesTest>();
+    RunTest<UpdateToFM26Update1>();
 }

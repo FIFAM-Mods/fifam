@@ -174,7 +174,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
         String filename;
         if (mToFifa07Database)
             filename = L"fifam_divisions_fifa07";
-        else if (mFromFifaDatabase)
+        else if (mFromFifaDb)
             filename = L"fifam_divisions_07";
         else
             filename = L"fifam_divisions";
@@ -305,7 +305,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
             }
         }
     }
-    if (!mFromFifaDatabase)
+    if (!mFromFifaDb)
     {
         std::wcout << L"Reading fifam_playoffs.txt..." << std::endl;
         FifamReader reader(infoPath / (L"fifam_playoffs" + gender + L".txt"), 0);
@@ -409,7 +409,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
             }
         }
     }
-    if (!mFromFifaDatabase)
+    if (!mFromFifaDb)
     {
         std::wcout << L"Reading fifam_split_names.txt..." << std::endl;
         FifamReader reader(infoPath / (L"fifam_split_names" + gender + L".txt"), 0);
@@ -962,37 +962,6 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                 }
                 else
                     reader.SkipLine();
-            }
-        }
-    }
-    {
-        Array<String, FifamTranslation::NUM_TRANSLATIONS + 1> translations = { L"", L"de", L"en", L"fr", L"es", L"it", L"pl" };
-        for (UInt i = 0; i < translations.size(); i++) {
-            String fileName = L"fifam_names";
-            if (!translations[i].empty())
-                fileName += L"_" + translations[i];
-            std::wcout << L"Reading " << fileName << "..." << std::endl;
-            FifamReader reader(infoPath / (fileName + L".txt"), 0);
-            if (reader.Available()) {
-                reader.SkipLine();
-                while (!reader.IsEof()) {
-                    if (!reader.EmptyLine()) {
-                        Int teamId = -1;
-                        String longName, shortName, abbr;
-                        String d;
-                        reader.ReadLineWithSeparator(L'\t', d, d, d, d, d, d, d, d, d, teamId, longName, shortName, abbr);
-                        if (teamId != -1) {
-                            if (!longName.empty())
-                                mNamesMap[i][teamId] = longName;
-                            if (!shortName.empty())
-                                mShortNamesMap[i][teamId] = shortName;
-                            if (!abbr.empty())
-                                mAbbreviationMap[i][teamId] = Utils::GetStringWithoutUnicodeChars(abbr);
-                        }
-                    }
-                    else
-                        reader.SkipLine();
-                }
             }
         }
     }

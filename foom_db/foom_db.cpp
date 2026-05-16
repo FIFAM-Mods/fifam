@@ -10,6 +10,7 @@ Int foom::db::convert_money(Int value) {
             result -= lastDigit;
         else
             result += 10 - lastDigit;
+            result += 10 - lastDigit;
     }
     return result;
 }
@@ -333,7 +334,6 @@ foom::db::db(Path const &dbpath, db_gender gender, bool readPersons, db_size pla
         // read non players
         ReaderCallback(L"fm_non_players", [&](FifamReader &reader) {
             non_player n;
-            String dummy; // TODO: remove this
             reader.ReadLine(n.mID, n.mFirstName, n.mSecondName, n.mCommonName, n.mFullName, n.mGender, n.mDateOfBirth, IntPtr(n.mNation), IntPtr(n.mLanguage), n.mAdaptability, n.mAmbition, n.mControversy, n.mLoyalty, n.mPressure, n.mProfessionalism, n.mSportsmanship, n.mTemperament, n.mJobManager, n.mJobAssistantManager, n.mJobCoach, n.mJobFitnessCoach, n.mJobGkCoach, n.mJobPhysio, n.mJobScout, n.mJobDataAnalyst, n.mJobSportsScientist, n.mJobDirectorOfFootball, n.mJobHeadOfYouth, n.mJobChairman, n.mJobTechnicalDirector, n.mJobHeadOfPlayerDevelopment, n.mJobSetPieceCoach, n.mCurrentAbility, n.mPotentialAbility, n.mOriginalCA, n.mOriginalPA, n.mRecommendedCA, n.mRecommendedJobRole, n.mCurrentReputation, n.mWorldReputation, n.mHomeReputation, n.mPreferredFormation, n.mSecondPreferredFormation, n.mCoachingStyle, n.mAttacking, n.mDetermination, n.mTacticalKnowledge, n.mBuyingPlayers, n.mHardnessOfTraining, n.mJudgingPlayerAbility, n.mJudgingPlayerPotential, n.mAnalysingData, n.mLevelOfDiscipline, n.mManManagement, n.mMindGames, n.mMotivating, n.mVersatility, n.mSquadRotation, n.mWorkingWithYoungsters, n.mCoachingAttacking, n.mCoachingDefending, n.mCoachingFitness, n.mCoachingGoalkeeping, n.mCoachingMental, n.mCoachingTactical, n.mCoachingTechnical, n.mCoachingSetPieces, n.mBusiness, n.mNegotiations, n.mInterference, n.mPatience, n.mResources, n.mPhysiotherapy, n.mSportsScience, n.mSignsALotOfYouthPlayers, n.mSignsYoungPlayersForTheFirstTeam, n.mWillMakeEarlyTacticalChanges, n.mWillFitPlayersIntoPreferredTactic, n.mWillLookToPlayOutOfDefence, n.mSideOfGameWilling, n.mSideOfGameCurrent);
             mNonPlayers[n.mID] = n;
         });
@@ -389,17 +389,6 @@ foom::db::db(Path const &dbpath, db_gender gender, bool readPersons, db_size pla
                 MAP_ADD_ENTITY_ATTR(mNonPlayers, nonplayerID, mDaysAtClubOrNation, d);
             }
         });
-        ReaderCallback(L"fm_non_player_side_of_game", [&](FifamReader &reader) {
-            Int nonplayerID = -1;
-            Int SideOfGameWilling = -1, SideOfGameCurrent = -1;
-            reader.ReadLine(nonplayerID, SideOfGameWilling, SideOfGameCurrent);
-            if (nonplayerID != -1 && SideOfGameWilling != -1) {
-                MAP_SET_ENTITY_ATTR(mNonPlayers, nonplayerID, mSideOfGameWilling, SideOfGameWilling);
-            }
-            if (nonplayerID != -1 && SideOfGameCurrent != -1) {
-                MAP_SET_ENTITY_ATTR(mNonPlayers, nonplayerID, mSideOfGameCurrent, SideOfGameCurrent);
-            }
-        });
     }
 
     // read officials
@@ -440,7 +429,7 @@ foom::db::db(Path const &dbpath, db_gender gender, bool readPersons, db_size pla
     // read cities
     ReaderCallback(L"fm_cities", [&](FifamReader &reader) {
         city c;
-        reader.ReadLine(c.mID, c.mName, IntPtr(c.mNation), c.mInhabitants, c.mLatitude, c.mAltitude, c.mLongitude, IntPtr(c.mRegion), IntPtr(c.mLanguage), c.mAttraction, IntPtr(c.mWeather));
+        reader.ReadLine(c.mID, c.mName, IntPtr(c.mNation), c.mInhabitants, c.mLatitude, c.mLongitude, c.mAltitude, IntPtr(c.mRegion), IntPtr(c.mLanguage), c.mAttraction, IntPtr(c.mWeather));
         mCities[c.mID] = c;
     });
     // read stadiums
@@ -487,6 +476,12 @@ foom::db::db(Path const &dbpath, db_gender gender, bool readPersons, db_size pla
             reader.ReadLine(id, name);
             if (Utils::Contains(mCities, id))
                 mCities[id].mTranslatedNames[tr] = name;
+        });
+        ReaderCallback(L"names_local_regions_" + translations[tr], [&](FifamReader &reader) {
+            Int id = -1; String name;
+            reader.ReadLine(id, name);
+            if (Utils::Contains(mLocalRegions, id))
+                mLocalRegions[id].mTranslatedNames[tr] = name;
         });
         //ReaderCallback(L"names_clubs_" + translations[tr], [&](FifamReader &reader) {
         //    Int id = -1; String name; String shortName; String threeLetterNameOriginal; String threeLetterName; String threeLetterNameAlternative; String nickname;

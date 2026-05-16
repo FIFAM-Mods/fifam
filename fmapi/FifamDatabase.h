@@ -90,7 +90,7 @@ public:
         Bool mWriteFixtures = true;
         Bool mWriteExternalScripts = true;
         Bool mWriteAppearanceDefs = true;
-        Bool mWriteCitiesAndRegions = false;
+        Bool mWriteCitiesAndRegions = true;
         UInt mMaxClubsInCountry[8] = { 512, 512, 512, 1024, 1024, 1024, 1024, 1024 };
         UInt mMaxPersonsInClub[8] = { 60, 96, 99, 99, 99, 99, 256, 256 };
         Map<FifamNation, Pair<FifamNation, FifamNation>> mCountryTranslationMap;

@@ -94,11 +94,20 @@ void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt 
     }
 
     // capital city
-    if (nation->mCapitalCity) {
-        SetNameAndTranslation(dst->mNationalTeam.mCityName, nation->mCapitalCity->mName, nation->mCapitalCity->mTranslatedNames, 29);
-        if (nation->mCapitalCity->mLatitude != 0 || nation->mCapitalCity->mLongitude != 0)
-            dst->mNationalTeam.mGeoCoords.SetFromFloat(nation->mCapitalCity->mLatitude, nation->mCapitalCity->mLongitude);
-        dst->mNationalTeam.mCityID = nation->mCapitalCity->mID;
+    dst->mNationalTeam.mCityID = -1;
+    if (dst->mId == FifamNation::Israel)
+        dst->mNationalTeam.mCityID = 1300651;
+    else if (dst->mId == FifamNation::Taiwan)
+        dst->mNationalTeam.mCityID = 103225;
+    else if (dst->mId == FifamNation::Macao)
+        dst->mNationalTeam.mCityID = 103212;
+    else {
+        if (nation->mCapitalCity) {
+            SetNameAndTranslation(dst->mNationalTeam.mCityName, nation->mCapitalCity->mName, nation->mCapitalCity->mTranslatedNames, 29);
+            if (nation->mCapitalCity->mLatitude != 0 || nation->mCapitalCity->mLongitude != 0)
+                dst->mNationalTeam.mGeoCoords.SetFromFloat(nation->mCapitalCity->mLatitude, nation->mCapitalCity->mLongitude);
+            dst->mNationalTeam.mCityID = nation->mCapitalCity->mID;
+        }
     }
 
     // wins
@@ -110,5 +119,4 @@ void Converter::ConvertNationInfo(FifamCountry *dst, foom::nation *nation, UInt 
     ConvertClubStadium(&dst->mNationalTeam, gameId);
     ConvertKitsAndColors(&dst->mNationalTeam, -1, nation->mVecKits, -1, nation->mBackgroundColor, nation->mForegroundColor, gameId);
     dst->mNationalTeam.mKit.mSpecialKitId = 0;
-    ApplyClubCustomNames(nation->mID, &dst->mNationalTeam);
 }
