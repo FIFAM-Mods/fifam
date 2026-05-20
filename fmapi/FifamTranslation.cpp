@@ -1,11 +1,11 @@
 #include "FifamTranslation.h"
 
 const Char *CustomLanguages::TranslationLanguages[CustomLanguages::NUM_TRANSLATION_LANGUAGES] = {
-    "eng", "fre", "ger", "ita", "spa", "pol", "rus", "ukr", "cze", "hun", "por", "tur", "kor", "chi"
+    "eng", "fre", "ger", "ita", "spa", "pol", "rus", "ukr", "cze", "hun", "por", "tur", "kor", "chi", "rom"
 };
 
 const WideChar *CustomLanguages::TranslationLanguagesW[CustomLanguages::NUM_TRANSLATION_LANGUAGES] = {
-    L"eng", L"fre", L"ger", L"ita", L"spa", L"pol", L"rus", L"ukr", L"cze", L"hun", L"por", L"tur", L"kor", L"chi"
+    L"eng", L"fre", L"ger", L"ita", L"spa", L"pol", L"rus", L"ukr", L"cze", L"hun", L"por", L"tur", L"kor", L"chi", L"rom"
 };
 
 CustomLanguages::TranslationLanguageID CustomLanguages::EditorLanguageToTranslationLanguage[CustomLanguages::NUM_DEFAULT_TRANSLATION_LANGUAGES] = {
@@ -24,6 +24,7 @@ CustomLanguages::EditorTranslationID CustomLanguages::TranslationLanguageToEdito
     EDITORTRANSLATION_ITA,
     EDITORTRANSLATION_SPA,
     EDITORTRANSLATION_POL,
+    EDITORTRANSLATION_ENG,
     EDITORTRANSLATION_ENG,
     EDITORTRANSLATION_ENG,
     EDITORTRANSLATION_ENG,

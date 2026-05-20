@@ -1000,13 +1000,39 @@ void AppearanceGenerator::SetFromFifaPlayer(FifamPlayer *player, FifaPlayer *fif
 class AssignPlayerFaces {
 public:
     AssignPlayerFaces() {
+        Path dbFolder = R"(D:\Projects\fifam\db)";
         Set<UInt> faceIDs;
-        FifamReader r(R"(D:\Games\FIFA Manager 13\fmdata\FaceIDs.txt)", 14, false, false);
-        UInt count = r.ReadLine<UInt>();
-        for (UInt i = 0; i < count; i++) {
-            r.SkipLine();
-            UInt faceId = r.ReadLine<UInt>();
-            faceIDs.insert(faceId);
+        {
+            FifamReader r(dbFolder / "FaceIDs.txt", 14, false, false);
+            UInt count = r.ReadLine<UInt>();
+            for (UInt i = 0; i < count; i++) {
+                r.SkipLine();
+                UInt faceId = r.ReadLine<UInt>();
+                faceIDs.insert(faceId);
+            }
+        }
+        Map<Int, UInt> foomPlayerToFifa;
+        {
+            FifamReader reader(dbFolder / "fm-fifa-players.csv", 0);
+            if (reader.Available()) {
+                reader.SkipLine();
+                while (!reader.IsEof()) {
+                    if (!reader.EmptyLine()) {
+                        String dummy;
+                        String foomIdStr, fifaIdStr, editorFace, editorHair, editorBeard, editorSkin, editorEye;
+                        reader.ReadLine(dummy, dummy, dummy, dummy, dummy, dummy, dummy,
+                            foomIdStr, fifaIdStr, editorSkin, editorFace, editorHair, editorBeard, editorEye);
+                        if (!foomIdStr.empty() && !fifaIdStr.empty()) {
+                            Int foomId = Utils::SafeConvertInt<Int>(foomIdStr);
+                            UInt fifaId = Utils::SafeConvertInt<UInt>(fifaIdStr);
+                            if (foomId >= 0 && fifaId != 0)
+                                foomPlayerToFifa[foomId] = fifaId;
+                        }
+                    }
+                    else
+                        reader.SkipLine();
+                }
+            }
         }
 
         FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
@@ -1015,14 +1041,16 @@ public:
         Converter::AppearanceGenerator gen;
 
         for (auto& p : db.mPlayers) {
+            p->mFifaID = 0;
+            p->mSpecialFace = 0;
+            if (p->mFootballManagerID >= 0 && Utils::Contains(foomPlayerToFifa, p->mFootballManagerID))
+                p->mFifaID = foomPlayerToFifa[p->mFootballManagerID];
             if (p->mFifaID != 0) {
                 auto fifaPlayer = fifadb->GetPlayer(p->mFifaID);
                 if (fifaPlayer)
                     gen.SetFromFifaPlayer(p, fifaPlayer);
                 if (Utils::Contains(faceIDs, p->mFifaID))
                     p->mSpecialFace = p->mFifaID;
-                else
-                    p->mSpecialFace = 0;
             }
         }
 

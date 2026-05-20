@@ -10,6 +10,7 @@ public:
         to->mHeaderColour = from->mHeaderColour;
         to->mBackgroundColour = from->mBackgroundColour;
         to->mBadge = from->mBadge;
+
     }
 
     CopyTeamColors() {

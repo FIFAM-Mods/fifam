@@ -34,7 +34,7 @@ public:
 
     DbGraphicsStats() {
         UInt gameVersion = 13;
-        FifamDatabase *db = new FifamDatabase(gameVersion, L"D:\\Games\\FIFA Manager 13\\database");
+        FifamDatabase *db = new FifamDatabase(gameVersion, L"database");
         db->SetupWriteableStatus(gameVersion, false);
         Map<FifamClub *, FifamCompLeague *> clubLeague;
 
@@ -73,44 +73,40 @@ public:
         };
 
         Vector<Path> portraitsPlayerPathSortitoutsi = {
-            R"(D:\Projects\fifam\content\fm13\art_02\portraits\club\160x160)",
-            R"(D:\Projects\fifam\content\fm13\art_03\portraits\club\160x160)",
-            R"(D:\Projects\fifam\content\fm13\art_06\portraits\club\160x160)",
-            R"(D:\Projects\fifam\content\fm13\art_07\portraits\club\160x160)",
-            R"(D:\Projects\fifam\content\fm13\art_08\portraits\club\160x160)",
-            R"(D:\Projects\fifam\content\fm13\art_09\portraits\club\160x160)",
-            R"(D:\Projects\fifam\content\fm13\art_10\portraits\club\160x160)",
-            //R"(D:\Projects\fifam\content\fm13\update1_portraits_1\portraits\club\160x160)",
-            //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_PORTRAITS_1\portraits\club\160x160)",
+            R"(D:\Projects\fifam\content\fm13\art_portraits_1\portraits\club\160x160)",
+            R"(D:\Projects\fifam\content\fm13\art_portraits_2\portraits\club\160x160)",
+            R"(D:\Projects\fifam\content\fm13\art_portraits_3\portraits\club\160x160)",
+            R"(D:\Projects\fifam\content\fm13\art_portraits_4\portraits\club\160x160)",
+            R"(D:\Projects\fifam\content\fm13\art_portraits_5\portraits\club\160x160)",
+            R"(D:\Projects\fifam\content\fm13\art_portraits_6\portraits\club\160x160)",
+            R"(D:\Projects\fifam\content\fm13\art_update1_portraits\portraits\club\160x160)",
         };
 
         Vector<Path> portraitsPlayerPathFMZ = {
-            R"(D:\Projects\fifam\content\fm13\fmz_portraits\art_02\portraits\club\160x160)",
-            R"(D:\Projects\fifam\content\fm13\fmz_portraits\art_03\portraits\club\160x160)",
-            //R"(D:\Projects\fifam\content\fm13\update1_portraits_2\portraits\club\160x160))",
-            //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_PORTRAITS_2\portraits\club\160x160)",
+            R"(D:\Projects\fifam\content\fm13\fmz_portraits\art_portraits_1\portraits\club\160x160)",
+            R"(D:\Projects\fifam\content\fm13\fmz_portraits\art_portraits_2\portraits\club\160x160)",
+            R"(D:\Projects\fifam\content\fm13\fmz_portraits\art_update1_portraits\portraits\club\160x160)",
         };
 
         Vector<Path> portraitsRefereePathSortitoutsi = {
-            R"(D:\Projects\fifam\content\fm13\art_02\portraits\Referees\160x160)",
-            //R"(D:\Projects\fifam\content\fm13\update1_portraits_1\portraits\Referees\160x160)",
-            //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_PORTRAITS_1\portraits\Referees\160x160)",
+            R"(D:\Projects\fifam\content\fm13\art_portraits_1\portraits\Referees\160x160)",
+            R"(D:\Projects\fifam\content\fm13\art_update1_portraits\portraits\Referees\160x160)",
         };
 
         Vector<Path> portraitsRefereePathFMZ = {
-            R"(D:\Projects\fifam\content\fm13\fmz_portraits\art_02\portraits\Referees\160x160)",
-            //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_PORTRAITS_2\portraits\Referees\160x160)",
+            R"(D:\Projects\fifam\content\fm13\fmz_portraits\art_portraits_1\portraits\Referees\160x160)",
+            R"(D:\Projects\fifam\content\fm13\fmz_portraits\art_update1_portraits\portraits\Referees\160x160)",
         };
 
         Vector<Path> portraitsXXLPath = {
-            R"(D:\Projects\fifam\content\fm13\art_14\portraits\club\512x512)",
-            R"(D:\Projects\fifam\content\fm13\art_15\portraits\club\512x512)",
-            R"(D:\Projects\fifam\content\fm13\art_16\portraits\club\512x512)",
-            R"(D:\Projects\fifam\content\fm13\art_17\portraits\club\512x512)",
-            R"(D:\Projects\fifam\content\fm13\art_18\portraits\club\512x512)",
-            R"(D:\Projects\fifam\content\fm13\art_19\portraits\club\512x512)",
-            //R"(D:\Projects\fifam\content\fm13\update1_portraits_xxl\portraits\club\512x512)",
-            //R"(C:\Users\Dmitri\Desktop\FM 24 update 2\_UPDATE_XXL\portraits\club\512x512)",
+            R"(D:\Projects\fifam\content\fm13\art_portraits_xxl_1\portraits\Club\512x512)",
+            R"(D:\Projects\fifam\content\fm13\art_portraits_xxl_2\portraits\Club\512x512)",
+            R"(D:\Projects\fifam\content\fm13\art_portraits_xxl_3\portraits\Club\512x512)",
+            R"(D:\Projects\fifam\content\fm13\art_portraits_xxl_4\portraits\Club\512x512)",
+            R"(D:\Projects\fifam\content\fm13\art_portraits_xxl_5\portraits\Club\512x512)",
+            R"(D:\Projects\fifam\content\fm13\art_portraits_xxl_6\portraits\Club\512x512)",
+            R"(D:\Projects\fifam\content\fm13\art_update1_portraits_xxl_1\portraits\Club\512x512)",
+            R"(D:\Projects\fifam\content\fm13\art_update1_portraits_xxl_2\portraits\Club\512x512)",
         };
 
         wcout << endl;
