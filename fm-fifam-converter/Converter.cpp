@@ -2929,7 +2929,14 @@ void Converter::ConvertCitiesAndRegions() {
         FifamLanguage language = FifamLanguage::MakeFromInt(city.language);
         city.languageName = language != FifamLanguage::None ? language.ToStr() : L"";
         city.altitude = c.mAltitude;
-        city.regionId = c.mRegion ? c.mRegion->mID : -1;
+        if (c.mRegion)
+            city.regionId = c.mRegion->mID;
+        else {
+            if (id == 166)
+                city.regionId = 34015441;
+            else
+                city.regionId = -1;
+        }
         city.names[CustomLanguages::TRANSLATIONLANGUAGE_ENG] = c.mName;
         ConvertTranslationNames(city.names, c.mTranslatedNames);
         db->mCities[id] = city;

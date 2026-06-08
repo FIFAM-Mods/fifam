@@ -402,6 +402,111 @@ void ConvertKitnumbersFewClubs(KitConverter &kitConverter) {
     kitConverter.ConvertClubKitNumbers(45, 0x001A000A);
 }
 
+void ConvertJerseyFonts(KitConverter &kitConverter) {
+    ReadTextDatabase();
+    ReadFifaDatabase(true);
+    Path outPath = "output\\graphics\\kitfonts";
+    Path inPath = "D:\\Projects\\FIFA\\kit\\fonts";
+    create_directories(outPath);
+    static Char const *kitTypeStr[] = { "_h", "_a", "_g", "_t" };
+    static Set<UInt> fontsToIgnore = { 29, 103, 49, 135, 134, 138, 19, 44, 96, 52, 22, 41 };
+    for (auto const &[fmId, fifaId] : mFifamClubs) {
+        if (fifaId != 0) {
+            auto fifaClub = fifadb->GetTeam(fifaId);
+            if (fifaClub && fifaClub->m_gameId == FifaDatabase::m_lastSupportedGameVersion) {
+                FifaKit *fifaKitToUse = nullptr;
+                Int firstKit = -1;
+                Set<UInt> fontIDs;
+                for (Int k = 0; k <= 3; k++) {
+                    auto fifaKit = fifaClub->GetKit(k);
+                    if (fifaKit) {
+                        if (firstKit == -1)
+                            firstKit = k;
+                        fontIDs.insert(fifaKit->internal.jerseynamefonttype);
+                    }
+                }
+                if (!fontIDs.empty() && firstKit != -1) {
+                    Int lastKit = fontIDs.size() > 1 ? 3 : firstKit;
+                    for (Int k = firstKit; k <= lastKit; k++) {
+                        auto fifaKit = fifaClub->GetKit(k);
+                        if (fifaKit && !Utils::Contains(fontsToIgnore, fifaKit->internal.jerseynamefonttype)) {
+                            Path fontFile = inPath / ("font_" + std::to_string(fifaKit->internal.jerseynamefonttype) + ".ttf");
+                            if (exists(fontFile)) {
+                                std::vector<std::string> numberNames;
+                                std::string clubId = Utils::Format("%08X", fmId);
+                                if (fifaClub->m_league) {
+                                    if (fifaClub->m_league->GetId() == 13) // England 1
+                                        numberNames.push_back("0E010000_" + clubId);
+                                    else if (fifaClub->m_league->GetId() == 14 || fifaClub->m_league->GetId() == 60 || fifaClub->m_league->GetId() == 61) { // England 2
+                                        numberNames.push_back("0E010001_" + clubId);
+                                        numberNames.push_back("0E010002_" + clubId);
+                                        numberNames.push_back("0E010003_" + clubId);
+                                    }
+                                    else if (fifaClub->m_league->GetId() == 16) // France 1
+                                        numberNames.push_back("12010000_" + clubId);
+                                    else if (fifaClub->m_league->GetId() == 17) // France 2
+                                        numberNames.push_back("12010001_" + clubId);
+                                    else if (fifaClub->m_league->GetId() == 31) // Italy 1
+                                        numberNames.push_back("1B010000_" + clubId);
+                                    else if (fifaClub->m_league->GetId() == 39) { // USA 1
+                                        numberNames.push_back("5F010000_" + clubId);
+                                        numberNames.push_back("5F080000_" + clubId);
+                                        numberNames.push_back("5F080001_" + clubId);
+                                        numberNames.push_back("5F040000_" + clubId);
+                                    }
+                                    //else if (fifaClub->m_league->GetId() == 41) // Norway 1
+                                    //    numberNames.push_back("24010000_" + clubId);
+                                    else if (fifaClub->m_league->GetId() == 50) { // Scotland 1
+                                        numberNames.push_back("2A010000_" + clubId);
+                                        //numberNames.push_back("2A080000_" + clubId);
+                                        //numberNames.push_back("2A080001_" + clubId);
+                                    }
+                                    else if (fifaClub->m_league->GetId() == 53 || fifaClub->m_league->GetId() == 54) { // Spain
+                                        numberNames.push_back("2D010000_" + clubId);
+                                        numberNames.push_back("2D010001_" + clubId);
+                                    }
+                                    else if (fifaClub->m_league->GetId() == 66) { // Poland 1
+                                        numberNames.push_back("25010000_" + clubId);
+                                        //numberNames.push_back("25080000_" + clubId);
+                                        //numberNames.push_back("25080001_" + clubId);
+                                    }
+                                    else if (fifaClub->m_league->GetId() == 83) // Korea 1
+                                        numberNames.push_back("A7010000_" + clubId);
+                                    else if (fifaClub->m_league->GetId() == 308) // Portugal 1
+                                        numberNames.push_back("26010000_" + clubId);
+                                    else if (fifaClub->m_league->GetId() == 351) { // Australia 1
+                                        numberNames.push_back("C3010000_" + clubId);
+                                        numberNames.push_back("C3040000_" + clubId);
+                                        numberNames.push_back("C3080000_" + clubId);
+                                        numberNames.push_back("C3080001_" + clubId);
+                                    }
+                                    else if (fifaClub->m_league->GetId() == 2012) // China 1
+                                        numberNames.push_back("9B010000_" + clubId);
+                                }
+                                if (numberNames.empty())
+                                    numberNames.push_back(clubId);
+                                StringA kitType;
+                                if (fontIDs.size() > 1)
+                                    kitType = kitTypeStr[k];
+                                for (auto const &numberName : numberNames)
+                                    copy(fontFile, outPath / (numberName + kitType + ".ttf"), copy_options::overwrite_existing);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    copy(inPath / "font_153.ttf", outPath / Utils::Format(L"%08X.ttf", GetClubUniqueIdByFifaID(5)),   copy_options::overwrite_existing);
+    copy(inPath /  "font_90.ttf", outPath / Utils::Format(L"%08X.ttf", GetClubUniqueIdByFifaID(9)),   copy_options::overwrite_existing);
+    copy(inPath / "font_155.ttf", outPath / Utils::Format(L"%08X.ttf", GetClubUniqueIdByFifaID(10)),  copy_options::overwrite_existing);
+    copy(inPath /  "font_78.ttf", outPath / Utils::Format(L"%08X.ttf", GetClubUniqueIdByFifaID(18)),  copy_options::overwrite_existing);
+    copy(inPath / "font_120.ttf", outPath / Utils::Format(L"%08X.ttf", GetClubUniqueIdByFifaID(66)),  copy_options::overwrite_existing);
+    copy(inPath / "font_145.ttf", outPath / Utils::Format(L"%08X.ttf", GetClubUniqueIdByFifaID(73)),  copy_options::overwrite_existing);
+    copy(inPath / "font_152.ttf", outPath / Utils::Format(L"%08X.ttf", GetClubUniqueIdByFifaID(240)), copy_options::overwrite_existing);
+    copy(inPath / "font_150.ttf", outPath / Utils::Format(L"%08X.ttf", GetClubUniqueIdByFifaID(243)), copy_options::overwrite_existing);
+}
+
 void ConvertBanners(KitConverter &kitConverter) {
     ReadTextDatabase();
     ReadFifaDatabase();
@@ -643,6 +748,7 @@ int main(int argc, char *argv[]) {
     KitConverter::options.V2 = true; // true
     KitConverter::options.AddKitOverlay = false; // false
     KitConverter kitConverter;
-    kitConverter.GenerateBallsDat(GetCompsMap());
+    //kitConverter.GenerateBallsDat(GetCompsMap());
     //ConvertRefereeKits(kitConverter);
+    ConvertJerseyFonts(kitConverter);
 }
