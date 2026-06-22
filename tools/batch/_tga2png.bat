@@ -1,0 +1,1 @@
+magick mogrify -format png -define png:color-type=6 *.tga
