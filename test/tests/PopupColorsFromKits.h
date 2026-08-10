@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamTypes.h"
 #include "Utils.h"
 #include <Magick++.h>
@@ -116,3 +117,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(PopupColorsFromKits)

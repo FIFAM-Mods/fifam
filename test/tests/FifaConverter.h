@@ -1,9 +1,11 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifaDbEnvironment.h"
 #include "FifamDbEnvironment.h"
 #include <iostream>
 
 class FifaConverter {
+public:
     FifaConverter() {
         // read FIFA database
         FifaDatabase *fifadb = GetEnvironment<FifaDbEnvironment>().GetDatabase();
@@ -16,3 +18,5 @@ class FifaConverter {
         
     }
 };
+
+REGISTER_TEST(FifaConverter)

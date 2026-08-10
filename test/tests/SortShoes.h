@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamReadWrite.h"
 #include "Magick++.h"
 
@@ -179,3 +180,5 @@ public:
         Sort(true);
     }
 };
+
+REGISTER_TEST(SortShoes)

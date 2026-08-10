@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifamReadWrite.h"
 #include "Error.h"
@@ -34,3 +35,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(ExportClubIDs)

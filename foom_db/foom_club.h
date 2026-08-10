@@ -62,10 +62,10 @@ struct club : public team {
     Int mSupporterExpectations = 0;
     Bool mInstituteClub = 0;
     Int mScoutingSystem = 0;
-    Color mShirtForeground;
-    Color mShirtBackground;
-    Color mAwayShirtForeground;
-    Color mAwayShirtBackground;
+    GenColor mShirtForeground;
+    GenColor mShirtBackground;
+    GenColor mAwayShirtForeground;
+    GenColor mAwayShirtBackground;
     local_region *mLocalRegion = 0;
 
     Bool mIsReserveDummyClub = false;

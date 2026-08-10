@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamTypes.h"
 #include "FifamReadWrite.h"
 
@@ -30,3 +31,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(ParametersTest)

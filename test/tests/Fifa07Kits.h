@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifaDbEnvironment.h"
 #include "FifamReadWrite.h"
 #include "Magick++.h"
@@ -134,3 +135,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(Fifa07Kits)

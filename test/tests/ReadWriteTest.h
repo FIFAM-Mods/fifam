@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamReadWrite.h"
 
 class ReadWriteTest {
@@ -55,3 +56,5 @@ public:
         std::wcout << std::endl;
     }
 };
+
+REGISTER_TEST(ReadWriteTest)

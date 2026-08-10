@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifamCompID.h"
 
@@ -23,3 +24,5 @@ public:
         std::wcout << std::endl;
     }
 };
+
+REGISTER_TEST(CompIDTest)

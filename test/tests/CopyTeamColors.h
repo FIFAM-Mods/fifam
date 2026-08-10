@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 class CopyTeamColors {
@@ -36,3 +37,5 @@ public:
         db.Write(13, FifamDatabase::GetGameDbVersion(13), "output\\database");
     }
 };
+
+REGISTER_TEST(CopyTeamColors)

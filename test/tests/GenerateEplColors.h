@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifaFifamIDsEnvironment.h"
 #include "FifaDbEnvironment.h"
 #include "FifamCompLeague.h"
@@ -116,3 +117,5 @@ public:
         };
     }
 };
+
+REGISTER_TEST(GenerateEplColors)

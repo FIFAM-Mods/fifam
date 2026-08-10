@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifaFifamIDsEnvironment.h"
 
@@ -25,3 +26,5 @@ public:
         std::wcout << L"Largest UID index: " << Utils::Format(L"%04X", largestIndex) << " (" << clubName << ")";
     }
 };
+
+REGISTER_TEST(FindLargestUIDIndex)

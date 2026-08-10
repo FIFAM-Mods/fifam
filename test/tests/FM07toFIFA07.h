@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "Magick++.h"
 #include "FifamDbEnvironment.h"
 #include "FifamNames.h"
@@ -109,3 +110,5 @@ public:
         translation.Close();
     }
 };
+
+REGISTER_TEST(FM07toFIFA07)

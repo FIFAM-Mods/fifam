@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifaDbEnvironment.h"
 #include "FifamReadWrite.h"
 #include "Error.h"
@@ -75,8 +76,10 @@ public:
         for (auto &[key, line] : keys)
             vecKeys.emplace_back(key, line + L"#0");
         if (!vecKeys.empty())
-            vecKeys.back().second += L"ì";
+            vecKeys.back().second += L"Ã¬";
         for (UInt i = 0; i < vecKeys.size(); i++)
             w.WriteLine(Utils::Format(L"%12u", vecKeys[i].first) + L";" + vecKeys[i].second);
     }
 };
+
+REGISTER_TEST(TrToTxt)

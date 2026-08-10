@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 using namespace std;
@@ -24,3 +25,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(FilesToFolders)

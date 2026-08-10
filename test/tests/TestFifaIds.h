@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDatabase.h"
 
 class TestFifaIds {
@@ -26,3 +27,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(TestFifaIds)

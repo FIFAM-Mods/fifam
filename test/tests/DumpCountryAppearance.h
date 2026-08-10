@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "TextFileTable.h"
 
@@ -187,3 +188,5 @@ public:
         file.WriteUnicodeText("country_appearance.txt");
     }
 };
+
+REGISTER_TEST(DumpCountryAppearance)

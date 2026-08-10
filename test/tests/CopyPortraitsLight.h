@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 
 #pragma once
 #include "FifamDbEnvironment.h"
@@ -193,3 +194,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(CopyPortraitsLight)

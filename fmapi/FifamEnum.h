@@ -325,5 +325,5 @@ public: \
 template<typename E>
 void FifamCheckEnum(E const &e) {
     if (e.GetWasSetFromUnknown())
-        Error("Enum %s was set from unknown value: %u", typeid(e).name(), e.GetUnknown());
+        ::Error("Enum %s was set from unknown value: %u", typeid(e).name(), e.GetUnknown());
 }

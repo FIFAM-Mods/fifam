@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 
 #include "FifaDbEnvironment.h"
 
@@ -32,3 +33,5 @@ public:
         //WriteCurrentPlayersToHistory(db, L"D:\\Projects\\fifam\\db", 18);
     }
 };
+
+REGISTER_TEST(ShowDbVersion)

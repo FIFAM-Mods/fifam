@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifamPlayerLevel.h"
 #include "FifamStaff.h"
@@ -25,3 +26,5 @@ public:
         delete db;
     }
 };
+
+REGISTER_TEST(RenameCityPictures)

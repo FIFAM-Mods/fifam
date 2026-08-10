@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifaFifamIDsEnvironment.h"
 #include "FifaDbEnvironment.h"
 #include "FifamCompLeague.h"
@@ -79,3 +80,5 @@ public:
             GenerateForClub(c.second, c.first);
     }
 };
+
+REGISTER_TEST(GenerateKitColors)

@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifamReadWrite.h"
 #include "FifamPlayer.h"
@@ -6,6 +7,8 @@
 #include "FifamPlayerAppearance.h"
 #include "FifaDatabase.h"
 #include "Random.h"
+
+using namespace std;
 
 class CopyHistoric {
 public:
@@ -139,3 +142,5 @@ public:
         wcout << L"Max supercup titles: " << ClubName(maxSuperCupWins.first) << L" - " << maxSuperCupWins.second << endl;
     }
 };
+
+REGISTER_TEST(CopyHistoric)

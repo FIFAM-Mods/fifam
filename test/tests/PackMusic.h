@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamReadWrite.h"
 #include "Error.h"
 #include "Magick++.h"
@@ -113,3 +114,5 @@ public:
             ::Error("Unable to open eatrax.txt");
     }
 };
+
+REGISTER_TEST(PackMusic)

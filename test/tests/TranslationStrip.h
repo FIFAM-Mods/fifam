@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 class TranslationStrip {
@@ -120,3 +121,5 @@ public:
         CsvToTr();
     }
 };
+
+REGISTER_TEST(TranslationStrip)

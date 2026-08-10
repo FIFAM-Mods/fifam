@@ -1,9 +1,11 @@
 ﻿#pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifamPlayerLevel.h"
 #include "FifamStaff.h"
 #include "FifamNames.h"
 #include "FifamCompLeague.h"
+#include <exception>
 
 String FixPersonName(String const &name, UInt gameId) {
     String result;
@@ -634,7 +636,7 @@ public:
                         }
                     }
                 }
-                catch (exception e) {
+                catch (std::exception e) {
                     ::Error("%s\n%d", e.what(), p->mFootballManagerID);
                 }
             }
@@ -832,3 +834,5 @@ public:
         portraitsWriter.Close();
     }
 };
+
+REGISTER_TEST(CompareDB)

@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 class WriteDbTest {
@@ -71,3 +72,5 @@ public:
         db->Write(13, FifamDatabase::GetGameDbVersion(13), "database_fixed_articles");
     }
 };
+
+REGISTER_TEST(WriteDbTest)

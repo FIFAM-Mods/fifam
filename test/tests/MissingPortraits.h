@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifamPlayerLevel.h"
 
@@ -54,3 +55,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(MissingPortraits)

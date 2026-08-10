@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifaFifamIDsEnvironment.h"
 #include "FifaDbEnvironment.h"
 #include "Magick++.h"
@@ -81,3 +82,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(GenericFaceTextures)

@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamReadWrite.h"
 #include "Error.h"
 
@@ -45,3 +46,5 @@ public:
         Convert(Remove);
     }
 };
+
+REGISTER_TEST(TranslationHashes)

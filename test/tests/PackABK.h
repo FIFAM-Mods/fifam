@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamTypes.h"
 #include "Error.h"
 
@@ -66,3 +67,5 @@ public:
             ::Error("Unable to open template.abk");
     }
 };
+
+REGISTER_TEST(PackABK)

@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamReadWrite.h"
 #include <iostream>
 
@@ -76,3 +77,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(GeneratePlayerFacesList)

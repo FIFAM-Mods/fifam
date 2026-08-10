@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "Error.h"
 #include "FifamTypes.h"
@@ -107,3 +108,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(ParseTransfermarktStats)

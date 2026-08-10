@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifamReadWrite.h"
 #include "FifamDatabase.h"
@@ -75,3 +76,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(ExportJapanLeaguePlayers)

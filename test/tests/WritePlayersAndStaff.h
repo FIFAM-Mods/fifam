@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDatabase.h"
 #include "FifamCompLeague.h"
 #include "FifamPlayerLevel.h"
@@ -157,3 +158,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(WritePlayersAndStaff)

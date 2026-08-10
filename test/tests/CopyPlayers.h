@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 class CopyPlayers {
@@ -246,3 +247,5 @@ public:
         delete referenceDb;
     }
 };
+
+REGISTER_TEST(CopyPlayers)

@@ -4,10 +4,7 @@
     <Filter Include="tests">
       <UniqueIdentifier>{5ba3a869-04ee-4782-ad17-75046895a1a0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="main">
-      <UniqueIdentifier>{8b145010-fa13-4d2b-92f8-7f80a64c7eb0}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="testenv">
+    <Filter Include="environment">
       <UniqueIdentifier>{2aea50a7-9fb0-4b2b-80fb-fa3234ddf4d8}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
@@ -15,23 +12,20 @@
     <ClInclude Include="tests\ShowDbVersion.h">
       <Filter>tests</Filter>
     </ClInclude>
-    <ClInclude Include="Tests.h">
-      <Filter>main</Filter>
-    </ClInclude>
     <ClInclude Include="tests\ShowPlayers.h">
       <Filter>tests</Filter>
     </ClInclude>
     <ClInclude Include="environment\FifaDbEnvironment.h">
-      <Filter>testenv</Filter>
+      <Filter>environment</Filter>
     </ClInclude>
     <ClInclude Include="environment\TestsEnvironment.h">
-      <Filter>testenv</Filter>
+      <Filter>environment</Filter>
     </ClInclude>
     <ClInclude Include="tests\ReadWriteTest.h">
       <Filter>tests</Filter>
     </ClInclude>
     <ClInclude Include="environment\FifamDbEnvironment.h">
-      <Filter>testenv</Filter>
+      <Filter>environment</Filter>
     </ClInclude>
     <ClInclude Include="tests\WriteCountries.h">
       <Filter>tests</Filter>
@@ -85,7 +79,7 @@
       <Filter>tests</Filter>
     </ClInclude>
     <ClInclude Include="environment\FoomDbEnvironment.h">
-      <Filter>testenv</Filter>
+      <Filter>environment</Filter>
     </ClInclude>
     <ClInclude Include="tests\FoomBasicTest.h">
       <Filter>tests</Filter>
@@ -120,7 +114,7 @@
     <ClInclude Include="tests\ExportPlayerAccessories.h">
       <Filter>tests</Filter>
     </ClInclude>
-    <ClInclude Include="tests\Parameters.h">
+    <ClInclude Include="tests\ParametersTest.h">
       <Filter>tests</Filter>
     </ClInclude>
     <ClInclude Include="tests\DbConvert.h">
@@ -154,7 +148,7 @@
       <Filter>tests</Filter>
     </ClInclude>
     <ClInclude Include="environment\FifaFifamIDsEnvironment.h">
-      <Filter>testenv</Filter>
+      <Filter>environment</Filter>
     </ClInclude>
     <ClInclude Include="tests\RenameCityPictures.h">
       <Filter>tests</Filter>
@@ -340,10 +334,10 @@
     <ClInclude Include="tests\NamesTest.h">
       <Filter>tests</Filter>
     </ClInclude>
+    <ClInclude Include="Tests.h" />
+    <ClInclude Include="TestRegistry.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Tests.cpp">
-      <Filter>main</Filter>
-    </ClCompile>
+    <ClCompile Include="Tests.cpp" />
   </ItemGroup>
 </Project>

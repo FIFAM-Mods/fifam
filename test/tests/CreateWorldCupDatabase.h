@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifamCompLeague.h"
 
@@ -100,3 +101,5 @@ public:
         db.Write(13, FifamDatabase::GetGameDbVersion(13), "db_wc");
     }
 };
+
+REGISTER_TEST(CreateWorldCupDatabase)

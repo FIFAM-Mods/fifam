@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 
 #pragma once
 #include "FifaDbEnvironment.h"
@@ -22,3 +23,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(Fifa07Convert)

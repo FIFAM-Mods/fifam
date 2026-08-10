@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamReadWrite.h"
 
 class UpdateKitConfig {
@@ -103,3 +104,5 @@ public:
 		}
 	}
 };
+
+REGISTER_TEST(UpdateKitConfig)

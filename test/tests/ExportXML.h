@@ -1,12 +1,14 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifamNames.h"
 #include "FifamCompLeague.h"
 #include "FifamCompRound.h"
 
-template<typename Game>
 class ExportXML {
 public:
+    const UInt GAME_ID = 13;
+
     static String GetPersonNameLastFirst(String const &last, String const &first) {
             return last + L", " + first;
     }
@@ -22,13 +24,13 @@ public:
     }
 
     ExportXML() {
-        FifamDatabase *db = GetEnvironment<FifamDbEnvironment<Game, Default>>().GetDatabase();
+        FifamDatabase db(GAME_ID, "db");
 
         FifamWriter writer(L"graphics_db.xml", 14, FifamVersion(), true);
         writer.SetReplaceQuotes(false);
         if (writer.Available()) {
             writer.WriteLine(L"<database name=\"Universal Converter Database\" version=\"2019\" update=\"2\" >");
-            for (auto country : db->mCountries) {
+            for (auto country : db.mCountries) {
                 if (country) {
                     writer.WriteLine(Utils::Format(L"    <country name=\"%s\" continent=\"%d\" id=\"%d\" >",
                         FifamTr(country->mName), country->mContinent.ToInt(), country->mId));
@@ -70,12 +72,12 @@ public:
                             writer.Write(Utils::Format(L" kit=\"%d\"", club->mKit.mSpecialKitId));
                         if (!club->mPlayers.empty() || !club->mStaffs.empty()) {
                             writer.WriteLine(L" >");
-                            std::sort(club->mPlayers.begin(), club->mPlayers.end(), [](FifamPlayer *a, FifamPlayer *b) {
-                                return a->GetStringUniqueId(Game::id(), false) < b->GetStringUniqueId(Game::id(), false);
+                            std::sort(club->mPlayers.begin(), club->mPlayers.end(), [&](FifamPlayer *a, FifamPlayer *b) {
+                                return a->GetStringUniqueId(GAME_ID, false) < b->GetStringUniqueId(GAME_ID, false);
                             });
                             for (auto player : club->mPlayers) {
                                 writer.Write(Utils::Format(L"            <player name=\"%s\" id=\"%s\"",
-                                    GetPersonName(player), player->GetStringUniqueId(Game::id(), false)));
+                                    GetPersonName(player), player->GetStringUniqueId(GAME_ID, false)));
                                 if (player->mEmpicsId)
                                     writer.Write(Utils::Format(L" empics=\"%d\"", player->mEmpicsId));
                                 if (player->mInYouthTeam)
@@ -84,12 +86,12 @@ public:
                                     writer.Write(L" team=\"1\"");
                                 writer.WriteLine(L" />");
                             }
-                            std::sort(club->mStaffs.begin(), club->mStaffs.end(), [](FifamStaff *a, FifamStaff *b) {
-                                return a->GetStringUniqueId(Game::id()) < b->GetStringUniqueId(Game::id());
+                            std::sort(club->mStaffs.begin(), club->mStaffs.end(), [&](FifamStaff *a, FifamStaff *b) {
+                                return a->GetStringUniqueId(GAME_ID) < b->GetStringUniqueId(GAME_ID);
                             });
                             for (auto staff : club->mStaffs) {
                                 writer.Write(Utils::Format(L"            <staff name=\"%s\" id=\"%s\"",
-                                    GetPersonName(staff), staff->GetStringUniqueId(Game::id())));
+                                    GetPersonName(staff), staff->GetStringUniqueId(GAME_ID)));
                                 if (staff->mClubPosition == FifamClubStaffPosition::Manager)
                                     writer.Write(L" job=\"1\"");
                                 else if (staff->mClubPosition == FifamClubStaffPosition::ChiefExec)
@@ -108,12 +110,12 @@ public:
                         writer.Write(Utils::Format(L" kit=\"%d\"", country->mNationalTeam.mKit.mSpecialKitId));
                     if (!country->mNationalTeam.mStaffs.empty()) {
                         writer.WriteLine(L" >");
-                        std::sort(country->mNationalTeam.mStaffs.begin(), country->mNationalTeam.mStaffs.end(), [](FifamStaff *a, FifamStaff *b) {
-                            return a->GetStringUniqueId(Game::id()) < b->GetStringUniqueId(Game::id());
+                        std::sort(country->mNationalTeam.mStaffs.begin(), country->mNationalTeam.mStaffs.end(), [&](FifamStaff *a, FifamStaff *b) {
+                            return a->GetStringUniqueId(GAME_ID) < b->GetStringUniqueId(GAME_ID);
                         });
                         for (auto staff : country->mNationalTeam.mStaffs) {
                             writer.Write(Utils::Format(L"            <staff name=\"%s\" id=\"%s\"",
-                                GetPersonName(staff), staff->GetStringUniqueId(Game::id())));
+                                GetPersonName(staff), staff->GetStringUniqueId(GAME_ID)));
                             if (staff->mClubPosition == FifamClubStaffPosition::Manager)
                                 writer.Write(L" job=\"1\"");
                             else if (staff->mClubPosition == FifamClubStaffPosition::ChiefExec)
@@ -126,27 +128,27 @@ public:
                     }
                     else
                         writer.WriteLine(L" />");
-                    std::sort(country->mReferees.begin(), country->mReferees.end(), [](FifamReferee *a, FifamReferee *b) {
-                        String nameA = FifamNames::GetPersonStringId(Game::id(), a->mFirstName, a->mLastName, String(), FifamDate(), 0);
-                        String nameB = FifamNames::GetPersonStringId(Game::id(), a->mFirstName, a->mLastName, String(), FifamDate(), 0);
+                    std::sort(country->mReferees.begin(), country->mReferees.end(), [&](FifamReferee *a, FifamReferee *b) {
+                        String nameA = FifamNames::GetPersonStringId(GAME_ID, a->mFirstName, a->mLastName, String(), FifamDate(), 0);
+                        String nameB = FifamNames::GetPersonStringId(GAME_ID, a->mFirstName, a->mLastName, String(), FifamDate(), 0);
                         return nameA < nameB;
                     });
                     for (auto referee : country->mReferees) {
                         writer.WriteLine(Utils::Format(L"        <referee name=\"%s\" id=\"%s\" />",
                             GetPersonName(referee->mLastName, referee->mFirstName, String()),
-                            FifamNames::GetPersonStringId(Game::id(), referee->mFirstName, referee->mLastName, String(), FifamDate(), 0)));
+                            FifamNames::GetPersonStringId(GAME_ID, referee->mFirstName, referee->mLastName, String(), FifamDate(), 0)));
                     }
                     Vector<FifamStaff *> countryStaffs;
-                    for (auto staff : db->mStaffs) {
+                    for (auto staff : db.mStaffs) {
                         if (!staff->mClub && staff->mLinkedCountry.ToInt() == country->mId)
                             countryStaffs.push_back(staff);
                     }
-                    std::sort(countryStaffs.begin(), countryStaffs.end(), [](FifamStaff *a, FifamStaff *b) {
-                        return a->GetStringUniqueId(Game::id()) < b->GetStringUniqueId(Game::id());
+                    std::sort(countryStaffs.begin(), countryStaffs.end(), [&](FifamStaff *a, FifamStaff *b) {
+                        return a->GetStringUniqueId(GAME_ID) < b->GetStringUniqueId(GAME_ID);
                     });
                     for (auto staff : countryStaffs) {
                         writer.Write(Utils::Format(L"        <staff name=\"%s\" id=\"%s\"",
-                            GetPersonName(staff), staff->GetStringUniqueId(Game::id())));
+                            GetPersonName(staff), staff->GetStringUniqueId(GAME_ID)));
                         if (staff->mClubPosition == FifamClubStaffPosition::Manager)
                             writer.Write(L" job=\"1\"");
                         else if (staff->mClubPosition == FifamClubStaffPosition::ChiefExec)
@@ -175,21 +177,21 @@ public:
                 }
             }
             Vector<FifamPlayer *> freeAgents;
-            for (auto player : db->mPlayers) {
+            for (auto player : db.mPlayers) {
                 if (!player->mClub)
                     freeAgents.push_back(player);
             }
-            std::sort(freeAgents.begin(), freeAgents.end(), [](FifamPlayer *a, FifamPlayer *b) {
-                return a->GetStringUniqueId(Game::id(), false) < b->GetStringUniqueId(Game::id(), false);
+            std::sort(freeAgents.begin(), freeAgents.end(), [&](FifamPlayer *a, FifamPlayer *b) {
+                return a->GetStringUniqueId(GAME_ID, false) < b->GetStringUniqueId(GAME_ID, false);
             });
             for (auto player : freeAgents) {
                 writer.Write(Utils::Format(L"    <player name=\"%s\" id=\"%s\"",
-                    GetPersonName(player), player->GetStringUniqueId(Game::id(), false)));
+                    GetPersonName(player), player->GetStringUniqueId(GAME_ID, false)));
                 if (player->mEmpicsId)
                     writer.Write(Utils::Format(L" empics=\"%d\"", player->mEmpicsId));
                 writer.WriteLine(L"/>");
             }
-            for (auto comp : db->mCompMap) {
+            for (auto comp : db.mCompMap) {
                 if (comp.second->mID.mRegion.ToInt() >= 249 && comp.second->GetDbType() != FifamCompDbType::Pool) {
                     writer.Write(Utils::Format(L"    <competition name=\"%s\" id=\"%s\"", FifamTr(comp.second->mName), comp.first.ToHexStr()));
                     if (comp.second->GetDbType() == FifamCompDbType::Cup)
@@ -205,3 +207,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(ExportXML)

@@ -1,5 +1,7 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
+#include <fstream>
 
 void WriteCountryDef(std::wofstream &out, int id, std::wstring const &name) {
     auto defName = name;
@@ -17,15 +19,16 @@ void WriteCountryDef(std::wofstream &out, int id, std::wstring const &name) {
         Utils::Format(L"L\"%s\")", name.c_str()) << std::endl;
 }
 
-template<typename Game, typename DbType>
 class WriteCountries {
 public:
     WriteCountries() {
-        FifamDatabase *db = GetEnvironment<FifamDbEnvironment<Game, DbType>>().GetDatabase();
+        FifamDatabase db(13, "db");
 
-        std::wofstream out(Utils::Format(L"CountryNames%d.txt", Game::id()));
+        std::wofstream out(L"CountryNames.txt");
         WriteCountryDef(out, 0, L"None");
         for (size_t i = 0; i < 207; i++)
-            WriteCountryDef(out, i + 1, FifamTr(db->mCountries[i]->mName));
+            WriteCountryDef(out, i + 1, FifamTr(db.mCountries[i]->mName));
     }
 };
+
+REGISTER_TEST(WriteCountries)

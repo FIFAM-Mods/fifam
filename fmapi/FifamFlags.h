@@ -177,5 +177,5 @@ public:
 template<typename F>
 void FifamCheckFlags(F const &f) {
     if (f.GetWasSetFromUnknown())
-        Error("Flags %s were set from unknown value: %u", typeid(f).name(), f.GetUnknown());
+        ::Error("Flags %s were set from unknown value: %u", typeid(f).name(), f.GetUnknown());
 }

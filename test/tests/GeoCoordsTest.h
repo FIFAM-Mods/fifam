@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifamGeoCoords.h"
 
@@ -9,3 +10,5 @@ public:
         std::wcout << coords.ToStr() << L" (" << coords.mLatitude.ToInt() << L"," << coords.mLongitude.ToInt() << L")";
     }
 };
+
+REGISTER_TEST(GeoCoordsTest)

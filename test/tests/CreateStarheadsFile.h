@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifaDbEnvironment.h"
 #include "FifamReadWrite.h"
 
@@ -27,3 +28,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(CreateStarheadsFile)

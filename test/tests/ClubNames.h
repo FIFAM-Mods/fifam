@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 class ClubNames {
@@ -82,3 +83,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(ClubNames)

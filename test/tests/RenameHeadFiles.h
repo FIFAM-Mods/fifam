@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamReadWrite.h"
 
 class RenameHeadFiles {
@@ -35,3 +36,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(RenameHeadFiles)

@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifaDbEnvironment.h"
 #include "FifamPlayerLevel.h"
@@ -51,3 +52,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(GetUnlinkedFaces)

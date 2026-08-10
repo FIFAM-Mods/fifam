@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifaDbEnvironment.h"
 #include "FifamReadWrite.h"
 #include "Error.h"
@@ -38,7 +39,7 @@ public:
                     String t;
                     if (Utils::EndsWith(l, L"#0"))
                         t = l.substr(13, l.size() - 15);
-                    else if (Utils::EndsWith(l, L"#0s") || Utils::EndsWith(l, L"#0ì"))
+                    else if (Utils::EndsWith(l, L"#0s") || Utils::EndsWith(l, L"#0Ã¬"))
                         t = l.substr(13, l.size() - 16);
                     else {
                         t = l.substr(13);
@@ -199,3 +200,5 @@ public:
         //    WriteTranslation(Utils::Format(L"TM09_RESULT_%08X", i));
     }
 };
+
+REGISTER_TEST(Translation)

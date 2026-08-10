@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamUtils.h"
 
 using namespace Magick;
@@ -28,3 +29,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(PngFix)

@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifaDbEnvironment.h"
 #include "FifamReadWrite.h"
 #include "FifamNames.h"
@@ -23,3 +24,5 @@ public:
         });
     }
 };
+
+REGISTER_TEST(WriteFifaPlayerNames)

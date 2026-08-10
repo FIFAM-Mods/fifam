@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifaFifamIDsEnvironment.h"
 
@@ -50,3 +51,5 @@ public:
         db.Write(13, FifamDatabase::GetGameDbVersion(13), "output\\database");
     }
 };
+
+REGISTER_TEST(FixCityLocations)

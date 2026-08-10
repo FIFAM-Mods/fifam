@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "Color.h"
 #include "FifamKit.h"
@@ -15,3 +16,5 @@ public:
         std::wcout << L"distance: " << ::Color::Distance(hex(0xd66267), hex(0xf95a60));
     }
 };
+
+REGISTER_TEST(ColorsTest)

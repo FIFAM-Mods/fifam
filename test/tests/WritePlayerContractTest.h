@@ -1,13 +1,13 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
-template<typename Game, typename DbType>
 class WritePlayerContractTest {
 public:
     WritePlayerContractTest() {
-        FifamDatabase *db = GetEnvironment<FifamDbEnvironment<Game, DbType>>().GetDatabase();
+        FifamDatabase db(13, "db");
 
-        FifamWriter writer(Utils::Format(L"player_contract_%02d.csv", Game::id()), Game::id(), FifamVersion(Game::year(), Game::vernum()), Game::unicode());
+        FifamWriter writer(L"player_contract.csv");
         if (writer.Available()) {
             writer.WriteLine(
                 L"Country",
@@ -58,7 +58,7 @@ public:
                 L"BuyBackClauseValidUntil",
                 L"Unknown_1"
             );
-            for (auto country : db->mCountries) {
+            for (auto country : db.mCountries) {
                 if (country) {
                     for (auto club : country->mClubs) {
                         for (auto player : club->mPlayers) {
@@ -118,3 +118,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(WritePlayerContractTest)

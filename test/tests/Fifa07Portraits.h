@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifamClubBadge.h"
 #include "Error.h"
@@ -276,3 +277,5 @@ public:
         Build();
     }
 };
+
+REGISTER_TEST(Fifa07Portraits)

@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 class FixScoutCountries {
@@ -40,3 +41,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(FixScoutCountries)

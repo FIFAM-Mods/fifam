@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FoomDbEnvironment.h"
 
@@ -163,3 +164,5 @@ public:
             wcout << L"'" << id <<  L"' Editor: '" << ID(id, true, true) << L"' Game: '" << ID(id, false, true) << "' Raw: '" << ID(id, false, false) << "'" << endl;
     }
 };
+
+REGISTER_TEST(PlayerIdTest)

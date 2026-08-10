@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamStaff.h"
 #include "FifamStaffSkillID.h"
 
@@ -322,3 +323,5 @@ public:
             L"Networking: " << staff->mSkills.Networking << Diff(skillsBefore.Networking, staff->mSkills.Networking);
     }
 };
+
+REGISTER_TEST(StaffTest)

@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 class FixInjuries {
@@ -53,3 +54,5 @@ public:
         db2.Write(13, FifamDatabase::GetGameDbVersion(13), "output\\database");
     }
 };
+
+REGISTER_TEST(FixInjuries)

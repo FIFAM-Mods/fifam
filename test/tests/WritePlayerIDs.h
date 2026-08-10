@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDatabase.h"
 #include "FifamPlayerLevel.h"
 #include "TextFileTable.h"
@@ -25,3 +26,5 @@ public:
         table.WriteUnicodeText("players.txt");
     }
 };
+
+REGISTER_TEST(WritePlayerIDs)

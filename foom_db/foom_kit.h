@@ -11,11 +11,11 @@ struct kit {
     Int mType = 0; // kit part
     Int mKitStyle = 0;
     Int mBackOfShirtStyle = 0;
-    Color mForeground;
-    Color mBackground;
-    Color mOutline;
-    Color mNumberColour;
-    Color mNumberOutlineColour;
+    GenColor mForeground;
+    GenColor mBackground;
+    GenColor mOutline;
+    GenColor mNumberColour;
+    GenColor mNumberOutlineColour;
     comp *mCompetition = 0;
     Int mYear = 0;
     Int mAlternativeKitNumber = 0;

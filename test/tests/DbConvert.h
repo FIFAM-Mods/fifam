@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 class DbConvert {
@@ -162,3 +163,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(DbConvert)

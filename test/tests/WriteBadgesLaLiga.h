@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifaFifamIDsEnvironment.h"
 #include "Magick++.h"
 
@@ -26,3 +27,5 @@ public:
         ProcessDir(R"(C:\Users\user\Desktop\light)", R"(D:\Projects\fifam\content\art_05\ucp_popups\badges\2D010001)");
     }
 };
+
+REGISTER_TEST(WriteBadgesLaLiga)

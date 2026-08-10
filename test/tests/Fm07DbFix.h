@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 class Fm07DbFix {
@@ -11,3 +12,5 @@ public:
         db.Write(7, FifamDatabase::GetGameDbVersion(7), "db_fm_07_fixed");
     }
 };
+
+REGISTER_TEST(Fm07DbFix)

@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "Error.h"
 #include "FifamReadWrite.h"
 
@@ -64,3 +65,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(FifaCommentaryFile)

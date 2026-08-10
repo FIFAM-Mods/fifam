@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FoomDbEnvironment.h"
 #include <iostream>
 
@@ -20,3 +21,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(FoomBasicTest)

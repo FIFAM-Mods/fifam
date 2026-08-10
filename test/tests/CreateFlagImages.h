@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifamUtils.h"
 
@@ -27,3 +28,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(CreateFlagImages)

@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifamDate.h"
 
@@ -11,3 +12,5 @@ public:
         std::wcout << L"d1: " << d1.ToString() << L" d2: " << d2.ToString();
     }
 };
+
+REGISTER_TEST(DatesTest)

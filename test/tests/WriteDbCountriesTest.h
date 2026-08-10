@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 class WriteDbCountriesTest {
@@ -249,3 +250,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(WriteDbCountriesTest)

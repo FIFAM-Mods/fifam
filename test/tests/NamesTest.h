@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "TestRegistry.h"
 #include "FifamTypes.h"
 #include "FifamNames.h"
 #include "Utils.h"
@@ -204,3 +205,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(NamesTest)

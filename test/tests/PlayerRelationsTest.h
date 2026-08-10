@@ -1,11 +1,11 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
-template<typename Game, typename DbType>
 class PlayerRelationsTest {
 public:
     PlayerRelationsTest() {
-        FifamDatabase *db = GetEnvironment<FifamDbEnvironment<Game, DbType>>().GetDatabase();
+        FifamDatabase db(13, "db");
         // TODO: remake this
         //auto playerIt = db->mPersonsMap.find(60832);
         //if (playerIt != db->mPersonsMap.end()) {
@@ -28,3 +28,5 @@ public:
         //}
     }
 };
+
+REGISTER_TEST(PlayerRelationsTest)

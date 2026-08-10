@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDatabase.h"
 
 class UpdateDbVersion {
@@ -154,3 +155,5 @@ public:
         db.Write(13, FifamDatabase::GetGameDbVersion(13), "output\\database");
     }
 };
+
+REGISTER_TEST(UpdateDbVersion)

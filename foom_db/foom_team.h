@@ -37,8 +37,8 @@ struct team {
     Int mSecondPreferredFormation = 0;
     player *mCaptain = 0;
     player *mViceCaptain = 0;
-    Color mForegroundColor;
-    Color mBackgroundColor;
+    GenColor mForegroundColor;
+    GenColor mBackgroundColor;
 
     Bool mIsNation = false;
 

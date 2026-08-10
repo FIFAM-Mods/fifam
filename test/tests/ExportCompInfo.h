@@ -1,19 +1,19 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifamCompLeague.h"
 #include "FifamCompCup.h"
 #include "FifamUtils.h"
 
-template<typename Game>
 class ExportCompInfo {
 public:
     ExportCompInfo() {
         FifamDatabase::mReadingOptions.mReadInternationalCompetitions = false;
         FifamDatabase::mReadingOptions.mReadPersons = false;
-        FifamDatabase *db = GetEnvironment<FifamDbEnvironment<Game, Default>>().GetDatabase();
-        db->SetupWriteableStatus(13);
+        FifamDatabase db(13, "db");
+        db.SetupWriteableStatus(13);
         create_directories("data");
-        for (auto[compId, comp] : db->mCompMap) {
+        for (auto[compId, comp] : db.mCompMap) {
             if (compId.mRegion.ToInt() > 0 && compId.mRegion.ToInt() <= 207 &&
                 (comp->GetDbType() == FifamCompDbType::League || comp->GetDbType() == FifamCompDbType::Cup))
             {
@@ -73,3 +73,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(ExportCompInfo)

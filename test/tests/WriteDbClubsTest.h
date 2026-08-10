@@ -1,14 +1,14 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifamUtils.h"
 
-template<typename Game, typename DbType>
 class WriteDbClubsTest {
 public:
     WriteDbClubsTest() {
-        FifamDatabase *db = GetEnvironment<FifamDbEnvironment<Game, DbType>>().GetDatabase();
+        FifamDatabase db(13, "db");
 
-        FifamWriter writer(Utils::Format(L"clubs_%02d_t.csv", Game::id()), Game::id(), FifamVersion(Game::year(), Game::vernum()), Game::unicode());
+        FifamWriter writer(L"clubs.csv");
         if (writer.Available()) {
             writer.Write(
                 L"Country name",
@@ -395,7 +395,7 @@ public:
                 );
                 writer.WriteNewLine();
             };
-            for (auto country : db->mCountries) {
+            for (auto country : db.mCountries) {
                 WriteClub(writer, country, &country->mNationalTeam);
                 for (auto c : country->mClubs)
                     WriteClub(writer, country, c);
@@ -403,3 +403,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(WriteDbClubsTest)

@@ -1,5 +1,7 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
+#include "FifaDbEnvironment.h"
 #include "FifamReadWrite.h"
 #include "FifamPlayer.h"
 #include "FifaPlayer.h"
@@ -1059,3 +1061,5 @@ public:
         db.Write(13, FifamDatabase::GetGameDbVersion(13), "output\\database");
     }
 };
+
+REGISTER_TEST(AssignPlayerFaces)

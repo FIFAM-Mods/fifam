@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 class UpdateDbNames {
@@ -125,3 +126,5 @@ public:
         dbnew->Write(gameVersion, FifamDatabase::GetGameDbVersion(gameVersion), dbPathOut);
     }
 };
+
+REGISTER_TEST(UpdateDbNames)

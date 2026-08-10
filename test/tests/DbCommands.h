@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifamCompLeague.h"
 #include "FifamCompPool.h"
@@ -409,3 +410,5 @@ public:
         db->Write(13, FifamDatabase::GetGameDbVersion(13), "output\\database");
     }
 };
+
+REGISTER_TEST(DbCommands)

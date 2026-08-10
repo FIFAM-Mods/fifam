@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 class CopyPortraitsWC {
@@ -54,3 +55,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(CopyPortraitsWC)

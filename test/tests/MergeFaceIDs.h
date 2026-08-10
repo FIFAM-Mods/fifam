@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 class MergeFaceIDs {
@@ -28,3 +29,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(MergeFaceIDs)

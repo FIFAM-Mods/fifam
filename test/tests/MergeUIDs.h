@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 const Bool WomenDatabase = false;
@@ -282,3 +283,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(MergeUIDs)

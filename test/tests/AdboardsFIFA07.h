@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamTypes.h"
 #include "Magick++.h"
 
@@ -33,3 +34,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(AdboardsFIFA07)

@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifaFifamIDsEnvironment.h"
 
 using namespace Magick;
@@ -26,3 +27,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(FifaBadgesToFifam)

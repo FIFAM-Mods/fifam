@@ -1,17 +1,17 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
-template<typename From, typename To>
-class MakeCalendarDatabase {
+class CalendarDatabase {
 public:
-    MakeCalendarDatabase() {
+    CalendarDatabase() {
         FifamDatabase::mReadingOptions.mReadClubs = true;
         FifamDatabase::mReadingOptions.mReadCountryCompetitions = true;
         FifamDatabase::mReadingOptions.mReadPersons = false;
 
-        FifamDatabase *db = new FifamDatabase(From::id(), Utils::Format(L"D:\\Games\\FIFA Manager %02d\\database", From::id()).c_str());
+        FifamDatabase db(13, L"D:\\Games\\FIFA Manager 13\\database");
 
-        for (FifamClub *c : db->mClubs) {
+        for (FifamClub *c : db.mClubs) {
 
             c->mYearOfFoundation = 1900;
             c->mTraditionalClub = false;
@@ -95,7 +95,8 @@ public:
             c->mPreferredFormations[1] = FifamFormation::None;
         }
 
-        db->Write(To::id(), To::year(), To::vernum(),
-            Utils::Format(L"calendar_database\\database", To::id()).c_str());
+        db.Write(13, FifamDatabase::GetGameDbVersion(13), L"calendar_database\\database");
     }
 };
+
+REGISTER_TEST(CalendarDatabase)

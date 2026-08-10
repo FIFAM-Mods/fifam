@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 class CopyTeamKits {
@@ -39,3 +40,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(CopyTeamKits)

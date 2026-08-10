@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamReadWrite.h"
 #include <iostream>
 
@@ -160,3 +161,5 @@ public:
         wcout << "Total iterations: " << totalIterations;
     }
 };
+
+REGISTER_TEST(ParseStructs)

@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 #include "FifamClubBadge.h"
 
@@ -23,3 +24,5 @@ public:
         PrintBadgeInfo(L"Color\\Badge%d\\ro_ws_02.tga");
     }
 };
+
+REGISTER_TEST(BadgeTest)

@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 class CopyPortraitsNoID {
@@ -45,3 +46,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(CopyPortraitsNoID)

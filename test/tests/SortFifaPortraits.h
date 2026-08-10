@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifaDbEnvironment.h"
 #include "FifamTypes.h"
 #include "Utils.h"
@@ -80,3 +81,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(SortFifaPortraits)

@@ -1,4 +1,5 @@
 #pragma once
+#include "TestRegistry.h"
 #include "FifamDbEnvironment.h"
 
 class FixCompetitionBadges {
@@ -160,3 +161,5 @@ public:
         }
     }
 };
+
+REGISTER_TEST(FixCompetitionBadges)
