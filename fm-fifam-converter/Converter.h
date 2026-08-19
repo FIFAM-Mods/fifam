@@ -268,10 +268,9 @@ public:
     template<typename ...ArgTypes>
     Bool Alert(eAlertType type, const std::wstring &format, ArgTypes... args) {
         if ((type == AL_ERROR && mErrors) || (type == AL_WARNING && mWarnings)) {
-            static WideChar text[4096];
-            swprintf(text, 4096, format.c_str(), Utils::FormatterUtilsUnicode::Arg(args)...);
+            auto text = Utils::Format(format, args...);
             if (!mLogErrors)
-                MessageBoxW(NULL, text, (type == AL_ERROR) ? L"Error" : L"Warning", (type == AL_ERROR) ? MB_ICONERROR : MB_ICONWARNING);
+                MessageBoxW(NULL, text.c_str(), (type == AL_ERROR) ? L"Error" : L"Warning", (type == AL_ERROR) ? MB_ICONERROR : MB_ICONWARNING);
             else {
                 Bool fileExists = exists(mLogPath);
                 FILE *file = _wfopen(mLogPath.c_str(), L"at, ccs=UNICODE");

@@ -771,7 +771,8 @@ Bool FifamCountry::Write(FifamWriter &writer) {
     writer.WriteLine(mNumContinentalRunnersUp);
     writer.WriteLine(mNumWorldCupRunnersUp);
     writer.WriteLine(mNotes);
-    writer.WriteLine(mFootballManagerID);
+    if (writer.IsVersionGreaterOrEqual(0x2013, 0x12))
+        writer.WriteLine(mFootballManagerID);
     writer.WriteEndIndex(countryMiscSectionName);
     writer.WriteEndIndex(L"COUNTRY");
     return true;
