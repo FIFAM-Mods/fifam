@@ -23,7 +23,7 @@ public:
         auto &ids = GetEnvironment<FifaFifamIDsEnvironment>();
         Map<Int, Int> clubCityLinks;
         Set<Int> basquePlayerIDs;
-        Array<Int, 208> capitalCity;
+        Array<Int, FifamDatabase::NUM_COUNTRIES> capitalCity;
         Map<Int, Int> personCityLinks;
         Set<Int> femalePersons;
         for (auto &c : capitalCity)

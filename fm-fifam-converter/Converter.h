@@ -40,7 +40,7 @@ public:
     Map<UInt, FifamPlayer *> mPreviousPlayers;
     Map<UInt, ColorPair> mRefDbColors;
     Set<UInt> mFreeAgentsToAdd;
-    Array<UInt, 207> mIPCountryStrength = {};
+    Array<UInt, FifamDatabase::NUM_COUNTRIES> mIPCountryStrength = {};
     Set<UInt> mFaceIDs;
     Map<UInt, Int> mFifamCompIdToFifa07LeagueId;
     Map<UInt, Int> mFifamCompIdToFifa07TournamentId;

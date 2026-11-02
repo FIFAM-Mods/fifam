@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Release|Win32">
@@ -132,6 +132,7 @@
     <ClInclude Include="FifamCompetition.h" />
     <ClInclude Include="FifamCompCup.h" />
     <ClInclude Include="FifamCountry.h" />
+    <ClInclude Include="FifamCountryLimit.h" />
     <ClInclude Include="FifamCountryAppearanceData.h" />
     <ClInclude Include="FifamCountryLeagueLevelInfo.h" />
     <ClInclude Include="FifamCupAlloc.h" />

@@ -11,7 +11,7 @@ public:
             0x360029, 0x36002E, 0x360036, 0x36003C, 0x360044, 0x360047, 0x36004E, 0x361026, 0x361028, 0x361034, 0x361082, 0x36305C, 0x3630FC,
             0x363495
         };
-        for (UInt i = 1; i <= 207; i++)
+        for (UInt i = 1; i <= FifamDatabase::NUM_COUNTRIES; i++)
             clubIds.insert((i << 16) | 0xFFFF);
         Map<UInt, FifamKit> kits;
         {

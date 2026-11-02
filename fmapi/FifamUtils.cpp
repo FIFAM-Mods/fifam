@@ -7,12 +7,12 @@
 UChar FifamUtils::GetConvertedRegion(UChar region, UInt gameFrom, UInt gameTo) {
     if (gameFrom < 8) {
         if (region == 206)
-            region = 207;
+            region = FifamNation::Greenland;
     }
     if (gameTo < 8) {
         if (region == 206)
             region = 0;
-        else if (region == 207)
+        else if (region == FifamNation::Greenland)
             region = 206;
     }
     return region;
@@ -22,14 +22,14 @@ Bool FifamUtils::ConvertRegion(UChar &region, UInt gameFrom, UInt gameTo) {
     Bool result = true;
     if (gameFrom < 8) {
         if (region == 206)
-            region = 207;
+            region = FifamNation::Greenland;
     }
     if (gameTo < 8) {
         if (region == 206) {
             region = 0;
             result = false;
         }
-        else if (region == 207)
+        else if (region == FifamNation::Greenland)
             region = 206;
     }
     return result;

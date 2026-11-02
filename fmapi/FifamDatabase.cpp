@@ -149,9 +149,16 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
         }
         else
             countriesVer = 1;
-        if (countriesVer >= 1 && countriesVer <= 3) {
-            for (UInt i = 0; i < NUM_COUNTRIES; i++) {
-                FifamCountry *country = CreateCountry(i + 1);
+        if (countriesVer >= 1 && countriesVer <= 4) {
+            UInt countryCount = countriesVer == 4 ? reader.ReadLine<UInt>() : (gameId <= 7 ? 206 : FifamLegacyCountryCount);
+            if (countryCount > NUM_COUNTRIES) {
+                Error(L"Unsupported country count");
+                return;
+            }
+            for (UInt i = 0; i < countryCount; i++) {
+                UInt id = i + 1;
+                if (gameId <= 7 && id == 206) id = FifamNation::Greenland;
+                FifamCountry *country = CreateCountry(id);
                 if (IsCountryPresent(gameId, country->mId)) {
                     reader.ReadLineTranslationArray(country->mName);
                     if (gameId >= 4)
@@ -239,7 +246,7 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
                     assessmentReader.ReadLineWithSeparator(L'\t', countryId, dummy, dummy, dummy, dummy, dummy,
                         data[0], data[1], data[2], data[3], data[4], data[5]);
                 }
-                if (countryId > 0 && countryId <= 208 && mCountries[countryId - 1])
+                if (countryId > 0 && countryId <= NUM_COUNTRIES && mCountries[countryId - 1])
                     mCountries[countryId - 1]->mAssessmentData = data;
             }
             else
@@ -325,6 +332,26 @@ void FifamDatabase::Read(UInt gameId, Path const &dbPath) {
 }
 
 void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &dbPath) {
+    if (version.IsGreaterOrEqual(0x2013, FifamCountryDatabaseVersion)) {
+        // Countries.sav is positional. Missing legacy slots cannot be omitted.
+        for (UInt id = 1; id <= FifamLegacyCountryCount; ++id) {
+            if (!mCountries[id - 1]) {
+                Error(L"Writing an extended database requires all legacy country slots");
+                return;
+            }
+        }
+        for (UInt id = FifamLegacyCountryCount + 1; id <= NUM_COUNTRIES; ++id)
+            CreateCountry(id);
+    }
+
+    if (!version.IsGreaterOrEqual(0x2013, FifamCountryDatabaseVersion)) {
+        for (UInt id = 208; id <= NUM_COUNTRIES; ++id) {
+            if (mCountries[id - 1] && !(gameId <= 7 && id == FifamNation::Greenland)) {
+                Error(L"Extended countries require database version 0x20130013 or newer");
+                return;
+            }
+        }
+    }
     if (!exists(dbPath))
         create_directories(dbPath);
     if (gameId >= 11) {
@@ -475,8 +502,9 @@ void FifamDatabase::Write(UInt gameId, FifamVersion const &version, Path const &
     if (countriesWriter.Available()) {
         auto &writer = countriesWriter;
         if (gameId >= 7) {
-            UInt countriesVer = (gameId <= 7) ? 2 : 3;
+            UInt countriesVer = version.IsGreaterOrEqual(0x2013, FifamCountryDatabaseVersion) ? 4 : ((gameId <= 7) ? 2 : 3);
             writer.WriteLine(Utils::Format(L"Countries Version: %d", countriesVer));
+            if (countriesVer == 4) writer.WriteLine(UInt(NUM_COUNTRIES));
         }
         for (UInt i = 0; i < NUM_COUNTRIES; i++) {
             auto &country = mCountries[i];
@@ -795,8 +823,29 @@ FifamDatabase::~FifamDatabase() {
 }
 
 FifamCountry *FifamDatabase::CreateCountry(UInt id) {
+    if (id < 1 || id > NUM_COUNTRIES) return nullptr;
     if (!mCountries[id - 1]) {
         mCountries[id - 1] = new FifamCountry(id, this);
+        auto country = mCountries[id - 1];
+        country->mCupFinalStadium = 0;
+        country->mNationalTeam.mCountry = country;
+        country->mNationalTeam.mDatabase = this;
+        country->mNationalTeam.mIsNationalTeam = true;
+        if (id > FifamLegacyCountryCount) {
+            auto const &definition = FifamAddedCountries[id - FifamLegacyCountryCount - 1];
+            FifamTrSetAll(country->mName, String(definition.name));
+            FifamTrSetAll(country->mAbbr, String(definition.abbr));
+            FifamTrSetAll(country->mNationalTeam.mName, String(definition.name));
+            FifamTrSetAll(country->mNationalTeam.mShortName, String(definition.abbr));
+            country->mContinent.SetFromInt(definition.continent);
+            country->mTerritory.SetFromInt(definition.territory);
+            country->mFirstLanguageForNames.SetFromInt(definition.language1);
+            country->mSecondLanguageForNames.SetFromInt(definition.language2);
+            country->mLanguages[0] = country->mFirstLanguageForNames;
+            country->mLanguageFrequency[0] = 100;
+            country->mAverageHeight = 178;
+            country->mAverageWeight = 75;
+        }
         FifamCompID rootID = { (UChar)id, FifamCompType::Root, 0 };
         if (!GetCompetition(rootID))
             CreateCompetition(FifamCompDbType::Root, rootID);
@@ -1348,9 +1397,9 @@ FifamVersion FifamDatabase::GetGameDbVersion(UInt gameId) {
     else if (gameId == 12)
         version.Set(0x2012, 0x04);
     else if (gameId == 13)
-        version.Set(0x2013, 0x12); // original 0xA
+        version.Set(0x2013, FifamCountryDatabaseVersion); // original 0xA
     else if (gameId == 14)
-        version.Set(0x2013, 0x12); // original 0xA
+        version.Set(0x2013, FifamCountryDatabaseVersion); // original 0xA
     return version;
 }
 
@@ -1398,7 +1447,7 @@ String GetClimateName(UChar id) {
 
 UChar ReadCityRegionCountryId(String const &str) {
     Int id = Utils::SafeConvertInt<Int>(str);
-    return (id >= 1 && id <= 207) ? (UChar)id : 0;
+    return (id >= 1 && id <= FifamDatabase::NUM_COUNTRIES) ? (UChar)id : 0;
 }
 
 void FifamDatabase::ReadCities(Path const &dbFolder) {

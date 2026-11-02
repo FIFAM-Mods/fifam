@@ -29,7 +29,7 @@ public:
 
                         if ((clubId & 0xFFFF) == 0xFFFF) {
                             UChar countryId = (clubId >> 16) & 0xFF;
-                            if (countryId >= 1 && countryId <= 207)
+                            if (countryId >= 1 && countryId <= FifamDatabase::NUM_COUNTRIES && db.mCountries[countryId - 1]) {
                                 c = &db.mCountries[countryId - 1]->mNationalTeam;
                         }
                         else

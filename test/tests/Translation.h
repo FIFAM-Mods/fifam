@@ -80,7 +80,7 @@ public:
         FifamWriter w("Translations_citydesc.csv", 14, FifamVersion());
         w.SetReplaceQuotes(false);
         WriteTranslation(w, keys, Utils::Format(L"IDS_CITYDESC_%08X", 0));
-        for (UInt countryId = 1; countryId <= 207; countryId++) {
+        for (UInt countryId = 1; countryId <= FifamDatabase::NUM_COUNTRIES; countryId++) {
             std::wcout << FifamNation::MakeFromInt(countryId).ToStr() << std::endl;
             for (UInt clubIndex = 1; clubIndex <= 0x3FFF; clubIndex++)
                 WriteTranslation(w, keys, Utils::Format(L"IDS_CITYDESC_%08X", (countryId << 16) | clubIndex));

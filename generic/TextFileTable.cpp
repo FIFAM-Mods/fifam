@@ -114,146 +114,145 @@ void TextFileTable::Clear() {
 bool TextFileTable::Read(std::filesystem::path const &filename, wchar_t separator) {
     Clear();
     FILE *file = _wfopen(filename.c_str(), L"rb");
-    if (file) {
-        fseek(file, 0, SEEK_END);
-        auto fileSizeWithBom = ftell(file);
-        if (fileSizeWithBom == 0) {
-            fclose(file);
-            return false;
-        }
-        fseek(file, 0, SEEK_SET);
-        eEncoding enc = ENCODING_UTF8;
-        long numBytesToSkip = 0;
-        if (fileSizeWithBom >= 2) {
-            unsigned char bom[3];
-            bom[0] = 0;
-            fread(&bom, 1, 2, file);
-            fseek(file, 0, SEEK_SET);
-            if (bom[0] == 0xFE && bom[1] == 0xFF) {
-                enc = ENCODING_UTF16BE_BOM;
-                numBytesToSkip = 2;
-            }
-            else if (bom[0] == 0xFF && bom[1] == 0xFE) {
-                enc = ENCODING_UTF16LE_BOM;
-                numBytesToSkip = 2;
-            }
-            else if (fileSizeWithBom >= 3) {
-                bom[0] = 0;
-                fread(&bom, 1, 3, file);
-                fseek(file, 0, SEEK_SET);
-                if (bom[0] == 0xEF && bom[1] == 0xBB && bom[2] == 0xBF) {
-                    enc = ENCODING_UTF8_BOM;
-                    numBytesToSkip = 3;
-                }
-            }
-        }
-        long totalSize = fileSizeWithBom - numBytesToSkip;
-        char *fileData = new char[totalSize];
-        fseek(file, numBytesToSkip, SEEK_SET);
-        auto numRead = fread(fileData, 1, totalSize, file);
+    if (!file)
+        return false;
+    fseek(file, 0, SEEK_END);
+    auto fileSizeWithBom = ftell(file);
+    if (fileSizeWithBom == 0) {
         fclose(file);
-        if (numRead != totalSize) {
-            delete[] fileData;
-            return false;
-        }
-        long numWideChars = 0;
-        switch (enc) {
-        case ENCODING_ANSI:
-            numWideChars = totalSize;
-            break;
-        case ENCODING_UTF8:
-        case ENCODING_UTF8_BOM:
-            numWideChars = MultiByteToWideChar(CP_UTF8, 0, fileData, totalSize, 0, 0);
-            break;
-        case ENCODING_UTF16LE_BOM:
-        case ENCODING_UTF16BE_BOM:
-            numWideChars = totalSize / 2;
-            break;
-        }
-        if (numWideChars == 0) {
-            delete[] fileData;
-            return true;
-        }
-        wchar_t *data = new wchar_t[numWideChars];
-        memset(data, 0, numWideChars * sizeof(wchar_t));
-
-        switch (enc) {
-        case ENCODING_ANSI:
-            MultiByteToWideChar(1252, 0, fileData, totalSize, data, numWideChars);
-            break;
-        case ENCODING_UTF8:
-        case ENCODING_UTF8_BOM:
-            MultiByteToWideChar(CP_UTF8, 0, fileData, totalSize, data, numWideChars);
-            break;
-        case ENCODING_UTF16LE_BOM:
-        case ENCODING_UTF16BE_BOM:
-            memcpy(data, fileData, totalSize);
-            break;
-        }
-        delete[] fileData;
-
-        if (enc == ENCODING_UTF16BE_BOM) {
-            for (long i = 0; i < numWideChars; i++)
-                data[i] = (data[i] >> 8) | (data[i] << 8);
-        }
-
-        std::vector<std::wstring> mLines;
-        std::wstring currentLine;
-        auto AddLine = [&]() {
-            if (!currentLine.empty())
-                mLines.push_back(currentLine);
-            currentLine.clear();
-        };
-        unsigned int numQuotes = 0;
-        for (long i = 0; i < numWideChars; i++) {
-            if (data[i] == L'\n') {
-                if (numQuotes % 2)
-                    currentLine += data[i];
-                else
-                    AddLine();
-            }
-            else if (data[i] == L'\r') {
-                if (numQuotes % 2)
-                    currentLine += data[i];
-                if ((i + 1) < numWideChars && data[i + 1] == L'\n') {
-                    i++;
-                    if (numQuotes % 2)
-                        currentLine += data[i];
-                }
-                if ((numQuotes % 2) == 0)
-                    AddLine();
-            }
-            else {
-                if (data[i] == L'"')
-                    numQuotes++;
-                currentLine += data[i];
-            }
-        }
-        AddLine();
-        delete[] data;
-
-        mCells.resize(mLines.size());
-
-        for (size_t l = 0; l < mLines.size(); l++) {
-            numQuotes = 0;
-            auto const &line = mLines[l];
-            std::wstring value;
-            for (size_t i = 0; i < line.size(); i++) {
-                if (line[i] == L'"')
-                    numQuotes++;
-                else if (line[i] == separator && ((numQuotes % 2) == 0)) {
-                    mCells[l].push_back(Unquoted(value));
-                    value.clear();
-                    continue;
-                }
-                value += line[i];
-            }
-            mCells[l].push_back(Unquoted(value));
-            value.clear();
-        }
-
-        mCells.resize(NumRowsToWrite());
+        return false;
     }
+    fseek(file, 0, SEEK_SET);
+    eEncoding enc = ENCODING_UTF8;
+    long numBytesToSkip = 0;
+    if (fileSizeWithBom >= 2) {
+        unsigned char bom[3];
+        bom[0] = 0;
+        fread(&bom, 1, 2, file);
+        fseek(file, 0, SEEK_SET);
+        if (bom[0] == 0xFE && bom[1] == 0xFF) {
+            enc = ENCODING_UTF16BE_BOM;
+            numBytesToSkip = 2;
+        }
+        else if (bom[0] == 0xFF && bom[1] == 0xFE) {
+            enc = ENCODING_UTF16LE_BOM;
+            numBytesToSkip = 2;
+        }
+        else if (fileSizeWithBom >= 3) {
+            bom[0] = 0;
+            fread(&bom, 1, 3, file);
+            fseek(file, 0, SEEK_SET);
+            if (bom[0] == 0xEF && bom[1] == 0xBB && bom[2] == 0xBF) {
+                enc = ENCODING_UTF8_BOM;
+                numBytesToSkip = 3;
+            }
+        }
+    }
+    long totalSize = fileSizeWithBom - numBytesToSkip;
+    char *fileData = new char[totalSize];
+    fseek(file, numBytesToSkip, SEEK_SET);
+    auto numRead = fread(fileData, 1, totalSize, file);
+    fclose(file);
+    if (numRead != totalSize) {
+        delete[] fileData;
+        return false;
+    }
+    long numWideChars = 0;
+    switch (enc) {
+    case ENCODING_ANSI:
+        numWideChars = totalSize;
+        break;
+    case ENCODING_UTF8:
+    case ENCODING_UTF8_BOM:
+        numWideChars = MultiByteToWideChar(CP_UTF8, 0, fileData, totalSize, 0, 0);
+        break;
+    case ENCODING_UTF16LE_BOM:
+    case ENCODING_UTF16BE_BOM:
+        numWideChars = totalSize / 2;
+        break;
+    }
+    if (numWideChars == 0) {
+        delete[] fileData;
+        return true;
+    }
+    wchar_t *data = new wchar_t[numWideChars];
+    memset(data, 0, numWideChars * sizeof(wchar_t));
+
+    switch (enc) {
+    case ENCODING_ANSI:
+        MultiByteToWideChar(1252, 0, fileData, totalSize, data, numWideChars);
+        break;
+    case ENCODING_UTF8:
+    case ENCODING_UTF8_BOM:
+        MultiByteToWideChar(CP_UTF8, 0, fileData, totalSize, data, numWideChars);
+        break;
+    case ENCODING_UTF16LE_BOM:
+    case ENCODING_UTF16BE_BOM:
+        memcpy(data, fileData, totalSize);
+        break;
+    }
+    delete[] fileData;
+
+    if (enc == ENCODING_UTF16BE_BOM) {
+        for (long i = 0; i < numWideChars; i++)
+            data[i] = (data[i] >> 8) | (data[i] << 8);
+    }
+
+    std::vector<std::wstring> mLines;
+    std::wstring currentLine;
+    auto AddLine = [&]() {
+        if (!currentLine.empty())
+            mLines.push_back(currentLine);
+        currentLine.clear();
+    };
+    unsigned int numQuotes = 0;
+    for (long i = 0; i < numWideChars; i++) {
+        if (data[i] == L'\n') {
+            if (numQuotes % 2)
+                currentLine += data[i];
+            else
+                AddLine();
+        }
+        else if (data[i] == L'\r') {
+            if (numQuotes % 2)
+                currentLine += data[i];
+            if ((i + 1) < numWideChars && data[i + 1] == L'\n') {
+                i++;
+                if (numQuotes % 2)
+                    currentLine += data[i];
+            }
+            if ((numQuotes % 2) == 0)
+                AddLine();
+        }
+        else {
+            if (data[i] == L'"')
+                numQuotes++;
+            currentLine += data[i];
+        }
+    }
+    AddLine();
+    delete[] data;
+
+    mCells.resize(mLines.size());
+
+    for (size_t l = 0; l < mLines.size(); l++) {
+        numQuotes = 0;
+        auto const &line = mLines[l];
+        std::wstring value;
+        for (size_t i = 0; i < line.size(); i++) {
+            if (line[i] == L'"')
+                numQuotes++;
+            else if (line[i] == separator && ((numQuotes % 2) == 0)) {
+                mCells[l].push_back(Unquoted(value));
+                value.clear();
+                continue;
+            }
+            value += line[i];
+        }
+        mCells[l].push_back(Unquoted(value));
+        value.clear();
+    }
+    mCells.resize(NumRowsToWrite());
     return true;
 }
 

@@ -26,8 +26,10 @@ public:
 
         std::wofstream out(L"CountryNames.txt");
         WriteCountryDef(out, 0, L"None");
-        for (size_t i = 0; i < 207; i++)
-            WriteCountryDef(out, i + 1, FifamTr(db.mCountries[i]->mName));
+        for (size_t i = 0; i < FifamDatabase::NUM_COUNTRIES; i++) {
+            if (db.mCountries[i])
+                WriteCountryDef(out, i + 1, FifamTr(db.mCountries[i]->mName));
+        }
     }
 };
 

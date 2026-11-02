@@ -14,7 +14,7 @@ public:
         db.SetupWriteableStatus(13);
         create_directories("data");
         for (auto[compId, comp] : db.mCompMap) {
-            if (compId.mRegion.ToInt() > 0 && compId.mRegion.ToInt() <= 207 &&
+            if (compId.mRegion.ToInt() > 0 && compId.mRegion.ToInt() <= FifamDatabase::NUM_COUNTRIES &&
                 (comp->GetDbType() == FifamCompDbType::League || comp->GetDbType() == FifamCompDbType::Cup))
             {
                 FifamWriter writer(L"data\\" + compId.ToHexStr() + L".txt", 13, FifamVersion());

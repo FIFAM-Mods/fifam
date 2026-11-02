@@ -37,7 +37,7 @@ public:
                         UChar countryId = 0;
                         UChar cupIndex = 0;
                         r.ReadLine(countryId, cupIndex);
-                        if (countryId >= 1 && countryId <= 207)
+                        if (countryId >= 1 && countryId <= FifamDatabase::NUM_COUNTRIES)
                             specialCupComps.insert(FifamCompID(countryId, FifamCompType::LeagueCup, cupIndex).ToInt());
                     }
                     else
@@ -50,7 +50,7 @@ public:
                 while (!r.IsEof()) {
                     if (!r.EmptyLine()) {
                         UChar countryId = r.ReadLine<UChar>();
-                        if (countryId >= 1 && countryId <= 207) {
+                        if (countryId >= 1 && countryId <= FifamDatabase::NUM_COUNTRIES) {
                             leagueSplitComps.insert(FifamCompID(countryId, FifamCompType::Relegation, 0).ToInt());
                             leagueSplitComps.insert(FifamCompID(countryId, FifamCompType::Relegation, 1).ToInt());
                         }

@@ -1,5 +1,6 @@
 #pragma once
 #include "FifamPropertied.h"
+#include "FifamCountryLimit.h"
 #include "FifamCountry.h"
 #include "FifamCupAlloc.h"
 #include "FifamClubLink.h"
@@ -14,7 +15,7 @@
 
 class FifamDatabase : public FifamPropertied {
 public:
-    static const UChar NUM_COUNTRIES = 207;
+    static const UChar NUM_COUNTRIES = FifamCountryCount;
     static const UInt LATEST_GAME_VERSION = 14;
 
     Array<FifamCountry *, NUM_COUNTRIES> mCountries = {};

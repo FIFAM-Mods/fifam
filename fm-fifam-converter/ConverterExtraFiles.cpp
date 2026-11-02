@@ -57,7 +57,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
             for (auto[foomId, fifamId] : uidsMap) {
                 if (fifamId > 0) {
                     UChar region = (fifamId >> 16) & 0xFF;
-                    if (region >= 1 && region <= 207) {
+                    if (region >= 1 && region <= FifamDatabase::NUM_COUNTRIES) {
                         if (fifamId > maxUid[region - 1])
                             maxUid[region - 1] = fifamId;
                     }
@@ -1015,7 +1015,7 @@ void Converter::ReadAdditionalInfo(Path const &infoPath, UInt gameId) {
                     Int countryID = -1;
                     UInt strength = 0;
                     reader.ReadLineWithSeparator(L'\t', countryID, strength);
-                    if (countryID >= 1 && countryID <= 207)
+                    if (countryID >= 1 && countryID <= FifamDatabase::NUM_COUNTRIES)
                         mIPCountryStrength[countryID - 1] = strength;
                 }
                 else

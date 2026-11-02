@@ -67,7 +67,7 @@ ENUM_BEGIN(FifamCompRegion, UChar)
     ENUM_MEMBER( 59, Peru,                  L"Peru")
     ENUM_MEMBER( 60, Uruguay,               L"Uruguay")
     ENUM_MEMBER( 61, Venezuela,             L"Venezuela")
-    ENUM_MEMBER( 62, Anguilla,              L"Anguilla")
+    ENUM_MEMBER( 62, New_Caledonia,         L"New Caledonia")
     ENUM_MEMBER( 63, Antigua_and_Barbuda,   L"Antigua and Barbuda")
     ENUM_MEMBER( 64, Aruba,                 L"Aruba")
     ENUM_MEMBER( 65, Bahamas,               L"Bahamas")
@@ -118,7 +118,7 @@ ENUM_BEGIN(FifamCompRegion, UChar)
     ENUM_MEMBER(110, DR_Congo,              L"DR Congo")
     ENUM_MEMBER(111, Egypt,                 L"Egypt")
     ENUM_MEMBER(112, Equatorial_Guinea,     L"Equatorial Guinea")
-    ENUM_MEMBER(113, Eritrea,               L"Eritrea")
+    ENUM_MEMBER(113, Comoros,               L"Comoros")
     ENUM_MEMBER(114, Ethiopia,              L"Ethiopia")
     ENUM_MEMBER(115, Gabon,                 L"Gabon")
     ENUM_MEMBER(116, Gambia,                L"Gambia")
@@ -212,7 +212,24 @@ ENUM_BEGIN(FifamCompRegion, UChar)
     ENUM_MEMBER(204, Vanuatu,               L"Vanuatu")
     ENUM_MEMBER(205, Gibraltar,             L"Gibraltar")
     ENUM_MEMBER(206, Montenegro,            L"Montenegro")
-    ENUM_MEMBER(207, Greenland,             L"Greenland")
+    ENUM_MEMBER(207, Kosovo,                L"Kosovo")
+    ENUM_MEMBER(208, Anguilla,              L"Anguilla")
+    ENUM_MEMBER(209, Bonaire,               L"Bonaire")
+    ENUM_MEMBER(210, French_Guiana,         L"French Guiana")
+    ENUM_MEMBER(211, Guadeloupe,            L"Guadeloupe")
+    ENUM_MEMBER(212, Martinique,            L"Martinique")
+    ENUM_MEMBER(213, Saint_Martin,          L"Saint Martin")
+    ENUM_MEMBER(214, Sint_Maarten,          L"Sint Maarten")
+    ENUM_MEMBER(215, Eritrea,               L"Eritrea")
+    ENUM_MEMBER(216, Reunion,               L"Reunion")
+    ENUM_MEMBER(217, South_Sudan,           L"South Sudan")
+    ENUM_MEMBER(218, Zanzibar,              L"Zanzibar")
+    ENUM_MEMBER(219, Northern_Mariana_Islands, L"Northern Mariana Islands")
+    ENUM_MEMBER(220, Timor_Leste,           L"Timor-Leste")
+    ENUM_MEMBER(221, Kiribati,              L"Kiribati")
+    ENUM_MEMBER(222, Tuvalu,                L"Tuvalu")
+    ENUM_MEMBER(223, Micronesia,            L"Micronesia")
+    ENUM_MEMBER(224, Greenland,             L"Greenland")
     ENUM_MEMBER(249, Europe,                L"Europe")
     ENUM_MEMBER(250, SouthAmerica,          L"South America")
     ENUM_MEMBER(251, NorthAmerica,          L"North America")
@@ -234,6 +251,12 @@ ENUM_BEGIN(FifamCompRegion, UChar)
                     return;
                 }
             }
+            if (reader.GetGameId() > 7 && id == 207 && !reader.IsVersionGreaterOrEqual(0x2013, 0xB))
+                id = Greenland;
+            if (!reader.IsVersionGreaterOrEqual(0x2013, 0xB)) {
+                if (id == 62) id = Anguilla;
+                else if (id == 113) id = Eritrea;
+            }
             SetFromInt(id);
         }
         else
@@ -241,15 +264,20 @@ ENUM_BEGIN(FifamCompRegion, UChar)
     }
 
     ENUM_WRITE(writer) {
-        if (writer.GetGameId() <= 7) {
-            if (ToInt() == Montenegro)
-                writer.WriteOne(Serbia);
-            else if (ToInt() == Greenland)
-                writer.WriteOne(206);
-            else
-                writer.WriteOne(ToInt());
+        UChar id = ToInt();
+        if (!writer.IsVersionGreaterOrEqual(0x2013, 0xB)) {
+            if (id == Anguilla) id = 62;
+            else if (id == Eritrea) id = 113;
         }
-        else
-            writer.WriteOne(ToInt());
+        if (writer.GetGameId() <= 7) {
+            if (id == Montenegro) id = Serbia;
+            else if (id == Greenland) id = 206;
+            else if (id >= Kosovo && id < Europe) id = 0;
+        }
+        else if (!writer.IsVersionGreaterOrEqual(0x2013, 0x13)) {
+            if (id == Greenland && !writer.IsVersionGreaterOrEqual(0x2013, 0xB)) id = 207;
+            else if ((id > 207 && id < Europe) || (id == Kosovo && !writer.IsVersionGreaterOrEqual(0x2013, 0xB))) id = 0;
+        }
+        writer.WriteOne(id);
     }
 ENUM_END(FifamCompRegion)

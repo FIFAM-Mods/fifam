@@ -312,7 +312,7 @@ void WriteInstruction(FifamWriter &writer, FifamInstructionID instructionID, Ins
                 writer.Write(inlineParams[i]);
         }
         if (IsInternationalTeamsInstruction(instructionID)) {
-            if (inlineParams[0] >= 1 && inlineParams[0] <= 207) {
+            if (inlineParams[0] >= 1 && inlineParams[0] <= FifamDatabase::NUM_COUNTRIES) {
                 if (inlineParams[0] >= 100)
                     writer.Write(L" ; ");
                 else if (inlineParams[0] >= 10)
@@ -350,7 +350,7 @@ void WriteInstruction(FifamWriter &writer, FifamInstructionID instructionID, Ins
             writer.Write(L" ;");
             FifamCompID compId;
             compId.SetFromStr(compIdParam);
-            if (!compId.IsNull() && (compId.mRegion.ToInt() >= 1 && compId.mRegion.ToInt() <= 207)) {
+            if (!compId.IsNull() && (compId.mRegion.ToInt() >= 1 && compId.mRegion.ToInt() <= FifamDatabase::NUM_COUNTRIES)) {
                 writer.Write(L" ");
                 writer.Write(FifamNation::MakeFromInt(compId.mRegion.ToInt()).ToStr());
             }

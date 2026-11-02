@@ -203,7 +203,7 @@ void GraphicsConverter::ConvertCompBadges(FifamDatabase *db, Path const &fmGraph
                 String badgeName;
                 if (gameId >= 10)
                     badgeName = Utils::Format(L"%08X.tga", e.first.ToInt());
-                else if (e.first.mRegion.ToInt() > 0 && e.first.mRegion.ToInt() <= 207)
+                else if (e.first.mRegion.ToInt() > 0 && e.first.mRegion.ToInt() < std::size(countryLeagueNames))
                     badgeName = Utils::Format(L"%s%d.tga", countryLeagueNames[e.first.mRegion.ToInt()], comp->mCompetitionLevel + 1);
                 else
                     continue;
@@ -1427,7 +1427,7 @@ void GraphicsConverter::ConvertCompBadgesFIFA(FifamDatabase *db, Path const &fif
                     String badgeName;
                     if (gameId >= 10)
                         badgeName = Utils::Format(L"%08X.tga", compId.ToInt());
-                    else if (compId.mRegion.ToInt() > 0 && compId.mRegion.ToInt() <= 207)
+                    else if (compId.mRegion.ToInt() > 0 && compId.mRegion.ToInt() < std::size(countryLeagueNames))
                         badgeName = Utils::Format(L"%s%d.tga", countryLeagueNames[compId.mRegion.ToInt()], comp->mCompetitionLevel + 1);
                     else
                         continue;
